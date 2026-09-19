@@ -1,0 +1,69 @@
+moneytrace/
+├── assets/
+│   ├── dictionaries/
+│   │   ├── iso_18245_mcc_tr.json           # Türkiye ve global MCC kodları eşleme tablosu
+│   │   └── known_merchants_dictionary.json # Zincir marketler, akaryakıt ve POS kökleri
+│   └── sql/
+│       ├── v1_create_schema.sql            # İlk kurulum DDL scripti
+│       └── v1_seed_categories.sql          # Varsayılan sistem kategorileri
+│
+├── lib/
+│   ├── core/
+│   │   ├── constants/
+│   │   │   ├── app_currencies.dart         # ISO 4217 para birimleri ve küsurat tanımları
+│   │   │   └── app_regex_patterns.dart     # TCKN, IBAN, Kart No maskeleme regexleri
+│   │   │
+│   │   ├── database/
+│   │   │   ├── app_database.dart           # SQLite bağlantı ve SQLCipher başlatıcı
+│   │   │   ├── database_migrator.dart      # PRAGMA user_version takip eden migration koşucu
+│   │   │   └── migrations/
+│   │   │       ├── migration_v1_initial.dart
+│   │   │       └── migration_v2_fx_yield.dart
+│   │   │
+│   │   ├── security/
+│   │   │   ├── pii_redactor.dart           # Bellek içi TCKN/PAN/Adres maskeleme filtresi
+│   │   │   └── temp_file_cleaner.dart      # PDF RAM'e alındıktan sonra geçici diski silici
+│   │   │
+│   │   └── utils/
+│   │       ├── currency_normalizer.dart    # Virgül/nokta ayracı ve kuruş (minor unit) çevirici
+│   │       └── date_parser_helper.dart     # Türkçe/İngilizce ay adlarını DateTime yapan araç
+│   │
+│   └── features/
+│       ├── statement_parser/
+│       │   ├── models/
+│       │   │   ├── parsed_record.dart      # Ortak işlem DTO nesnesi
+│       │   │   ├── parsed_installment.dart # Taksit (X/Y) veri modeli
+│       │   │   └── parsed_tax_data.dart    # BSMV, KKDF ve KDV kesinti modeli
+│       │   │
+│       │   ├── services/
+│       │   │   ├── bank_detector.dart      # Parmak iziyle banka ve belge tipi tanıma motoru
+│       │   │   ├── merchant_sanitizer.dart # Gateway (Iyzico, PayTR) temizleme ve MCC eşleyici
+│       │   │   └── statement_orchestrator.dart # PDF metnini alıp baştan sona işleyen ana orkestratör
+│       │   │
+│       │   └── parsers/
+│       │       ├── base_statement_parser.dart # Tüm parser'ların türeyeceği abstract sınıf
+│       │       ├── enpara_checking_parser.dart # Enpara vadesiz hesap ve kredi taksiti ayrıştırıcısı
+│       │       ├── yapikredi_card_parser.dart  # YK Asıl/Dijital/Ek kart ve taksit ayrıştırıcısı
+│       │       └── generic_payslip_parser.dart # Bordro gelir vergisi ve net maaş ayrıştırıcısı
+│       │
+│       ├── tax_analytics/
+│       │   ├── models/
+│       │   │   └── tax_summary_report.dart # Doğrudan ve dolaylı kamu payı raporu
+│       │   └── services/
+│       │       └── tax_calculator_service.dart # BSMV, KKDF, MTV ve bordro vergi toplayıcısı
+│       │
+│       ├── cashflow_projection/
+│       │   ├── models/
+│       │   │   └── monthly_debt_commitment.dart # Gelecek 6 ayın kesinleşmiş taksit yükü
+│       │   └── services/
+│       │       └── installment_scheduler.dart # Kalan taksitleri takvime dağıtan motor
+│       │
+│       ├── persona_scout/
+│       │   ├── models/
+│       │   │   └── insight_trigger_rule.dart # Sapma şartları (%25 market artışı vb.)
+│       │   └── services/
+│       │       └── scout_insight_engine.dart # "İzci" esprili geri bildirim ve bildirim motoru
+│       │
+│       └── subscription_manager/
+│           └── services/
+│               └── quota_enforcer.dart     # Ayda 1 ücretsiz PDF kotası ve Google Play Billing

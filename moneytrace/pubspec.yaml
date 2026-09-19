@@ -1,0 +1,46 @@
+name: moneytrace
+description: "Paraİz (MoneyTrace) - Deterministik Veri Motoru & Harcama Zekası Platformu"
+publish_to: 'none'
+version: 3.5.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # UI & Grafikler
+  cupertino_icons: ^1.0.6
+  fl_chart: ^0.68.0
+
+  # Yerel Depolama & Veritabanı
+  sqflite: ^2.3.3+1
+  path_provider: ^2.1.3
+  path: ^1.9.0
+
+  # PDF Okuma & Güvenlik
+  syncfusion_flutter_pdf: ^26.1.42
+  file_picker: ^8.0.5
+  crypto: ^3.0.3
+
+  # Yardımcı & Biçimlendirme
+  intl: ^0.19.0
+
+  # Google Play Billing & Widget
+  in_app_purchase: ^3.2.0
+  home_widget: ^0.6.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/dictionaries/
+    - assets/sql/
+    - assets/config/

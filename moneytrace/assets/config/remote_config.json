@@ -1,0 +1,115 @@
+{
+  "clean_data_mode": true,
+  "theme": {
+    "primary_hex": "#0052FF",
+    "income_hex": "#00D084",
+    "expense_hex": "#FF2D55",
+    "palette_name": "Elektrik Mavisi (Standart)",
+    "dark_mode": false
+  },
+  "menu": {
+    "tab_order": [
+      "dashboard",
+      "cashflow",
+      "analysis",
+      "goals",
+      "assets"
+    ],
+    "visible_tabs": {
+      "dashboard": true,
+      "cashflow": true,
+      "analysis": true,
+      "goals": true,
+      "assets": true
+    },
+    "default_tab_index": 0
+  },
+  "button": {
+    "border_radius": 14.0,
+    "elevation": 3.0,
+    "fab_position": "endFloat",
+    "show_quick_actions": true
+  },
+  "modules": {
+    "dashboard_summary": { "enabled": true, "disabled_countries": [], "title": "Özellik Bakımda", "message": "Planlı bakım çalışması." },
+    "statement_upload": { "enabled": true, "disabled_countries": [], "title": "Özellik Bakımda", "message": "Planlı bakım çalışması." },
+    "cashflow_projection": { "enabled": true, "disabled_countries": [], "title": "Özellik Bakımda", "message": "Planlı bakım çalışması." },
+    "goals_module": { "enabled": true, "disabled_countries": [], "title": "Özellik Bakımda", "message": "Planlı bakım çalışması." },
+    "assets_portfolio": { "enabled": true, "disabled_countries": [], "title": "Özellik Bakımda", "message": "Planlı bakım çalışması." },
+    "market_rates": { "enabled": true, "disabled_countries": [], "title": "Özellik Bakımda", "message": "Planlı bakım çalışması." },
+    "quick_entry": { "enabled": true, "disabled_countries": [], "title": "Özellik Bakımda", "message": "Planlı bakım çalışması." },
+    "family_budget": { "enabled": true, "disabled_countries": [], "title": "Özellik Bakımda", "message": "Planlı bakım çalışması." },
+    "tax_analytics": { "enabled": true, "disabled_countries": [], "title": "Özellik Bakımda", "message": "Planlı bakım çalışması." },
+    "scout_ai_coach": { "enabled": true, "disabled_countries": [], "title": "Özellik Bakımda", "message": "Planlı bakım çalışması." },
+    "newsletter_subscription": { "enabled": true, "disabled_countries": [], "title": "Özellik Bakımda", "message": "Planlı bakım çalışması." },
+    "market_news": { "enabled": true, "disabled_countries": [], "title": "Özellik Bakımda", "message": "Planlı bakım çalışması." }
+  },
+  "dynamic_lists": {
+    "banks": [
+      "Yapı Kredi",
+      "Garanti BBVA",
+      "Türkiye İş Bankası",
+      "Akbank",
+      "QNB Finansbank",
+      "Enpara.com",
+      "Ziraat Bankası",
+      "VakıfBank",
+      "Halkbank",
+      "TEB",
+      "DenizBank"
+    ],
+    "vehicle_brands_models": [
+      { "brand": "Renault", "model": "Clio", "fuel_type": "Benzin" },
+      { "brand": "Renault", "model": "Megane E-Tech", "fuel_type": "Elektrik" },
+      { "brand": "Fiat", "model": "Egea", "fuel_type": "Dizel" },
+      { "brand": "Fiat", "model": "500e", "fuel_type": "Elektrik" },
+      { "brand": "Volkswagen", "model": "Golf", "fuel_type": "Benzin" },
+      { "brand": "Volkswagen", "model": "Passat", "fuel_type": "Dizel" },
+      { "brand": "Volkswagen", "model": "ID.4", "fuel_type": "Elektrik" },
+      { "brand": "Toyota", "model": "Corolla Hybrid", "fuel_type": "Hibrit" },
+      { "brand": "Hyundai", "model": "Ioniq 5", "fuel_type": "Elektrik" },
+      { "brand": "Hyundai", "model": "Tucson", "fuel_type": "Dizel" },
+      { "brand": "Peugeot", "model": "e-2008", "fuel_type": "Elektrik" },
+      { "brand": "Tesla", "model": "Model Y", "fuel_type": "Elektrik" },
+      { "brand": "Togg", "model": "T10X", "fuel_type": "Elektrik" },
+      { "brand": "BMW", "model": "i4", "fuel_type": "Elektrik" },
+      { "brand": "BMW", "model": "320d", "fuel_type": "Dizel" },
+      { "brand": "Mercedes-Benz", "model": "EQA", "fuel_type": "Elektrik" }
+    ],
+    "housing_types": [
+      "Kiracı (Standart Daire)",
+      "Mülk Sahibi (Daire)",
+      "Müstakil / Villa (Mülk)",
+      "Müstakil / Villa (Kira)",
+      "Lojman / Kurumsal Konut"
+    ],
+    "payment_methods": [
+      "Nakit (Elden Nakit)",
+      "Kredi Kartı",
+      "Banka Kartı (Hesap Kartı)",
+      "Havale / EFT / FAST",
+      "Kripto / Diğer"
+    ],
+    "expense_categories": [
+      "Oto Bakım & Sanayi Tamiri",
+      "Akaryakıt",
+      "Elektrikli Araç Şarj Bedeli",
+      "Market & Mutfak",
+      "Kira & Aidat",
+      "Faturalar (Elektrik, Su, Doğalgaz)",
+      "Sağlık & İlaç",
+      "Yeme - İçme & Kafe",
+      "Eğitim & Kurs",
+      "Giyim & Aksesuar",
+      "Abonelik & Dijital Servisler"
+    ],
+    "goal_types": [
+      "Elektrikli Araç Satın Alma",
+      "Mevcut Aracı Yenileme",
+      "Ev Peşinatı Birikimi",
+      "Acil Durum Fonu (6 Aylık Masraf)",
+      "Yıllık Aile Tatili",
+      "Çocuk Eğitim Birikimi"
+    ]
+  }
+}

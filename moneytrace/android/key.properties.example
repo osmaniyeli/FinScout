@@ -1,0 +1,8 @@
+# Google Play Store İmzalaması İçin Örnek Yapılandırma Dosyası
+# Bu dosyayı 'key.properties' olarak kopyalayın ve kendi keystore bilgilerinizi girin.
+# DİKKAT: 'key.properties' ve '.jks / .keystore' dosyalarını asla git'e pushlamayın!
+
+storePassword=buraya_keystore_sifreniz
+keyPassword=buraya_anahtar_sifreniz
+keyAlias=buraya_key_alias_adiniz
+storeFile=../upload-keystore.jks

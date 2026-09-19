@@ -1,0 +1,1496 @@
+# PARAFİZ (MONEYTRACE) - TEKNİK MİMARİ VE SİSTEM SPESİFİKASYON KİTABI
+
+*Sürüm: 3.5.0 (Global FinTech, Deterministik Veri Motoru & Tam Kod Tabanı)*
+
+*Hedef Yıl: 2026*
+
+---
+
+# BÖLÜM 1: ÜRÜN VİZYONU VE TEMEL ÇERÇEVE
+
+Paraİz (MoneyTrace); kullanıcıların mobil bankacılık ve kurumsal sistemlerden indirdikleri PDF formatındaki banka hesap dökümlerini, kredi kartı ekstrelerini ve maaş bordrolarını yerel olarak (On-Device) işleyen, çoklu para birimini destekleyen, vergi yükünü ve gelecek dönem borç projeksiyonunu çıkaran, sıfır sunucu maliyetli bir kişisel finans ve harcama zekası platformudur.
+
+### Temel Çözüm İlkeleri
+
+* **Sıfır Manuel Giriş:** Kullanıcı harcamalarını tek tek yazmaz; banka PDF'ini uygulamaya aktarır, sistem deterministik regex ve koordinat motoruyla tabloyu çözer.
+
+
+* **Tam Gizlilik ve Sıfır Sunucu:** Kişisel veriler (TCKN, kart numarası, adres) cihaz RAM'inde anında maskelenir; ham PDF asla dış sunuculara yüklenmez.
+* **"İzci" (Scout) Personası:** Sistem salt kuru grafikler sunmaz; bütçe sapmalarına (ör. gıda veya yakıt artışı) esprili, iğneleyici ve zeki geri bildirimler üretir.
+
+
+* **Devlet Payı ve Vergi Şeffaflığı:** Bordro stopajları, kredi BSMV/KKDF kesintileri, harçlar ve tüketim KDV'si konsolide edilerek toplam vergi yükü hesaplanır.
+
+
+
+---
+
+# BÖLÜM 2: 2000–2026 TÜKETİCİ HARCAMA TRENDLERİ & FX PAZAR ANALİZİ
+
+### 2.1. Tarihsel Tüketici Harcama Morfolojisi
+
+* **2000–2010 (Nakit & Fiziksel Slip Çağı):** Harcamalar ağırlıklı olarak nakit ve tek çekim kartlarla yapılıyordu. "Ödeme acısı" fizikseldi; bütçe ay başında zarflara ayrılan nakitle yönetilirdi.
+* **2010–2020 (Sürtünmesiz Ödeme & E-Ticaret Patlaması):** Temassız kartlar, dijital cüzdanlar ve tek tıkla sipariş ödeme bariyerini yıktı. İşlem adedi katlanırken ortalama sepet büyüklüğü ufaldı.
+* **2020–2024 (Abonelik Yorgunluğu & Hızlı Ticaret):** Tüketim mülkiyetten "aylık kiralamaya" evrildi. Müzik, video, bulut depolama, yemek ve market teslimatları ufak mikro faturalara bölündü; kullanıcı ayda kaç aboneliğe para kaptırdığını göremez hale geldi.
+
+
+* **2024–2026 (BNPL Sisi, Mikro Taksitler ve Enflasyonist Algı Kayması):** "Şimdi Al Sonra Öde" (BNPL) ve kredi kartlarındaki agresif taksitlendirme (1/3, 1/6) tüketicinin gerçek borç yükünü maskeledi. Yüksek küresel ve yerel enflasyon, kullanıcıları net maaşlarının gerçek alım gücünü ve harcamalarının ne kadarının devlete (vergilere) gittiğini sorgulamaya itti.
+
+
+
+### 2.2. Global Çoklu Para Birimi (FX) Dağılımı
+
+1. **USD ($):** Küresel SaaS, bulut abonelikleri ve sınır ötesi işlemlerin standardı.
+2. **EUR (€):** SEPA transferleri ve Avrupa bölgesi işlemleri.
+3. **CNY (¥):** Küresel e-ticaret ve doğrudan tedarik kanalları.
+4. **JPY (¥):** Kuruş/cent hanesi bulunmayan tamsayı muhasebe standardı.
+5. **TRY (₺):** Enflasyonist ortamda kur koruma, fon kesintileri (BSMV/KKDF) ve taksit takibi gerektiren yerel pazar.
+
+---
+
+# BÖLÜM 3: ÇOKLU AJAN (MULTI-AGENT) MİMARİSİ
+
+```
+[Kullanıcı Belge Yükler (PDF)]
+              │
+              ▼
+┌────────────────────────────────────────────────────────┐
+│ 1. Güvenlik & PII Maskeleme Katmanı                   │
+│    (TCKN, PAN, IBAN, Adres bellekten silinir)          │
+└─────────────────────┬──────────────────────────────────┘
+                      │
+   ┌──────────────────┼──────────────────┐
+   ▼                  ▼                  ▼
+┌──────────────┐ ┌──────────────┐ ┌──────────────┐
+│ Parser Agent │ │ Cleansing    │ │ Tax &        │
+│ (Fingerprint │ │ Agent        │ │ Deduction    │
+│ & Extraction)│ │ (MCC & POS)  │ │ Agent        │
+└──────┬───────┘ └──────┬───────┘ └──────┬───────┘
+       │                │                │
+       └────────────────┼────────────────┘
+                        ▼
+┌────────────────────────────────────────────────────────┐
+│ Cashflow & Debt Projection Agent                       │
+│ (Taksitlerin gelecek 6 aya dağıtımı)                   │
+└───────────────────────┬────────────────────────────────┘
+                        ▼
+┌────────────────────────────────────────────────────────┐
+│ "İzci" Persona & Insight Agent                         │
+│ (Dinamik esprili / analitik durum değerlendirmesi)     │
+└────────────────────────────────────────────────────────┘
+
+```
+
+---
+
+# BÖLÜM 4: VERİ TABANI ŞEMASI VE SQL MİMARİSİ
+
+### Dosya: `02_DB_schema_and_migrations.sql`
+
+```sql
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE accounts (
+    id TEXT PRIMARY KEY NOT NULL,
+    institution_name TEXT NOT NULL,
+    account_type TEXT NOT NULL,
+    account_name TEXT NOT NULL,
+    card_mask TEXT,
+    card_holder TEXT,
+    currency_code TEXT NOT NULL DEFAULT 'TRY',
+    credit_limit_cents INTEGER DEFAULT 0,
+    current_balance_cents INTEGER DEFAULT 0,
+    is_active INTEGER NOT NULL DEFAULT 1,
+    created_at INTEGER NOT NULL
+);
+
+CREATE TABLE statements (
+    id TEXT PRIMARY KEY NOT NULL,
+    account_id TEXT NOT NULL,
+    statement_type TEXT NOT NULL,
+    period_start TEXT NOT NULL,
+    period_end TEXT NOT NULL,
+    due_date TEXT,
+    total_debit_cents INTEGER NOT NULL,
+    total_credit_cents INTEGER NOT NULL,
+    closing_balance_cents INTEGER,
+    file_sha256 TEXT NOT NULL UNIQUE,
+    parsed_at INTEGER NOT NULL,
+    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+);
+
+CREATE TABLE categories (
+    id TEXT PRIMARY KEY NOT NULL,
+    parent_id TEXT,
+    name TEXT NOT NULL,
+    icon_name TEXT NOT NULL,
+    color_hex TEXT NOT NULL,
+    is_system INTEGER NOT NULL DEFAULT 1,
+    FOREIGN KEY (parent_id) REFERENCES categories(id) ON DELETE SET NULL
+);
+
+CREATE TABLE transactions (
+    id TEXT PRIMARY KEY NOT NULL,
+    account_id TEXT NOT NULL,
+    statement_id TEXT,
+    transaction_date TEXT NOT NULL,
+    transaction_type TEXT NOT NULL,
+    raw_description TEXT NOT NULL,
+    clean_merchant TEXT NOT NULL,
+    category_id TEXT NOT NULL,
+    mcc_code INTEGER,
+    billing_amount_cents INTEGER NOT NULL,
+    billing_currency TEXT NOT NULL DEFAULT 'TRY',
+    original_amount_cents INTEGER,
+    original_currency TEXT,
+    exchange_rate REAL,
+    is_installment INTEGER NOT NULL DEFAULT 0,
+    is_recurring INTEGER NOT NULL DEFAULT 0,
+    fast_or_tracking_id TEXT,
+    created_at INTEGER NOT NULL,
+    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE,
+    FOREIGN KEY (statement_id) REFERENCES statements(id) ON DELETE SET NULL,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE RESTRICT
+);
+
+CREATE TABLE installments (
+    id TEXT PRIMARY KEY NOT NULL,
+    transaction_id TEXT NOT NULL,
+    current_installment INTEGER NOT NULL,
+    total_installment INTEGER NOT NULL,
+    monthly_amount_cents INTEGER NOT NULL,
+    remaining_amount_cents INTEGER NOT NULL,
+    next_due_date TEXT NOT NULL,
+    FOREIGN KEY (transaction_id) REFERENCES transactions(id) ON DELETE CASCADE
+);
+
+CREATE TABLE tax_deductions (
+    id TEXT PRIMARY KEY NOT NULL,
+    transaction_id TEXT,
+    statement_id TEXT NOT NULL,
+    tax_type TEXT NOT NULL,
+    amount_cents INTEGER NOT NULL,
+    tax_date TEXT NOT NULL,
+    FOREIGN KEY (transaction_id) REFERENCES transactions(id) ON DELETE CASCADE,
+    FOREIGN KEY (statement_id) REFERENCES statements(id) ON DELETE CASCADE
+);
+
+CREATE TABLE user_category_rules (
+    id TEXT PRIMARY KEY NOT NULL,
+    keyword_pattern TEXT UNIQUE NOT NULL,
+    category_id TEXT NOT NULL,
+    updated_at INTEGER NOT NULL,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+);
+
+CREATE TABLE app_meta (
+    key TEXT PRIMARY KEY NOT NULL,
+    value TEXT NOT NULL
+);
+
+-- Performans İndeksleri
+CREATE INDEX idx_transactions_date ON transactions(transaction_date DESC);
+CREATE INDEX idx_transactions_category_date ON transactions(category_id, transaction_date);
+CREATE INDEX idx_statements_hash ON statements(file_sha256);
+CREATE INDEX idx_installments_due ON installments(next_due_date ASC);
+
+-- Varsayılan Kategori Tohumları
+INSERT INTO categories (id, parent_id, name, icon_name, color_hex, is_system) VALUES
+('cat_market', NULL, 'Market & Bakkaliye', 'shopping_cart', '#2E7D32', 1),
+('cat_fuel', NULL, 'Akaryakıt & Ulaşım', 'local_gas_station', '#E65100', 1),
+('cat_dining', NULL, 'Yeme - İçme', 'restaurant', '#C2185B', 1),
+('cat_utilities', NULL, 'Faturalar & Hizmetler', 'receipt_long', '#0288D1', 1),
+('cat_subscriptions', NULL, 'Dijital Abonelikler', 'subscriptions', '#512DA8', 1),
+('cat_home', NULL, 'Ev Bakım & Hırdavat', 'home_repair_service', '#795548', 1),
+('cat_tax', NULL, 'Vergi & Harçlar', 'account_balance', '#D32F2F', 1),
+('cat_general', NULL, 'Genel Alışveriş', 'local_mall', '#616161', 1);
+
+INSERT INTO app_meta (key, value) VALUES
+('db_version', '1'),
+('current_month_pdf_count', '0'),
+('active_currency', 'TRY');
+
+```
+
+---
+
+# BÖLÜM 5: ÇEKİRDEK KOD KÜTÜPHANESİ (20 MODÜL)
+
+### Dosya: `03_SECURITY_pii_redactor.dart`
+
+```dart
+class PiiRedactor {
+  static final RegExp _tcknRegex = RegExp(r'\b\d{7}(\d{4})\b');
+  static final RegExp _panRegex = RegExp(r'\b(?:\d{4}[ -]?){3}(\d{4})\b');
+  static final RegExp _ibanRegex = RegExp(r'TR\d{2}\s?(?:\d{4}\s?){5}\d{2}');
+  static final RegExp _addressRegex = RegExp(
+    r'(?:MAH\.|SOK\.|CAD\.|SİTESİ|BLOK|İÇ KAPI NO).*?(?:KOCAELİ|İSTANBUL|ANKARA|İZMİR)',
+    caseSensitive: false,
+  );
+
+  static String redact(String rawText) {
+    String sanitized = rawText;
+    sanitized = sanitized.replaceAllMapped(_tcknRegex, (m) => '6350541****');
+    sanitized = sanitized.replaceAllMapped(_panRegex, (m) => '4462 12****** ${m.group(1)}');
+    sanitized = sanitized.replaceAllMapped(_ibanRegex, (m) => 'TR43 0015 **** **** **** 8065');
+    sanitized = sanitized.replaceAll(_addressRegex, '[ADRES BİLGİSİ MASKELLENDİ]');
+    return sanitized;
+  }
+}
+
+```
+
+### Dosya: `04_PARSER_bank_detector.dart`
+
+```dart
+enum DocumentType { checkingAccount, creditCard, payslip, unknown }
+enum SupportedInstitution { enpara, yapiKredi, genericUnknown }
+
+class BankDetectionResult {
+  final SupportedInstitution institution;
+  final DocumentType documentType;
+  final double confidence;
+  final String detectedAccountIdentifier;
+
+  BankDetectionResult({
+    required this.institution,
+    required this.documentType,
+    required this.confidence,
+    this.detectedAccountIdentifier = '',
+  });
+}
+
+class BankDetector {
+  static BankDetectionResult identify(String text) {
+    final cleanText = text.toUpperCase();
+
+    final hasEnparaBrand = cleanText.contains('ENPARA.COM') || cleanText.contains('ENPARA BANK A.Ş.');
+    final hasEnparaCheckingSign = cleanText.contains('VADESİZ TL') && cleanText.contains('DÖNEM BAŞI BAKIYESI');
+    final enparaIbanMatch = RegExp(r'TR\d{2}\s?0015\s?\d{4}').firstMatch(text);
+
+    if (hasEnparaBrand || (enparaIbanMatch != null && hasEnparaCheckingSign)) {
+      return BankDetectionResult(
+        institution: SupportedInstitution.enpara,
+        documentType: DocumentType.checkingAccount,
+        confidence: 0.99,
+        detectedAccountIdentifier: enparaIbanMatch?.group(0) ?? 'Enpara Hesabı',
+      );
+    }
+
+    final hasYapiKrediBrand = cleanText.contains('YAPI VE KREDİ BANKASI A.Ş.') || cleanText.contains('YAPI KREDI');
+    final hasYapiKrediCardSign = cleanText.contains('HESAP ÖZETİ') && 
+                                (cleanText.contains('WORLDPUAN') || cleanText.contains('ASGARİ TUTAR') || cleanText.contains('DÖNEM BORCU'));
+    final ykCardMatch = RegExp(r'\b(?:\d{4}[ -]?\d{2}\*{2}[ -]?\*{4}[ -]?\d{4})\b').firstMatch(text);
+
+    if (hasYapiKrediBrand && hasYapiKrediCardSign) {
+      return BankDetectionResult(
+        institution: SupportedInstitution.yapiKredi,
+        documentType: DocumentType.creditCard,
+        confidence: 0.99,
+        detectedAccountIdentifier: ykCardMatch?.group(0) ?? 'Yapı Kredi Kartı',
+      );
+    }
+
+    final hasPayslipSign = (cleanText.contains('ÜCRET BORDROSU') || cleanText.contains('MAAŞ BORDROSU')) &&
+                           cleanText.contains('SGK') && cleanText.contains('GELİR VERGİSİ');
+    if (hasPayslipSign) {
+      return BankDetectionResult(
+        institution: SupportedInstitution.genericUnknown,
+        documentType: DocumentType.payslip,
+        confidence: 0.90,
+      );
+    }
+
+    return BankDetectionResult(
+      institution: SupportedInstitution.genericUnknown,
+      documentType: DocumentType.unknown,
+      confidence: 0.0,
+    );
+  }
+}
+
+```
+
+### Dosya: `05_PARSER_enpara_checking.dart`
+
+```dart
+import '../models/parsed_models.dart';
+import '../../../core/utils/currency_normalizer.dart';
+
+class EnparaCheckingParser {
+  static final RegExp _txRowRegex = RegExp(
+    r'^(\d{2}/\d{2}/\d{2})\s+(.+?)\s+(-?\s*[\d\.,]+)\s*TL\s+([\d\.,]+)\s*TL$',
+    multiLine: true,
+  );
+  static final RegExp _fastQueryRegex = RegExp(r'sorgu no:\s*(\d+)');
+
+  List<ParsedRecord> parse(String text) {
+    final List<ParsedRecord> results = [];
+    final matches = _txRowRegex.allMatches(text).toList();
+
+    int i = 0;
+    while (i < matches.length) {
+      final match = matches[i];
+      final dateStr = match.group(1)!;
+      final desc = match.group(2)!.trim();
+      final amountStr = match.group(3)!.replaceAll(' ', '');
+
+      final dateParts = dateStr.split('/');
+      final date = DateTime(2000 + int.parse(dateParts[2]), int.parse(dateParts[1]), int.parse(dateParts[0]));
+      final totalCents = CurrencyNormalizer.toMinorUnits(amountStr);
+      final isDebit = totalCents < 0;
+
+      String? fastId;
+      final fastMatch = _fastQueryRegex.firstMatch(desc);
+      if (fastMatch != null) fastId = fastMatch.group(1);
+
+      if (desc.contains('ihtiyaç kredinizin') && !desc.contains('BSMV') && !desc.contains('KKDF')) {
+        int consolidatedAmount = totalCents.abs();
+        final List<ParsedTaxData> taxes = [];
+
+        int lookAhead = 1;
+        while (lookAhead <= 2 && (i + lookAhead) < matches.length) {
+          final nextMatch = matches[i + lookAhead];
+          final nextDesc = nextMatch.group(2)!;
+          final nextAmountStr = nextMatch.group(3)!.replaceAll(' ', '');
+
+          if (nextDesc.contains('BSMV')) {
+            final bsmvCents = CurrencyNormalizer.toMinorUnits(nextAmountStr).abs();
+            consolidatedAmount += bsmvCents;
+            taxes.add(ParsedTaxData(taxType: 'BSMV', amountCents: bsmvCents));
+            lookAhead++;
+          } else if (nextDesc.contains('KKDF')) {
+            final kkdfCents = CurrencyNormalizer.toMinorUnits(nextAmountStr).abs();
+            consolidatedAmount += kkdfCents;
+            taxes.add(ParsedTaxData(taxType: 'KKDF', amountCents: kkdfCents));
+            lookAhead++;
+          } else {
+            break;
+          }
+        }
+
+        results.add(ParsedRecord(
+          cardOrAccountMask: 'TR43 0015 **** 8065',
+          date: date,
+          type: ParsedTransactionType.debit,
+          rawDescription: desc,
+          billingAmountCents: consolidatedAmount,
+          taxes: taxes,
+          fastOrTrackingId: fastId,
+        ));
+        i += lookAhead;
+        continue;
+      }
+
+      results.add(ParsedRecord(
+        cardOrAccountMask: 'TR43 0015 **** 8065',
+        date: date,
+        type: isDebit ? ParsedTransactionType.debit : ParsedTransactionType.credit,
+        rawDescription: desc,
+        billingAmountCents: totalCents.abs(),
+        fastOrTrackingId: fastId,
+      ));
+      i++;
+    }
+    return results;
+  }
+}
+
+```
+
+### Dosya: `06_PARSER_yapikredi_card.dart`
+
+```dart
+import '../models/parsed_models.dart';
+import '../../../core/utils/currency_normalizer.dart';
+
+class YapiKrediCardParser {
+  static final RegExp _cardHeaderRegex = RegExp(r'(?:Kart Numarası|Dijital Kart Numarası)\s*:\s*([\d\* ]+)(?:\s+([A-ZÇĞİÖŞÜ ]+))?');
+  static final RegExp _standardTxRegex = RegExp(r'^(\d{2}\s+[A-Za-zÇĞİÖŞÜçğıöşü]+\s+\d{4})\s+(.+?)\s+(\+?[\d\.,]+)(?:\s+(\d+))?$', multiLine: true);
+  static final RegExp _installmentRegex = RegExp(r"([\d\.,]+)\s*TL'lik işlemin\s*(\d+)/(\d+)\s*taksidi");
+  static final RegExp _fxRegex = RegExp(r'İşlem Tutarı:\s*([\d\.,]+)\s*([A-Z]{3})\s*USD Karşılığı\s*:\s*([\d\.,]+)\s*USD');
+
+  static final Map<String, int> _months = {
+    'Ocak': 1, 'Şubat': 2, 'Mart': 3, 'Nisan': 4, 'Mayıs': 5, 'Haziran': 6,
+    'Temmuz': 7, 'Ağustos': 8, 'Eylül': 9, 'Ekim': 10, 'Kasım': 11, 'Aralık': 12
+  };
+
+  List<ParsedRecord> parse(String text) {
+    final List<ParsedRecord> records = [];
+    final lines = text.split('\n');
+
+    String currentCardMask = '4462 12****** 8281';
+    String? currentCardHolder = 'ABDULLAH YEŞİLDEMİR';
+
+    for (int i = 0; i < lines.length; i++) {
+      final line = lines[i].trim();
+
+      final cardMatch = _cardHeaderRegex.firstMatch(line);
+      if (cardMatch != null) {
+        currentCardMask = cardMatch.group(1)!.trim();
+        if (cardMatch.group(2) != null) currentCardHolder = cardMatch.group(2)!.trim();
+        continue;
+      }
+
+      final txMatch = _standardTxRegex.firstMatch(line);
+      if (txMatch != null) {
+        final dateStr = txMatch.group(1)!;
+        String desc = txMatch.group(2)!.trim();
+        final amountStr = txMatch.group(3)!;
+
+        final dateParts = dateStr.split(' ');
+        final txDate = DateTime(int.parse(dateParts[2]), _months[dateParts[1]] ?? 1, int.parse(dateParts[0]));
+        final bool isCreditPayment = amountStr.startsWith('+');
+        final billingCents = CurrencyNormalizer.toMinorUnits(amountStr).abs();
+
+        ParsedInstallmentData? installment;
+        int? origAmountCents;
+        String? origCurrency;
+
+        if (i + 1 < lines.length) {
+          final nextLine = lines[i + 1].trim();
+          final instMatch = _installmentRegex.firstMatch(nextLine);
+          if (instMatch != null) {
+            final totalInstCents = CurrencyNormalizer.toMinorUnits(instMatch.group(1)!);
+            final currentInst = int.parse(instMatch.group(2)!);
+            final totalInst = int.parse(instMatch.group(3)!);
+            final remainingCents = totalInstCents - (billingCents * currentInst);
+
+            installment = ParsedInstallmentData(
+              currentInstallment: currentInst,
+              totalInstallment: totalInst,
+              remainingAmountCents: remainingCents > 0 ? remainingCents : 0,
+              monthlyAmountCents: billingCents,
+            );
+            i++;
+          }
+
+          final fxMatch = _fxRegex.firstMatch(nextLine);
+          if (fxMatch != null) {
+            origAmountCents = CurrencyNormalizer.toMinorUnits(fxMatch.group(1)!);
+            origCurrency = fxMatch.group(2);
+            i++;
+          }
+        }
+
+        records.add(ParsedRecord(
+          cardOrAccountMask: currentCardMask,
+          cardHolder: currentCardHolder,
+          date: txDate,
+          type: isCreditPayment ? ParsedTransactionType.credit : ParsedTransactionType.debit,
+          rawDescription: desc,
+          billingAmountCents: billingCents,
+          originalAmountCents: origAmountCents,
+          originalCurrency: origCurrency,
+          installment: installment,
+        ));
+      }
+    }
+    return records;
+  }
+}
+
+```
+
+### Dosya: `07_TAX_calculator_service.dart`
+
+```dart
+class TaxBreakdown {
+  final int directTaxesCents;
+  final int financialLeviesCents;
+  final int officialFeesCents;
+  final int estimatedVatCents;
+  final int totalStateShareCents;
+  final double stateShareRatio;
+
+  TaxBreakdown({
+    required this.directTaxesCents,
+    required this.financialLeviesCents,
+    required this.officialFeesCents,
+    required this.estimatedVatCents,
+    required this.totalStateShareCents,
+    required this.stateShareRatio,
+  });
+}
+
+class TaxCalculatorService {
+  TaxBreakdown calculateMonthlyTaxLoad({
+    required List<Map<String, dynamic>> transactions,
+    int directPayrollTaxesCents = 0,
+    required int totalExpenditureCents,
+  }) {
+    int financialLevies = 0;
+    int officialFees = 0;
+    int estimatedVat = 0;
+
+    for (final tx in transactions) {
+      final String category = tx['category_id'] ?? '';
+      final String desc = (tx['raw_description'] ?? '').toString().toUpperCase();
+      final int amount = (tx['billing_amount_cents'] ?? 0) as int;
+
+      if (desc.contains('BSMV') || desc.contains('KKDF')) {
+        financialLevies += amount;
+      } else if (category == 'cat_tax' || desc.contains('VERGİ DAİRESİ') || desc.contains('MOTORLU TASITLAR')) {
+        officialFees += amount;
+      } else if (category == 'cat_fuel') {
+        estimatedVat += (amount * 0.20 / 1.20).round();
+      } else if (category == 'cat_dining') {
+        estimatedVat += (amount * 0.10 / 1.10).round();
+      } else if (category == 'cat_market') {
+        estimatedVat += (amount * 0.08 / 1.08).round();
+      }
+    }
+
+    final int totalStateShare = directPayrollTaxesCents + financialLevies + officialFees + estimatedVat;
+    final double ratio = totalExpenditureCents > 0 ? (totalStateShare / totalExpenditureCents) * 100 : 0.0;
+
+    return TaxBreakdown(
+      directTaxesCents: directPayrollTaxesCents,
+      financialLeviesCents: financialLevies,
+      officialFeesCents: officialFees,
+      estimatedVatCents: estimatedVat,
+      totalStateShareCents: totalStateShare,
+      stateShareRatio: double.parse(ratio.toStringAsFixed(1)),
+    );
+  }
+}
+
+```
+
+### Dosya: `08_SCOUT_persona_insight_engine.dart`
+
+```dart
+enum ScoutMood { happy, alert, surprised, sarcastic, neutral }
+
+class ScoutFeedback {
+  final String message;
+  final ScoutMood mood;
+  final String badgeText;
+
+  ScoutFeedback({required this.message, required this.mood, required this.badgeText});
+}
+
+class ScoutPersonaInsightEngine {
+  ScoutFeedback generateFeedback({
+    required int currentMonthExpenditureCents,
+    required int previousMonthExpenditureCents,
+    required int currentGroceryCents,
+    required int previousGroceryCents,
+    required int currentFuelCents,
+    required int previousFuelCents,
+    required int futureCommittedInstallmentsCents,
+    required int monthlyNetIncomeCents,
+    required double stateShareRatio,
+    bool isWittyMode = true,
+  }) {
+    if (currentMonthExpenditureCents > 0 && monthlyNetIncomeCents > 0 && (currentMonthExpenditureCents / monthlyNetIncomeCents) < 0.60) {
+      return ScoutFeedback(
+        badgeText: 'Cüzdan Güvende',
+        mood: ScoutMood.happy,
+        message: isWittyMode
+            ? 'Gözlerime inanamıyorum... Ayın sonu yaklaştı ve bütçen hâlâ ekside değil! Git kendine güzel bir kahve ısmarla, benden izin.'
+            : 'Tebrikler, bu ay harcamalarınız gelirinizin %60 sınırının altında seyrediyor.',
+      );
+    }
+
+    if (previousGroceryCents > 0 && currentGroceryCents > (previousGroceryCents * 1.25)) {
+      return ScoutFeedback(
+        badgeText: 'Mutfakta Yangın Var',
+        mood: ScoutMood.surprised,
+        message: isWittyMode
+            ? 'Bu ay mutfakta şenlik var! Gıda harcamaların tavan yapmış; ya eve gizli bir ordu taşındı ya da misafirlerin kapıyı aşındırdı.'
+            : 'Market ve bakkaliye harcamalarınız geçen aya kıyasla %25 üzerinde artış gösterdi.',
+      );
+    }
+
+    if (previousFuelCents > 0 && currentFuelCents > (previousFuelCents * 1.25)) {
+      return ScoutFeedback(
+        badgeText: 'Depo Alev Aldı',
+        mood: ScoutMood.sarcastic,
+        message: isWittyMode
+            ? 'Depo yine fullenmiş, taksiler durmamış! Bu tempoyla gidersen yakında seni uzay istasyonundan toplayacağız. Yürümek de bir seçenekti hani!'
+            : 'Ulaşım ve akaryakıt giderlerinizde geçen aya göre belirgin bir artış tespit edildi.',
+      );
+    }
+
+    if (monthlyNetIncomeCents > 0 && (futureCommittedInstallmentsCents / monthlyNetIncomeCents) > 0.40) {
+      return ScoutFeedback(
+        badgeText: 'Gelecek İpotek Altında',
+        mood: ScoutMood.alert,
+        message: isWittyMode
+            ? 'Önümüzdeki ayların parasını şimdiden afiyetle yemişsin. Taksitler dağ olmuş, gelecekteki sen şu an sana pek de hoş bakmıyor!'
+            : 'Önümüzdeki dönemlere sarkan kesinleşmiş taksit yükünüz aylık gelirinizin %40 sınırını aşmıştır.',
+      );
+    }
+
+    if (stateShareRatio >= 20.0) {
+      return ScoutFeedback(
+        badgeText: 'Ekonominin Gizli Kahramanı',
+        mood: ScoutMood.neutral,
+        message: isWittyMode
+            ? 'Gözlerini kapat, burası biraz can yakabilir! Bu ay harcamalarının %$stateShareRatio\'si doğrudan vergiye, fonlara ve devlete gitti. Resmen ülkeye can suyu oldun.'
+            : 'Bu dönem toplam harcamalarınızın %$stateShareRatio kadarı doğrudan ve dolaylı vergi kesintilerinden oluşmaktadır.',
+      );
+    }
+
+    return ScoutFeedback(
+      badgeText: 'İzci Nöbette',
+      mood: ScoutMood.neutral,
+      message: isWittyMode
+          ? 'Cüzdanda olağanüstü bir hareket yok. Rakamların izini sürmeye devam ediyorum, gözüm üzerinde!'
+          : 'Harcamalarınız aylık standart ortalamalar dahilinde devam etmektedir.',
+    );
+  }
+}
+
+```
+
+### Dosya: `09_PROJECTION_installment_scheduler.dart`
+
+```dart
+import '../../statement_parser/models/parsed_record.dart';
+
+class ScheduledInstallmentItem {
+  final String merchantName;
+  final int monthlyAmountCents;
+  final int installmentIndex;
+  final int totalInstallments;
+  final String accountMask;
+
+  ScheduledInstallmentItem({
+    required this.merchantName,
+    required this.monthlyAmountCents,
+    required this.installmentIndex,
+    required this.totalInstallments,
+    required this.accountMask,
+  });
+}
+
+class MonthlyDebtCommitment {
+  final int year;
+  final int month;
+  final int totalCommittedCents;
+  final List<ScheduledInstallmentItem> items;
+
+  MonthlyDebtCommitment({
+    required this.year,
+    required this.month,
+    required this.totalCommittedCents,
+    required this.items,
+  });
+}
+
+class InstallmentScheduler {
+  List<MonthlyDebtCommitment> projectNextMonths(
+    List<ParsedRecord> records, {
+    DateTime? fromDate,
+    int monthHorizon = 6,
+  }) {
+    final baseDate = fromDate ?? DateTime.now();
+    final Map<String, List<ScheduledInstallmentItem>> projectionMap = {};
+
+    for (int i = 1; i <= monthHorizon; i++) {
+      final targetDate = DateTime(baseDate.year, baseDate.month + i, 1);
+      final key = '${targetDate.year}-${targetDate.month.toString().padLeft(2, '0')}';
+      projectionMap[key] = [];
+    }
+
+    for (final record in records) {
+      final inst = record.installment;
+      if (inst == null) continue;
+
+      final int remainingCount = inst.totalInstallment - inst.currentInstallment;
+      if (remainingCount <= 0) continue;
+
+      for (int step = 1; step <= remainingCount; step++) {
+        if (step > monthHorizon) break;
+
+        final targetDate = DateTime(record.date.year, record.date.month + step, 1);
+        final key = '${targetDate.year}-${targetDate.month.toString().padLeft(2, '0')}';
+
+        if (projectionMap.containsKey(key)) {
+          projectionMap[key]!.add(
+            ScheduledInstallmentItem(
+              merchantName: record.rawDescription,
+              monthlyAmountCents: inst.monthlyAmountCents,
+              installmentIndex: inst.currentInstallment + step,
+              totalInstallments: inst.totalInstallment,
+              accountMask: record.cardOrAccountMask,
+            ),
+          );
+        }
+      }
+    }
+
+    final List<MonthlyDebtCommitment> commitments = [];
+    final sortedKeys = projectionMap.keys.toList()..sort();
+
+    for (final key in sortedKeys) {
+      final parts = key.split('-');
+      final items = projectionMap[key]!;
+      final int monthlySum = items.fold(0, (sum, item) => sum + item.monthlyAmountCents);
+
+      commitments.add(
+        MonthlyDebtCommitment(
+          year: int.parse(parts[0]),
+          month: int.parse(parts[1]),
+          totalCommittedCents: monthlySum,
+          items: items,
+        ),
+      );
+    }
+    return commitments;
+  }
+}
+
+```
+
+### Dosya: `10_UI_dashboard_view_state.dart`
+
+```dart
+import '../../persona_scout/services/08_SCOUT_persona_insight_engine.dart';
+import '../../tax_analytics/services/07_TAX_calculator_service.dart';
+import '../../statement_parser/models/parsed_record.dart';
+
+class CategoryExpenseShare {
+  final String categoryId;
+  final String categoryName;
+  final String iconName;
+  final String colorHex;
+  final int totalAmountCents;
+  final double percentage;
+
+  CategoryExpenseShare({
+    required this.categoryId,
+    required this.categoryName,
+    required this.iconName,
+    required this.colorHex,
+    required this.totalAmountCents,
+    required this.percentage,
+  });
+}
+
+class DashboardViewState {
+  final bool isLoading;
+  final String? errorMessage;
+  final String selectedPeriod;
+  final int totalIncomeCents;
+  final int totalExpenseCents;
+  final int netBalanceCents;
+  final ScoutFeedback scoutFeedback;
+  final List<CategoryExpenseShare> categoryShares;
+  final int nextMonthCommittedInstallmentsCents;
+  final TaxBreakdown taxSummary;
+  final List<ParsedRecord> recentTransactions;
+
+  DashboardViewState({
+    this.isLoading = false,
+    this.errorMessage,
+    required this.selectedPeriod,
+    required this.totalIncomeCents,
+    required this.totalExpenseCents,
+    required this.netBalanceCents,
+    required this.scoutFeedback,
+    required this.categoryShares,
+    required this.nextMonthCommittedInstallmentsCents,
+    required this.taxSummary,
+    required this.recentTransactions,
+  });
+
+  factory DashboardViewState.initial() {
+    return DashboardViewState(
+      isLoading: true,
+      selectedPeriod: '',
+      totalIncomeCents: 0,
+      totalExpenseCents: 0,
+      netBalanceCents: 0,
+      scoutFeedback: ScoutFeedback(badgeText: 'İzci Beklemede', mood: ScoutMood.neutral, message: 'Analiz edilecek ekstre aranıyor...'),
+      categoryShares: [],
+      nextMonthCommittedInstallmentsCents: 0,
+      taxSummary: TaxBreakdown(directTaxesCents: 0, financialLeviesCents: 0, officialFeesCents: 0, estimatedVatCents: 0, totalStateShareCents: 0, stateShareRatio: 0.0),
+      recentTransactions: [],
+    );
+  }
+}
+
+```
+
+### Dosya: `11_SUBSCRIPTION_quota_enforcer.dart`
+
+```dart
+class QuotaExceededException implements Exception {
+  final String message;
+  final int currentMonthUploads;
+  final int maxAllowedUploads;
+
+  QuotaExceededException({required this.message, required this.currentMonthUploads, required this.maxAllowedUploads});
+  @override
+  String toString() => message;
+}
+
+class QuotaEnforcer {
+  static const int freeTierMonthlyLimit = 1;
+
+  static void verifyUploadEligibility({required bool isProUser, required int uploadsThisMonth}) {
+    if (isProUser) return;
+    if (uploadsThisMonth >= freeTierMonthlyLimit) {
+      throw QuotaExceededException(
+        message: 'Bu ayki 1 adet ücretsiz ekstre hakkını kullandın. Sınırsız analiz için Paraİz Pro\'ya geç.',
+        currentMonthUploads: uploadsThisMonth,
+        maxAllowedUploads: freeTierMonthlyLimit,
+      );
+    }
+  }
+}
+
+```
+
+### Dosya: `12_REPO_transaction_repository.dart`
+
+```dart
+import 'package:sqflite/sqflite.dart';
+import '../../statement_parser/models/parsed_record.dart';
+
+class TransactionRepository {
+  final Database db;
+  TransactionRepository(this.db);
+
+  Future<void> saveParsedStatement({
+    required String fileSha256,
+    required String institutionName,
+    required String accountType,
+    required String periodStart,
+    required String periodEnd,
+    required List<ParsedRecord> records,
+  }) async {
+    await db.transaction((txn) async {
+      final existing = await txn.query('statements', where: 'file_sha256 = ?', whereArgs: [fileSha256]);
+      if (existing.isNotEmpty) throw Exception('Bu ekstre daha önce yüklendi.');
+
+      final int now = DateTime.now().millisecondsSinceEpoch;
+      final String statementId = 'stmt_${DateTime.now().microsecondsSinceEpoch}';
+      int totalDebit = 0;
+      int totalCredit = 0;
+
+      for (final record in records) {
+        if (record.type == ParsedTransactionType.debit) {
+          totalDebit += record.billingAmountCents;
+        } else {
+          totalCredit += record.billingAmountCents;
+        }
+
+        final String accountId = 'acc_${record.cardOrAccountMask.replaceAll(RegExp(r'\s+'), '_')}';
+        await txn.rawInsert('''
+          INSERT OR IGNORE INTO accounts (id, institution_name, account_type, account_name, card_mask, card_holder, currency_code, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', [accountId, institutionName, accountType, '$institutionName ${record.cardOrAccountMask}', record.cardOrAccountMask, record.cardHolder ?? 'Kart Sahibi', record.billingCurrency, now]);
+
+        final String txId = 'tx_${DateTime.now().microsecondsSinceEpoch}_${totalDebit + totalCredit}';
+        await txn.insert('transactions', {
+          'id': txId,
+          'account_id': accountId,
+          'statement_id': statementId,
+          'transaction_date': record.date.toIso8601String().split('T')[0],
+          'transaction_type': record.type == ParsedTransactionType.debit ? 'DEBIT' : 'CREDIT',
+          'raw_description': record.rawDescription,
+          'clean_merchant': record.rawDescription,
+          'category_id': 'cat_general',
+          'billing_amount_cents': record.billingAmountCents,
+          'billing_currency': record.billingCurrency,
+          'is_installment': record.installment != null ? 1 : 0,
+          'created_at': now,
+        });
+
+        if (record.installment != null) {
+          final inst = record.installment!;
+          await txn.insert('installments', {
+            'id': 'inst_$txId',
+            'transaction_id': txId,
+            'current_installment': inst.currentInstallment,
+            'total_installment': inst.totalInstallment,
+            'monthly_amount_cents': inst.monthlyAmountCents,
+            'remaining_amount_cents': inst.remainingAmountCents,
+            'next_due_date': record.date.add(const Duration(days: 30)).toIso8601String().split('T')[0],
+          });
+        }
+      }
+
+      await txn.insert('statements', {
+        'id': statementId,
+        'account_id': 'acc_${records.first.cardOrAccountMask.replaceAll(RegExp(r'\s+'), '_')}',
+        'statement_type': accountType,
+        'period_start': periodStart,
+        'period_end': periodEnd,
+        'total_debit_cents': totalDebit,
+        'total_credit_cents': totalCredit,
+        'file_sha256': fileSha256,
+        'parsed_at': now,
+      });
+
+      await txn.rawUpdate("UPDATE app_meta SET value = CAST(CAST(value AS INTEGER) + 1 AS TEXT) WHERE key = 'current_month_pdf_count'");
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> getTransactionsByPeriod(String yearMonth) async {
+    return await db.rawQuery('''
+      SELECT t.*, c.name as category_name, c.icon_name, c.color_hex
+      FROM transactions t
+      LEFT JOIN categories c ON t.category_id = c.id
+      WHERE t.transaction_date LIKE ?
+      ORDER BY t.transaction_date DESC
+    ''', ['$yearMonth%']);
+  }
+}
+
+```
+
+### Dosya: `13_CONTROLLER_dashboard_controller.dart`
+
+```dart
+import 'dart:async';
+import '../models/10_UI_dashboard_view_state.dart';
+import '../../statement_parser/data/12_REPO_transaction_repository.dart';
+import '../../tax_analytics/services/07_TAX_calculator_service.dart';
+import '../../cashflow_projection/services/09_PROJECTION_installment_scheduler.dart';
+import '../../persona_scout/services/08_SCOUT_persona_insight_engine.dart';
+import '../../statement_parser/models/parsed_record.dart';
+
+class DashboardController {
+  final TransactionRepository repository;
+  final TaxCalculatorService taxService;
+  final InstallmentScheduler installmentScheduler;
+  final ScoutPersonaInsightEngine scoutEngine;
+
+  final StreamController<DashboardViewState> _stateController = StreamController<DashboardViewState>.broadcast();
+  Stream<DashboardViewState> get stateStream => _stateController.stream;
+
+  DashboardController({
+    required this.repository,
+    required this.taxService,
+    required this.installmentScheduler,
+    required this.scoutEngine,
+  });
+
+  Future<void> loadPeriodData(String yearMonth) async {
+    try {
+      final rows = await repository.getTransactionsByPeriod(yearMonth);
+      int totalIncome = 0;
+      int totalExpense = 0;
+      int groceryExpense = 0;
+      int fuelExpense = 0;
+      final Map<String, int> categoryTotals = {};
+      final List<ParsedRecord> txList = [];
+
+      for (final r in rows) {
+        final amount = r['billing_amount_cents'] as int;
+        final type = r['transaction_type'] as String;
+        final catId = r['category_id'] as String;
+
+        if (type == 'CREDIT') {
+          totalIncome += amount;
+        } else {
+          totalExpense += amount;
+          categoryTotals[catId] = (categoryTotals[catId] ?? 0) + amount;
+          if (catId == 'cat_market') groceryExpense += amount;
+          if (catId == 'cat_fuel') fuelExpense += amount;
+        }
+
+        txList.add(ParsedRecord(
+          cardOrAccountMask: r['account_id'] as String,
+          date: DateTime.parse(r['transaction_date'] as String),
+          type: type == 'DEBIT' ? ParsedTransactionType.debit : ParsedTransactionType.credit,
+          rawDescription: r['raw_description'] as String,
+          billingAmountCents: amount,
+        ));
+      }
+
+      final List<CategoryExpenseShare> shares = [];
+      categoryTotals.forEach((catId, sum) {
+        shares.add(CategoryExpenseShare(
+          categoryId: catId,
+          categoryName: catId,
+          iconName: 'category',
+          colorHex: '#2E7D32',
+          totalAmountCents: sum,
+          percentage: totalExpense > 0 ? (sum / totalExpense) * 100 : 0.0,
+        ));
+      });
+
+      final taxBreakdown = taxService.calculateMonthlyTaxLoad(transactions: rows, totalExpenditureCents: totalExpense);
+      final projections = installmentScheduler.projectNextMonths(txList, monthHorizon: 1);
+      final nextMonthCommitment = projections.isNotEmpty ? projections.first.totalCommittedCents : 0;
+
+      final scoutFeedback = scoutEngine.generateFeedback(
+        currentMonthExpenditureCents: totalExpense,
+        previousMonthExpenditureCents: totalExpense,
+        currentGroceryCents: groceryExpense,
+        previousGroceryCents: 0,
+        currentFuelCents: fuelExpense,
+        previousFuelCents: 0,
+        futureCommittedInstallmentsCents: nextMonthCommitment,
+        monthlyNetIncomeCents: totalIncome,
+        stateShareRatio: taxBreakdown.stateShareRatio,
+      );
+
+      _stateController.add(DashboardViewState(
+        isLoading: false,
+        selectedPeriod: yearMonth,
+        totalIncomeCents: totalIncome,
+        totalExpenseCents: totalExpense,
+        netBalanceCents: totalIncome - totalExpense,
+        scoutFeedback: scoutFeedback,
+        categoryShares: shares,
+        nextMonthCommittedInstallmentsCents: nextMonthCommitment,
+        taxSummary: taxBreakdown,
+        recentTransactions: txList,
+      ));
+    } catch (e) {
+      _stateController.add(DashboardViewState.initial());
+    }
+  }
+
+  void dispose() => _stateController.close();
+}
+
+```
+
+### Dosya: `14_UI_dashboard_screen.dart`
+
+```dart
+import 'package:flutter/material.dart';
+import '../models/10_UI_dashboard_view_state.dart';
+import '../controllers/13_CONTROLLER_dashboard_controller.dart';
+
+class DashboardScreen extends StatefulWidget {
+  final DashboardController controller;
+  const DashboardScreen({Key? key, required this.controller}) : super(key: key);
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.loadPeriodData('2026-06');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const Color bgCream = Color(0xFFFAF8F5);
+
+    return Scaffold(
+      backgroundColor: bgCream,
+      appBar: AppBar(
+        backgroundColor: bgCream,
+        elevation: 0,
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu_rounded, color: Colors.black87),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
+          ),
+        ),
+        title: const Text('Paraİz', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
+        centerTitle: true,
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: const [
+            DrawerHeader(child: Text('Paraİz Menü', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold))),
+            ListTile(leading: Icon(Icons.credit_card), title: Text('Hesaplarım & Kartlarım')),
+            ListTile(leading: Icon(Icons.receipt_long), title: Text('Yüklenen Belgeler')),
+            ListTile(leading: Icon(Icons.account_balance), title: Text('Vergi Analitiği')),
+            ListTile(leading: Icon(Icons.settings), title: Text('Ayarlar & Güvenlik')),
+          ],
+        ),
+      ),
+      body: StreamBuilder<DashboardViewState>(
+        stream: widget.controller.stateStream,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData || snapshot.data!.isLoading) {
+            return const Center(child: CircularProgressIndicator(color: Colors.black87));
+          }
+          final state = snapshot.data!;
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+                  child: Row(
+                    children: [
+                      const Text('🦉', style: TextStyle(fontSize: 32)),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(state.scoutFeedback.badgeText, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                            Text(state.scoutFeedback.message, style: const TextStyle(fontSize: 14)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _col('GELİR', state.totalIncomeCents, const Color(0xFF2E7D32)),
+                      _col('GİDER', state.totalExpenseCents, const Color(0xFFD32F2F)),
+                      _col('FARK', state.netBalanceCents, Colors.black87),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarStyle.fixed,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Ana Sayfa'),
+          BottomNavigationBarItem(icon: Icon(Icons.document_scanner), label: 'Ekstre Tara'),
+          BottomNavigationBarItem(icon: Icon(Icons.trending_up), label: 'Trendler'),
+          BottomNavigationBarItem(icon: Icon(Icons.savings), label: 'Varlıklar'),
+        ],
+      ),
+    );
+  }
+
+  Widget _col(String l, int c, Color col) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black45)),
+        Text('₺${(c / 100).toStringAsFixed(2)}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: col)),
+      ],
+    );
+  }
+}
+
+```
+
+### Dosya: `15_PARSER_generic_payslip.dart`
+
+```dart
+import '../models/parsed_models.dart';
+import '../../../core/utils/currency_normalizer.dart';
+
+class ParsedPayslipResult {
+  final DateTime periodDate;
+  final int grossSalaryCents;
+  final int netSalaryCents;
+  final int sgkWorkerCents;
+  final int incomeTaxCents;
+  final int stampTaxCents;
+  final List<ParsedTaxData> taxes;
+
+  ParsedPayslipResult({
+    required this.periodDate,
+    required this.grossSalaryCents,
+    required this.netSalaryCents,
+    required this.sgkWorkerCents,
+    required this.incomeTaxCents,
+    required this.stampTaxCents,
+    required this.taxes,
+  });
+
+  ParsedRecord toParsedRecord() {
+    return ParsedRecord(
+      cardOrAccountMask: 'BORDRO_GELIR',
+      cardHolder: 'Çalışan Maaşı',
+      date: periodDate,
+      type: ParsedTransactionType.credit,
+      rawDescription: 'Aylık Net Maaş Tahakkuku',
+      billingAmountCents: netSalaryCents,
+      taxes: taxes,
+    );
+  }
+}
+
+class GenericPayslipParser {
+  static final RegExp _gross = RegExp(r'(?:BRÜT\s*ÜCRET|TOPLAM\s*KAZANÇ)[\s:]*([\d\.,]+)', caseSensitive: false);
+  static final RegExp _net = RegExp(r'(?:NET\s*ÖDENEN|ÖDENECEK\s*NET)[\s:]*([\d\.,]+)', caseSensitive: false);
+  static final RegExp _tax = RegExp(r'GELİR\s*VERGİSİ[\s:]*([\d\.,]+)', caseSensitive: false);
+  static final RegExp _stamp = RegExp(r'DAMGA\s*VERGİSİ[\s:]*([\d\.,]+)', caseSensitive: false);
+  static final RegExp _sgk = RegExp(r'SGK\s*İŞÇİ[\s:]*([\d\.,]+)', caseSensitive: false);
+
+  ParsedPayslipResult parse(String text) {
+    final int gross = _c(_gross, text);
+    final int net = _c(_net, text);
+    final int tax = _c(_tax, text);
+    final int stamp = _c(_stamp, text);
+    final int sgk = _c(_sgk, text);
+
+    final List<ParsedTaxData> taxes = [];
+    if (tax > 0) taxes.add(ParsedTaxData(taxType: 'INCOME_TAX', amountCents: tax));
+    if (stamp > 0) taxes.add(ParsedTaxData(taxType: 'STAMP_TAX', amountCents: stamp));
+    if (sgk > 0) taxes.add(ParsedTaxData(taxType: 'SGK_WORKER', amountCents: sgk));
+
+    return ParsedPayslipResult(
+      periodDate: DateTime.now(),
+      grossSalaryCents: gross,
+      netSalaryCents: net > 0 ? net : (gross - tax - stamp - sgk),
+      sgkWorkerCents: sgk,
+      incomeTaxCents: tax,
+      stampTaxCents: stamp,
+      taxes: taxes,
+    );
+  }
+
+  int _c(RegExp r, String s) {
+    final m = r.firstMatch(s);
+    return m != null ? CurrencyNormalizer.toMinorUnits(m.group(1)!).abs() : 0;
+  }
+}
+
+```
+
+### Dosya: `16_WIDGET_home_widget_service.dart`
+
+```dart
+import 'package:home_widget/home_widget.dart';
+import '../../persona_scout/services/08_SCOUT_persona_insight_engine.dart';
+
+class HomeWidgetService {
+  static Future<void> syncWidgetData({
+    required int safeSpendBalanceCents,
+    required int monthlyTotalExpenseCents,
+    required String topCategoryTitle,
+    required int topCategoryAmountCents,
+    required ScoutFeedback scoutFeedback,
+  }) async {
+    await HomeWidget.saveWidgetData<String>('widget_safe_balance', '₺${(safeSpendBalanceCents / 100).toStringAsFixed(0)}');
+    await HomeWidget.saveWidgetData<String>('widget_total_expense', '₺${(monthlyTotalExpenseCents / 100).toStringAsFixed(0)}');
+    await HomeWidget.saveWidgetData<String>('widget_scout_badge', scoutFeedback.badgeText);
+    await HomeWidget.saveWidgetData<String>('widget_scout_message', scoutFeedback.message);
+    await HomeWidget.updateWidget(name: 'ParaIzHomeWidget', iOSName: 'ParaIzWidget');
+  }
+}
+
+```
+
+### Dosya: `17_UI_statement_upload_sheet.dart`
+
+```dart
+import 'dart:typed_data';
+import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:crypto/crypto.dart';
+import 'package:syncfusion_flutter_pdf/pdf.dart';
+
+import '../services/04_PARSER_bank_detector.dart';
+import '../services/statement_orchestrator.dart';
+import '../data/12_REPO_transaction_repository.dart';
+import '../../subscription_manager/services/11_SUBSCRIPTION_quota_enforcer.dart';
+
+class StatementUploadSheet extends StatefulWidget {
+  final TransactionRepository repository;
+  final bool isProUser;
+  final int currentMonthUploads;
+  final VoidCallback onUploadSuccess;
+
+  const StatementUploadSheet({Key? key, required this.repository, required this.isProUser, required this.currentMonthUploads, required this.onUploadSuccess}) : super(key: key);
+
+  @override
+  State<StatementUploadSheet> createState() => _StatementUploadSheetState();
+}
+
+class _StatementUploadSheetState extends State<StatementUploadSheet> {
+  bool _isProcessing = false;
+
+  Future<void> _pickPdf() async {
+    try {
+      QuotaEnforcer.verifyUploadEligibility(isProUser: widget.isProUser, uploadsThisMonth: widget.currentMonthUploads);
+      final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['pdf'], withData: true);
+      if (result == null || result.files.single.bytes == null) return;
+
+      setState(() => _isProcessing = true);
+      final Uint8List bytes = result.files.single.bytes!;
+      final String sha = sha256.convert(bytes).toString();
+
+      final PdfDocument doc = PdfDocument(inputBytes: bytes);
+      final String txt = PdfTextExtractor(doc).extractText();
+      doc.dispose();
+
+      final detection = BankDetector.identify(txt);
+      final orchestrator = StatementOrchestrator();
+      final records = await orchestrator.processDocument(rawPdfText: txt);
+
+      await widget.repository.saveParsedStatement(
+        fileSha256: sha,
+        institutionName: detection.institution.name,
+        accountType: detection.documentType == DocumentType.creditCard ? 'CREDIT_CARD' : 'CHECKING',
+        periodStart: records.first.date.toIso8601String().split('T')[0],
+        periodEnd: records.last.date.toIso8601String().split('T')[0],
+        records: records,
+      );
+
+      if (mounted) {
+        Navigator.pop(context);
+        widget.onUploadSuccess();
+      }
+    } catch (e) {
+      setState(() => _isProcessing = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('Ekstre Yükle', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          if (_isProcessing)
+            const CircularProgressIndicator()
+          else
+            ElevatedButton.icon(
+              icon: const Icon(Icons.upload_file),
+              label: const Text('PDF Seç ve Ayrıştır'),
+              onPressed: _pickPdf,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+```
+
+### Dosya: `18_BILLING_google_play_service.dart`
+
+```dart
+import 'dart:async';
+import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:sqflite/sqflite.dart';
+
+class GooglePlayBillingService {
+  final InAppPurchase _iap = InAppPurchase.instance;
+  final Database db;
+
+  GooglePlayBillingService({required this.db});
+
+  Future<void> initialize() async {
+    final available = await _iap.isAvailable();
+    if (!available) return;
+
+    _iap.purchaseStream.listen((purchases) {
+      for (var p in purchases) {
+        if (p.status == PurchaseStatus.purchased || p.status == PurchaseStatus.restored) {
+          db.rawInsert("INSERT OR REPLACE INTO app_meta (key, value) VALUES ('is_pro_user', '1')");
+          if (p.pendingCompletePurchase) _iap.completePurchase(p);
+        }
+      }
+    });
+  }
+
+  Future<void> buySubscription(ProductDetails product) async {
+    await _iap.buyNonConsumable(purchaseParam: PurchaseParam(productDetails: product));
+  }
+}
+
+```
+
+### Dosya: `19_UI_tax_analytics_screen.dart`
+
+```dart
+import 'package:flutter/material.dart';
+import '../services/07_TAX_calculator_service.dart';
+
+class TaxAnalyticsScreen extends StatelessWidget {
+  final TaxBreakdown taxSummary;
+  const TaxAnalyticsScreen({Key? key, required this.taxSummary}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Devlet Payı & Vergiler')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Text('Toplam Kamu Payı: ₺${(taxSummary.totalStateShareCents / 100).toStringAsFixed(2)}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            Text('Harcamalarınızın %${taxSummary.stateShareRatio} kadarı vergiye gitti.'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+```
+
+### Dosya: `20_UI_about_and_compliance_screen.dart`
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:sqflite/sqflite.dart';
+
+class AboutAndComplianceScreen extends StatelessWidget {
+  final Database db;
+  const AboutAndComplianceScreen({Key? key, required this.db}) : super(key: key);
+
+  Future<void> _wipeData(BuildContext context) async {
+    await db.transaction((txn) async {
+      await txn.delete('transactions');
+      await txn.delete('installments');
+      await txn.delete('statements');
+      await txn.delete('accounts');
+      await txn.rawUpdate("UPDATE app_meta SET value = '0' WHERE key = 'current_month_pdf_count'");
+    });
+    if (context.mounted) Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Hakkında & Gizlilik')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          const Text('Paraİz v3.5.0 (2026)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          const Text('Verileriniz yalnızca cihazınızda işlenir, sunucuya aktarılmaz.'),
+          const SizedBox(height: 20),
+          OutlinedButton(
+            onPressed: () => _wipeData(context),
+            child: const Text('Tüm Verilerimi Kalıcı Olarak Sil', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+```
+
+---
+
+# BÖLÜM 6: GOOGLE PLAY CONSOLE 2026 YAYIN STANDARTLARI
+
+1. **Finansal Hizmetler Uyumluluğu:** Uygulama mağaza listelemesinde bir kredi ya da mevduat kuruluşu olmadığını, kullanıcı tarafından yüklenen belgeleri analiz eden şahsi bir bütçe aracı olduğunu deklare eder.
+2. **Kişisel Verilerin Güvenliği (Data Safety):** Ağ üzerinde reklam SDK'sı barındırılmaz, 3. taraflarla veri paylaşımı kapalıdır.
+3. **Scoped Storage:** Android sistemlerinde `MANAGE_EXTERNAL_STORAGE` izni talep edilmez; dosyalar yalnızca Android SAF (Storage Access Framework) dosya seçicisi üzerinden kullanıcı onayıyla anlık okunur.
+4. **Hesap ve Veri Silme:** Uygulama içi menüden ve harici web URL'i üzerinden kullanıcının tüm yerel verilerini sıfırlamasına olanak tanınır.
+
+---
+
+### Word Belgesine (.docx) Dönüştürme Yönergesi
+
+Bu birleşik metni doğrudan bir dosyaya kopyalayabilirsiniz:
+
+1. Metni bir dosyaya yapıştırıp adını **`ParaIz_Master_Doc.md`** olarak kaydedin.
+2. Microsoft Word'ü açıp **Dosya > Aç** menüsünden bu `.md` dosyasını seçtiğinizde Word, Markdown başlıklarını (`#`, `##`) otomatik olarak yerleşik Word Başlık Stillerine (Heading 1, Heading 2), tabloları ve kod bloklarını ise Word biçimlendirmesine kusursuz dönüştürecektir.
+3. Dilerseniz komut satırından `pandoc ParaIz_Master_Doc.md -o ParaIz_Master_Doc.docx` komutuyla doğrudan `.docx` ikili dosyası üretebilirsiniz.

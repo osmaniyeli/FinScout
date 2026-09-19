@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>Paraİz</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>moneytrace</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(FLUTTER_BUILD_NAME)</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	
+	<!-- İzin Açıklamaları (iOS App Store Standartları) -->
+	<key>NSCameraUsageDescription</key>
+	<string>Paraİz, fiş ve faturalarınızı tarayabilmeniz için kameraya erişim gerektirir.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Paraİz, galeri veya dosyalardan ekstre ve fiş seçebilmeniz için fotoğraf kitaplığına erişim gerektirir.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Paraİz, sesli harcama kaydı alabilmeniz için mikrofona erişim gerektirir.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Paraİz, sesinizi metne dönüştürerek hızlı harcama ekleyebilmeniz için izin gerektirir.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Paraİz, finansal verilerinizi FaceID ile güvenle kilitlemek için biyometrik izin gerektirir.</string>
+
+	<!-- iOS Dosyalar ve AirDrop ile Doğrudan PDF Ekstre Açma -->
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
+</dict>
+</plist>

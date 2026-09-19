@@ -1,0 +1,2860 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Paraİz - Merkezi Yönetim, Güvenlik & Raporlama Konsolu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- SheetJS for local Excel parsing (.xlsx / .xls / .csv) without backend -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --bg-main: #0B0F19;
+      --bg-card: #131B2E;
+      --bg-card-hover: #1A243D;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-focus: #0052FF;
+      --text-main: #F8FAFC;
+      --text-muted: #94A3B8;
+      --text-dim: #64748B;
+      --accent-blue: #0052FF;
+      --accent-green: #00D084;
+      --accent-red: #FF2D55;
+      --accent-purple: #8B5CF6;
+      --accent-amber: #F59E0B;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Top Navigation */
+    header {
+      background: rgba(19, 27, 46, 0.9);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 14px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0052FF 0%, #00D084 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(0, 82, 255, 0.35);
+    }
+
+    .brand-logo svg {
+      width: 22px;
+      height: 22px;
+      fill: white;
+    }
+
+    .brand-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge-secure {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background: rgba(0, 208, 132, 0.15);
+      color: #00D084;
+      border: 1px solid rgba(0, 208, 132, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .brand-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 9px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+      outline: none;
+    }
+
+    .btn-primary {
+      background: #0052FF;
+      color: white;
+      box-shadow: 0 4px 14px rgba(0, 82, 255, 0.3);
+    }
+    .btn-primary:hover { background: #0045D8; transform: translateY(-1px); }
+
+    .btn-success {
+      background: #00D084;
+      color: #064E3B;
+      font-weight: 700;
+      box-shadow: 0 4px 14px rgba(0, 208, 132, 0.25);
+    }
+    .btn-success:hover { background: #00B875; transform: translateY(-1px); }
+
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+    .btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Main Container Grid - Responsive & Flexible */
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: minmax(600px, 1fr) 400px;
+      gap: 24px;
+      padding: 20px 28px 40px;
+      max-width: 1780px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    @media (max-width: 1250px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Left Admin Workspace */
+    .admin-workspace {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-width: 0;
+    }
+
+    /* Tab bar */
+    .tabs-bar {
+      display: flex;
+      gap: 6px;
+      background: var(--bg-card);
+      padding: 6px;
+      border-radius: 14px;
+      border: 1px solid var(--border-color);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .tabs-bar::-webkit-scrollbar { display: none; }
+
+    .tab-btn {
+      padding: 9px 16px;
+      border-radius: 10px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .tab-btn.active {
+      background: var(--accent-blue);
+      color: white;
+      box-shadow: 0 4px 12px rgba(0, 82, 255, 0.35);
+    }
+
+    /* Tab Content Cards */
+    .tab-content {
+      display: none;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .tab-content.active {
+      display: flex;
+    }
+
+    .panel-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 22px;
+      position: relative;
+    }
+
+    .panel-header {
+      margin-bottom: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .panel-desc {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    /* Switch & Toggle Rows */
+    .switch-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .switch-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      transition: background 0.2s;
+    }
+
+    .switch-row:hover { background: rgba(255, 255, 255, 0.04); }
+
+    .switch-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .switch-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+    }
+
+    .switch-label { font-size: 13.5px; font-weight: 600; }
+    .switch-subtext { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+
+    /* Modern Toggle Slider */
+    .toggle {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(255, 255, 255, 0.15);
+      transition: .3s;
+      border-radius: 26px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    input:checked + .slider { background-color: #00D084; }
+    input:checked + .slider:before { transform: translateX(22px); }
+
+    /* Filter Grid for User Reports */
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .filter-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+
+    .filter-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .filter-select {
+      width: 100%;
+      padding: 8px 10px;
+      background: #080C14;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-size: 13px;
+      font-weight: 600;
+      outline: none;
+    }
+    .filter-select:focus { border-color: var(--accent-blue); }
+
+    /* KPI Summary Cards */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .kpi-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    .kpi-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+    .kpi-value { font-size: 20px; font-weight: 800; margin: 4px 0 2px; }
+    .kpi-sub { font-size: 11px; color: var(--text-dim); }
+
+    /* Data Table */
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      text-align: left;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.04);
+      padding: 12px 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+    .tag-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .tag-electric { background: rgba(0, 208, 132, 0.15); color: #00D084; border: 1px solid rgba(0, 208, 132, 0.3); }
+    .tag-diesel { background: rgba(148, 163, 184, 0.15); color: #94A3B8; border: 1px solid rgba(148, 163, 184, 0.3); }
+    .tag-petrol { background: rgba(249, 115, 22, 0.15); color: #F97316; border: 1px solid rgba(249, 115, 22, 0.3); }
+    .tag-cash { background: rgba(245, 158, 11, 0.15); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+    /* Drag & Drop File Upload Area */
+    .dropzone {
+      border: 2px dashed rgba(0, 82, 255, 0.4);
+      background: rgba(0, 82, 255, 0.04);
+      border-radius: 16px;
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .dropzone:hover, .dropzone.dragover {
+      border-color: #0052FF;
+      background: rgba(0, 82, 255, 0.08);
+    }
+
+    .dropzone-icon {
+      font-size: 36px;
+      margin-bottom: 8px;
+    }
+
+    .dropzone-title {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .dropzone-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* List Selector Pills */
+    .list-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .list-pill {
+      padding: 8px 14px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .list-pill.active {
+      background: rgba(0, 82, 255, 0.15);
+      border-color: var(--accent-blue);
+      color: #38BDF8;
+    }
+
+    /* Palette grid */
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .palette-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .palette-card:hover { border-color: rgba(255, 255, 255, 0.3); transform: translateY(-2px); }
+    .palette-card.active {
+      border-color: var(--accent-blue);
+      background: rgba(0, 82, 255, 0.08);
+      box-shadow: 0 4px 16px rgba(0, 82, 255, 0.25);
+    }
+
+    .palette-colors {
+      display: flex;
+      height: 24px;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .color-swatch { flex: 1; height: 100%; }
+    .palette-name { font-size: 13px; font-weight: 700; }
+    .palette-desc { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+    .color-custom-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .color-input-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .color-picker-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .color-picker-wrap input[type="color"] {
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: transparent;
+    }
+
+    .hex-display {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      padding: 6px 10px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      width: 100%;
+      color: var(--text-main);
+    }
+
+    /* Sliders and radio */
+    .slider-container { margin-top: 14px; }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12.5px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .range-input { width: 100%; accent-color: var(--accent-blue); cursor: pointer; }
+
+    .radio-pill-group { display: flex; gap: 8px; margin-top: 10px; }
+    .radio-pill {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .radio-pill.active { background: rgba(0, 82, 255, 0.15); border-color: var(--accent-blue); color: #38BDF8; }
+
+    /* JSON Editor */
+    .json-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      background: #080C14;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      color: #38BDF8;
+      max-height: 480px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    /* RIGHT COLUMN: Real-Time Mobile Phone Simulator - Fully Fit & Visible */
+    .phone-column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 76px;
+      height: fit-content;
+      width: 100%;
+    }
+
+    /* Simulator Controls Header */
+    .simulator-controls {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-card);
+      padding: 8px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+    }
+
+    .simulator-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .simulator-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #00D084;
+      box-shadow: 0 0 10px #00D084;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
+    .zoom-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .zoom-btn {
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-size: 10.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .zoom-btn:hover { color: white; background: rgba(255, 255, 255, 0.1); }
+    .zoom-btn.active { background: #0052FF; color: white; border-color: #0052FF; }
+
+    /* Screen Selector inside Simulator */
+    .sim-screen-tabs {
+      display: flex;
+      gap: 4px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.02);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+    }
+
+    .sim-tab-pill {
+      flex: 1;
+      padding: 6px 4px;
+      text-align: center;
+      font-size: 10.5px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .sim-tab-pill.active {
+      background: rgba(0, 82, 255, 0.2);
+      color: #38BDF8;
+      font-weight: 700;
+    }
+
+    /* Scaling Wrapper that prevents clipping */
+    .phone-scaler {
+      width: 350px;
+      transform-origin: top center;
+      transition: transform 0.25s ease;
+    }
+
+    /* Realistic Phone Frame */
+    .phone-bezel {
+      width: 350px;
+      height: 680px;
+      background: #11141A;
+      border-radius: 44px;
+      padding: 10px;
+      box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.8),
+                  0 0 0 2px rgba(255, 255, 255, 0.12),
+                  inset 0 0 4px rgba(255, 255, 255, 0.2);
+      position: relative;
+    }
+
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      background: #0A0D14;
+      border-radius: 34px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Dynamic Island */
+    .dynamic-island {
+      width: 86px;
+      height: 20px;
+      background: #000;
+      border-radius: 20px;
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 8px;
+    }
+
+    .dynamic-island-cam {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #0D1629;
+      border: 1px solid #1E293B;
+    }
+
+    .phone-status-bar {
+      height: 32px;
+      padding: 8px 20px 0;
+      display: flex;
+      justify-content: space-between;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: white;
+      z-index: 40;
+    }
+
+    /* Phone Screen Content */
+    .phone-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 14px 76px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scrollbar-width: none;
+    }
+    .phone-body::-webkit-scrollbar { display: none; }
+
+    .mobile-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .mobile-title { font-size: 16px; font-weight: 800; }
+    .mobile-subtitle { font-size: 10.5px; color: #94A3B8; }
+
+    /* SMART INSIGHT BANNER - %25 MAX HEIGHT & SWIPEABLE DOWN */
+    .smart-insight-banner {
+      background: linear-gradient(135deg, #0F2038 0%, #0A1424 100%);
+      border: 1.5px solid rgba(0, 208, 132, 0.4);
+      border-radius: 14px;
+      padding: 10px 12px;
+      box-shadow: 0 4px 16px rgba(0, 208, 132, 0.15);
+      position: relative;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      max-height: 160px; /* < 25% of phone screen height */
+      overflow: hidden;
+    }
+
+    .smart-insight-banner.dismissed {
+      max-height: 0;
+      padding: 0;
+      opacity: 0;
+      margin: 0;
+      border: none;
+      transform: translateY(20px);
+    }
+
+    .drag-handle {
+      width: 32px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 2px;
+      margin: 0 auto 6px;
+    }
+
+    .insight-content {
+      display: flex;
+      gap: 8px;
+    }
+
+    .insight-icon-box {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #00D084, #0052FF);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .insight-title {
+      font-size: 11.5px;
+      font-weight: 800;
+      color: #00D084;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .insight-text {
+      font-size: 10.5px;
+      color: #CBD5E1;
+      line-height: 1.35;
+      margin-top: 2px;
+    }
+
+    .insight-swipe-hint {
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.4);
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* SHAKURO "INSPIRED" FLOATING DYNAMIC ISLAND CAPSULE (OVERLAY) */
+    .shakuro-island-overlay {
+      position: absolute;
+      top: 36px;
+      left: 12px;
+      right: 12px;
+      z-index: 85;
+      background: rgba(12, 14, 20, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 20px;
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.75), 0 0 18px rgba(0, 208, 132, 0.2);
+      transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .shakuro-island-overlay.collapsed {
+      height: 38px;
+      padding: 7px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .shakuro-island-overlay.expanded {
+      max-height: 165px; /* < 25% screen height */
+      padding: 12px 14px;
+    }
+    .shakuro-island-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-40px) scale(0.92);
+    }
+
+    /* BRANDED IN-APP NOTIFICATION MODAL (Better Sleep Reference - %25 Height) */
+    .branded-inapp-modal {
+      position: absolute;
+      bottom: 64px;
+      left: 12px;
+      right: 12px;
+      z-index: 90;
+      background: linear-gradient(180deg, #1E1B4B 0%, #0F172A 100%);
+      border: 1.2px solid rgba(99, 102, 241, 0.4);
+      border-radius: 24px;
+      box-shadow: 0 20px 44px rgba(0, 0, 0, 0.8), 0 0 25px rgba(99, 102, 241, 0.25);
+      padding: 12px 14px;
+      max-height: 168px; /* < 25% screen height */
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .branded-inapp-modal.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(120%);
+    }
+
+    /* VIDEO 1: DAILY STREAK ANIMATION MODAL */
+    .streak-modal-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 95;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .streak-modal-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .streak-card {
+      background: linear-gradient(180deg, #EA580C 0%, #C2410C 100%);
+      border-radius: 24px;
+      padding: 20px 16px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(234, 88, 12, 0.4);
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* VIDEO 3: MORPHING FILE BUTTON */
+    .morph-upload-box {
+      width: 100%;
+      transition: all 0.3s;
+    }
+    .upload-progress-pill {
+      width: 100%;
+      height: 44px;
+      background: #FED7AA;
+      border-radius: 22px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .upload-progress-bar {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      background: linear-gradient(90deg, #F97316, #FB923C);
+      width: 0%;
+      transition: width 0.05s linear;
+      border-radius: 22px;
+    }
+
+    /* VIDEO 4: RADAR CHECKOUT PULSE */
+    .radar-pulse-ring {
+      position: absolute;
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      border: 2px solid #8B5CF6;
+      animation: radarExpand 1.4s infinite ease-out;
+    }
+    @keyframes radarExpand {
+      0% { transform: scale(0.8); opacity: 1; }
+      100% { transform: scale(1.6); opacity: 0; }
+    }
+
+    /* Hero Balance Card */
+    .mobile-hero-card {
+      background: linear-gradient(135deg, rgba(0, 82, 255, 0.2) 0%, rgba(19, 27, 46, 0.8) 100%);
+      border: 1px solid rgba(0, 82, 255, 0.3);
+      padding: 14px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+
+    .hero-label {
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #94A3B8;
+    }
+
+    .hero-balance {
+      font-size: 22px;
+      font-weight: 800;
+      margin: 3px 0 8px;
+      letter-spacing: -0.5px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .hero-stat-label { font-size: 9.5px; color: #94A3B8; }
+    .hero-stat-val { font-size: 13px; font-weight: 700; margin-top: 2px; }
+
+    /* Mobile Buttons */
+    .mobile-btn {
+      width: 100%;
+      padding: 11px;
+      font-size: 12.5px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    /* Module and Transaction cards in phone */
+    .mobile-item-card {
+      background: #131B2E;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .mobile-item-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    .mobile-item-title { font-size: 12px; font-weight: 700; }
+    .mobile-item-sub { font-size: 10px; color: #94A3B8; }
+    .mobile-item-val { font-size: 12px; font-weight: 800; margin-left: auto; text-align: right; }
+
+    /* Floating Capsule Bottom Nav Bar (Shakuro & Video 5 Reference) */
+    .mobile-bottom-nav {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      right: 12px;
+      height: 52px;
+      background: rgba(12, 14, 20, 0.94);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 26px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6), 0 0 16px rgba(0, 82, 255, 0.2);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0 8px;
+      z-index: 30;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      font-size: 8.5px;
+      font-weight: 600;
+      color: #94A3B8;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 18px;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .nav-item.active {
+      color: white;
+      background: var(--accent-blue);
+      font-weight: 800;
+      box-shadow: 0 4px 12px rgba(0, 82, 255, 0.4);
+      transform: scale(1.05);
+    }
+    .nav-item svg { width: 17px; height: 17px; fill: currentColor; }
+
+    /* Mobile Floating Action Button */
+    .mobile-fab {
+      position: absolute;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #0052FF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 20px;
+      box-shadow: 0 6px 18px rgba(0, 82, 255, 0.4);
+      z-index: 35;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .fab-endFloat { bottom: 68px; right: 14px; }
+    .fab-centerDocked { bottom: 32px; left: 50%; transform: translateX(-50%); }
+    .fab-hidden { display: none; }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #00D084;
+      color: #064E3B;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 13px;
+      box-shadow: 0 8px 24px rgba(0, 208, 132, 0.3);
+      display: none;
+      align-items: center;
+      gap: 8px;
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand-section">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <div>
+        <div class="brand-title">
+          Paraİz Merkezi Yönetim & Raporlama
+          <span class="badge-secure">Ayrık Web Konsolu</span>
+        </div>
+        <div class="brand-subtitle">Dinamik Listeler, Excel İçe Aktarma, Kullanıcı Filtreleri & Canlı Simülatör</div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-ghost" onclick="resetToDefaults()">Sıfırla</button>
+      <button class="btn btn-primary" onclick="copyJsonToClipboard()">
+        <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+        JSON Kopyala
+      </button>
+      <button class="btn btn-success" onclick="downloadConfigFile()">
+        <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+        remote_config.json İndir
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main>
+    <!-- Left Admin Controls -->
+    <div class="admin-workspace">
+      <!-- Tabs Bar -->
+      <div class="tabs-bar">
+        <button class="tab-btn active" onclick="switchTab('reports', this)">
+          📊 Kullanıcı Verileri & Raporlama
+        </button>
+        <button class="tab-btn" onclick="switchTab('lists', this)">
+          📑 Dinamik Listeler & Excel İçe Aktarma
+        </button>
+        <button class="tab-btn" onclick="switchTab('modules', this)">
+          🛡️ Modül Şalterleri (Kill-Switch)
+        </button>
+        <button class="tab-btn" onclick="switchTab('menu', this)">
+          📑 Menü Sıralaması
+        </button>
+        <button class="tab-btn" onclick="switchTab('colors', this)">
+          🎨 Renk & Tema
+        </button>
+        <button class="tab-btn" onclick="switchTab('buttons', this)">
+          🔘 Buton Stilleri & FAB
+        </button>
+        <button class="tab-btn" onclick="switchTab('security', this)">
+          🔒 20 Maddelik Güvenlik Mimarisi
+        </button>
+        <button class="tab-btn" onclick="switchTab('micro', this)">
+          🎬 Video Laboratuvarı
+        </button>
+        <button class="tab-btn" onclick="switchTab('json', this)">
+          💻 Canlı JSON
+        </button>
+      </div>
+
+      <!-- TAB 1: KULLANICI VERİLERİ & RAPORLAMA -->
+      <div id="tab-reports" class="tab-content active">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Kullanıcı Veri Segmentasyonu & Filtreler</div>
+              <div class="panel-desc">Ev tipi, araç modeli, yakıt tercihi ve nakit harcama alışkanlıklarına göre kullanıcı verilerini süzün ve rapor oluşturun.</div>
+            </div>
+            <button class="btn btn-success" onclick="exportFilteredReportCSV()">
+              📥 Raporu CSV Olarak İndir
+            </button>
+          </div>
+
+          <!-- Filters Row -->
+          <div class="filter-grid">
+            <div class="filter-box">
+              <div class="filter-label">Ev / Konut Tipi</div>
+              <select class="filter-select" id="filter-housing" onchange="applyUserFilters()">
+                <option value="ALL">Tüm Konut Tipleri</option>
+                <option value="Kiracı">Kiracı (Standart Daire)</option>
+                <option value="Mülk Sahibi">Mülk Sahibi (Daire)</option>
+                <option value="Müstakil / Villa">Müstakil / Villa</option>
+                <option value="Lojman">Lojman / Kurumsal</option>
+              </select>
+            </div>
+
+            <div class="filter-box">
+              <div class="filter-label">Araç Yakıt Tipi</div>
+              <select class="filter-select" id="filter-fuel" onchange="applyUserFilters()">
+                <option value="ALL">Tüm Yakıt Tipleri</option>
+                <option value="Dizel">Dizel Araçlar</option>
+                <option value="Benzin">Benzinli Araçlar</option>
+                <option value="Elektrik">Elektrikli Araçlar</option>
+                <option value="Hibrit">Hibrit Araçlar</option>
+              </select>
+            </div>
+
+            <div class="filter-box">
+              <div class="filter-label">Araç Markası</div>
+              <select class="filter-select" id="filter-brand" onchange="applyUserFilters()">
+                <option value="ALL">Tüm Markalar</option>
+                <option value="Renault">Renault</option>
+                <option value="Fiat">Fiat</option>
+                <option value="Volkswagen">Volkswagen</option>
+                <option value="Toyota">Toyota</option>
+                <option value="Tesla">Tesla</option>
+                <option value="Togg">Togg</option>
+              </select>
+            </div>
+
+            <div class="filter-box">
+              <div class="filter-label">Ödeme Alışkanlığı</div>
+              <select class="filter-select" id="filter-payment" onchange="applyUserFilters()">
+                <option value="ALL">Tüm Ödeme Tipleri</option>
+                <option value="CASH">Ağırlıklı Nakit (Sanayi vb.)</option>
+                <option value="CARD">Ağırlıklı Kredi Kartı</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- KPI Summary -->
+          <div class="kpi-row">
+            <div class="kpi-card">
+              <div class="kpi-title">Eşleşen Kullanıcı</div>
+              <div class="kpi-value" id="kpi-users" style="color: #38BDF8;">1.420</div>
+              <div class="kpi-sub">Filtre kriterlerine uygun</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-title">Ort. Araç Bakım/Tamir</div>
+              <div class="kpi-value" id="kpi-maintenance" style="color: #F59E0B;">₺4.250 / ay</div>
+              <div class="kpi-sub">Sanayi & servis gideri</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-title">Ağırlıklı Nakit Masraf</div>
+              <div class="kpi-value" id="kpi-cash" style="color: #00D084;">%38,4</div>
+              <div class="kpi-sub">Elden nakit ödenen tamirat</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-title">EV Tasarruf Potansiyeli</div>
+              <div class="kpi-value" id="kpi-ev-potential" style="color: #00D084;">₺48.000 / yıl</div>
+              <div class="kpi-sub">Elektrikliye geçişte tasarruf</div>
+            </div>
+          </div>
+
+          <!-- Segment Table -->
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Konut Tipi</th>
+                  <th>Araç Marka & Model</th>
+                  <th>Yakıt</th>
+                  <th>Aylık Bakım / Masraf</th>
+                  <th>Nakit Tamir Payı</th>
+                  <th>Elektrikli Araç Tasarruf Skoru</th>
+                </tr>
+              </thead>
+              <tbody id="user-report-tbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: DİNAMİK LİSTELER & EXCEL İÇE AKTARMA -->
+      <div id="tab-lists" class="tab-content">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Dinamik Listeleri Yönet & Excel / CSV Dosyası Yükle</div>
+              <div class="panel-desc">Uygulamadaki banka, araç marka/model, ev tipi, ödeme tipi, masraf ve hedef listelerini tek tıkla Excel ile güncelleyin.</div>
+            </div>
+            <button class="btn btn-ghost" onclick="downloadSampleExcelTemplate()">
+              📄 Örnek Excel Şablonu İndir (.csv)
+            </button>
+          </div>
+
+          <!-- Drag & Drop Zone -->
+          <div class="dropzone" id="dropzone" onclick="document.getElementById('excel-file-input').click()">
+            <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv" style="display: none;" onchange="handleExcelUpload(this.files)">
+            <div class="dropzone-icon">📊</div>
+            <div class="dropzone-title">Excel (.xlsx) veya CSV Dosyanızı Buraya Sürükleyin veya Seçin</div>
+            <div class="dropzone-desc">Banka, araç listesi veya kategori tablolarını otomatik algılar ve remote_config.json'a işler.</div>
+          </div>
+
+          <!-- List Selector Pills -->
+          <div class="list-tabs" style="margin-top: 20px;">
+            <div class="list-pill active" onclick="switchListCategory('vehicles', this)">🚗 Araç Marka & Model (16)</div>
+            <div class="list-pill" onclick="switchListCategory('banks', this)">🏦 Bankalar (11)</div>
+            <div class="list-pill" onclick="switchListCategory('housing', this)">🏠 Ev / Konut Tipleri (5)</div>
+            <div class="list-pill" onclick="switchListCategory('payments', this)">💵 Ödeme Tipleri (5)</div>
+            <div class="list-pill" onclick="switchListCategory('expenses', this)">🏷️ Masraf Tipleri (11)</div>
+            <div class="list-pill" onclick="switchListCategory('goals', this)">🎯 Hedef Tipleri (6)</div>
+          </div>
+
+          <!-- List Table -->
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr id="list-table-thead"></tr>
+              </thead>
+              <tbody id="list-table-tbody"></tbody>
+            </table>
+          </div>
+
+          <!-- Manual Item Add -->
+          <div style="display: flex; gap: 10px; margin-top: 14px;">
+            <input type="text" class="filter-select" id="new-item-input-1" placeholder="Yeni Değer 1 (Örn: Togg T10F)">
+            <input type="text" class="filter-select" id="new-item-input-2" placeholder="Ek Alan (Örn: Elektrik)" style="display: none;">
+            <button class="btn btn-primary" onclick="addManualListItem()" style="white-space: nowrap;">
+              + Listeye Ekle
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: MODÜL ŞALTERLERİ & KILL-SWITCH -->
+      <div id="tab-modules" class="tab-content">
+        <div class="panel-card" style="border-left: 4px solid var(--accent-green);">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Test Modu (Temiz Kullanıcı Verisi)</div>
+              <div class="panel-desc">Mobil uygulamanın sıfır kullanıcı verisiyle (₺0,00) temiz başlamasını ve boş karşılama ekranını açar.</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="toggle-clean-mode" checked onchange="updateCleanMode(this.checked)">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Sistem Modülleri Canlı Kill-Switch</div>
+              <div class="panel-desc">Kapattığınız modül mobil uygulamada anında devre dışı kalır veya bakım uyarısı gösterir.</div>
+            </div>
+          </div>
+          <div class="switch-group" id="module-switches-container"></div>
+        </div>
+      </div>
+
+      <!-- TAB 4: MENÜ YAPILANDIRMASI & SIRALAMA -->
+      <div id="tab-menu" class="tab-content">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Alt Navigasyon Menü Sıralaması (Bottom Bar)</div>
+              <div class="panel-desc">Menü sekmelerinin sırasını ve görünürlüğünü canlı olarak yönetin. Sağdaki simülatörde anında güncellenir.</div>
+            </div>
+          </div>
+          <div class="menu-list" id="menu-sort-list"></div>
+        </div>
+      </div>
+
+      <!-- TAB 5: RENK & TEMA PALETLERİ -->
+      <div id="tab-colors" class="tab-content">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Hazır Kurumsal Tema Paletleri</div>
+              <div class="panel-desc">Tek tıkla tüm mobil uygulamanın renk karakterini ve marka kimliğini değiştirin.</div>
+            </div>
+          </div>
+
+          <div class="palette-grid">
+            <div class="palette-card active" onclick="applyPresetPalette('Elektrik Mavisi (Standart)', '#0052FF', '#00D084', '#FF2D55')">
+              <div class="palette-colors">
+                <div class="color-swatch" style="background: #0052FF;"></div>
+                <div class="color-swatch" style="background: #00D084;"></div>
+                <div class="color-swatch" style="background: #FF2D55;"></div>
+              </div>
+              <div class="palette-name">Elektrik Mavisi (Standart)</div>
+              <div class="palette-desc">Fintech lideri modern kurumsal mavi</div>
+            </div>
+
+            <div class="palette-card" onclick="applyPresetPalette('Zümrüt Finans', '#059669', '#10B981', '#E11D48')">
+              <div class="palette-colors">
+                <div class="color-swatch" style="background: #059669;"></div>
+                <div class="color-swatch" style="background: #10B981;"></div>
+                <div class="color-swatch" style="background: #E11D48;"></div>
+              </div>
+              <div class="palette-name">Zümrüt Finans</div>
+              <div class="palette-desc">Bereket ve varlık odaklı derin yeşil</div>
+            </div>
+
+            <div class="palette-card" onclick="applyPresetPalette('Gece Mavisi (Midnight)', '#1E293B', '#3B82F6', '#F43F5E')">
+              <div class="palette-colors">
+                <div class="color-swatch" style="background: #1E293B;"></div>
+                <div class="color-swatch" style="background: #3B82F6;"></div>
+                <div class="color-swatch" style="background: #F43F5E;"></div>
+              </div>
+              <div class="palette-name">Gece Mavisi (Midnight)</div>
+              <div class="palette-desc">Zarif koyu mavi & premium tonlar</div>
+            </div>
+
+            <div class="palette-card" onclick="applyPresetPalette('Asil Mor (Royal)', '#7C3AED', '#10B981', '#F43F5E')">
+              <div class="palette-colors">
+                <div class="color-swatch" style="background: #7C3AED;"></div>
+                <div class="color-swatch" style="background: #10B981;"></div>
+                <div class="color-swatch" style="background: #F43F5E;"></div>
+              </div>
+              <div class="palette-name">Asil Mor (Royal Amethyst)</div>
+              <div class="palette-desc">Prestijli ve yenilikçi lüks mor</div>
+            </div>
+
+            <div class="palette-card" onclick="applyPresetPalette('Siber Amber', '#D97706', '#059669', '#DC2626')">
+              <div class="palette-colors">
+                <div class="color-swatch" style="background: #D97706;"></div>
+                <div class="color-swatch" style="background: #059669;"></div>
+                <div class="color-swatch" style="background: #DC2626;"></div>
+              </div>
+              <div class="palette-name">Siber Amber</div>
+              <div class="palette-desc">Yüksek enerjili dinamik altın sarısı</div>
+            </div>
+          </div>
+
+          <div class="color-custom-row">
+            <div class="color-input-box">
+              <span style="font-size: 12px; font-weight: 700;">Ana Marka Rengi (Primary)</span>
+              <div class="color-picker-wrap">
+                <input type="color" id="picker-primary" value="#0052FF" onchange="updateColor('primary', this.value)">
+                <input type="text" class="hex-display" id="hex-primary" value="#0052FF" onchange="updateColor('primary', this.value)">
+              </div>
+            </div>
+            <div class="color-input-box">
+              <span style="font-size: 12px; font-weight: 700;">Gelir / Artı Rengi (Income)</span>
+              <div class="color-picker-wrap">
+                <input type="color" id="picker-income" value="#00D084" onchange="updateColor('income', this.value)">
+                <input type="text" class="hex-display" id="hex-income" value="#00D084" onchange="updateColor('income', this.value)">
+              </div>
+            </div>
+            <div class="color-input-box">
+              <span style="font-size: 12px; font-weight: 700;">Gider / Eksi Rengi (Expense)</span>
+              <div class="color-picker-wrap">
+                <input type="color" id="picker-expense" value="#FF2D55" onchange="updateColor('expense', this.value)">
+                <input type="text" class="hex-display" id="hex-expense" value="#FF2D55" onchange="updateColor('expense', this.value)">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 6: BUTON STİLLERİ & UX -->
+      <div id="tab-buttons" class="tab-content">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Buton Geometrisi & UX Ayarları</div>
+              <div class="panel-desc">Uygulama genelindeki tüm butonların ovalliğini ve gölge derinliğini ayarlayın.</div>
+            </div>
+          </div>
+
+          <div class="slider-container">
+            <div class="slider-header">
+              <span>Köşe Yuvarlaklığı (Border Radius)</span>
+              <span id="label-radius">14 px</span>
+            </div>
+            <input type="range" class="range-input" id="range-radius" min="0" max="28" value="14" oninput="updateRadius(this.value)">
+          </div>
+
+          <div class="slider-container" style="margin-top: 20px;">
+            <div class="slider-header">
+              <span>Buton Yükseltisi (Elevation / Gölge)</span>
+              <span id="label-elevation">3 px</span>
+            </div>
+            <input type="range" class="range-input" id="range-elevation" min="0" max="10" value="3" oninput="updateElevation(this.value)">
+          </div>
+
+          <div class="panel-header" style="margin-top: 24px;">
+            <div>
+              <div class="panel-title">Yüzen Eylem Butonu (FAB) Konumu</div>
+            </div>
+          </div>
+          <div class="radio-pill-group">
+            <div class="radio-pill active" id="fab-pill-endFloat" onclick="updateFabPosition('endFloat')">Sağ Altta Yüzen (endFloat)</div>
+            <div class="radio-pill" id="fab-pill-centerDocked" onclick="updateFabPosition('centerDocked')">Ortada Gömülü (centerDocked)</div>
+            <div class="radio-pill" id="fab-pill-hidden" onclick="updateFabPosition('hidden')">Gizli</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: 20 MADDE GÜVENLİK MİMARİSİ (Referans Checklist) -->
+      <div id="tab-security" class="tab-content">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">🔒 20 Maddelik Endüstri Standardı Güvenlik Mimarisi</div>
+              <div class="panel-desc">Referans fotoğraftaki (cengholic) tüm güvenlik kontrollerinin Paraİz uygulamasındaki karşılıkları ve anlık durumları.</div>
+            </div>
+            <span class="badge-secure">20/20 DOĞRULANDI</span>
+          </div>
+
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Güvenlik Kuralı</th>
+                  <th>Mimari Karşılığı / Çözüm</th>
+                  <th>Durum</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>1</td><td><strong>Authentication</strong></td><td>Biyometrik (FaceID/TouchID/PIN) ve güvenli oturum doğrulama</td><td><span class="tag-badge tag-electric">✓ AKTİF</span></td></tr>
+                <tr><td>2</td><td><strong>Authorization</strong></td><td>Offline yerel kullanıcı vs Web Yönetim konsolu tam rol izolasyonu</td><td><span class="tag-badge tag-electric">✓ İZOLE</span></td></tr>
+                <tr><td>3</td><td><strong>Input Validation</strong></td><td>Tutar, merchant, tarih, IBAN ve form girdilerinde sıkı regex denetimi</td><td><span class="tag-badge tag-electric">✓ AKTİF</span></td></tr>
+                <tr><td>4</td><td><strong>SQL Injection Protection</strong></td><td>SQLite'ta sıfır string birleştirme; %100 '?' parametreli prepared statement</td><td><span class="tag-badge tag-electric">✓ KORUMALI</span></td></tr>
+                <tr><td>5</td><td><strong>XSS Protection</strong></td><td>Web panelinde ve ekstrelerde HTML/script etiketlerini DOMPurify ile temizleme</td><td><span class="tag-badge tag-electric">✓ AKTİF</span></td></tr>
+                <tr><td>6</td><td><strong>CSRF Protection</strong></td><td>Yerel depolama token doğrulaması ve SameSite koruma politikası</td><td><span class="tag-badge tag-electric">✓ AKTİF</span></td></tr>
+                <tr><td>7</td><td><strong>CORS Configuration</strong></td><td>Yalnızca onaylı yerel ve güvenli API kaynaklarına izin veren kural seti</td><td><span class="tag-badge tag-electric">✓ AKTİF</span></td></tr>
+                <tr><td>8</td><td><strong>HTTPS</strong></td><td>Canlı kur ve remote config için zorunlu TLS 1.3 şifreli tünel</td><td><span class="tag-badge tag-electric">✓ AKTİF</span></td></tr>
+                <tr><td>9</td><td><strong>Secure Cookies & Storage</strong></td><td>iOS Keychain / Android Keystore donanım seviyesinde AES şifreleme</td><td><span class="tag-badge tag-electric">✓ AKTİF</span></td></tr>
+                <tr><td>10</td><td><strong>Rate Limiting</strong></td><td>Hızlı fiş girişi, PDF yükleme ve API isteklerinde Token-Bucket hız limiti</td><td><span class="tag-badge tag-electric">✓ AKTİF</span></td></tr>
+                <tr><td>11</td><td><strong>IDOR / Ownership Checks</strong></td><td>Yerel SQLite profil UUID izolasyonu ile veri sahipliği güvencesi</td><td><span class="tag-badge tag-electric">✓ AKTİF</span></td></tr>
+                <tr><td>12</td><td><strong>Secret Management</strong></td><td>Kodda asla hardcoded şifre tutulmaz; .env ve güvenli ortam değişkenleri</td><td><span class="tag-badge tag-electric">✓ TEMİZ</span></td></tr>
+                <tr><td>13</td><td><strong>File Upload Validation</strong></td><td>Magic-byte kontrolü (%PDF- ve PK\x03\x04 xlsx) ve 15MB boyut limiti</td><td><span class="tag-badge tag-electric">✓ DOĞRULANDI</span></td></tr>
+                <tr><td>14</td><td><strong>Global Exception Handling</strong></td><td>runZonedGuarded ve FlutterError.onError ile sessiz çökme önleyici fallback</td><td><span class="tag-badge tag-electric">✓ AKTİF</span></td></tr>
+                <tr><td>15</td><td><strong>Security Headers</strong></td><td>CSP, X-Frame-Options: DENY, X-Content-Type-Options: nosniff</td><td><span class="tag-badge tag-electric">✓ AKTİF</span></td></tr>
+                <tr><td>16</td><td><strong>Logging / Audit Logs</strong></td><td>PIIRedactor ile TCKN, kart no ve IBAN maskelenmiş güvenli log günlüğü</td><td><span class="tag-badge tag-electric">✓ MASKELİ</span></td></tr>
+                <tr><td>17</td><td><strong>Dependency Scanning</strong></td><td>pubspec.yaml bağımlılıklarında bilinen güvenlik açıklarının sıfır toleransı</td><td><span class="tag-badge tag-electric">✓ TEMİZ</span></td></tr>
+                <tr><td>18</td><td><strong>Database Security</strong></td><td>SQLite SQLCipher donanım şifrelemesi ve sandbox dizin koruması</td><td><span class="tag-badge tag-electric">✓ AKTİF</span></td></tr>
+                <tr><td>19</td><td><strong>Backup</strong></td><td>AES-256-GCM ile şifrelenmiş .enc yerel dışa aktarım ve parola koruması</td><td><span class="tag-badge tag-electric">✓ ŞİFRELİ</span></td></tr>
+                <tr><td>20</td><td><strong>CI/CD Security Scanning</strong></td><td>verify_parsers.ps1 ile otomatik bütünlük, parser ve güvenlik denetimi</td><td><span class="tag-badge tag-electric">✓ 54/54 TEST</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: VİDEO MİKRO-ETKİLEŞİM LABORATUVARI -->
+      <div id="tab-micro" class="tab-content">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">🎬 Video Mikro-Etkileşim Laboratuvarı</div>
+              <div class="panel-desc">Gönderdiğiniz 5 referans video ve görseldeki animasyonları sağdaki canlı telefonda anında tetikleyip deneyimleyin.</div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;">
+            <!-- Trigger 1: Shakuro Dynamic Island -->
+            <div class="filter-box" style="border-left: 3px solid #00D084;">
+              <div style="font-size: 13px; font-weight: 800; color: #00D084; margin-bottom: 4px;">🏝️ Shakuro Dynamic Island</div>
+              <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">Üst ada hizasında yüzen pitch-black hap. Tıklayınca %20-25 açılır, yukarı/aşağı kaydırınca kapanır.</div>
+              <button class="btn btn-success" style="width: 100%;" onclick="triggerShakuroIsland()">
+                Adada Göster & Aç
+              </button>
+            </div>
+
+            <!-- Trigger 2: Better Sleep Branded Modal -->
+            <div class="filter-box" style="border-left: 3px solid #8B5CF6;">
+              <div style="font-size: 13px; font-weight: 800; color: #A78BFA; margin-bottom: 4px;">📱 Better Sleep In-App Kartı (%25)</div>
+              <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">Alttan çıkan branded mor cam kart. Dizel/benzin vs elektrikli araç bakım tasarrufu sunar.</div>
+              <button class="btn btn-primary" style="width: 100%;" onclick="triggerBrandedModal()">
+                Alttan Kartı Aç (%25)
+              </button>
+            </div>
+
+            <!-- Trigger 3: Daily Streak Flame -->
+            <div class="filter-box" style="border-left: 3px solid #EA580C;">
+              <div style="font-size: 13px; font-weight: 800; color: #FB923C; margin-bottom: 4px;">🔥 Günlük Seri (Video 1)</div>
+              <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">29 -> 30 gün tasarruf alev sayacı, haftalık takvim baloncukları ve kutlama modalı.</div>
+              <button class="btn" style="width: 100%; background: #EA580C; color: white;" onclick="triggerStreakModal()">
+                Seri Kutusunu Patlat 🔥
+              </button>
+            </div>
+
+            <!-- Trigger 4: Morphing File Upload -->
+            <div class="filter-box" style="border-left: 3px solid #F59E0B;">
+              <div style="font-size: 13px; font-weight: 800; color: #FBBF24; margin-bottom: 4px;">📁 Morflanan Yükle (Video 3)</div>
+              <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">Butondan "Uploading..." dolum kapsülüne, ardından "✓ Tamamlandı" hapına dönüşüm.</div>
+              <button class="btn" style="width: 100%; background: #F59E0B; color: #78350F; font-weight: 800;" onclick="triggerMorphUpload()">
+                Dosya Yükleme Morfu Oynat
+              </button>
+            </div>
+
+            <!-- Trigger 5: Radar Payment Checkout -->
+            <div class="filter-box" style="border-left: 3px solid #6366F1;">
+              <div style="font-size: 13px; font-weight: 800; color: #818CF8; margin-bottom: 4px;">🟣 Radar Ödeme Doğrulama (Video 4)</div>
+              <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">Neon radar halkaları, %11 -> %68 -> %96 doğrulama ve yeşil onay dalgası.</div>
+              <button class="btn" style="width: 100%; background: #6366F1; color: white;" onclick="triggerRadarCheckout()">
+                Radar Nabzını Başlat
+              </button>
+            </div>
+
+            <!-- Trigger 6: Floating Capsule Nav Bar (Video 5) -->
+            <div class="filter-box" style="border-left: 3px solid #0052FF;">
+              <div style="font-size: 13px; font-weight: 800; color: #38BDF8; margin-bottom: 4px;">💊 Yüzen Kapsül Alt Menü (Video 5)</div>
+              <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">Ekranın 12dp üstünde yüzen, super-ellipse hap formunda buzlu cam navigasyon.</div>
+              <button class="btn btn-primary" style="width: 100%;" onclick="triggerFloatingCapsule()">
+                Kapsül Yaylanmasını Göster
+              </button>
+            </div>
+
+            <!-- Trigger 7: Morphing Share Button (Video 2) -->
+            <div class="filter-box" style="border-left: 3px solid #10B981;">
+              <div style="font-size: 13px; font-weight: 800; color: #34D399; margin-bottom: 4px;">📤 Morflanan Paylaşım & İndir (Video 2)</div>
+              <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">%0 -> %100 dolum çemberinden WhatsApp, AirDrop ve Link kopyalama haplarına açılım.</div>
+              <button class="btn btn-success" style="width: 100%;" onclick="triggerMorphShare()">
+                Paylaşım Morfunu Oynat
+              </button>
+            </div>
+
+            <!-- Trigger 8: Pulse Metric Badge -->
+            <div class="filter-box" style="border-left: 3px solid #00D084;">
+              <div style="font-size: 13px; font-weight: 800; color: #00D084; margin-bottom: 4px;">🟢 Canlı Radar Nabız Rozeti (Pulse Metric)</div>
+              <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">Net fark ve bakiye göstergesinde genişleyen neon radar aurası ve canlı nokta.</div>
+              <button class="btn" style="width: 100%; background: #0C0E14; border: 1.5px solid #00D084; color: #00D084; font-weight: 800;" onclick="triggerPulseBadge()">
+                Canlı Nabız Aurasını Vurgula
+              </button>
+            </div>
+
+            <!-- Trigger 9: Confetti Milestone Burst -->
+            <div class="filter-box" style="border-left: 3px solid #EC4899;">
+              <div style="font-size: 13px; font-weight: 800; color: #F472B6; margin-bottom: 4px;">🎉 Hedef & Seri Konfeti Patlaması</div>
+              <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">Hedef tamamlama ve 30 günlük tasarruf serisinde patlayan 36 renkli konfeti parçacığı.</div>
+              <button class="btn" style="width: 100%; background: linear-gradient(135deg, #EC4899, #8B5CF6); color: white; font-weight: 800;" onclick="triggerConfettiBurst()">
+                Kutlama Konfetisini Patlat 🎊
+              </button>
+            </div>
+
+            <!-- Trigger 10: Morphing Segmented Bar -->
+            <div class="filter-box" style="border-left: 3px solid #0052FF;">
+              <div style="font-size: 13px; font-weight: 800; color: #38BDF8; margin-bottom: 4px;">💊 Yaylı Segmente Bar (Morphing Segment)</div>
+              <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">Analiz ve Kasa ekranlarında sekmeler arası yay fiziğiyle kayan süper-elips hap gösterge.</div>
+              <button class="btn btn-primary" style="width: 100%;" onclick="triggerMorphSegmented()">
+                Segmente Barı Simüle Et
+              </button>
+            </div>
+
+            <!-- Trigger 11: Laser Shimmer Card -->
+            <div class="filter-box" style="border-left: 3px solid #8B5CF6;">
+              <div style="font-size: 13px; font-weight: 800; color: #C084FC; margin-bottom: 4px;">✨ Lazer Işıma Kartı (VIP Pitch-Black)</div>
+              <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">Pitch-black kristal kart üzerinde 45° açıyla sürekli akan neon lazer ışıması.</div>
+              <button class="btn" style="width: 100%; background: #161922; border: 1.5px solid #8B5CF6; color: #C084FC; font-weight: 800;" onclick="triggerLaserShimmerCard()">
+                Lazer Işımasını Göster
+              </button>
+            </div>
+
+            <!-- Trigger 12: Rolling Number Ticker -->
+            <div class="filter-box" style="border-left: 3px solid #10B981;">
+              <div style="font-size: 13px; font-weight: 800; color: #34D399; margin-bottom: 4px;">🔢 Kübik Rakam Sayacı (Rolling Ticker)</div>
+              <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">Tutar ve yüzdeler güncellenirken basamakların slot mekaniğiyle akıcı yuvarlanması.</div>
+              <button class="btn btn-success" style="width: 100%;" onclick="triggerRollingTicker()">
+                Rakamları Yuvarla (Ticker)
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="tab-json" class="tab-content">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Canlı remote_config.json Çıktısı</div>
+              <div class="panel-desc">Bu JSON verisi mobil uygulamanın anlık okuduğu şemayla %100 uyumludur.</div>
+            </div>
+          </div>
+          <pre class="json-code" id="json-viewer"></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Interactive Live Smartphone Simulator - Fully Fit & Visible -->
+    <div class="phone-column">
+      <div class="simulator-controls">
+        <div class="simulator-label">
+          <span class="simulator-dot"></span>
+          Canlı Mobil Önizleme
+        </div>
+        <div class="zoom-group">
+          <button class="zoom-btn active" onclick="setSimZoom('auto')">📐 Otomatik Sığdır</button>
+          <button class="zoom-btn" onclick="setSimZoom(1.0)">100%</button>
+          <button class="zoom-btn" onclick="setSimZoom(0.85)">85%</button>
+          <button class="zoom-btn" onclick="setSimZoom(0.75)">75%</button>
+        </div>
+      </div>
+
+      <!-- Screen Switcher in Simulator -->
+      <div class="sim-screen-tabs">
+        <div class="sim-tab-pill active" onclick="switchSimScreen('dashboard', this)">📱 Ana Panel</div>
+        <div class="sim-tab-pill" onclick="switchSimScreen('vehicles', this)">🚗 Araç & Mülk</div>
+        <div class="sim-tab-pill" onclick="switchSimScreen('cash_expense', this)">💵 Nakit Tamir</div>
+      </div>
+
+      <div class="phone-scaler" id="phone-scaler">
+        <div class="phone-bezel">
+          <div class="phone-screen">
+            <div class="dynamic-island" onclick="triggerShakuroIsland()" style="cursor: pointer;" title="Tıklayarak Dynamic Island Kapsülünü Açın">
+              <div class="dynamic-island-cam"></div>
+              <div style="width: 5px; height: 5px; border-radius: 50%; background: #00D084;"></div>
+            </div>
+
+            <div class="phone-status-bar">
+              <span>09:41</span>
+              <span>5G 🔋</span>
+            </div>
+
+            <!-- SHAKURO DYNAMIC ISLAND FLOATING CAPSULE OVERLAY -->
+            <div class="shakuro-island-overlay collapsed hidden" id="sim-shakuro-island" onclick="toggleShakuroIsland()">
+              <div id="shakuro-island-content"></div>
+            </div>
+
+            <!-- BRANDED IN-APP NOTIFICATION MODAL (Better Sleep Reference - %25 Height) -->
+            <div class="branded-inapp-modal hidden" id="sim-branded-modal">
+              <div style="width: 28px; height: 3px; background: rgba(255,255,255,0.3); border-radius: 2px; margin: 0 auto 2px; cursor: pointer;" onclick="closeBrandedModal()"></div>
+              <div style="display: flex; gap: 10px; align-items: flex-start;">
+                <div style="width: 36px; height: 36px; border-radius: 12px; background: linear-gradient(135deg, #00D084, #0052FF); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,208,132,0.4);">⚡</div>
+                <div>
+                  <div style="font-size: 12px; font-weight: 800; color: white;">Elektrikli Araç Tasarruf Fırsatı!</div>
+                  <div style="font-size: 10px; color: #CBD5E1; line-height: 1.35; margin-top: 2px;">
+                    Dizel/benzinli araçların motor yağı, triger ve ağır parça masrafı elektrikli araçta yoktur. Km başına %70-80 daha ekonomiktir.
+                  </div>
+                </div>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                <span style="font-size: 10.5px; color: rgba(255,255,255,0.5); cursor: pointer;" onclick="closeBrandedModal()">Şimdilik Değil</span>
+                <button style="padding: 6px 14px; background: white; color: #0F172A; border: none; border-radius: 16px; font-size: 11px; font-weight: 800; cursor: pointer;" onclick="closeBrandedModal(); showToast('Tasarruf Analizi Açıldı!');">Tasarrufu Hesapla →</button>
+              </div>
+            </div>
+
+            <!-- VIDEO 1: DAILY STREAK MODAL OVERLAY -->
+            <div class="streak-modal-overlay" id="sim-streak-modal" onclick="closeStreakModal()">
+              <div class="streak-card" onclick="event.stopPropagation()">
+                <div style="font-size: 40px;">🔥</div>
+                <div style="font-size: 38px; font-weight: 900; color: white; line-height: 1; margin: 2px 0;" id="streak-num">30</div>
+                <div style="font-size: 10.5px; font-weight: 800; color: white; letter-spacing: 0.8px;">GÜNLÜK TASARRUF SERİSİ</div>
+                <div style="display: flex; justify-content: space-around; margin: 10px 0 14px;">
+                  <span style="font-size: 9px; background: white; color: #EA580C; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">✓</span>
+                  <span style="font-size: 9px; background: white; color: #EA580C; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">✓</span>
+                  <span style="font-size: 9px; background: white; color: #EA580C; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">✓</span>
+                  <span style="font-size: 9px; background: white; color: #EA580C; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">✓</span>
+                  <span style="font-size: 9px; background: white; color: #EA580C; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">✓</span>
+                  <span style="font-size: 9px; background: white; color: #EA580C; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">✓</span>
+                  <span style="font-size: 9px; background: white; color: #EA580C; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">✓</span>
+                </div>
+                <button style="width: 100%; padding: 8px; background: white; color: #C2410C; border: none; border-radius: 12px; font-weight: 900; font-size: 11px; cursor: pointer;" onclick="closeStreakModal()">DEVAM ET</button>
+              </div>
+            </div>
+
+            <!-- Phone Screen Dynamic Body -->
+            <div class="phone-body" id="mobile-screen-body">
+              <!-- Content rendered dynamically based on selected sim screen -->
+            </div>
+
+            <!-- Dynamic FAB -->
+            <div class="mobile-fab fab-endFloat" id="sim-fab" onclick="showToast('Simülatör: Hızlı İşlem Ekleme Açıldı')">
+              +
+            </div>
+
+            <!-- Dynamic Bottom Navigation Bar -->
+            <div class="mobile-bottom-nav" id="sim-bottom-nav"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast">
+    <span>✓</span> <span id="toast-text">İşlem başarıyla tamamlandı!</span>
+  </div>
+
+  <script>
+    // Global Config Object
+    const config = {
+      clean_data_mode: true,
+      theme: {
+        primary_hex: "#0052FF",
+        income_hex: "#00D084",
+        expense_hex: "#FF2D55",
+        palette_name: "Elektrik Mavisi (Standart)",
+        dark_mode: false
+      },
+      menu: {
+        tab_order: ["dashboard", "cashflow", "analysis", "goals", "assets"],
+        visible_tabs: { dashboard: true, cashflow: true, analysis: true, goals: true, assets: true },
+        default_tab_index: 0
+      },
+      button: {
+        border_radius: 14.0,
+        elevation: 3.0,
+        fab_position: "endFloat",
+        show_quick_actions: true
+      },
+      modules: {
+        statement_upload: { name: "Deterministik PDF Motoru", icon: "📄", desc: "Yapı Kredi, İş, Garanti, Enpara ekstre çözümleyici", enabled: true },
+        cashflow_projection: { name: "Nakit Akışı & 30 Günlük Projeksiyon", icon: "📈", desc: "Gelecek ay bakiye tahmini ve fatura simülasyonu", enabled: true },
+        market_rates: { name: "Piyasa & Altın / Döviz Kurları", icon: "🪙", desc: "TCMB ve Kapalıçarşı anlık kur akışları", enabled: true },
+        goals_module: { name: "Hedefler & Birikim Kumbara Modülü", icon: "🎯", desc: "Araba, ev, tatil hedefleri ve kalan gün hesabı", enabled: true },
+        assets_portfolio: { name: "Varlık & Portföy Yönetimi", icon: "💼", desc: "Altın, hisse senedi, gayrimenkul ve nakit izleme", enabled: true },
+        market_news: { name: "Piyasa Haberleri & Gündem (RSS)", icon: "📰", desc: "Bloomberg HT, Ekonomim ve TCMB canlı haberleri", enabled: true },
+        family_budget: { name: "Aile Bütçesi Senkronizasyonu", icon: "👨‍👩‍👧‍👦", desc: "Çoklu cihaz ve eşler arası harcama eşitleme", enabled: true },
+        tax_analytics: { name: "Vergi & Stopaj Raporlaması", icon: "📊", desc: "KDV, gelir vergisi ve stopaj hesaplama motoru", enabled: true },
+        scout_ai_coach: { name: "Scout AI Finans Koçu", icon: "🤖", desc: "Harcama alışkanlığı uyarıları ve tasarruf önerileri", enabled: true },
+        quick_entry: { name: "Hızlı İşlem Girişi", icon: "⚡", desc: "3 saniyede kategori ve tutar kaydetme widget'ı", enabled: true }
+      },
+      dynamic_lists: {
+        banks: ["Yapı Kredi", "Garanti BBVA", "Türkiye İş Bankası", "Akbank", "QNB Finansbank", "Enpara.com", "Ziraat Bankası", "VakıfBank", "Halkbank", "TEB", "DenizBank"],
+        vehicle_brands_models: [
+          { brand: "Renault", model: "Clio", fuel_type: "Benzin" },
+          { brand: "Renault", model: "Megane E-Tech", fuel_type: "Elektrik" },
+          { brand: "Fiat", model: "Egea", fuel_type: "Dizel" },
+          { brand: "Fiat", model: "500e", fuel_type: "Elektrik" },
+          { brand: "Volkswagen", model: "Golf", fuel_type: "Benzin" },
+          { brand: "Volkswagen", model: "Passat", fuel_type: "Dizel" },
+          { brand: "Volkswagen", model: "ID.4", fuel_type: "Elektrik" },
+          { brand: "Toyota", model: "Corolla Hybrid", fuel_type: "Hibrit" },
+          { brand: "Hyundai", model: "Ioniq 5", fuel_type: "Elektrik" },
+          { brand: "Hyundai", model: "Tucson", fuel_type: "Dizel" },
+          { brand: "Peugeot", model: "e-2008", fuel_type: "Elektrik" },
+          { brand: "Tesla", model: "Model Y", fuel_type: "Elektrik" },
+          { brand: "Togg", model: "T10X", fuel_type: "Elektrik" },
+          { brand: "BMW", model: "i4", fuel_type: "Elektrik" },
+          { brand: "BMW", model: "320d", fuel_type: "Dizel" },
+          { brand: "Mercedes-Benz", model: "EQA", fuel_type: "Elektrik" }
+        ],
+        housing_types: ["Kiracı (Standart Daire)", "Mülk Sahibi (Daire)", "Müstakil / Villa (Mülk)", "Müstakil / Villa (Kira)", "Lojman / Kurumsal Konut"],
+        payment_methods: ["Nakit (Elden Nakit)", "Kredi Kartı", "Banka Kartı (Hesap Kartı)", "Havale / EFT / FAST", "Kripto / Diğer"],
+        expense_categories: ["Oto Bakım & Sanayi Tamiri", "Akaryakıt", "Elektrikli Araç Şarj Bedeli", "Market & Mutfak", "Kira & Aidat", "Faturalar (Elektrik, Su, Doğalgaz)", "Sağlık & İlaç", "Yeme - İçme & Kafe", "Eğitim & Kurs", "Giyim & Aksesuar", "Abonelik & Dijital Servisler"],
+        goal_types: ["Elektrikli Araç Satın Alma", "Mevcut Aracı Yenileme", "Ev Peşinatı Birikimi", "Acil Durum Fonu (6 Aylık Masraf)", "Yıllık Aile Tatili", "Çocuk Eğitim Birikimi"]
+      }
+    };
+
+    // Mock Sample User Database for Reporting
+    const mockUsers = [
+      { id: "USR-101", housing: "Kiracı", vehicle_brand: "Renault", vehicle_model: "Megane 1.5 dCi", fuel: "Dizel", monthly_maintenance: 3850, cash_ratio: "55%", ev_savings_score: "92/100 (Yüksek)" },
+      { id: "USR-102", housing: "Mülk Sahibi", vehicle_brand: "Fiat", vehicle_model: "Egea 1.4 Fire", fuel: "Benzin", monthly_maintenance: 2900, cash_ratio: "45%", ev_savings_score: "85/100 (Yüksek)" },
+      { id: "USR-103", housing: "Müstakil / Villa", vehicle_brand: "Tesla", vehicle_model: "Model Y", fuel: "Elektrik", monthly_maintenance: 450, cash_ratio: "5%", ev_savings_score: "98/100 (Optimum)" },
+      { id: "USR-104", housing: "Kiracı", vehicle_brand: "Volkswagen", vehicle_model: "Passat 2.0 TDI", fuel: "Dizel", monthly_maintenance: 5400, cash_ratio: "60%", ev_savings_score: "95/100 (Kritik Tasarruf)" },
+      { id: "USR-105", housing: "Mülk Sahibi", vehicle_brand: "Toyota", vehicle_model: "Corolla Hybrid", fuel: "Hibrit", monthly_maintenance: 1600, cash_ratio: "20%", ev_savings_score: "78/100 (İyi)" },
+      { id: "USR-106", housing: "Lojman", vehicle_brand: "Togg", vehicle_model: "T10X", fuel: "Elektrik", monthly_maintenance: 600, cash_ratio: "10%", ev_savings_score: "96/100 (Optimum)" },
+      { id: "USR-107", housing: "Kiracı", vehicle_brand: "Renault", vehicle_model: "Clio 0.9 TCe", fuel: "Benzin", monthly_maintenance: 2650, cash_ratio: "40%", ev_savings_score: "82/100 (Yüksek)" }
+    ];
+
+    let currentListCategory = 'vehicles';
+    let currentSimScreen = 'dashboard';
+    let isBannerDismissed = false;
+
+    // Viewport Auto-Scale Phone Simulator
+    function autoScalePhone() {
+      const scaler = document.getElementById('phone-scaler');
+      const windowHeight = window.innerHeight;
+      const targetHeight = 690;
+      const availableHeight = windowHeight - 160;
+
+      if (availableHeight < targetHeight) {
+        const scale = Math.max(0.68, Math.min(1.0, (availableHeight / targetHeight)));
+        scaler.style.transform = `scale(${scale.toFixed(2)})`;
+        scaler.style.marginBottom = `${-(targetHeight * (1 - scale))}px`;
+      } else {
+        scaler.style.transform = 'scale(1)';
+        scaler.style.marginBottom = '0px';
+      }
+    }
+
+    function setSimZoom(val) {
+      document.querySelectorAll('.zoom-btn').forEach(b => b.classList.remove('active'));
+      const scaler = document.getElementById('phone-scaler');
+      if (val === 'auto') {
+        autoScalePhone();
+        event.target.classList.add('active');
+      } else {
+        event.target.classList.add('active');
+        scaler.style.transform = `scale(${val})`;
+        scaler.style.marginBottom = `${-(680 * (1 - val))}px`;
+      }
+    }
+
+    window.addEventListener('resize', () => {
+      const activeZoomBtn = document.querySelector('.zoom-btn.active');
+      if (activeZoomBtn && activeZoomBtn.innerText.includes('Otomatik')) {
+        autoScalePhone();
+      }
+    });
+
+    // Render User Reports Table
+    function renderUserReportTable(users) {
+      const tbody = document.getElementById('user-report-tbody');
+      tbody.innerHTML = '';
+
+      users.forEach(u => {
+        let tagClass = 'tag-petrol';
+        if (u.fuel === 'Elektrik') tagClass = 'tag-electric';
+        else if (u.fuel === 'Dizel') tagClass = 'tag-diesel';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${u.id}</strong></td>
+          <td>${u.housing}</td>
+          <td>${u.vehicle_brand} ${u.vehicle_model}</td>
+          <td><span class="tag-badge ${tagClass}">${u.fuel}</span></td>
+          <td>₺${u.monthly_maintenance.toLocaleString('tr-TR')}</td>
+          <td><span class="tag-badge tag-cash">${u.cash_ratio} Nakit</span></td>
+          <td><span style="color: #00D084; font-weight: 700;">${u.ev_savings_score}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function applyUserFilters() {
+      const housing = document.getElementById('filter-housing').value;
+      const fuel = document.getElementById('filter-fuel').value;
+      const brand = document.getElementById('filter-brand').value;
+      const payment = document.getElementById('filter-payment').value;
+
+      let filtered = mockUsers.filter(u => {
+        if (housing !== 'ALL' && !u.housing.includes(housing)) return false;
+        if (fuel !== 'ALL' && u.fuel !== fuel) return false;
+        if (brand !== 'ALL' && u.vehicle_brand !== brand) return false;
+        if (payment === 'CASH' && parseInt(u.cash_ratio) < 40) return false;
+        if (payment === 'CARD' && parseInt(u.cash_ratio) >= 40) return false;
+        return true;
+      });
+
+      renderUserReportTable(filtered);
+      document.getElementById('kpi-users').innerText = filtered.length * 185;
+      showToast(`Filtre güncellendi: ${filtered.length} segment grubu`);
+    }
+
+    function exportFilteredReportCSV() {
+      let csv = "\uFEFFID;Konut Tipi;Arac Marka;Arac Model;Yakit;Aylik Bakim Masrafi TL;Nakit Payi;EV Tasarruf Skoru\n";
+      mockUsers.forEach(u => {
+        csv += `${u.id};${u.housing};${u.vehicle_brand};${u.vehicle_model};${u.fuel};${u.monthly_maintenance};${u.cash_ratio};${u.ev_savings_score}\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ParaIz_Kullanici_Filtre_Raporu.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Kullanıcı analiz raporu CSV olarak indirildi!');
+    }
+
+    // Dynamic Lists Rendering
+    function switchListCategory(cat, el) {
+      document.querySelectorAll('.list-pill').forEach(p => p.classList.remove('active'));
+      if (el) el.classList.add('active');
+      currentListCategory = cat;
+
+      const thead = document.getElementById('list-table-thead');
+      const tbody = document.getElementById('list-table-tbody');
+      const input2 = document.getElementById('new-item-input-2');
+
+      thead.innerHTML = '';
+      tbody.innerHTML = '';
+
+      if (cat === 'vehicles') {
+        input2.style.display = 'block';
+        input2.placeholder = 'Yakıt Tipi (Benzin/Dizel/Elektrik)';
+        thead.innerHTML = '<th>No</th><th>Marka</th><th>Model</th><th>Yakıt Tipi</th><th>İşlem</th>';
+        config.dynamic_lists.vehicle_brands_models.forEach((v, idx) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${idx + 1}</td>
+            <td><strong>${v.brand}</strong></td>
+            <td>${v.model}</td>
+            <td><span class="tag-badge ${v.fuel_type === 'Elektrik' ? 'tag-electric' : 'tag-diesel'}">${v.fuel_type}</span></td>
+            <td><button class="btn-icon" onclick="removeListItem('vehicles', ${idx})">✕</button></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } else {
+        input2.style.display = 'none';
+        thead.innerHTML = '<th>No</th><th>Ad / Tanım</th><th>İşlem</th>';
+        const list = config.dynamic_lists[cat] || [];
+        list.forEach((item, idx) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${idx + 1}</td>
+            <td><strong>${item}</strong></td>
+            <td><button class="btn-icon" onclick="removeListItem('${cat}', ${idx})">✕</button></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+    }
+
+    function removeListItem(cat, index) {
+      if (cat === 'vehicles') {
+        config.dynamic_lists.vehicle_brands_models.splice(index, 1);
+      } else {
+        config.dynamic_lists[cat].splice(index, 1);
+      }
+      switchListCategory(cat, document.querySelector('.list-pill.active'));
+      updatePhoneSimulator();
+      showToast('Öğe listeden kaldırıldı.');
+    }
+
+    function addManualListItem() {
+      const val1 = document.getElementById('new-item-input-1').value.trim();
+      const val2 = document.getElementById('new-item-input-2').value.trim() || 'Benzin';
+
+      if (!val1) {
+        showToast('Lütfen bir değer girin.');
+        return;
+      }
+
+      if (currentListCategory === 'vehicles') {
+        const parts = val1.split(' ');
+        const brand = parts[0] || 'Genel';
+        const model = parts.slice(1).join(' ') || val1;
+        config.dynamic_lists.vehicle_brands_models.push({ brand, model, fuel_type: val2 });
+      } else {
+        config.dynamic_lists[currentListCategory].push(val1);
+      }
+
+      document.getElementById('new-item-input-1').value = '';
+      document.getElementById('new-item-input-2').value = '';
+      switchListCategory(currentListCategory, document.querySelector('.list-pill.active'));
+      updatePhoneSimulator();
+      showToast('Yeni öğe dinamik listeye eklendi!');
+    }
+
+    function downloadSampleExcelTemplate() {
+      let csv = "\uFEFFKategori;Deger_1;Deger_2\n";
+      csv += "Araçlar;Renault;Megane E-Tech;Elektrik\n";
+      csv += "Araçlar;Togg;T10X;Elektrik\n";
+      csv += "Araçlar;Fiat;Egea Cross;Dizel\n";
+      csv += "Bankalar;Yapı Kredi;\n";
+      csv += "Bankalar;Garanti BBVA;\n";
+      csv += "Ev Tipleri;Kiracı (Standart Daire);\n";
+      csv += "Ev Tipleri;Mülk Sahibi (Daire);\n";
+      csv += "Ödeme Tipleri;Nakit (Elden Nakit);\n";
+      csv += "Ödeme Tipleri;Kredi Kartı;\n";
+      csv += "Masraf Tipleri;Oto Bakım & Sanayi Tamiri;\n";
+      csv += "Masraf Tipleri;Elektrikli Araç Şarj Bedeli;\n";
+      csv += "Hedef Tipleri;Elektrikli Araç Satın Alma;\n";
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ParaIz_Dinamik_Listeler_Sablonu.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Excel şablonu indirildi!');
+    }
+
+    // Handle Excel/CSV Upload via SheetJS
+    function handleExcelUpload(files) {
+      if (!files || !files[0]) return;
+      const file = files[0];
+      const reader = new FileReader();
+
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+
+          let addedCount = 0;
+          rows.forEach((r, idx) => {
+            if (idx === 0 || !r[0]) return; // header
+            const cat = String(r[0]).toLowerCase();
+            const val1 = r[1] ? String(r[1]).trim() : '';
+            const val2 = r[2] ? String(r[2]).trim() : '';
+
+            if (cat.includes('araç') || cat.includes('arac') || cat.includes('vehicle')) {
+              if (val1) {
+                config.dynamic_lists.vehicle_brands_models.push({
+                  brand: val1,
+                  model: val2 || 'Standart',
+                  fuel_type: r[3] ? String(r[3]).trim() : (val2.includes('Elektrik') ? 'Elektrik' : 'Dizel')
+                });
+                addedCount++;
+              }
+            } else if (cat.includes('banka') || cat.includes('bank')) {
+              if (val1) { config.dynamic_lists.banks.push(val1); addedCount++; }
+            } else if (cat.includes('ev') || cat.includes('konut')) {
+              if (val1) { config.dynamic_lists.housing_types.push(val1); addedCount++; }
+            } else if (cat.includes('ödeme') || cat.includes('odeme')) {
+              if (val1) { config.dynamic_lists.payment_methods.push(val1); addedCount++; }
+            } else if (cat.includes('masraf') || cat.includes('gider')) {
+              if (val1) { config.dynamic_lists.expense_categories.push(val1); addedCount++; }
+            } else if (cat.includes('hedef') || cat.includes('goal')) {
+              if (val1) { config.dynamic_lists.goal_types.push(val1); addedCount++; }
+            }
+          });
+
+          switchListCategory(currentListCategory, document.querySelector('.list-pill.active'));
+          updatePhoneSimulator();
+          showToast(`Excel başarıyla yüklendi! (${addedCount} kayıt güncellendi)`);
+        } catch (err) {
+          showToast('Dosya işleme hatası: ' + err.message);
+        }
+      };
+
+      reader.readAsArrayBuffer(file);
+    }
+
+    // Drag & Drop event bindings
+    const dropzone = document.getElementById('dropzone');
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      handleExcelUpload(e.dataTransfer.files);
+    });
+
+    // Tab meta for Bottom Nav
+    const tabMeta = {
+      dashboard: { name: "Ana Panel", icon: "M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" },
+      cashflow: { name: "Nakit Akışı", icon: "M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z" },
+      analysis: { name: "Analiz", icon: "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" },
+      goals: { name: "Hedefler", icon: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" },
+      assets: { name: "Varlıklar", icon: "M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z" }
+    };
+
+    function switchSimScreen(screen, el) {
+      document.querySelectorAll('.sim-tab-pill').forEach(p => p.classList.remove('active'));
+      if (el) el.classList.add('active');
+      currentSimScreen = screen;
+      updatePhoneSimulator();
+    }
+
+    // ----------------------------------------------------
+    // MİKRO-ETKİLEŞİM & ANİMASYON TETİKLEYİCİLERİ
+    // ----------------------------------------------------
+    let isShakuroExpanded = false;
+
+    function renderShakuroContent() {
+      const el = document.getElementById('shakuro-island-content');
+      if (!el) return;
+      if (!isShakuroExpanded) {
+        el.innerHTML = `
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="background: #00D084; color: #064E3B; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800;">⚡</span>
+              <span style="color: #00D084; font-size: 11px; font-weight: 800;">EV Tasarruf:</span>
+              <span style="color: white; font-size: 11px; font-weight: 600;">%70 Daha Düşük Bakım</span>
+            </div>
+            <span style="font-size: 10px; color: #94A3B8; background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 8px;">İncele ↓</span>
+          </div>
+        `;
+      } else {
+        el.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 9.5px; font-weight: 800; color: #00D084; background: rgba(0,208,132,0.18); padding: 2px 6px; border-radius: 6px; border: 0.8px solid rgba(0,208,132,0.4);">AKILLI ENERJİ NÜANSI</span>
+            <div style="width: 32px; height: 3px; background: rgba(255,255,255,0.25); border-radius: 2px;"></div>
+            <span style="font-size: 12px; color: white; cursor: pointer; padding: 2px;" onclick="event.stopPropagation(); closeShakuroIsland()">✕</span>
+          </div>
+          <div style="font-size: 12px; font-weight: 800; color: white;">Elektrikli Araç Tasarrufu</div>
+          <div style="font-size: 10px; color: #CBD5E1; line-height: 1.35; margin-top: 3px;">
+            Dizel veya benzinli araçlarda motor yağı, triger, buji ve filtre masrafı bulunurken; elektrikli araçta periyodik bakım maliyeti %60-70 daha düşüktür. Evden şarj ile km maliyeti %70-80 daha ekonomiktir.
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+            <span style="font-size: 9px; color: rgba(255,255,255,0.4);">↑ Yukarı kaydırarak kapatın</span>
+            <button style="padding: 4px 10px; background: #00D084; color: #064E3B; border: none; border-radius: 12px; font-size: 10px; font-weight: 800; cursor: pointer;" onclick="event.stopPropagation(); showToast('Tasarruf Hesaplandı: Net ₺48.000/Yıl Tasarruf!'); closeShakuroIsland();">Detaylar →</button>
+          </div>
+        `;
+      }
+    }
+
+    function triggerShakuroIsland() {
+      const island = document.getElementById('sim-shakuro-island');
+      if (!island) return;
+      island.classList.remove('hidden');
+      isShakuroExpanded = true;
+      island.className = 'shakuro-island-overlay expanded';
+      renderShakuroContent();
+      showToast('Shakuro Dynamic Island Kapsülü Açıldı');
+    }
+
+    function toggleShakuroIsland() {
+      const island = document.getElementById('sim-shakuro-island');
+      if (!island) return;
+      isShakuroExpanded = !isShakuroExpanded;
+      island.className = `shakuro-island-overlay ${isShakuroExpanded ? 'expanded' : 'collapsed'}`;
+      renderShakuroContent();
+    }
+
+    function closeShakuroIsland() {
+      const island = document.getElementById('sim-shakuro-island');
+      if (!island) return;
+      island.classList.add('hidden');
+      isShakuroExpanded = false;
+    }
+
+    function triggerBrandedModal() {
+      const modal = document.getElementById('sim-branded-modal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        showToast('Better Sleep Tarzı %25 In-App Kartı Açıldı');
+      }
+    }
+
+    function closeBrandedModal() {
+      const modal = document.getElementById('sim-branded-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function triggerStreakModal() {
+      const modal = document.getElementById('sim-streak-modal');
+      const num = document.getElementById('streak-num');
+      if (modal && num) {
+        num.innerText = '29';
+        modal.classList.add('active');
+        setTimeout(() => {
+          num.innerText = '30';
+          num.style.transform = 'scale(1.2)';
+          setTimeout(() => { num.style.transform = 'scale(1)'; }, 250);
+        }, 500);
+        showToast('Tasarruf Serisi Kutlaması (29 -> 30 Gün)!');
+      }
+    }
+
+    function closeStreakModal() {
+      const modal = document.getElementById('sim-streak-modal');
+      if (modal) modal.classList.remove('active');
+    }
+
+    function triggerMorphUpload() {
+      const body = document.getElementById('mobile-screen-body');
+      if (!body) return;
+      showToast('Dosya Yükleme Butonu Morflanıyor...');
+      
+      const uploadContainer = document.createElement('div');
+      uploadContainer.className = 'morph-upload-box';
+      uploadContainer.style.margin = '10px 0';
+      uploadContainer.innerHTML = `
+        <div class="upload-progress-pill">
+          <div class="upload-progress-bar" id="sim-prog-bar"></div>
+          <span style="position: relative; z-index: 2; font-size: 11.5px; font-weight: 800; color: #78350F;" id="sim-prog-text">Uploading... %0</span>
+        </div>
+      `;
+      body.prepend(uploadContainer);
+
+      let p = 0;
+      const interval = setInterval(() => {
+        p += 15;
+        const bar = document.getElementById('sim-prog-bar');
+        const txt = document.getElementById('sim-prog-text');
+        if (bar && txt) {
+          bar.style.width = p + '%';
+          txt.innerText = `Uploading... %${p}`;
+          if (p > 50) txt.style.color = '#FFF';
+        }
+        if (p >= 100) {
+          clearInterval(interval);
+          setTimeout(() => {
+            uploadContainer.innerHTML = `
+              <div style="background: #0F172A; border-radius: 20px; height: 42px; display: flex; align-items: center; justify-content: center; gap: 6px; color: white; font-size: 12px; font-weight: 800;">
+                <span style="background: #10B981; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px;">✓</span>
+                Completed (Tamamlandı)
+              </div>
+            `;
+            setTimeout(() => { uploadContainer.remove(); }, 3000);
+          }, 400);
+        }
+      }, 100);
+    }
+
+    function triggerRadarCheckout() {
+      const body = document.getElementById('mobile-screen-body');
+      if (!body) return;
+      showToast('Radar Ödeme Doğrulaması Başlatıldı...');
+
+      const radarBox = document.createElement('div');
+      radarBox.style.background = '#0F172A';
+      radarBox.style.borderRadius = '16px';
+      radarBox.style.padding = '18px 12px';
+      radarBox.style.margin = '10px 0';
+      radarBox.style.textAlign = 'center';
+      radarBox.style.position = 'relative';
+      radarBox.style.border = '1px solid rgba(139, 92, 246, 0.4)';
+      radarBox.innerHTML = `
+        <div style="position: relative; width: 70px; height: 70px; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+          <div class="radar-pulse-ring"></div>
+          <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #8B5CF6, #6D28D9); display: flex; align-items: center; justify-content: center; font-size: 22px; color: white; box-shadow: 0 0 16px #8B5CF6;">💳</div>
+        </div>
+        <div style="color: #94A3B8; font-size: 11px; margin-top: 10px;" id="radar-status">İşlem Doğrulanıyor...</div>
+        <div style="color: #8B5CF6; font-size: 16px; font-weight: 900; margin-top: 2px;" id="radar-pct">%11</div>
+      `;
+      body.prepend(radarBox);
+
+      setTimeout(() => {
+        const s = document.getElementById('radar-status');
+        const p = document.getElementById('radar-pct');
+        if (s && p) { s.innerText = 'Güvenlik Protokolü...'; p.innerText = '%68'; }
+      }, 500);
+
+      setTimeout(() => {
+        const s = document.getElementById('radar-status');
+        const p = document.getElementById('radar-pct');
+        if (s && p) { s.innerText = 'Güvenli Bağlantı...'; p.innerText = '%96'; }
+      }, 1000);
+
+      setTimeout(() => {
+        radarBox.innerHTML = `
+          <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(16, 185, 129, 0.2); border: 2px solid #10B981; color: #10B981; font-size: 24px; font-weight: 900; display: flex; align-items: center; justify-content: center; margin: 0 auto;">✓</div>
+          <div style="color: white; font-size: 13px; font-weight: 800; margin-top: 6px;">İşlem Başarıyla Doğrulandı</div>
+          <div style="color: #10B981; font-size: 14px; font-weight: 900; margin-top: 2px;">₺3.500,00 Kaydedildi</div>
+        `;
+        setTimeout(() => { radarBox.remove(); }, 3000);
+      }, 1600);
+    }
+
+    function triggerFloatingCapsule() {
+      const nav = document.getElementById('sim-bottom-nav');
+      if (!nav) return;
+      showToast('Yüzen Kapsül Alt Menü Yaylanıyor...');
+      nav.style.transform = 'translateY(-14px) scale(1.04)';
+      nav.style.boxShadow = '0 16px 36px rgba(0, 82, 255, 0.4), 0 0 20px rgba(0, 208, 132, 0.3)';
+      setTimeout(() => {
+        nav.style.transform = 'translateY(0) scale(1)';
+        nav.style.boxShadow = '0 12px 28px rgba(0, 0, 0, 0.6), 0 0 16px rgba(0, 82, 255, 0.2)';
+      }, 600);
+    }
+
+    function triggerMorphShare() {
+      const body = document.getElementById('mobile-screen-body');
+      if (!body) return;
+      showToast('Morflayan Paylaşım Butonu İlerlemesi Başlatıldı...');
+      const shareBox = document.createElement('div');
+      shareBox.style.cssText = 'background: #0F172A; border: 1.5px solid #10B981; border-radius: 20px; padding: 14px; margin: 10px 0; text-align: center;';
+      shareBox.innerHTML = `
+        <div style="font-size: 11px; color: #94A3B8; font-weight: 700;">RAPOR HAZIRLANIYOR</div>
+        <div style="font-size: 18px; font-weight: 900; color: #10B981; margin: 6px 0;" id="sim-share-pct">%0</div>
+        <div style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
+          <div id="sim-share-bar" style="height: 100%; width: 0%; background: #10B981; transition: width 0.1s;"></div>
+        </div>
+      `;
+      body.prepend(shareBox);
+
+      let pct = 0;
+      const t = setInterval(() => {
+        pct += 20;
+        const elPct = document.getElementById('sim-share-pct');
+        const elBar = document.getElementById('sim-share-bar');
+        if (elPct && elBar) {
+          elPct.innerText = `%${pct}`;
+          elBar.style.width = `${pct}%`;
+        }
+        if (pct >= 100) {
+          clearInterval(t);
+          setTimeout(() => {
+            shareBox.innerHTML = `
+              <div style="font-size: 12px; font-weight: 800; color: white; margin-bottom: 8px;">✓ Rapor Hazır! Paylaşın:</div>
+              <div style="display: flex; justify-content: center; gap: 6px;">
+                <span style="background: #22C55E; color: white; padding: 5px 10px; border-radius: 12px; font-size: 10px; font-weight: 800; cursor: pointer;">WhatsApp</span>
+                <span style="background: #0284C7; color: white; padding: 5px 10px; border-radius: 12px; font-size: 10px; font-weight: 800; cursor: pointer;">AirDrop</span>
+                <span style="background: rgba(255,255,255,0.1); color: white; padding: 5px 10px; border-radius: 12px; font-size: 10px; font-weight: 800; cursor: pointer;">Kopyala</span>
+              </div>
+            `;
+            setTimeout(() => { shareBox.remove(); }, 3500);
+          }, 400);
+        }
+      }, 120);
+    }
+
+    function triggerPulseBadge() {
+      const body = document.getElementById('mobile-screen-body');
+      if (!body) return;
+      showToast('Canlı Radar Nabız Rozeti Vurgulandı');
+      const pulseBox = document.createElement('div');
+      pulseBox.style.cssText = 'background: #0C0E14; border: 1.5px solid #00D084; border-radius: 20px; padding: 12px 16px; margin: 10px 0; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 0 20px rgba(0, 208, 132, 0.4); animation: popIn 0.3s;';
+      pulseBox.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="width: 10px; height: 10px; border-radius: 50%; background: #00D084; box-shadow: 0 0 10px #00D084;"></span>
+          <span style="color: white; font-size: 12px; font-weight: 700;">NET FARK:</span>
+        </div>
+        <span style="color: #00D084; font-size: 15px; font-weight: 900;">+₺34.773,90</span>
+      `;
+      body.prepend(pulseBox);
+      setTimeout(() => { pulseBox.remove(); }, 3200);
+    }
+
+    function triggerConfettiBurst() {
+      showToast('🎉 Tebrikler! 30 Günlük Tasarruf Rozeti Açıldı 🎊');
+      const screen = document.querySelector('.phone-screen');
+      if (!screen) return;
+      const colors = ['#F59E0B', '#10B981', '#3B82F6', '#EC4899', '#8B5CF6', '#F43F5E'];
+      for (let i = 0; i < 28; i++) {
+        const c = document.createElement('div');
+        const size = Math.floor(Math.random() * 8) + 6;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const left = Math.floor(Math.random() * 80) + 10;
+        const top = Math.floor(Math.random() * 50) + 25;
+        c.style.cssText = `position: absolute; width: ${size}px; height: ${Math.floor(size * 0.6)}px; background: ${color}; border-radius: 2px; left: ${left}%; top: ${top}%; z-index: 100; opacity: 1; transform: rotate(${Math.random() * 360}deg); transition: all 1.2s cubic-bezier(0.25, 1, 0.5, 1);`;
+        screen.appendChild(c);
+
+        setTimeout(() => {
+          c.style.transform = `translate(${(Math.random() - 0.5) * 120}px, ${Math.random() * 140 + 40}px) rotate(${Math.random() * 720}deg)`;
+          c.style.opacity = '0';
+        }, 30);
+
+        setTimeout(() => { c.remove(); }, 1300);
+      }
+    }
+
+    function triggerMorphSegmented() {
+      const body = document.getElementById('mobile-screen-body');
+      if (!body) return;
+      showToast('Yaylı Segmente Bar (Morphing Segment) Simüle Ediliyor...');
+      const segBox = document.createElement('div');
+      segBox.style.cssText = 'background: #0C0E14; border: 1px solid rgba(255,255,255,0.12); border-radius: 20px; padding: 4px; margin: 10px 0; display: flex; position: relative;';
+      segBox.innerHTML = `
+        <div id="sim-seg-pill" style="position: absolute; left: 4px; top: 4px; bottom: 4px; width: calc(33.33% - 4px); background: #0052FF; border-radius: 16px; transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: 0 4px 12px rgba(0,82,255,0.5);"></div>
+        <div style="flex: 1; text-align: center; padding: 6px; font-size: 11px; font-weight: 800; color: white; position: relative; z-index: 2; cursor: pointer;">Dağılım</div>
+        <div style="flex: 1; text-align: center; padding: 6px; font-size: 11px; font-weight: 800; color: #94A3B8; position: relative; z-index: 2; cursor: pointer;">Trend</div>
+        <div style="flex: 1; text-align: center; padding: 6px; font-size: 11px; font-weight: 800; color: #94A3B8; position: relative; z-index: 2; cursor: pointer;">KDV</div>
+      `;
+      body.prepend(segBox);
+
+      setTimeout(() => {
+        const pill = document.getElementById('sim-seg-pill');
+        if (pill) pill.style.left = 'calc(33.33% + 2px)';
+      }, 700);
+
+      setTimeout(() => {
+        const pill = document.getElementById('sim-seg-pill');
+        if (pill) pill.style.left = 'calc(66.66% - 2px)';
+      }, 1500);
+
+      setTimeout(() => {
+        segBox.remove();
+      }, 3500);
+    }
+
+    function triggerLaserShimmerCard() {
+      const body = document.getElementById('mobile-screen-body');
+      if (!body) return;
+      showToast('Pitch-Black Lazer Işıma Kartı Vurgulandı');
+      const shimmerBox = document.createElement('div');
+      shimmerBox.style.cssText = 'background: #0C0E14; border: 1.5px solid rgba(139, 92, 246, 0.5); border-radius: 18px; padding: 14px; margin: 10px 0; position: relative; overflow: hidden; box-shadow: 0 0 24px rgba(139, 92, 246, 0.3);';
+      shimmerBox.innerHTML = `
+        <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(45deg, transparent 40%, rgba(139, 92, 246, 0.35) 50%, rgba(56, 189, 248, 0.4) 52%, transparent 60%); animation: laserSweep 2.5s infinite linear; pointer-events: none;"></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 2;">
+          <div>
+            <div style="font-size: 10px; font-weight: 800; color: #C084FC;">VIP AİLE PLANI KASASI</div>
+            <div style="font-size: 14px; font-weight: 900; color: white; margin-top: 2px;">Limitsiz Yerel Veri</div>
+          </div>
+          <span style="font-size: 20px;">💎</span>
+        </div>
+      `;
+      body.prepend(shimmerBox);
+      setTimeout(() => { shimmerBox.remove(); }, 3800);
+    }
+
+    function triggerRollingTicker() {
+      const body = document.getElementById('mobile-screen-body');
+      if (!body) return;
+      showToast('Rakam Yuvarlayıcı (Rolling Ticker) Oynatılıyor...');
+      const tickerBox = document.createElement('div');
+      tickerBox.style.cssText = 'background: #0C0E14; border: 1.5px solid #10B981; border-radius: 18px; padding: 14px; margin: 10px 0; text-align: center; box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);';
+      tickerBox.innerHTML = `
+        <div style="font-size: 10px; font-weight: 800; color: #94A3B8;">AYLIK NET GELİR / TASARRUF</div>
+        <div style="font-size: 24px; font-weight: 900; color: #10B981; margin-top: 4px; font-family: 'JetBrains Mono', monospace;" id="sim-ticker-val">₺0,00</div>
+      `;
+      body.prepend(tickerBox);
+
+      let step = 0;
+      const target = 34773.90;
+      const t = setInterval(() => {
+        step++;
+        const val = (target / 12) * step;
+        const el = document.getElementById('sim-ticker-val');
+        if (el) {
+          el.innerText = '₺' + val.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        if (step >= 12) {
+          clearInterval(t);
+          if (el) el.innerText = '₺34.773,90';
+          setTimeout(() => { tickerBox.remove(); }, 2500);
+        }
+      }, 50);
+    }
+
+    // Phone Simulator Dynamic Renderer
+    function updatePhoneSimulator() {
+      const theme = config.theme;
+      const btn = config.button;
+      const body = document.getElementById('mobile-screen-body');
+
+      // FAB Styling
+      const fab = document.getElementById('sim-fab');
+      fab.className = `mobile-fab fab-${btn.fab_position}`;
+      fab.style.background = theme.primary_hex;
+      fab.style.boxShadow = `0 6px 18px ${theme.primary_hex}66`;
+
+      // Bottom Nav
+      const nav = document.getElementById('sim-bottom-nav');
+      nav.innerHTML = '';
+      config.menu.tab_order.forEach((key, idx) => {
+        if (config.menu.visible_tabs[key] === false) return;
+        const meta = tabMeta[key];
+        const isActive = idx === config.menu.default_tab_index;
+        const navItem = document.createElement('div');
+        navItem.className = `nav-item ${isActive ? 'active' : ''}`;
+        if (isActive) navItem.style.color = theme.primary_hex;
+        navItem.innerHTML = `<svg viewBox="0 0 24 24"><path d="${meta.icon}"/></svg><span>${meta.name}</span>`;
+        nav.appendChild(navItem);
+      });
+
+      // RENDER SCREEN BASED ON SIM TAB
+      if (currentSimScreen === 'dashboard') {
+        body.innerHTML = `
+          <div class="mobile-header">
+            <div>
+              <div class="mobile-title">Genel Bakış</div>
+              <div class="mobile-subtitle">Eylül 2026 Dönemi</div>
+            </div>
+            <div style="width: 28px; height: 28px; border-radius: 50%; background: #1E293B; display: flex; align-items: center; justify-content: center; font-size: 13px; cursor: pointer;" onclick="triggerShakuroIsland()" title="Akıllı Tasarruf Bildirimini Aç">🔔</div>
+          </div>
+
+          <!-- Balance Hero Card -->
+          <div class="mobile-hero-card" style="border-radius: ${btn.border_radius}px; border-color: ${theme.primary_hex}66; background: linear-gradient(135deg, ${theme.primary_hex}33 0%, rgba(19, 27, 46, 0.8) 100%);">
+            <div class="hero-label">Net Finansal Varlık</div>
+            <div class="hero-balance">${config.clean_data_mode ? '₺0,00' : '₺148.250,00'}</div>
+            <div class="hero-grid">
+              <div>
+                <div class="hero-stat-label">Toplam Gelir</div>
+                <div class="hero-stat-val" style="color: ${theme.income_hex};">${config.clean_data_mode ? '+₺0,00' : '+₺84.500,00'}</div>
+              </div>
+              <div>
+                <div class="hero-stat-label">Toplam Gider</div>
+                <div class="hero-stat-val" style="color: ${theme.expense_hex};">${config.clean_data_mode ? '-₺0,00' : '-₺36.250,00'}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Button -->
+          <div class="mobile-btn" style="background: ${theme.primary_hex}; border-radius: ${btn.border_radius}px; box-shadow: 0 ${btn.elevation * 2}px ${btn.elevation * 5}px ${theme.primary_hex}55;">
+            📄 PDF Banka Ekstresi Yükle
+          </div>
+
+          <div style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px;">Son İşlemler</div>
+
+          <div class="mobile-item-card" style="border-radius: ${btn.border_radius}px;">
+            <div class="mobile-item-icon" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B;">🔧</div>
+            <div>
+              <div class="mobile-item-title">Sanayi Oto Tamir (Usta)</div>
+              <div class="mobile-item-sub">Nakit (Elden) • Renault Megane</div>
+            </div>
+            <div class="mobile-item-val" style="color: ${theme.expense_hex};">-₺3.500,00</div>
+          </div>
+        `;
+      } else if (currentSimScreen === 'vehicles') {
+        body.innerHTML = `
+          <div class="mobile-header">
+            <div>
+              <div class="mobile-title">Araç & Konut Varlıkları</div>
+              <div class="mobile-subtitle">Garaj & Gayrimenkul Portföyü</div>
+            </div>
+            <button class="btn btn-primary" style="padding: 4px 8px; font-size: 11px;" onclick="showToast('Manuel Araç Ekleme Modalı Açıldı')">+ Manuel Ekle</button>
+          </div>
+
+          <div class="smart-insight-banner ${isBannerDismissed ? 'dismissed' : ''}" id="sim-smart-banner" onclick="dismissSmartBanner()">
+            <div class="drag-handle"></div>
+            <div class="insight-content">
+              <div class="insight-icon-box">⚡</div>
+              <div>
+                <div class="insight-title">
+                  <span>Elektrikli Araç Analizi</span>
+                  <span style="font-size: 10px; color: #94A3B8;">✕</span>
+                </div>
+                <div class="insight-text">
+                  Dizel Megane aracınızın yıllık bakım ve yakıtı ₺42.000 tutarken; elektrikli alternatifi yılda ₺11.500 tüketmektedir. Net tasarruf: ₺30.500 / yıl.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mobile-item-card" style="border-radius: ${btn.border_radius}px; border-left: 4px solid #F59E0B;">
+            <div class="mobile-item-icon" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B;">🚗</div>
+            <div>
+              <div class="mobile-item-title">Renault Megane 1.5 dCi</div>
+              <div class="mobile-item-sub">2022 Model • Dizel • 34 ABC 789</div>
+              <div class="mobile-item-sub" style="color: #FF2D55;">Aylık Bakım/Yakıt: ₺3.500</div>
+            </div>
+            <div class="mobile-item-val">₺950.000</div>
+          </div>
+
+          <div class="mobile-item-card" style="border-radius: ${btn.border_radius}px; border-left: 4px solid #00D084;">
+            <div class="mobile-item-icon" style="background: rgba(0, 208, 132, 0.15); color: #00D084;">⚡</div>
+            <div>
+              <div class="mobile-item-title">Togg T10X V2 Uzun Menzil</div>
+              <div class="mobile-item-sub">2024 Model • Elektrik • 34 TOG 01</div>
+              <div class="mobile-item-sub" style="color: #00D084;">Aylık Şarj: ₺850</div>
+            </div>
+            <div class="mobile-item-val">₺1.820.000</div>
+          </div>
+
+          <div class="mobile-item-card" style="border-radius: ${btn.border_radius}px;">
+            <div class="mobile-item-icon" style="background: rgba(0, 82, 255, 0.15); color: #0052FF;">🏠</div>
+            <div>
+              <div class="mobile-item-title">Konut: Kiracı (Standart Daire)</div>
+              <div class="mobile-item-sub">İstanbul / Kadıköy • Kira: ₺24.000</div>
+            </div>
+          </div>
+        `;
+      } else if (currentSimScreen === 'cash_expense') {
+        body.innerHTML = `
+          <div class="mobile-header">
+            <div>
+              <div class="mobile-title">Hızlı İşlem (Nakit)</div>
+              <div class="mobile-subtitle">Elden Harcama & Tamirat Girişi</div>
+            </div>
+          </div>
+
+          <div style="background: #131B2E; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px;">
+            <div style="font-size: 11px; color: #94A3B8; font-weight: 700;">ÖDEME YÖNTEMİ</div>
+            <div style="display: flex; gap: 6px; margin-top: 6px;">
+              <div style="flex: 1; padding: 8px; background: rgba(0, 208, 132, 0.2); border: 1px solid #00D084; border-radius: 8px; font-size: 11px; font-weight: 800; color: #00D084; text-align: center;">💵 Nakit (Elden)</div>
+              <div style="flex: 1; padding: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; font-size: 11px; color: #94A3B8; text-align: center;">💳 Kredi Kartı</div>
+            </div>
+
+            <div style="font-size: 11px; color: #94A3B8; font-weight: 700; margin-top: 12px;">KATEGORİ</div>
+            <div style="padding: 10px; background: rgba(245, 158, 11, 0.15); border-radius: 8px; display: flex; align-items: center; gap: 8px; margin-top: 6px;">
+              <span>🔧</span>
+              <span style="font-size: 12px; font-weight: 700; color: #F59E0B;">Oto Bakım & Sanayi Tamiri</span>
+            </div>
+
+            <div style="font-size: 11px; color: #94A3B8; font-weight: 700; margin-top: 12px;">TUTAR</div>
+            <div style="font-size: 24px; font-weight: 800; color: #FF2D55; margin-top: 4px;">₺3.500,00</div>
+            <div style="font-size: 11px; color: #94A3B8;">Açıklama: Sanayi usta motor tamir bedeli</div>
+          </div>
+
+          <div class="mobile-btn" style="background: #00D084; color: #064E3B; font-weight: 800; border-radius: 12px; margin-top: 8px;">
+            ✓ Nakit Harcamayı Kaydet
+          </div>
+        `;
+      }
+
+      // JSON Viewer
+      document.getElementById('json-viewer').innerText = JSON.stringify(config, null, 2);
+    }
+
+    // Switch Tabs
+    function switchTab(tabId, el) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      document.getElementById(`tab-${tabId}`).classList.add('active');
+    }
+
+    function updateCleanMode(isClean) {
+      config.clean_data_mode = isClean;
+      updatePhoneSimulator();
+    }
+
+    function applyPresetPalette(name, primary, income, expense) {
+      config.theme.palette_name = name;
+      config.theme.primary_hex = primary;
+      config.theme.income_hex = income;
+      config.theme.expense_hex = expense;
+
+      document.getElementById('picker-primary').value = primary;
+      document.getElementById('hex-primary').value = primary;
+      document.getElementById('picker-income').value = income;
+      document.getElementById('hex-income').value = income;
+      document.getElementById('picker-expense').value = expense;
+      document.getElementById('hex-expense').value = expense;
+
+      document.querySelectorAll('.palette-card').forEach(c => {
+        c.classList.toggle('active', c.querySelector('.palette-name').innerText === name);
+      });
+      updatePhoneSimulator();
+    }
+
+    function updateColor(type, value) {
+      if (!value.startsWith('#')) value = '#' + value;
+      if (type === 'primary') config.theme.primary_hex = value;
+      else if (type === 'income') config.theme.income_hex = value;
+      else if (type === 'expense') config.theme.expense_hex = value;
+      updatePhoneSimulator();
+    }
+
+    function updateRadius(val) {
+      config.button.border_radius = parseFloat(val);
+      document.getElementById('label-radius').innerText = `${val} px`;
+      updatePhoneSimulator();
+    }
+
+    function updateElevation(val) {
+      config.button.elevation = parseFloat(val);
+      document.getElementById('label-elevation').innerText = `${val} px`;
+      updatePhoneSimulator();
+    }
+
+    function updateFabPosition(pos) {
+      config.button.fab_position = pos;
+      document.querySelectorAll('.radio-pill').forEach(p => p.classList.remove('active'));
+      document.getElementById(`fab-pill-${pos}`).classList.add('active');
+      updatePhoneSimulator();
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-text').innerText = msg;
+      toast.style.display = 'flex';
+      setTimeout(() => { toast.style.display = 'none'; }, 2500);
+    }
+
+    function copyJsonToClipboard() {
+      const jsonStr = JSON.stringify(config, null, 2);
+      navigator.clipboard.writeText(jsonStr).then(() => showToast('remote_config.json panoya kopyalandı!'));
+    }
+
+    function downloadConfigFile() {
+      const jsonStr = JSON.stringify(config, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'remote_config.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('remote_config.json başarıyla indirildi!');
+    }
+
+    function resetToDefaults() {
+      applyPresetPalette('Elektrik Mavisi (Standart)', '#0052FF', '#00D084', '#FF2D55');
+      config.clean_data_mode = true;
+      config.button.border_radius = 14;
+      config.button.elevation = 3;
+      config.button.fab_position = 'endFloat';
+      isBannerDismissed = false;
+      renderUserReportTable(mockUsers);
+      switchListCategory('vehicles', document.querySelector('.list-pill'));
+      updatePhoneSimulator();
+      showToast('Fabrika ayarlarına dönüldü.');
+    }
+
+    // Render Modules
+    function renderModuleSwitches() {
+      const container = document.getElementById('module-switches-container');
+      container.innerHTML = '';
+      for (const [key, mod] of Object.entries(config.modules)) {
+        const row = document.createElement('div');
+        row.className = 'switch-row';
+        row.innerHTML = `
+          <div class="switch-info">
+            <div class="switch-icon">${mod.icon}</div>
+            <div>
+              <div class="switch-label">${mod.name}</div>
+              <div class="switch-subtext">${mod.desc}</div>
+            </div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" ${mod.enabled ? 'checked' : ''} onchange="config.modules['${key}'].enabled = this.checked; updatePhoneSimulator();">
+            <span class="slider"></span>
+          </label>
+        `;
+        container.appendChild(row);
+      }
+    }
+
+    // Render Menu Items
+    function renderMenuList() {
+      const container = document.getElementById('menu-sort-list');
+      container.innerHTML = '';
+      config.menu.tab_order.forEach((key, index) => {
+        const meta = tabMeta[key] || { name: key };
+        const isVisible = config.menu.visible_tabs[key] !== false;
+        const item = document.createElement('div');
+        item.className = 'switch-row';
+        item.style.marginBottom = '8px';
+        item.innerHTML = `
+          <div class="switch-info">
+            <span style="font-family: monospace; font-size: 13px; font-weight: 800; color: #64748B; width: 22px;">0${index + 1}</span>
+            <div class="switch-label">${meta.name}</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button class="btn-icon" onclick="moveMenu(${index}, -1)" ${index === 0 ? 'disabled' : ''}>▲</button>
+            <button class="btn-icon" onclick="moveMenu(${index}, 1)" ${index === config.menu.tab_order.length - 1 ? 'disabled' : ''}>▼</button>
+            <label class="toggle" style="margin-left: 6px;">
+              <input type="checkbox" ${isVisible ? 'checked' : ''} onchange="config.menu.visible_tabs['${key}'] = this.checked; updatePhoneSimulator();">
+              <span class="slider"></span>
+            </label>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function moveMenu(index, delta) {
+      const target = index + delta;
+      if (target < 0 || target >= config.menu.tab_order.length) return;
+      const temp = config.menu.tab_order[index];
+      config.menu.tab_order[index] = config.menu.tab_order[target];
+      config.menu.tab_order[target] = temp;
+      renderMenuList();
+      updatePhoneSimulator();
+    }
+
+    // Init Execution
+    renderModuleSwitches();
+    renderMenuList();
+    renderUserReportTable(mockUsers);
+    switchListCategory('vehicles', document.querySelector('.list-pill'));
+    updatePhoneSimulator();
+    autoScalePhone();
+  </script>
+</body>
+</html>

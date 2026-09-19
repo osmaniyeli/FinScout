@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paraİz - Animasyon, Mikro-Etkileşim & Güvenlik Laboratuvarı</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090D16;
+      --card-bg: #111827;
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent-blue: #0052FF;
+      --accent-green: #00D084;
+      --accent-orange: #EA580C;
+      --accent-purple: #8B5CF6;
+      --text: #F9FAFB;
+      --text-muted: #9CA3AF;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 30px 20px 80px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 36px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .title-h1 {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #FFF 30%, #94A3B8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 800;
+      background: rgba(0, 208, 132, 0.15);
+      color: #00D084;
+      border: 1px solid rgba(0, 208, 132, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Grid layout for animations */
+    .showcase-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: 28px;
+      margin-bottom: 48px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-desc {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .preview-stage {
+      background: #080C14;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 18px;
+      min-height: 240px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* 1. SHAKURO FLOATING DYNAMIC ISLAND PILL */
+    .shakuro-pill {
+      background: #0C0E14;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 26px;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.8), 0 0 20px rgba(0, 208, 132, 0.2);
+      width: 100%;
+      max-width: 360px;
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .shakuro-pill:hover {
+      border-color: rgba(0, 208, 132, 0.5);
+      transform: translateY(-2px);
+    }
+
+    /* 2. BETTER SLEEP BRANDED IN-APP NOTIFICATION CARD (%25) */
+    .better-sleep-card {
+      width: 100%;
+      max-width: 360px;
+      background: linear-gradient(180deg, #1E1B4B 0%, #0F172A 100%);
+      border: 1.2px solid rgba(99, 102, 241, 0.4);
+      border-radius: 24px;
+      padding: 16px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.8), 0 0 25px rgba(99, 102, 241, 0.25);
+    }
+
+    /* 3. DAILY STREAK FLAME CARD */
+    .streak-container {
+      width: 100%;
+      max-width: 320px;
+      background: linear-gradient(180deg, #EA580C 0%, #C2410C 100%);
+      border-radius: 24px;
+      padding: 22px 18px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(234, 88, 12, 0.4);
+      animation: flamePulse 2s infinite alternate;
+    }
+    @keyframes flamePulse {
+      0% { box-shadow: 0 16px 30px rgba(234, 88, 12, 0.35); }
+      100% { box-shadow: 0 24px 50px rgba(234, 88, 12, 0.6); }
+    }
+
+    /* 4. RADAR PULSE BUTTON */
+    .radar-box {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .radar-ring {
+      position: absolute;
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      border: 2px solid #8B5CF6;
+      animation: ringExpand 1.5s infinite ease-out;
+    }
+    .radar-ring:nth-child(2) { animation-delay: 0.5s; }
+    .radar-ring:nth-child(3) { animation-delay: 1.0s; }
+    @keyframes ringExpand {
+      0% { transform: scale(0.6); opacity: 1; }
+      100% { transform: scale(1.6); opacity: 0; }
+    }
+
+    /* 5. MORPHING FILE BUTTON */
+    .morph-btn {
+      padding: 10px 24px;
+      background: #F97316;
+      color: white;
+      border-radius: 12px;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 16px rgba(249, 115, 22, 0.4);
+    }
+    .morph-btn:hover { background: #EA580C; }
+
+    /* 7. MORPHING SHARE BUTTON */
+    .share-pill-btn {
+      padding: 10px 24px;
+      background: #10B981;
+      color: white;
+      border-radius: 24px;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+      transition: all 0.3s;
+    }
+    .share-pill-btn:hover { background: #059669; }
+
+    /* 8. PULSE METRIC BADGE */
+    .pulse-radar-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #0C0E14;
+      border: 1.5px solid #10B981;
+      padding: 8px 16px;
+      border-radius: 20px;
+      position: relative;
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.25);
+    }
+    .radar-dot-live {
+      width: 10px;
+      height: 10px;
+      background: #10B981;
+      border-radius: 50%;
+      position: relative;
+      box-shadow: 0 0 10px #10B981;
+    }
+    .radar-dot-live::before {
+      content: '';
+      position: absolute;
+      left: -5px; top: -5px; right: -5px; bottom: -5px;
+      border: 1.5px solid #10B981;
+      border-radius: 50%;
+      animation: pulseRipple 1.8s infinite cubic-bezier(0, 0.2, 0.8, 1);
+    }
+    @keyframes pulseRipple {
+      0% { transform: scale(0.6); opacity: 1; }
+      100% { transform: scale(2.2); opacity: 0; }
+    }
+
+    /* 9. LASER SHIMMER CARD */
+    .laser-shimmer-box {
+      background: #0C0E14;
+      border: 1.5px solid rgba(0, 82, 255, 0.3);
+      border-radius: 20px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    }
+    .laser-beam {
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        45deg,
+        transparent 40%,
+        rgba(56, 189, 248, 0.25) 50%,
+        rgba(0, 208, 132, 0.35) 52%,
+        transparent 60%
+      );
+      animation: laserSweep 3.5s infinite linear;
+      pointer-events: none;
+    }
+    @keyframes laserSweep {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(50%, 50%) rotate(0deg); }
+    }
+
+    /* 10. MORPHING SEGMENTED BAR */
+    .morph-seg-container {
+      background: #0C0E14;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 24px;
+      padding: 4px;
+      display: flex;
+      position: relative;
+      width: 100%;
+      max-width: 360px;
+    }
+    .morph-seg-indicator {
+      position: absolute;
+      top: 4px;
+      bottom: 4px;
+      border-radius: 20px;
+      background: #0052FF;
+      box-shadow: 0 4px 14px rgba(0, 82, 255, 0.5);
+      transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .morph-seg-item {
+      flex: 1;
+      text-align: center;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #94A3B8;
+      cursor: pointer;
+      position: relative;
+      z-index: 2;
+      transition: color 0.2s;
+    }
+    .morph-seg-item.active { color: #FFFFFF; }
+
+    /* 12. ROLLING NUMBER TICKER */
+    .ticker-display {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 900;
+      color: #10B981;
+      text-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+      display: inline-block;
+      transition: all 0.2s;
+    }
+
+    /* Controls button */
+    .btn-action {
+      margin-top: 14px;
+      padding: 8px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+      background: rgba(255, 255, 255, 0.05);
+      color: white;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-action:hover { background: rgba(255, 255, 255, 0.12); }
+
+    /* Security 20 Matrix */
+    .security-matrix {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+      margin-top: 20px;
+    }
+    .sec-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sec-title { font-size: 13px; font-weight: 800; }
+    .sec-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div>
+        <div class="badge-pill">Fintra / Paraİz Tasarım Sistemi</div>
+        <h1 class="title-h1" style="margin-top: 8px;">🎬 Animasyon, Mikro-Etkileşim & Güvenlik Laboratuvarı</h1>
+        <p style="color: var(--text-muted); font-size: 13.5px; margin-top: 4px;">Kullanıcının paylaştığı referans videolar ve checklist'e uygun canlı HTML5/CSS3 etkileşim galerisi.</p>
+      </div>
+      <div>
+        <a href="../Web_Yonetici_Paneli/index.html" style="text-decoration: none;">
+          <button class="btn-action" style="background: var(--accent-blue); padding: 10px 20px; font-size: 13px;">
+            🖥️ Web Yönetici Paneline Git →
+          </button>
+        </a>
+      </div>
+    </header>
+
+    <!-- SECTION 1: ANIMATION SHOWCASES -->
+    <div class="showcase-grid">
+
+      <!-- 1. SHAKURO FLOATING DYNAMIC ISLAND PILL -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🏝️</span> Shakuro "Inspired" Dynamic Island Kapsülü
+          </div>
+          <span class="badge-pill" style="color: #00D084; background: rgba(0,208,132,0.15);">Floating Overlay</span>
+        </div>
+        <div class="card-desc">Ekran içeriğini aşağı itmez. Dynamic Island alanında pitch-black süper-elips hap olarak yüzer. Tıklayınca %20-25 açılır.</div>
+
+        <div class="preview-stage">
+          <div class="shakuro-pill" id="demo-shakuro-pill" onclick="toggleDemoPill()">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="background: #00D084; color: #064E3B; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 12px;">⚡</span>
+                <span style="color: #00D084; font-weight: 800; font-size: 12px;">EV Tasarruf:</span>
+                <span style="color: white; font-size: 12px; font-weight: 600;">%70 Daha Düşük Bakım</span>
+              </div>
+              <span style="font-size: 11px; color: #94A3B8;">İncele ↓</span>
+            </div>
+            <div id="demo-pill-expanded" style="display: none; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px;">
+              <div style="font-size: 11px; color: #CBD5E1; line-height: 1.4;">
+                Dizel/benzinli araçlardaki motor yağı, triger, buji ve egzoz gibi periyodik ağır bakım masrafları elektrikli araçta yoktur. Km başına yakıt maliyeti %70-80 daha ekonomiktir.
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                <span style="font-size: 10px; color: rgba(255,255,255,0.4);">↑ Yukarı kaydırarak kapatın</span>
+                <span style="font-size: 11px; font-weight: 800; color: #00D084;">Yıllık ₺45.000 Tasarruf</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="btn-action" onclick="toggleDemoPill()">Tıkla & Aç/Kapat</button>
+      </div>
+
+      <!-- 2. BETTER SLEEP BRANDED IN-APP MODAL (%25) -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>📱</span> Better Sleep Tarzı Branded In-App Kartı
+          </div>
+          <span class="badge-pill" style="color: #A78BFA; background: rgba(139,92,246,0.15); border-color: rgba(139,92,246,0.3);">%25 Yükseklik</span>
+        </div>
+        <div class="card-desc">Referans görseldeki koyu mor/lacivert cam zeminli, beyaz süper-elips pill butonlu ve drag-to-dismiss çekme çubuklu kart.</div>
+
+        <div class="preview-stage">
+          <div class="better-sleep-card">
+            <div style="width: 32px; height: 3px; background: rgba(255,255,255,0.3); border-radius: 2px; margin: 0 auto 10px;"></div>
+            <div style="display: flex; gap: 12px; align-items: flex-start;">
+              <div style="width: 44px; height: 44px; border-radius: 14px; background: linear-gradient(135deg, #00D084, #0052FF); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; box-shadow: 0 4px 16px rgba(0,208,132,0.4);">⚡</div>
+              <div>
+                <div style="font-size: 13px; font-weight: 800; color: white;">Elektrikli Araç Tasarruf Fırsatı!</div>
+                <div style="font-size: 11px; color: #CBD5E1; line-height: 1.35; margin-top: 4px;">
+                  Dizel veya benzinli araç arayan kullanıcılar için elektrikli araç bakım masrafları %60-70 daha düşüktür.
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+              <span style="font-size: 11px; color: rgba(255,255,255,0.5); cursor: pointer;">Şimdilik Değil</span>
+              <button style="padding: 8px 18px; background: white; color: #0F172A; border: none; border-radius: 20px; font-size: 11.5px; font-weight: 900; cursor: pointer;">Tasarrufu Hesapla →</button>
+            </div>
+          </div>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 12px;">Maksimum %25 ekran kaplama kuralına tam uyumludur.</div>
+      </div>
+
+      <!-- 3. DAILY STREAK ANIMATION (Video 1) -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🔥</span> Günlük Tasarruf Serisi (Video 1)
+          </div>
+          <span class="badge-pill" style="color: #FB923C; background: rgba(234,88,12,0.15); border-color: rgba(234,88,12,0.3);">Video 1 (29 -> 30)</span>
+        </div>
+        <div class="card-desc">Duolingo tarzı finansal disiplin alevi, 29'dan 30'a yükselen animasyonlu sayaç, haftalık takvim noktaları ve kutlama.</div>
+
+        <div class="preview-stage">
+          <div class="streak-container">
+            <div style="font-size: 44px;">🔥</div>
+            <div style="font-size: 44px; font-weight: 900; color: white; line-height: 1; margin: 4px 0;" id="demo-streak-num">30</div>
+            <div style="font-size: 11px; font-weight: 800; color: white; letter-spacing: 1px;">GÜNLÜK TASARRUF SERİSİ</div>
+            <div style="display: flex; justify-content: space-around; margin: 12px 0 16px;">
+              <span style="font-size: 10px; background: white; color: #EA580C; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">✓</span>
+              <span style="font-size: 10px; background: white; color: #EA580C; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">✓</span>
+              <span style="font-size: 10px; background: white; color: #EA580C; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">✓</span>
+              <span style="font-size: 10px; background: white; color: #EA580C; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">✓</span>
+              <span style="font-size: 10px; background: white; color: #EA580C; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">✓</span>
+              <span style="font-size: 10px; background: white; color: #EA580C; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">✓</span>
+              <span style="font-size: 10px; background: white; color: #EA580C; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">✓</span>
+            </div>
+            <button style="width: 100%; padding: 10px; background: white; color: #C2410C; border: none; border-radius: 14px; font-weight: 900; font-size: 12px; cursor: pointer;">DEVAM ET</button>
+          </div>
+        </div>
+        <button class="btn-action" onclick="animateStreak()">Animasyonu Tekrar Oynat (29 -> 30)</button>
+      </div>
+
+      <!-- 4. RADAR CHECKOUT PULSE (Video 4) -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🟣</span> Radar Ödeme & Harcama Onayı (Video 4)
+          </div>
+          <span class="badge-pill" style="color: #A78BFA; background: rgba(139,92,246,0.15);">Video 4 Ripple</span>
+        </div>
+        <div class="card-desc">Nakit oto tamir veya abonelik onayında mor neon radar halkaları ("Verifying %11 -> %68 -> %96") ve onay tiki.</div>
+
+        <div class="preview-stage">
+          <div class="radar-box">
+            <div class="radar-ring"></div>
+            <div class="radar-ring"></div>
+            <div class="radar-ring"></div>
+            <div style="width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #8B5CF6, #6D28D9); display: flex; align-items: center; justify-content: center; font-size: 26px; color: white; z-index: 2; box-shadow: 0 0 20px #8B5CF6;">💳</div>
+          </div>
+          <div style="color: #94A3B8; font-size: 12px; margin-top: 10px;">Güvenli Bağlantı Doğrulanıyor...</div>
+          <div style="color: #8B5CF6; font-size: 18px; font-weight: 900; margin-top: 2px;">%96</div>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 12px;">Flutter'da RadarCheckoutButton bileşeni olarak aktiftir.</div>
+      </div>
+
+      <!-- 5. MORPHING FILE BUTTON (Video 3) -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>📁</span> Morflanan Dosya Yükleme Butonu (Video 3)
+          </div>
+          <span class="badge-pill" style="color: #FBBF24; background: rgba(245,158,11,0.15);">Video 3 Morph</span>
+        </div>
+        <div class="card-desc">Ekstre PDF veya Excel yüklenirken buton akıcı ilerleme kapsülüne dönüşür ve ardından 'Completed' hapına evrilir.</div>
+
+        <div class="preview-stage">
+          <div id="demo-morph-container" style="width: 100%; max-width: 320px; text-align: center;">
+            <button class="morph-btn" onclick="startMorphDemo()">Ekstre PDF Yükle</button>
+          </div>
+        </div>
+        <button class="btn-action" onclick="startMorphDemo()">Morflanmayı Başlat</button>
+      </div>
+
+      <!-- 6. FLOATING CAPSULE NAVIGATION (Video 5) -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🔘</span> Kapsül Alt Navigasyon (Video 5)
+          </div>
+          <span class="badge-pill" style="color: #38BDF8; background: rgba(0,82,255,0.15);">Video 5 Tabs</span>
+        </div>
+        <div class="card-desc">Yüzen cam hap alt çubuk, aktif sekmenin altında yay fiziğiyle kayan gösterge ve ikon sıçraması.</div>
+
+        <div class="preview-stage">
+          <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 28px; padding: 6px 14px; display: flex; gap: 16px; align-items: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+            <div style="background: #0052FF; color: white; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 800; display: flex; align-items: center; gap: 4px;">
+              <span>🏠</span> Ana Sayfa
+            </div>
+            <div style="color: #94A3B8; font-size: 14px; cursor: pointer;">📈</div>
+            <div style="color: #94A3B8; font-size: 14px; cursor: pointer;">🚗</div>
+            <div style="color: #94A3B8; font-size: 14px; cursor: pointer;">🎯</div>
+            <div style="color: #94A3B8; font-size: 14px; cursor: pointer;">⚙️</div>
+          </div>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 12px;">Floating bottom bar mimarisi Flutter'da aktiftir.</div>
+      </div>
+
+      <!-- 7. MORPHING SHARE BUTTON (Video 2) -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>📤</span> Morflanan Paylaşım & İndir (Video 2)
+          </div>
+          <span class="badge-pill" style="color: #34D399; background: rgba(16,185,129,0.15);">Video 2 Share</span>
+        </div>
+        <div class="card-desc">Yüzde çemberiyle dışa aktarımı hazırlar ve anında WhatsApp, AirDrop, Link Kopyala haplarına açılır.</div>
+
+        <div class="preview-stage">
+          <div id="demo-share-container" style="width: 100%; max-width: 320px; text-align: center;">
+            <button class="share-pill-btn" onclick="startShareDemo()">Raporu Hazırla & Paylaş</button>
+          </div>
+        </div>
+        <button class="btn-action" onclick="startShareDemo()">Paylaşım Morfunu Oynat</button>
+      </div>
+
+      <!-- 8. LIVE PULSE METRIC BADGE -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🟢</span> Canlı Radar Nabız Rozeti (Pulse Metric)
+          </div>
+          <span class="badge-pill" style="color: #00D084; background: rgba(0,208,132,0.15);">Live Pulse</span>
+        </div>
+        <div class="card-desc">Çift katmanlı genişleyen neon halkalar ve parlayan merkez nokta ile canlı bakiye ve piyasa durumu.</div>
+
+        <div class="preview-stage">
+          <div class="pulse-radar-badge" id="demo-pulse-badge">
+            <div class="radar-dot-live"></div>
+            <span style="color: #94A3B8; font-size: 11px; font-weight: 700;">NET FARK:</span>
+            <span style="color: #00D084; font-size: 14px; font-weight: 900;">+₺34.773,90</span>
+          </div>
+        </div>
+        <button class="btn-action" onclick="pulseBadgeHighlight()">Aura Dalgalanmasını Vurgula</button>
+      </div>
+
+      <!-- 9. STREAK & GOAL CONFETTI BURST -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🎉</span> 36 Parçacıklı Kutlama Konfetisi
+          </div>
+          <span class="badge-pill" style="color: #F472B6; background: rgba(236,72,153,0.15);">Physics Burst</span>
+        </div>
+        <div class="card-desc">Hedef tamamlandığında veya 30 günlük tasarruf serisine ulaşıldığında fırlayan 36 renkli konfeti parçacığı.</div>
+
+        <div class="preview-stage" id="confetti-stage" style="position: relative; overflow: hidden; min-height: 140px; display: flex; align-items: center; justify-content: center;">
+          <div style="font-size: 38px;">🎯 ➔ 🏆</div>
+        </div>
+        <button class="btn-action" onclick="triggerBurstParticles()">Konfeti Patlamasını Ateşle 🎊</button>
+      </div>
+
+      <!-- 10. MORPHING SEGMENTED BAR -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>💊</span> Yay Fiziğiyle Kayan Segmente Bar
+          </div>
+          <span class="badge-pill" style="color: #38BDF8; background: rgba(0,82,255,0.15);">Spring Pill</span>
+        </div>
+        <div class="card-desc">Sekmeler arası geçişte süper-elips hap formundaki aktif göstergenin yaylanarak kayması (Analysis & Cashflow).</div>
+
+        <div class="preview-stage">
+          <div class="morph-seg-container" id="demo-seg-container">
+            <div class="morph-seg-indicator" id="demo-seg-indicator" style="left: 4px; width: calc(33.33% - 4px);"></div>
+            <div class="morph-seg-item active" onclick="switchSegTab(0, this)">Dağılım</div>
+            <div class="morph-seg-item" onclick="switchSegTab(1, this)">Aylık Trend</div>
+            <div class="morph-seg-item" onclick="switchSegTab(2, this)">KDV Analizi</div>
+          </div>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 12px;">Flutter'da MorphingSegmentedBar olarak aktiftir.</div>
+      </div>
+
+      <!-- 11. LASER SHIMMER VIP CARD -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>✨</span> Lazer Işıma Kartı (Pitch-Black Shimmer)
+          </div>
+          <span class="badge-pill" style="color: #A78BFA; background: rgba(139,92,246,0.15);">Laser Sweep</span>
+        </div>
+        <div class="card-desc">Pitch-black #0C0E14 yüzey üzerinde 45 derece açıyla sürekli akan neon lazer ışını ve parlayan çerçeve.</div>
+
+        <div class="preview-stage">
+          <div class="laser-shimmer-box" style="width: 100%; max-width: 320px;">
+            <div class="laser-beam"></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 2;">
+              <div>
+                <div style="font-size: 10px; font-weight: 800; color: #38BDF8; letter-spacing: 0.5px;">VIP AİLE PLAN KORUMASI</div>
+                <div style="font-size: 16px; font-weight: 900; color: white; margin-top: 2px;">Limitsiz Yerel Kasa</div>
+              </div>
+              <span style="font-size: 22px;">💎</span>
+            </div>
+            <div style="font-size: 11px; color: #94A3B8; margin-top: 8px; position: relative; z-index: 2;">AES-256 Donanım Şifrelemesi & Sıfır Bilgi</div>
+          </div>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 12px;">Flutter'da LaserShimmerCard olarak aktiftir.</div>
+      </div>
+
+      <!-- 12. ROLLING NUMBER TICKER -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🔢</span> Kübik Rakam Yuvarlayıcı (Rolling Ticker)
+          </div>
+          <span class="badge-pill" style="color: #10B981; background: rgba(16,185,129,0.15);">Rolling Digits</span>
+        </div>
+        <div class="card-desc">Dashboard, Kasa Akışı ve Hedef tutarları güncellendiğinde rakamların takır takır yerine oturması.</div>
+
+        <div class="preview-stage">
+          <div class="ticker-display" id="demo-ticker">₺34.773,90</div>
+        </div>
+        <button class="btn-action" onclick="rerunTicker()">Rakam Yuvarlamayı Tekrar Oynat</button>
+      </div>
+
+    </div>
+
+    <!-- SECTION 2: 20-POINT SECURITY MATRIX (photo_5868465652392202673_y.jpg) -->
+    <div class="card" style="margin-top: 10px;">
+      <div class="card-header">
+        <div>
+          <div class="card-title" style="font-size: 18px;">
+            <span>🔒</span> 20 Maddelik Endüstri Standardı Güvenlik Mimarisi
+          </div>
+          <div class="card-desc" style="margin-bottom: 0;">Referans fotoğraftaki (cengholic) tüm güvenlik katmanlarının Paraİz mimarisindeki doğrulanmış çözümleri.</div>
+        </div>
+        <span class="badge-pill" style="font-size: 12px; padding: 8px 16px;">20/20 AKTİF & DOĞRULANDI</span>
+      </div>
+
+      <div class="security-matrix">
+        <div class="sec-item"><div><div class="sec-title">1. Authentication</div><div class="sec-sub">Biyometrik (FaceID/TouchID/PIN)</div></div><span class="badge-pill">✓</span></div>
+        <div class="sec-item"><div><div class="sec-title">2. Authorization</div><div class="sec-sub">Offline kullanıcı vs Web Yönetim ayrımı</div></div><span class="badge-pill">✓</span></div>
+        <div class="sec-item"><div><div class="sec-title">3. Input Validation</div><div class="sec-sub">Tutar, IBAN, TCKN regex doğrulama</div></div><span class="badge-pill">✓</span></div>
+        <div class="sec-item"><div><div class="sec-title">4. SQL Injection Protection</div><div class="sec-sub">SQLite '?' parametreli sorgular</div></div><span class="badge-pill">✓</span></div>
+        <div class="sec-item"><div><div class="sec-title">5. XSS Protection</div><div class="sec-sub">HTML/script sanitizer filtreleme</div></div><span class="badge-pill">✓</span></div>
+        <div class="sec-item"><div><div class="sec-title">6. CSRF Protection</div><div class="sec-sub">Local token ve SameSite güvenliği</div></div><span class="badge-pill">✓</span></div>
+        <div class="sec-item"><div><div class="sec-title">7. CORS Configuration</div><div class="sec-sub">Yalnızca onaylı köken ve API'ler</div></div><span class="badge-pill">✓</span></div>
+        <div class="sec-item"><div><div class="sec-title">8. HTTPS</div><div class="sec-sub">Zorunlu TLS 1.3 şifreli tünel</div></div><span class="badge-pill">✓</span></div>
+        <div class="sec-item"><div><div class="sec-title">9. Secure Cookies & Storage</div><div class="sec-sub">Keychain/Keystore AES donanım şifresi</div></div><span class="badge-pill">✓</span></div>
+        <div class="sec-item"><div><div class="sec-title">10. Rate Limiting</div><div class="sec-sub">Token-bucket ile hızlı istek engeli</div></div><span class="badge-pill">✓</span></div>
+        <div class="sec-item"><div><div class="sec-title">11. IDOR / Ownership Checks</div><div class="sec-sub">SQLite profil UUID veri izolasyonu</div></div><span class="badge-pill">✓</span></div>
+        <div class="sec-item"><div><div class="sec-title">12. Secret Management</div><div class="sec-sub">Sıfır hardcoded şifre; .env ayrımı</div></div><span class="badge-pill">✓</span></div>
+        <div class="sec-item"><div><div class="sec-title">13. File Upload Validation</div><div class="sec-sub">%PDF- ve PK\x03\x04 Magic Byte kontrolü</div></div><span class="badge-pill">✓</span></div>
+        <div class="sec-item"><div><div class="sec-title">14. Global Exception Handling</div><div class="sec-sub">runZonedGuarded & FlutterError fallback</div></div><span class="badge-pill">✓</span></div>
+        <div class="sec-item"><div><div class="sec-title">15. Security Headers</div><div class="sec-sub">CSP, X-Frame-Options, X-Content-Type</div></div><span class="badge-pill">✓</span></div>
+        <div class="sec-item"><div><div class="sec-title">16. Logging / Audit Logs</div><div class="sec-sub">PIIRedactor ile TCKN, kart maskeleme</div></div><span class="badge-pill">✓</span></div>
+        <div class="sec-item"><div><div class="sec-title">17. Dependency Scanning</div><div class="sec-sub">Güvenlik açıklarına sıfır tolerans</div></div><span class="badge-pill">✓</span></div>
+        <div class="sec-item"><div><div class="sec-title">18. Database Security</div><div class="sec-sub">SQLite SQLCipher donanım şifreleme</div></div><span class="badge-pill">✓</span></div>
+        <div class="sec-item"><div><div class="sec-title">19. Backup</div><div class="sec-sub">AES-256-GCM ile şifrelenmiş .enc yedek</div></div><span class="badge-pill">✓</span></div>
+        <div class="sec-item"><div><div class="sec-title">20. CI/CD Security Scanning</div><div class="sec-sub">verify_parsers.ps1 otomatik test süiti</div></div><span class="badge-pill">✓</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let isPillExpanded = false;
+    function toggleDemoPill() {
+      isPillExpanded = !isPillExpanded;
+      const exp = document.getElementById('demo-pill-expanded');
+      exp.style.display = isPillExpanded ? 'block' : 'none';
+    }
+
+    function animateStreak() {
+      const num = document.getElementById('demo-streak-num');
+      num.innerText = '29';
+      setTimeout(() => {
+        num.innerText = '30';
+        num.style.transform = 'scale(1.25)';
+        setTimeout(() => { num.style.transform = 'scale(1)'; }, 200);
+      }, 500);
+    }
+
+    function startMorphDemo() {
+      const c = document.getElementById('demo-morph-container');
+      c.innerHTML = `
+        <div style="background: #FED7AA; border-radius: 20px; height: 42px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+          <div id="demo-prog-bar" style="position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: linear-gradient(90deg, #F97316, #FB923C); border-radius: 20px; transition: width 0.05s linear;"></div>
+          <span id="demo-prog-txt" style="position: relative; z-index: 2; font-size: 11.5px; font-weight: 800; color: #78350F;">Uploading... %0</span>
+        </div>
+      `;
+      let p = 0;
+      const t = setInterval(() => {
+        p += 20;
+        const b = document.getElementById('demo-prog-bar');
+        const txt = document.getElementById('demo-prog-txt');
+        if (b && txt) {
+          b.style.width = p + '%';
+          txt.innerText = 'Uploading... %' + p;
+          if (p > 50) txt.style.color = '#FFF';
+        }
+        if (p >= 100) {
+          clearInterval(t);
+          setTimeout(() => {
+            c.innerHTML = `
+              <div style="background: #0F172A; border-radius: 20px; height: 42px; display: flex; align-items: center; justify-content: center; gap: 8px; color: white; font-size: 12px; font-weight: 800; border: 1px solid rgba(255,255,255,0.1);">
+                <span style="background: #10B981; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">✓</span>
+                Completed (Tamamlandı)
+              </div>
+            `;
+            setTimeout(() => {
+              c.innerHTML = '<button class="morph-btn" onclick="startMorphDemo()">Ekstre PDF Yükle</button>';
+            }, 3000);
+          }, 350);
+        }
+      }, 120);
+    }
+
+    function startShareDemo() {
+      const c = document.getElementById('demo-share-container');
+      c.innerHTML = `
+        <div style="background: #0F172A; border: 1.5px solid #10B981; border-radius: 20px; padding: 12px; text-align: center;">
+          <div style="font-size: 11px; color: #94A3B8; font-weight: 700;">RAPOR HAZIRLANIYOR</div>
+          <div style="font-size: 16px; font-weight: 900; color: #10B981; margin: 4px 0;" id="share-pct">%0</div>
+          <div style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
+            <div id="share-prog" style="height: 100%; width: 0%; background: #10B981; transition: width 0.1s;"></div>
+          </div>
+        </div>
+      `;
+      let p = 0;
+      const t = setInterval(() => {
+        p += 25;
+        const sp = document.getElementById('share-pct');
+        const sb = document.getElementById('share-prog');
+        if (sp && sb) { sp.innerText = `%${p}`; sb.style.width = `${p}%`; }
+        if (p >= 100) {
+          clearInterval(t);
+          setTimeout(() => {
+            c.innerHTML = `
+              <div style="display: flex; justify-content: center; gap: 8px;">
+                <button style="background: #22C55E; color: white; border: none; padding: 8px 14px; border-radius: 16px; font-size: 11px; font-weight: 800; cursor: pointer;">WhatsApp</button>
+                <button style="background: #0284C7; color: white; border: none; padding: 8px 14px; border-radius: 16px; font-size: 11px; font-weight: 800; cursor: pointer;">AirDrop</button>
+                <button style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 8px 14px; border-radius: 16px; font-size: 11px; font-weight: 800; cursor: pointer;">Kopyala</button>
+              </div>
+            `;
+            setTimeout(() => {
+              c.innerHTML = '<button class="share-pill-btn" onclick="startShareDemo()">Raporu Hazırla & Paylaş</button>';
+            }, 4000);
+          }, 300);
+        }
+      }, 100);
+    }
+
+    function pulseBadgeHighlight() {
+      const b = document.getElementById('demo-pulse-badge');
+      b.style.boxShadow = '0 0 32px rgba(16, 185, 129, 0.8)';
+      b.style.transform = 'scale(1.06)';
+      b.style.transition = 'all 0.3s';
+      setTimeout(() => {
+        b.style.boxShadow = '0 0 16px rgba(16, 185, 129, 0.25)';
+        b.style.transform = 'scale(1)';
+      }, 600);
+    }
+
+    function triggerBurstParticles() {
+      const stage = document.getElementById('confetti-stage');
+      const colors = ['#F59E0B', '#10B981', '#3B82F6', '#EC4899', '#8B5CF6', '#F43F5E'];
+      for (let i = 0; i < 36; i++) {
+        const p = document.createElement('div');
+        const size = Math.floor(Math.random() * 8) + 6;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        p.style.cssText = `position: absolute; width: ${size}px; height: ${Math.floor(size * 0.6)}px; background: ${color}; border-radius: 2px; left: 50%; top: 50%; z-index: 10; opacity: 1; transform: translate(-50%, -50%); transition: all 1s cubic-bezier(0.25, 1, 0.5, 1);`;
+        stage.appendChild(p);
+
+        setTimeout(() => {
+          const angle = Math.random() * 2 * Math.PI;
+          const dist = Math.random() * 120 + 30;
+          const x = Math.cos(angle) * dist;
+          const y = Math.sin(angle) * dist;
+          p.style.transform = `translate(${x}px, ${y}px) rotate(${Math.random() * 720}deg)`;
+          p.style.opacity = '0';
+        }, 30);
+
+        setTimeout(() => { p.remove(); }, 1200);
+      }
+    }
+
+    function switchSegTab(index, el) {
+      const items = el.parentElement.querySelectorAll('.morph-seg-item');
+      items.forEach(it => it.classList.remove('active'));
+      el.classList.add('active');
+      const ind = document.getElementById('demo-seg-indicator');
+      ind.style.left = `calc(${index * 33.33}% + 4px)`;
+    }
+
+    function rerunTicker() {
+      const el = document.getElementById('demo-ticker');
+      const target = 34773.90;
+      let curr = 0;
+      const steps = 15;
+      let s = 0;
+      const interval = setInterval(() => {
+        s++;
+        curr = (target / steps) * s;
+        el.innerText = '₺' + curr.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (s >= steps) {
+          clearInterval(interval);
+          el.innerText = '₺34.773,90';
+        }
+      }, 40);
+    }
+  </script>
+</body>
+</html>

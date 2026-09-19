@@ -1,0 +1,592 @@
+
+
+---
+
+```markdown
+# Paraİz (MoneyTrace) - Kapsamlı Sistem Spesifikasyonu & Mimari Dokümanı
+*Versiyon: 3.0.0 (Global FinTech, Deterministik Veri Motoru & Canlı Sistem Spesifikasyonu)*  
+*Hedef Yıl: 2026*
+
+---
+
+## 1. YÖNETİCİ ÖZETİ VE ÇEKİRDEK VİZYON
+
+Paraİz (MoneyTrace); kullanıcıların mobil bankacılık ve kurumsal sistemlerden indirdikleri PDF formatındaki banka hesap dökümlerini[cite: 1], kredi kartı hesap özetlerini[cite: 2] ve maaş bordrolarını yerel olarak (On-Device) işleyen, çoklu para birimini destekleyen, vergi yükünü ve gelecek dönem borç projeksiyonunu çıkaran, sıfır sunucu maliyetli bir kişisel finans ve harcama zekası platformudur.
+
+Sistem, geleneksel bütçe uygulamalarının iki büyük kronik sorununu çözer:
+1. **Manuel Veri Girişi Yorgunluğu:** Kullanıcı harcamalarını tek tek elle yazmaz; banka PDF'ini uygulamaya bırakır, sistem deterministik algoritmalarla tüm tabloyu saniyeler içinde çözer[cite: 1, 2, 11].
+2. **Kuru ve Anlamsız Raporlama:** Sistem salt grafik basmaz; "İzci" (Scout) adlı zeki, iğneleyici ve korumacı bir finansal persona ile harcama sapmalarını yüzleştirir, gizlenen vergi kesintilerini görünür kılar[cite: 1, 3, 12].
+
+---
+
+## 2. 2000–2026 BİREYSEL HARCAMA EĞİLİMLERİ VE DAVRANIŞSAL ÇIKARIMLAR
+
+### 2.1. Dönemsel Harcama Morfolojisi
+* **2000–2010 (Nakit & Fiziksel Slip Çağı):** Harcamalar ağırlıklı olarak nakit ve tek çekim kartlarla yapılıyordu. "Ödeme acısı" (pain of paying) fizikseldi; bütçe ay başında zarflara ayrılan nakitle yönetilirdi.
+* **2010–2020 (Sürtünmesiz Ödeme & E-Ticaret Patlaması):** Temassız kartlar, dijital cüzdanlar ve tek tıkla sipariş ödeme bariyerini yıktı. İşlem adedi katlanırken ortalama sepet büyüklüğü ufaldı.
+* **2020–2024 (Abonelik Yorgunluğu & Hızlı Ticaret):** Tüketim mülkiyetten "aylık kiralamaya" evrildi. Müzik, video, bulut depolama, yemek ve market teslimatları ufak mikro faturalara bölündü; kullanıcı ayda kaç aboneliğe para kaptırdığını göremez hale geldi[cite: 2, 4].
+* **2024–2026 (BNPL Sisi, Mikro Taksitler ve Enflasyonist Algı Kayması):** "Şimdi Al Sonra Öde" (BNPL) ve kredi kartlarındaki agresif taksitlendirme (1/3, 1/6) tüketicinin gerçek borç yükünü maskeledi[cite: 3, 4]. Yüksek küresel ve yerel enflasyon, kullanıcıları net maaşlarının gerçek alım gücünü ve harcamalarının ne kadarının devlete (vergilere) gittiğini sorgulamaya itti[cite: 1, 3].
+
+### 2.2. Paraİz İçin Doğrudan Fonksiyonel Çıkarımlar
+* **Abonelik Sızıntısı Dedektörü (Subscription Leak):** Her ay periyodik tekrarlayan mikro çekimleri (`GOOGLE`, `SPOTIFY`, `ICLOUD`, `DISNEY`, `ANTHROPIC`) otomatik yakalayarak yıllık kümülatif maliyeti tek ekranda toplamak[cite: 2, 4, 5].
+* **Taksit Blokajı Simülatörü:** Gelecek 3, 6 ve 12 aya sarkan taksit yükünü ($Y - X$) takvimde dondurarak kullanıcının gerçekte harcanabilir serbest gelirini hesaplamak[cite: 3, 4, 13].
+* **Platform & Servis Payı Ayrıştırması:** Getir, Yemeksepeti, Uber Eats gibi siparişlerde ürünün çıplak maliyeti ile teslimat/servis komisyonunu ayıklamak[cite: 4].
+* **Devlet Payı & Vergi Şeffaflığı:** Fiş ve ekstrelerde görünmeyen dolaylı vergileri (KDV, ÖTV, BSMV, KKDF) görünür kılmak[cite: 1, 12].
+
+---
+
+## 3. DETERMINİSTİK PDF AYRIŞTIRMA MOTORU (ZERO-AI ENGINE)
+
+Sistem yapay zekaya (LLM) bağımlı değildir; banka PDF'leri taranmış resim değil, dijital vektörel metin katmanına sahip belgelerdir[cite: 1, 2]. Okuma işlemi cihaz RAM'inde koordinat bazlı ve regex desenleriyle yürütülür.
+
+### 3.1. Banka Vadesiz Hesap Ekstreleri Ayrıştırma Pipeline'ı (Örn. Enpara)[cite: 1]
+* **Girdi Verisi:** `enpara_vadesiz_ozet.pdf`[cite: 1]
+* **Sütun Koordinatları:** `Tarih | Açıklama | Tutar | Bakiye`[cite: 1]
+* **Regex Ayrıştırma Tablosu:**
+
+```regex
+# İşlem Satırı Yakalama Deseni:
+^(?P<date>\d{2}/\d{2}/\d{2})\s+(?P<desc>.+?)\s+(?P<amount>-?\s*[\d\.,]+)\s*TL\s+(?P<balance>[\d\.,]+)\s*TL
+
+# Kredi Taksiti Bileşenlerini Yakalama:
+(?P<type>Ödeme|Vergi Kesintisi),\s*(?P<principal>[\d\.,]+)\s*TL.*?(?P<installment>\d+)\.\s*taksiti(?:\s*(?P<tax_type>BSMV|KKDF))?
+
+# FAST / EFT Sorgu No ve Abone No:
+(?:sorgu no:\s*(?P<fast_id>\d+))|(?:abone no:\s*(?P<subscriber_no>\d+))
+
+```
+
+* **İşlem Mantığı (Business Logic):**
+1. Tutar önünde `-` varsa `TransactionType.DEBIT`, yoksa `TransactionType.CREDIT` olarak atanır.
+
+
+2. **Kredi Taksit Konsolidasyonu:** Aynı gün düşen `15.000 TL Kredi 7. Taksiti (-1.637,38 TL)`, `BSMV (-50,82 TL)` ve `KKDF (-50,82 TL)` satırları tek bir `1.739,02 TL`'lik "İhtiyaç Kredisi Ödemesi" nesnesinde birleştirilir. BSMV ve KKDF doğrudan "Vergi/Kesinti" havuzuna kaydedilir.
+
+
+3. Fatura ödemelerindeki kurum adı (`Vodafone`, `PALGAZ`, `SEPAŞ`, `Superonline`) ve abone numarası otomatik metadata'ya yazılır.
+
+
+
+
+
+---
+
+### 3.2. Kredi Kartı Hesap Özeti Ayrıştırma Pipeline'ı (Örn. Yapı Kredi)
+
+
+
+* **Girdi Verisi:** `yapikredi_hesap_ozeti.pdf`
+
+* **Çoklu Kart Yapısı:** Tek PDF içinde Asıl Kart (`4462 12****** 8281`), Dijital Kart (`540062******8207`) ve Ek Kart (`4462 12****** 8112 - Gizem Yeşildemir`) bağımsız bloklar halinde yer alır.
+
+
+* **Regex Ayrıştırma Tablosu:**
+
+```regex
+# Kart Blok Başlığı:
+(?:Kart Numarası|Dijital Kart Numarası)\s*:\s*(?P<card_no>[\d\* ]+)(?:\s+(?P<holder>[A-ZÇĞİÖŞÜ ]+))?
+
+# Kredi Kartı Standart Harcama Satırı:
+^(?P<date>\d{2}\s+[A-Za-zÇĞİÖŞÜçğıöşü]+\s+\d{4})\s+(?P<desc>.+?)\s+(?P<amount>\+?[\d\.,]+)(?:\s+(?P<point>\d+))?$
+
+# Taksitli Harcama Satırı (Kalan / Toplam):
+(?P<total_amount>[\d\.,]+)\s*TL'lik işlemin\s*(?P<current_inst>\d+)/(?P<total_inst>\d+)\s*taksidi
+
+# Dövizli Yurt Dışı Çekim Satırı:
+İşlem Tutarı:\s*(?P<orig_amount>[\d\.,]+)\s*(?P<orig_currency>[A-Z]{3})\s*USD Karşılığı\s*:\s*(?P<usd_amount>[\d\.,]+)\s*USD
+
+```
+
+* **İşlem Mantığı (Business Logic):**
+1. Kart numarası her değiştiğinde yeni bir alt-hesap (Sub-Account) başlatılır.
+
+
+2. Başında `+` olan tutarlar (`+18.237,58`, `+11.795,40`) borç ödemesi (`CREDIT`) olarak ayrıştırılır.
+
+
+3. Taksitli işlemlerde (ör. `6.387,00 TL'lik işlemin 1/3 taksidi: 2.129,00 TL`):
+
+
+* O ayın giderine `2.129,00 TL` eklenir.
+
+
+* Kalan 2 taksit (`4.258,00 TL`), kartın hesap kesim gününe göre gelecek 2 ayın takvimine sabit gider olarak işlenir.
+
+
+
+
+4. Yabancı para birimli işlemlerde hem orijinal tutar (`24.00 USD`) hem kart ekstresine yansıyan yerel tutar (`1.163,12 TL`) kaydedilerek efektif kur ($48.46$) hesaplanır.
+
+
+
+
+
+---
+
+### 3.3. Maaş Bordrosu Ayrıştırma Pipeline'ı
+
+* **Girdi Verisi:** Standart e-Bordro veya kurumsal PDF bordrolar.
+* **Ayrıştırılan Alanlar:**
+* `Brüt Ücret`
+* `SGK İşçi Payı (%14)` + `İşsizlik Sigortası (%1)`
+* `Gelir Vergisi Kesintisi` & `Kümülatif Gelir Vergisi Matrahı`
+* `Damga Vergisi Kesintisi`
+* `Bireysel Emeklilik (BES) Kesintisi`
+* `Net Ödenen Ücret`
+
+
+* **İşlem Mantığı:** Net Ücret, banka ekstresindeki `Gelen Transfer - Maaş` kalemiyle çapraz kontrol edilerek doğrulanır.
+
+
+
+---
+
+## 4. NORMALİZASYON, SANAL POS TEMİZLİĞİ VE MCC EŞLEŞTİRME
+
+POS makinelerinden gelen metinler gürültülüdür. Sistem 3 aşamalı filtre uygular:
+
+### 4.1. Sanal POS ve Ağ Geçidi Temizleme (Sanitization)
+
+Aşağıdaki regex kuralları metnin başındaki aracıları budar:
+
+```regex
+^(?:IYZICO/|PAYTR[\.\/]|SİPAY(?:\s+ELEK)?/|ÖDEAL//|SQUARE\s*\*|PAYPAL\s*\*|POS\s*\d+\s*-?)(?P<clean_merchant>.+)
+
+```
+
+* `IYZICO/WAT MOBİLİTE İSTANBUL TR` $\rightarrow$ `WAT MOBİLİTE`
+
+* `SİPAY ELEK/SITAXI İSTANBUL TR` $\rightarrow$ `SITAXI`
+
+* `ÖDEAL//OZMAYDONOZ GI KOCAELİ TR` $\rightarrow$ `OZMAYDONOZ GI`
+
+
+---
+
+### 4.2. Kategori Sözlüğü ve ISO 18245 MCC Eşleştirme Tablosu
+
+| Kategori Adı | MCC Kodu | Anahtar Kelime Kökleri (Keywords) | Örnek Algılanan Satıcılar |
+| --- | --- | --- | --- |
+| **Market & Bakkaliye** | 5411, 5499 | BIM, A101, A-101, SOK, HAKMAR, FILE, MOPAS, CARREFOUR, GROCERY, MARKET | `BIM BİM P714`, `FİLE F391`, `HAKMAR BAHRIYE`<br> |
+| **Akaryakıt & Şarj** | 5541, 5542 | OPET, SHELL, PETROL OFISI, BP, TOTAL, AYGAZ, WAT MOBILITE, NATIONAL FUEL | `OPET 90000002664`, `SHELL 5650-NATIONAL`<br> |
+| **Ulaşım & Taksi** | 4121, 4111 | SITAXI, TAKSIDE POS, TOPLU TASIMA, BELBIM, ISTANBULKART, UBER, BITAKSI | `SITAXI ISTANBUL`, `TOPLU TASIMA GECIS U`<br> |
+| **Yeme - İçme** | 5812, 5814 | RESTORAN, KOFTECI, LOKANTA, IZGARA, KEBAP, DURUM, BOREKCI, FIRIN, KAHVE DUNYASI, TRENDYOL YEMEK, YEMEKSEPETI | `KÖFTECİ YUSUF`, `HUNERLI FIRIN`, `TATLIBAK GIDA`<br> |
+| **Dijital Abonelik** | 5734, 4899 | GOOGLE, YOUTUBE, SPOTIFY, NETFLIX, DISNEY, APPLE, MICROSOFT, CLAUDE, XBOX | `GOOGLE *YOUTUBE`, `ANTHROPIC CLAUDE SUB`<br> |
+| **Faturalar & Kamu** | 4900, 9399 | VODAFONE, TURKCELL, TELEKOM, PALGAZ, SEPAS, ENERJISA, ISU, SUPERONLINE | `Vodafone faturası`, `PALGAZ Gebze Tüketim`<br> |
+| **Vergi & Harçlar** | 9311 | VERGI DAIRESI, MOTORLU TASITLAR, GELIR IDARESI, BELEDIYE, HARC | `ULUCINAR VERGI DAIRESI`, `VERGI-34NS7004-MTV`<br> |
+| **Ev & Yapı Market** | 5200, 5251 | HIRDAVAT, MR DIY, KOCTAS, IKEA, TEKNIK HIRDAVAT | `KARDESLER HIRDAVAT`, `MR DIY PARKOVA`<br> |
+| **Evcil Hayvan** | 5995 | PETSHOP, AKVARYUM, VETERINER, PET | `ATAKAN PETSHOP`, `ÇAYIROVA AKVARYUM`<br> |
+| **Çocuk & Eğlence** | 7996, 5945 | LUNAPARK, FUNKIDS, OYUNCAK, BOWLING | `LUNASAN LUNAPARK`, `FUNKİDS KOCAELİ`<br> |
+| **Yatırım & Birikim** | 5094, 6051 | KUYUMCU, MUKELLEF, ALTIN, MÜCEVHERAT, BES, EMINEVIM | `Modern Takı Kuyumculuk`, `EMİN EVİM`<br> |
+
+---
+
+### 4.3. Kural Hafızası Motoru (Human-in-the-Loop)
+
+Trendyol veya Amazon gibi pazar yerlerinde ürün içeriği bilinemez:
+
+* Varsayılan atama: `Genel Alışveriş`.
+* Kullanıcı kategori düzenlediğinde yerel SQLite tablosuna yazılır:
+```sql
+INSERT OR REPLACE INTO merchant_rules (raw_pattern, user_category_id, created_at)
+VALUES ('TRENDYOL.COM', 'cat_clothing', CURRENT_TIMESTAMP);
+
+```
+
+
+* Gelecek ekstrelerde `raw_merchant LIKE '%TRENDYOL.COM%'` eşleşmesi varsa doğrudan kullanıcının hafıza kuralı işletilir.
+
+
+
+---
+
+## 5. DEVLET PAYI & YASAL KESİNTİ ANALİTİĞİ MOTORU
+
+Uygulama, kullanıcının cebinden çıkan paranın ne kadarının doğrudan ve dolaylı olarak kamuya aktığını kuruşu kuruşuna hesaplar:
+
+```
+┌───────────────────────────────────────────────────────────────────────────┐
+│                     TOPLAM KAMU YÜKÜ (DEVLET PAYI)                        │
+├─────────────────────────────────────┬─────────────────────────────────────┤
+│ 1. DOĞRUDAN VERGİLER (Bordro)       │ 2. FİNANSAL LEVİLER (Ekstre)        │
+│    • Gelir Vergisi Stopajı          │    • Kredi BSMV (%5 - %15)          │
+│    • Damga Vergisi                  │    • Kredi KKDF (%15)               │
+│    • SGK İşçi Payı                  │    • Gecikme & KMH Faiz Vergileri   │
+├─────────────────────────────────────┼─────────────────────────────────────┤
+│ 3. RESMİ HARÇLAR & TAŞIT VERGİLERİ  │ 4. DOLAYLI TÜKETİM VERGİLERİ        │
+│    • Motorlu Taşıtlar Vergisi (MTV) │    • Akaryakıt KDV + ÖTV            │
+│    • Belediye Ruhsat / Harç         │    • Restoran & Hizmet KDV (%10/%20)│
+│    • Tapu / Noter Harçları          │    • Standart Tüketim KDV           │
+└─────────────────────────────────────┴─────────────────────────────────────┘
+
+```
+
+* **Devlet Payı Endeksi Formülü:**
+
+$$\text{Devlet Payı Oranı (\%)} = \frac{\text{Doğrudan Vergiler} + \text{BSMV/KKDF} + \text{MTV/Harçlar} + \text{Tahmini KDV}}{\text{Toplam Brüt Gelir / Harcama Havuzu}} \times 100$$
+
+
+* Bu oran, kullanıcının ana sayfasında ve özel vergi sekmesinde bir rozet olarak sunulur.
+
+
+
+---
+
+## 6. ÇOKLU PARA BİRİMİ (FX) VE HESAPLAMA MOTORU
+
+Sistem, IEEE-754 kayan nokta (floating-point) yuvarlama hatalarını önlemek için parayı tamsayı (integer / minor unit) olarak depolar (ör. `100.50 TL` $\rightarrow$ `10050`).
+
+### 6.1. Desteklenen İlk 10 Dil ve Para Birimi Matrisi
+
+| Dil Kodu | Dil Adı | Bölgesel Format | Örnek Gösterim | Küsurat Basamağı | Yön |
+| --- | --- | --- | --- | --- | --- |
+| **tr** | Türkçe | `tr_TR` | `1.250,50 ₺` | 2 | LTR |
+| **en** | İngilizce (ABD) | `en_US` | `$1,250.50` | 2 | LTR |
+| **es** | İspanyolca | `es_ES` | `1.250,50 €` | 2 | LTR |
+| **zh** | Çince | `zh_CN` | `¥1,250.50` | 2 | LTR |
+| **hi** | Hintçe | `hi_IN` | `₹1,25,050.00` | 2 | LTR |
+| **ar** | Arapça | `ar_SA` | `١٬٢٥٠٫٥٠ ر.س` | 2 | **RTL** |
+| **pt** | Portekizce | `pt_BR` | `R$ 1.250,50` | 2 | LTR |
+| **fr** | Fransızca | `fr_FR` | `1 250,50 €` | 2 | LTR |
+| **de** | Almanca | `de_DE` | `1.250,50 €` | 2 | LTR |
+| **ja** | Japonca | `ja_JP` | `¥1,250` | **0 (Kuruşsuz)** | LTR |
+
+---
+
+## 7. ÇOKLU AJAN (MULTI-AGENT) MİMARİSİ VE İŞ AKIŞI
+
+Uygulama, birbirinden yalıtılmış 5 mikro ajanın boru hattı (pipeline) şeklinde çalışmasıyla yönetilir:
+
+```
+[PDF / Belge Girişi]
+        │
+        ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 1. PARSER AGENT                                             │
+│    • Belge Tip Tespiti (Hesap / Kart / Bordro)              │
+│    • RAM İçi Regex & Koordinat Çıkarımı                     │
+│    • Hassas Veri Maskeleme (TCKN, PAN, Adres Silici)        │
+└──────────────────────────────┬──────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 2. CLEANSING & CATEGORIZATION AGENT                         │
+│    • Gateway Ayıklama (Iyzico, PayTR, Sipay vb.)            │
+│    • ISO 18245 MCC & Keyword Eşleme                         │
+│    • Kural Hafızası Sorgulama                               │
+└──────────────────────────────┬──────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 3. TAX & DEDUCTION AGENT                                    │
+│    • BSMV / KKDF / MTV Ayrıştırması                         │
+│    • Bordro Kesintileri Entegrasyonu                        │
+│    • Devlet Payı Endeksi Hesabı                             │
+└──────────────────────────────┬──────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 4. CASHFLOW & DEBT PROJECTION AGENT                         │
+│    • Kalan Taksitlerin Takvime Dağıtımı (1/3, 2/3)         │
+│    • Sabit Gider / Fatura Simülasyonu                       │
+│    • Gelecek 6 Ayın Kesinleşen Borç Grafiği                 │
+└──────────────────────────────┬──────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 5. "İZCİ" PERSONA & INSIGHT AGENT                           │
+│    • Dönemsel Harcama Anomali Analizi                       │
+│    • Mizah Moduna Göre Esprili / Analitik Çıktı Üretimi     │
+│    • Widget Durum İfadelerinin Güncellenmesi                │
+└─────────────────────────────────────────────────────────────┘
+
+```
+
+---
+
+## 8. "İZCİ" PERSONASI & MİZAH MOTORU TETİKLEYİCİ MATRİSİ
+
+Kullanıcı Ayarlarından **"İzci (Esprili/Dobra)"** veya **"Klasik (Kurumsal/Ciddi)"** mod seçilebilir.
+
+### 8.1. Durum Tetikleyici ve Metin Kütüphanesi
+
+| Durum Kuralı | Analiz Şartı | "İzci" Modu Mesajı | Klasik Mod Mesajı |
+| --- | --- | --- | --- |
+| **Market Tavan Yaptı** | Market/Gıda son 3 ayın ortalamasının %25+ üzerine çıktı
+
+ | 🛒 *"Bu ay mutfakta şenlik var! Gıda harcamaların tavan yapmış; ya eve gizli bir ordu taşındı ya da misafirlerin kapıyı aşındırdı."*<br> | Market harcamalarınız geçen aya kıyasla %X artış gösterdi. |
+| **Akaryakıt & Taksi Coştu** | Yakıt/Ulaşım toplam giderin %20'sini aştı
+
+ | ⛽ *"Depo yine fullenmiş, taksiler durmamış! Bu tempoyla gidersen yakında seni uzay istasyonundan toplayacağız. Yürümek de bir seçenekti hani!"*<br> | Ulaşım harcamalarınız bu dönem bütçenizin %X'ini oluşturmaktadır. |
+| **Dışarıdan Yemek Salgını** | Restoran/Yemek platformu siparişleri 5+ adet ve bütçenin %15'i
+
+ | 🍔 *"Evdeki ocak süs diye mi duruyor? Kuryelerle artık akraba olduk, tencere yemeğiyle barışma vaktin geldi de geçiyor!"*<br> | Restoran ve hazır yemek harcamalarınızda dönemsel yükseliş var. |
+| **Abonelik Sürüsü** | 4'ten fazla aktif dijital servis çekildi
+
+ | 📺 *"Bütün dünyaya abone olmuşsun! Bu kadar dizi, oyun ve yapay zekayı aynı anda tükettiğine emin miyiz? Cüzdandan ufak ufak kaçıyor!"*<br> | Aylık sabit dijital abonelik toplamınız X TL'ye ulaştı. |
+| **Taksit Dağı / BNPL** | Gelecek ayki taksit yükü aylık net gelirin %40'ını aştı
+
+ | ⏳ *"Önümüzdeki 4 ayın harcamasını şimdiden afiyetle yemişsin. Gelecekteki sen şu an sana pek de hoş bakmıyor!"*<br> | Önümüzdeki dönemlere ait taksitli borç yükünüz kritik seviyededir. |
+| **Vergi Şampiyonu** | Toplam giderin %20'den fazlası vergi ve harçlara gitti
+
+ | 🏛️ *"Gözlerini kapat, burası biraz can yakabilir! Bu ay da bütçenle ülkeye can suyu oldun. Harcamalarının %X'i doğrudan devlete ve fonlara gitti."*<br> | Bu dönem ödenen doğrudan ve dolaylı vergi tutarı X TL'dir. |
+| **Bütçe Disiplini (Ödül)** | Ayın 25'i ve giderler bütçenin %70'inin altında | ☕ *"Gözlerime inanamıyorum... Ayın sonu geldi ve bütçen hâlâ ekside değil! Git kendine güzel bir kahve ısmarla, benden izin."* | Tebrikler, aylık bütçe hedeflerinizin oldukça altındasınız. |
+
+---
+
+## 9. KULLANICI DENEYİMİ (UX) VE EKRAN DÜZENİ SPESİFİKASYONU
+
+Tasarım felsefesi: **Yapay zeka parıltılarından arındırılmış organik sadelik.**
+
+### 9.1. Renk Paleti ve Tasarım Token'ları
+
+* **Zemin (Background):** `#FAF8F5` (Doğal Fildişi / Süt Beyazı)
+
+
+* **Kart Yüzeyleri (Surface):** `#FFFFFF` (Geniş köşeli: 20px border-radius)
+
+
+* **Metin Birincil (Text Primary):** `#1E2022` (Koyu arduvaz / yumuşak siyah)
+* **Pozitif / Gelir Yeşili:** `#2E7D32`
+
+* **Gider / Borç Mercanı:** `#D32F2F`
+
+* **Aksiyon / Sekme Mavisi:** `#1976D2`
+
+
+---
+
+### 9.2. Ekran Mimarisi ve Gezinme
+
+```
+┌────────────────────────────────────────────────────────┐
+│ [≡] Çekmece Menü     Paraİz / MoneyTrace     (●) Profil│ ── 1. ÜST BAR
+├────────────────────────────────────────────────────────┤
+│ 🦉 İZCİ: "Bu ay mutfakta şenlik var! Misafir ordusu    │
+│           mu ağırladın?"                               │ ── 2. DİNAMİK PERSONA KARTI
+├────────────────────────────────────────────────────────┤
+│   TOPLAM GELİR         TOPLAM GİDER          FARK      │
+│   ₺133.600,00          ₺98.826,10        +₺34.773,90   │ ── 3. ANA FİNANS KARTI
+├────────────────────────────────────────────────────────┤
+│ [ Dağılım ]          [ Aylık Trend ]       [ Vergi/KDV ]│ ── 4. ANALİZ SEKME BAR
+│                                                        │
+│             ┌─────────┐    • Market: %44 (₺43.732)     │
+│             │  DONUT  │    • Ulaşım: %15 (₺14.823)     │
+│             │  CHART  │    • Yeme-İçme: %18 (₺17.788)  │
+│             └─────────┘    • Diğer: %23 (₺22.483)      │
+├────────────────────────────────────────────────────────┤
+│ ⏳ ÖNÜMÜZDEKİ AYIN KESİNLEŞEN TAKSİTLERİ: ₺14.044,51   │ ── 5. DİKEY KAYDIRILDIKÇA
+│   • Atakan Petshop: ₺2.129,00 (2/3)                   │    AÇILAN BLOKLAR
+│   • Enpara İhtiyaç Kredisi: ₺1.745,05 (8/12)           │
+├────────────────────────────────────────────────────────┤
+│ 🏛️ DEVLET PAYI & KESİNTİ ANALİTİĞİ: ₺18.516,40 (%13.8) │
+│   • BSMV + KKDF: ₺101,64 | Bordro Vergileri: ₺14.659   │
+├────────────────────────────────────────────────────────┤
+│ SON HAREKETLER                                         │
+│   🛒 BİM - Muammer Aksoy                       ₺456,50 │
+│   ⛽ Opet Güzeltepe                          ₺2.853,82 │
+├────────────────────────────────────────────────────────┤
+│  [🏠 Ana Sayfa]   [📄 Ekstre Tara]   [📈 Trend]   [💰 Varlık] ── 6. ALT GEZİNME (4 SEKME)
+└────────────────────────────────────────────────────────┘
+
+```
+
+* **Sol Çekmece Menü İçeriği:**
+* Hesaplarım & Kartlarım (Enpara Vadesiz, YK Asıl, YK Dijital, YK Ek Kart)
+
+
+* Yüklenen Belgeler & Arşiv
+
+
+* Abonelik & Düzenli Gider Merkezi
+
+
+* Vergi ve Yasal Kesinti Raporu
+
+
+* Kategori Kurallarım (Hafıza Yönetimi)
+* Dışa Aktar (CSV / Şifreli PDF Bütçe Raporu)
+* Ayarlar & Güvenlik Kilidi (Biyometrik / PIN)
+* Paraİz Hakkında
+
+
+
+---
+
+## 10. WİDGET EKOSİSTEMİ SPESİFİKASYONU
+
+Uygulama arka planda pil tüketmeden ana ekran widget'larını besler:
+
+1. **Küçük Boyut (Small - 2x2): "Hızlı Cüzdan & İzci Notu"**
+* Aylık kalan serbest harcama tutarı (`₺12.450 Kalan`).
+* Çembersel bütçe doluluk halkası.
+* İzci maskotunun ruh hali simgesi (rahat, terleyen, alarm veren) ve 1 satırlık uyarısı.
+
+
+2. **Orta Boyut (Medium - 4x2): "Finans Özeti & Hızlı Ekle"**
+* Ayın toplam gideri (`₺98.826,10`) ve net fark.
+
+
+* En çok harcanan kategori rozeti (`🛒 Market: ₺43.732`).
+
+
+* 2 Doğrudan Kısayol: `[📄 Ekstre/Fiş Tara]` ve `[+ Manuel Harcama]`.
+
+
+
+
+3. **Geniş Boyut (Large - 4x4) & Kilit Ekranı:**
+* Kategori bazlı ilerleme barları.
+
+
+* Yaklaşan 7 günün ödemeleri: Kredi kartı son ödeme günleri, kredi taksit tarihi.
+
+
+* Haftalık net tasarruf öngörüsü.
+
+
+
+---
+
+## 11. VERİ TABANI VARLIK ŞEMASI (SQLITE / DRIFT DDL)
+
+```sql
+-- Hesaplar Tablosu (Banka ve Kredi Kartları)
+CREATE TABLE accounts (
+    id TEXT PRIMARY KEY NOT NULL,
+    institution_name TEXT NOT NULL, -- Örn: 'Enpara', 'Yapı Kredi'
+    account_type TEXT NOT NULL,     -- 'CHECKING', 'CREDIT_CARD', 'CASH'
+    card_mask TEXT,                 -- '4462 12****** 8281'
+    card_holder TEXT,               -- 'ABDULLAH YEŞİLDEMİR'
+    currency TEXT NOT NULL DEFAULT 'TRY',
+    created_at INTEGER NOT NULL
+);
+
+-- Harcama ve Gelir Hareketleri
+CREATE TABLE transactions (
+    id TEXT PRIMARY KEY NOT NULL,
+    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    statement_id TEXT REFERENCES statements(id) ON DELETE SET NULL,
+    transaction_date TEXT NOT NULL, -- 'YYYY-MM-DD'
+    transaction_type TEXT NOT NULL, -- 'DEBIT', 'CREDIT'
+    raw_description TEXT NOT NULL,  -- Ekstredeki ham metin
+    clean_merchant TEXT NOT NULL,   -- Temizlenmiş marka unvanı
+    category_id TEXT NOT NULL,
+    billing_amount_cents INTEGER NOT NULL, -- Tamsayı tutar (₺456.50 -> 45650)
+    billing_currency TEXT NOT NULL DEFAULT 'TRY',
+    original_amount_cents INTEGER,
+    original_currency TEXT,
+    exchange_rate REAL,
+    is_recurring INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL
+);
+
+-- Taksit Projeksiyon Tablosu
+CREATE TABLE installments (
+    id TEXT PRIMARY KEY NOT NULL,
+    transaction_id TEXT NOT NULL REFERENCES transactions(id) ON DELETE CASCADE,
+    current_installment INTEGER NOT NULL, -- 1
+    total_installment INTEGER NOT NULL,   -- 3
+    remaining_amount_cents INTEGER NOT NULL,
+    monthly_amount_cents INTEGER NOT NULL,
+    due_date TEXT NOT NULL -- Sonraki taksitin yansıyacağı ay
+);
+
+-- Vergi ve Yasal Kesinti Kayıtları
+CREATE TABLE tax_deductions (
+    id TEXT PRIMARY KEY NOT NULL,
+    transaction_id TEXT REFERENCES transactions(id) ON DELETE CASCADE,
+    tax_type TEXT NOT NULL, -- 'BSMV', 'KKDF', 'INCOME_TAX', 'STAMP_TAX', 'MTV', 'VAT'
+    amount_cents INTEGER NOT NULL,
+    tax_date TEXT NOT NULL
+);
+
+-- Kullanıcı Kural Hafızası (Merchant Normalizasyonu)
+CREATE TABLE user_category_rules (
+    id TEXT PRIMARY KEY NOT NULL,
+    keyword_pattern TEXT UNIQUE NOT NULL, -- 'TRENDYOL', 'AMAZON'
+    assigned_category_id TEXT NOT NULL,
+    updated_at INTEGER NOT NULL
+);
+
+```
+
+---
+
+## 12. GÜVENLİK, KVKK / GDPR VE GEÇİCİ DOSYA İMHA PROTOKOLÜ
+
+Finansal belgeler en üst düzeyde gizlilik gerektirir:
+
+1. **İstemci İçi Bellek Yalıtımı:** PDF okuma işlemi doğrudan cihaz RAM'inde açılır; sunucuya ham PDF iletilmez.
+2. **Kritik PII (Kişisel Tanımlanabilir Bilgi) Maskeleme:**
+* T.C. Kimlik Numarası (`^\d{11}$`) $\rightarrow$ `6350541****`
+
+* Kredi Kartı Numarası (`^\d{16}$`) $\rightarrow$ `4462 12****** 8281`
+
+* IBAN (`TR\d{24}`) $\rightarrow$ `TR43 0015 **** **** **** 8065`
+
+* Açık İkamet Adresi $\rightarrow$ Regex ile bellekten silinir.
+
+
+
+
+3. **Geçici Dosya İmhası:** Dosya seçiciden (SAF) gelen geçici PDF kopyası, RAM'de tablolara dönüştüğü anda diski üzerine yazılarak (`0x00` buffer overwrite) kalıcı olarak silinir.
+
+---
+
+## 13. MONETİZASYON, KOTA VE GOOGLE PLAY BILLING ALTYAPISI
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        PAKET VE FİYATLANDIRMA                          │
+├───────────────────────────────────┬────────────────────────────────────┤
+│ BAŞLANGIÇ (ÜCRETSİZ)              │ PARAİZ PRO (ABONELİK)              │
+│ • ₺0 / Sonsuza dek                │ • ₺99,99 / Ay                      │
+│ • Ayda 1 adet PDF Yükleme Hakkı   │ • ₺1.080 / Yıl (%10 İndirim)       │
+│ • Sınırsız Manuel Harcama Girişi  │ • Global: $2.99/Ay veya $29.99/Yıl │
+│ • Temel Harcama Grafikleri        │ • İLK 7 GÜN ÜCRETSİZ DENEME        │
+├───────────────────────────────────┴────────────────────────────────────┤
+│ PRO AVANTAJLARI:                                                       │
+│ ✓ Sınırsız PDF Ekstre & Bordro Analizi                                │
+│ ✓ Devlet Payı & Vergi Analitiği Sekmesi                               │
+│ ✓ Önümüzdeki Ayların Taksit ve Nakit Akışı Simülasyonu                │
+│ ✓ Kilit Ekranı ve Ana Ekran Widget Desteği                             │
+│ ✓ "İzci" Persona Motorunun Tüm Özelleştirmeleri                        │
+└────────────────────────────────────────────────────────────────────────┘
+
+```
+
+* **Teknik Kota Kontrolü:**
+Kullanıcı o ay 2. bir PDF yüklemeye çalıştığında `QuotaEnforcer` devreye girer:
+```dart
+if (user.isFreeTier && user.currentMonthPdfCount >= 1) {
+  throw QuotaExceededException(
+    message: "Bu ayki 1 adet ücretsiz ekstre hakkını kullandın! "
+             "Sınırsız analiz için Paraİz Pro'ya geç."
+  );
+}
+
+```
+
+
+* **Ödeme Katmanı:** Google Play Billing Library v6+ entegrasyonu. İptal, yenileme ve fatura dönemleri doğrudan Google Play Store hesabı üzerinden yönetilir.
+
+---
+
+## 14. GOOGLE PLAY CONSOLE 2026 UYUMLULUK VE YAYIN MATRİSİ
+
+* **Finansal Hizmetler Beyanı:** Uygulama açıklamasında *"Paraİz, bir kredi veya mevduat kuruluşu değildir; yalnızca kullanıcının kendi yüklediği belgeleri analiz eden kişisel bir bütçe aracıdır"* taahhüdü yer alır.
+* **Veri Güvenliği Formu (Data Safety):**
+* Finansal Veriler: İşlenir (yerel). Üçüncü taraflarla kesinlikle paylaşılmaz.
+* İletişim: Ağ trafiği (bulut yedekleme) TLS 1.3 ile şifrelenir.
+* Reklam Takibi: Uygulamada hiçbir 3. parti reklam SDK'sı (AdMob vb.) yer almaz.
+
+
+* **Hesap ve Veri Silme:** Ayarlar ekranında yer alan `[Tüm Verilerimi ve Hesabımı Kalıcı Olarak Sil]` butonu, kullanıcının hem yerel SQLite veritabanını hem de bulut eşitleme kayıtlarını anında yok eder. Aynı işlev web sitemizdeki bağımsız bir URL üzerinden de kimlik doğrulamasıyla çalıştırılır.
+* **İzin Kısıtlamaları:** `MANAGE_EXTERNAL_STORAGE` izni kesinlikle talep edilmez. Dosyalar yalnızca Android'in güvenli `Storage Access Framework (SAF)` bileşeniyle kullanıcı seçtikçe anlık okunur.
+
+```
+
+--
+
+```

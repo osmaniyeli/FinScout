@@ -1,0 +1,33 @@
+# Operating System
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# IDE & Editors
+.idea/
+.vscode/
+*.swp
+*.bak
+*.tmp
+
+# Flutter & Dart artifacts
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+moneytrace/build/
+
+# Android build & secrets
+**/android/.gradle/
+**/android/local.properties
+**/android/key.properties
+*.keystore
+*.jks
+*.apk
+*.aab
+
+# Sensitive statement uploads & logs
+*.log
+scratch/
