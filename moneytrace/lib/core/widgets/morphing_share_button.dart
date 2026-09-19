@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 class MorphingShareButton extends StatefulWidget {
   final String label;
   final String? fileName;
+  final Color? accentColor;
   final Future<void> Function()? onDownload;
   final Function(String channel)? onShareChannel;
 
@@ -20,6 +21,7 @@ class MorphingShareButton extends StatefulWidget {
     Key? key,
     this.label = 'Raporu İndir & Paylaş',
     this.fileName,
+    this.accentColor,
     this.onDownload,
     this.onShareChannel,
   }) : super(key: key);
