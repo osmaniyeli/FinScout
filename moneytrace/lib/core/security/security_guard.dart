@@ -269,7 +269,7 @@ class SecurityGuard {
     String severity = 'INFO',
   }) {
     // PII maskeleme uygula
-    final cleanDetails = PIIRedactor.redactText(details);
+    final cleanDetails = PiiRedactor.redact(details);
     final entry = {
       'timestamp': DateTime.now().toIso8601String(),
       'action': action,

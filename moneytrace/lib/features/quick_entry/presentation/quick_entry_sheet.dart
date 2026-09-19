@@ -522,7 +522,7 @@ class _QuickEntrySheetState extends State<QuickEntrySheet> {
                             value: v,
                             child: Text('KDV %$v', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                           );
-                        }).toList>,
+                        }).toList(),
                         onChanged: (val) {
                           if (val != null) setState(() => _selectedVatRate = val);
                         },

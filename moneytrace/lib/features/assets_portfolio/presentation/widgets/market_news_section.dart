@@ -327,7 +327,7 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.actionPrimary,
                     foregroundColor: Colors.white,
-                    shape: BorderRadius.circular(14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     elevation: 0,
                   ),

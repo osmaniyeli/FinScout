@@ -17,7 +17,7 @@ class GoalRepository {
       orderBy: 'created_at DESC',
     );
 
-    return rows.map((r) {
+    return rows.map<FinancialGoal>((r) {
       GoalCategory category;
       switch (r['category_type'] as String) {
         case 'vehicle':
@@ -63,7 +63,7 @@ class GoalRepository {
         category: category,
         targetAmountCents: r['target_amount_cents'] as int,
         currentSavedCents: r['current_saved_cents'] as int,
-        currencyCode: r['currency_code'] as String? ?? 'TRY',
+        currency: r['currency_code'] as String? ?? 'TRY',
         targetDate: DateTime.parse(r['target_date'] as String),
         monthlyPlanCents: r['monthly_plan_cents'] as int?,
         status: status,

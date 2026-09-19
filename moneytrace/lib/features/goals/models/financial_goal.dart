@@ -117,6 +117,9 @@ class FinancialGoal {
     this.motivationalQuote,
   });
 
+  /// Para birimi kodu
+  String get currencyCode => currency;
+
   /// Tamamlanma yüzdesi (0.0 - 100.0)
   double get progressPercentage {
     if (targetAmountCents <= 0) return 0.0;

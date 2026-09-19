@@ -22,6 +22,24 @@ class DailyStreakModal extends StatefulWidget {
     this.onShare,
   }) : super(key: key);
 
+  static Future<void> show(
+    BuildContext context, {
+    int currentStreak = 30,
+    VoidCallback? onContinue,
+    VoidCallback? onShare,
+  }) {
+    return showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => DailyStreakModal(
+        streakDays: currentStreak,
+        onContinue: onContinue,
+        onShare: onShare,
+      ),
+    );
+  }
+
   @override
   State<DailyStreakModal> createState() => _DailyStreakModalState();
 }

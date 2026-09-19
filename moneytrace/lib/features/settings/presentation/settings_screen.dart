@@ -778,7 +778,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF10B981),
                     foregroundColor: Colors.white,
-                    shape: BorderRadius.circular(14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                 ),
@@ -910,7 +910,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.actionPrimary,
                     foregroundColor: Colors.white,
-                    shape: BorderRadius.circular(14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                 ),

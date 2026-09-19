@@ -12,12 +12,14 @@ import 'package:flutter/material.dart';
 ///    sosyal paylaşım hapları (WhatsApp, CSV, PDF, Bağlantı) açılır!
 class MorphingShareButton extends StatefulWidget {
   final String label;
+  final String? fileName;
   final Future<void> Function()? onDownload;
   final Function(String channel)? onShareChannel;
 
   const MorphingShareButton({
     Key? key,
     this.label = 'Raporu İndir & Paylaş',
+    this.fileName,
     this.onDownload,
     this.onShareChannel,
   }) : super(key: key);

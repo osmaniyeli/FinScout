@@ -13,7 +13,7 @@ class AppTheme {
         onSurface: AppColors.textPrimary,
         background: AppColors.background,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.cardSurface,
         elevation: 0,
         shape: RoundedRectangleBorder(

@@ -5,14 +5,16 @@ import 'package:flutter/material.dart';
 
 /// Hedef tamamlama ve günlük streak kutlamalarında patlayan parçacık / konfeti efekti.
 class StreakConfettiBurst extends StatefulWidget {
-  final Widget child;
+  final Widget? child;
   final bool trigger;
+  final AnimationController? controller;
   final VoidCallback? onComplete;
 
   const StreakConfettiBurst({
     Key? key,
-    required this.child,
+    this.child,
     this.trigger = false,
+    this.controller,
     this.onComplete,
   }) : super(key: key);
 
@@ -22,14 +24,15 @@ class StreakConfettiBurst extends StatefulWidget {
 
 class _StreakConfettiBurstState extends State<StreakConfettiBurst>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
+  late final AnimationController _internalController;
+  AnimationController get _controller => widget.controller ?? _internalController;
   final List<_Particle> _particles = [];
   final math.Random _random = math.Random();
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    _internalController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1400),
     );
@@ -40,7 +43,14 @@ class _StreakConfettiBurstState extends State<StreakConfettiBurst>
       }
     });
 
-    if (widget.trigger) {
+    if (widget.trigger || (widget.controller != null && widget.controller!.isAnimating)) {
+      _startBurst();
+    }
+    widget.controller?.addListener(_onExternalController);
+  }
+
+  void _onExternalController() {
+    if (widget.controller != null && widget.controller!.isAnimating && _particles.isEmpty) {
       _startBurst();
     }
   }
@@ -81,38 +91,44 @@ class _StreakConfettiBurstState extends State<StreakConfettiBurst>
 
   @override
   void dispose() {
-    _controller.dispose();
+    widget.controller?.removeListener(_onExternalController);
+    _internalController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final canvas = AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        final progress = _controller.value;
+        final opacity = (1.0 - progress).clamp(0.0, 1.0);
+
+        return CustomPaint(
+          painter: _ConfettiPainter(
+            particles: _particles,
+            progress: progress,
+            opacity: opacity,
+          ),
+        );
+      },
+    );
+
+    if (widget.child == null) {
+      return _controller.isAnimating ? canvas : const SizedBox.shrink();
+    }
+
     return Stack(
       clipBehavior: Clip.none,
       alignment: Alignment.center,
       children: [
-        widget.child,
+        widget.child!,
         if (_controller.isAnimating)
           Positioned.fill(
             child: IgnorePointer(
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (context, _) {
-                  final progress = _controller.value;
-                  final opacity = (1.0 - progress).clamp(0.0, 1.0);
-
-                  return CustomPaint(
-                    painter: _ConfettiPainter(
-                      particles: _particles,
-                      progress: progress,
-                      opacity: opacity,
-                    ),
-                  );
-                },
-              ),
+              child: canvas,
             ),
           ),
-      ],
     );
   }
 }

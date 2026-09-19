@@ -14,6 +14,7 @@ class InteractiveFileUploadButton extends StatefulWidget {
   final String fileName;
   final String uploadLabel;
   final String successLabel;
+  final String? label;
   final Future<void> Function()? onUploadAction;
   final VoidCallback? onComplete;
 
@@ -22,6 +23,7 @@ class InteractiveFileUploadButton extends StatefulWidget {
     this.fileName = 'Banka_Ekstresi.pdf',
     this.uploadLabel = 'Yükle',
     this.successLabel = 'Tamamlandı',
+    this.label,
     this.onUploadAction,
     this.onComplete,
   }) : super(key: key);

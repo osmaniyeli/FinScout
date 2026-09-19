@@ -28,6 +28,9 @@ moneytrace/build/
 *.apk
 *.aab
 
-# Sensitive statement uploads & logs
+# Sensitive statement uploads, credentials & PDFs
 *.log
+*.pdf
+Örnek PDF/
+Oturum bilgileri.txt
 scratch/

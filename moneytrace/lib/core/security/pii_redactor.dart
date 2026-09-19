@@ -65,4 +65,8 @@ class PiiRedactor {
 
     return sanitized;
   }
+
+  static String redactText(String rawText) => redact(rawText);
 }
+
+typedef PIIRedactor = PiiRedactor;

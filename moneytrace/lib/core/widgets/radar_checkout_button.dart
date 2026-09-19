@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 class RadarCheckoutButton extends StatefulWidget {
   final String label;
   final String amountText;
+  final String? idleAmountText;
   final String successTitle;
   final Future<void> Function()? onAction;
   final VoidCallback? onSuccess;
@@ -21,6 +22,7 @@ class RadarCheckoutButton extends StatefulWidget {
     Key? key,
     this.label = 'Güvenle Kaydet',
     this.amountText = '',
+    this.idleAmountText,
     this.successTitle = 'Kayıt Başarılı',
     this.onAction,
     this.onSuccess,
