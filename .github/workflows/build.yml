@@ -38,6 +38,25 @@ jobs:
           flutter clean
           flutter pub get
 
+      - name: Configure Keystore & Signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "Configuring release keystore from GitHub Secrets..."
+            echo "$KEYSTORE_BASE64" | base64 --decode > moneytrace/android/upload-keystore.jks
+            cat <<EOF > moneytrace/android/key.properties
+          storePassword=$STORE_PASSWORD
+          keyPassword=$KEY_PASSWORD
+          keyAlias=$KEY_ALIAS
+          storeFile=upload-keystore.jks
+          EOF
+            echo "Keystore and key.properties configured successfully."
+          fi
+
       - name: Build Release APK
         working-directory: moneytrace
         run: flutter build apk --release --android-skip-build-dependency-validation
