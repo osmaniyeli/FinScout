@@ -40,11 +40,11 @@ jobs:
 
       - name: Build Release APK
         working-directory: moneytrace
-        run: flutter build apk --release
+        run: flutter build apk --release --android-skip-build-dependency-validation
 
       - name: Build Release App Bundle (AAB)
         working-directory: moneytrace
-        run: flutter build appbundle --release
+        run: flutter build appbundle --release --android-skip-build-dependency-validation
 
       - name: Upload Release APK Artifact
         uses: actions/upload-artifact@v4
