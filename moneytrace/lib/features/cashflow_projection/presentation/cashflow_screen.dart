@@ -354,7 +354,8 @@ class _CashflowScreenState extends State<CashflowScreen> {
                   ],
                 ),
               ),
-            );
+            ),
+    );
   }
 
   Widget _buildHeroStatColumn({
