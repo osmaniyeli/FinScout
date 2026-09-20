@@ -398,8 +398,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   InteractiveFileUploadButton(
                     label: 'Yedek Dosyası Seç & Geri Yükle',
                     acceptedExtensions: const ['.json', '.enc'],
-                    onFileSelected: (f) async {
-                      await _restoreFromJsonBackup();
+                    onFileSelected: (f) {
+                      _restoreFromJsonBackup();
                     },
                   ),
                 ],
