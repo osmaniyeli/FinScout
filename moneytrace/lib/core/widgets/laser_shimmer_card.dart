@@ -55,6 +55,7 @@ class _LaserShimmerCardState extends State<LaserShimmerCard>
   @override
   Widget build(BuildContext context) {
     Widget cardContent = Container(
+      clipBehavior: Clip.antiAlias,
       padding: widget.padding,
       decoration: BoxDecoration(
         color: widget.backgroundColor,

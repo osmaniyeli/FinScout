@@ -168,7 +168,7 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
         final isFabHidden = buttonConfig.fabPosition == 'hidden';
 
         return Scaffold(
-          extendBody: true, // Yüzen kapsülün arkasındaki içeriğin zarif görünmesi için
+          extendBody: false, // Temiz native fintech barı, içerik arkada kalmaz
           body: IndexedStack(
             index: _currentIndex,
             children: screens,

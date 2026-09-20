@@ -4,6 +4,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/currency_normalizer.dart';
 import '../../../core/security/security_guard.dart';
 import '../../../core/widgets/radar_checkout_button.dart';
+import '../../../core/services/voice_expense_parser_service.dart';
 import '../../statement_upload/presentation/statement_upload_sheet.dart';
 
 enum EntryType { expense, income, savings }
@@ -40,15 +41,39 @@ class _QuickEntrySheetState extends State<QuickEntrySheet> {
     ...RemoteConfigService.instance.paymentMethods.where((e) => !e.contains('Nakit'))
   ];
 
-  final List<Map<String, dynamic>> _categories = [
-    {'id': 'cat_auto_repair', 'name': 'Oto Tamir & Bakım', 'icon': Icons.build_circle_rounded, 'color': const Color(0xFFF59E0B)},
-    {'id': 'cat_transit', 'name': 'Ulaşım & Yakıt', 'icon': Icons.directions_car_rounded, 'color': AppColors.catTransit},
-    {'id': 'cat_market', 'name': 'Market', 'icon': Icons.shopping_cart_rounded, 'color': AppColors.catMarket},
-    {'id': 'cat_dining', 'name': 'Yeme İçme', 'icon': Icons.restaurant_rounded, 'color': AppColors.catDining},
-    {'id': 'cat_utilities', 'name': 'Fatura', 'icon': Icons.receipt_long_rounded, 'color': AppColors.catUtilities},
-    {'id': 'cat_subscriptions', 'name': 'Abonelik', 'icon': Icons.subscriptions_rounded, 'color': AppColors.catSubscriptions},
-    {'id': 'cat_health', 'name': 'Sağlık', 'icon': Icons.local_pharmacy_rounded, 'color': AppColors.catHealth},
-  ];
+  List<Map<String, dynamic>> get _currentCategories {
+    switch (_selectedType) {
+      case EntryType.expense:
+        return [
+          {'id': 'cat_market', 'name': 'Market', 'icon': Icons.shopping_cart_rounded, 'color': AppColors.catMarket},
+          {'id': 'cat_dining', 'name': 'Yeme İçme', 'icon': Icons.restaurant_rounded, 'color': AppColors.catDining},
+          {'id': 'cat_transit', 'name': 'Ulaşım & Yakıt', 'icon': Icons.directions_car_rounded, 'color': AppColors.catTransit},
+          {'id': 'cat_utilities', 'name': 'Fatura', 'icon': Icons.receipt_long_rounded, 'color': AppColors.catUtilities},
+          {'id': 'cat_auto_repair', 'name': 'Oto Tamir & Bakım', 'icon': Icons.build_circle_rounded, 'color': const Color(0xFFF59E0B)},
+          {'id': 'cat_subscriptions', 'name': 'Abonelik', 'icon': Icons.subscriptions_rounded, 'color': AppColors.catSubscriptions},
+          {'id': 'cat_health', 'name': 'Sağlık', 'icon': Icons.local_pharmacy_rounded, 'color': AppColors.catHealth},
+          {'id': 'cat_clothing', 'name': 'Giyim & Alışveriş', 'icon': Icons.checkroom_rounded, 'color': const Color(0xFFEC4899)},
+        ];
+      case EntryType.income:
+        return [
+          {'id': 'cat_salary', 'name': 'Maaş / Bordro', 'icon': Icons.payments_rounded, 'color': AppColors.incomeGreen},
+          {'id': 'cat_bonus', 'name': 'Prim & İkramiye', 'icon': Icons.card_giftcard_rounded, 'color': const Color(0xFF10B981)},
+          {'id': 'cat_rent_income', 'name': 'Kira Geliri', 'icon': Icons.home_work_rounded, 'color': const Color(0xFF059669)},
+          {'id': 'cat_dividend', 'name': 'Faiz & Temettü', 'icon': Icons.trending_up_rounded, 'color': const Color(0xFF0D9488)},
+          {'id': 'cat_extra_income', 'name': 'Ek Gelir', 'icon': Icons.add_circle_outline_rounded, 'color': const Color(0xFF14B8A6)},
+        ];
+      case EntryType.savings:
+        return [
+          {'id': 'cat_gold', 'name': 'Altın / Emtia', 'icon': Icons.monetization_on_rounded, 'color': const Color(0xFFF59E0B)},
+          {'id': 'cat_fx', 'name': 'Döviz (USD/EUR)', 'icon': Icons.currency_exchange_rounded, 'color': const Color(0xFF3B82F6)},
+          {'id': 'cat_cash_vault', 'name': 'Nakit Kasa', 'icon': Icons.account_balance_wallet_rounded, 'color': const Color(0xFF10B981)},
+          {'id': 'cat_deposit', 'name': 'Vadeli Mevduat', 'icon': Icons.savings_rounded, 'color': const Color(0xFF6366F1)},
+          {'id': 'cat_stocks', 'name': 'Hisse & Borsa', 'icon': Icons.show_chart_rounded, 'color': const Color(0xFF8B5CF6)},
+          {'id': 'cat_bes', 'name': 'BES / Emeklilik', 'icon': Icons.verified_user_rounded, 'color': const Color(0xFF06B6D4)},
+          {'id': 'cat_crypto', 'name': 'Kripto Varlık', 'icon': Icons.currency_bitcoin_rounded, 'color': const Color(0xFFF97316)},
+        ];
+    }
+  }
 
   @override
   void dispose() {
@@ -68,32 +93,62 @@ class _QuickEntrySheetState extends State<QuickEntrySheet> {
   }
 
   void _openVoiceEntryDialog() {
+    final customVoiceController = TextEditingController();
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        title: Row(
-          children: const [
+        title: const Row(
+          children: [
             Icon(Icons.mic_rounded, color: AppColors.actionPrimary, size: 22),
             SizedBox(width: 8),
             Text('Sesli Harcama Tanıma', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Cihaz içi doğal dil motoru harcamanızı anında ayrıştırır. Bir örnek seçin veya mikrofonla söyleyin:',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 14),
-            _buildVoiceChip(ctx, 'Sanayide oto tamirciye 3.500 TL nakit verdim', 'Sanayi Oto Tamir (Nakit)', '3500', 'cat_auto_repair'),
-            _buildVoiceChip(ctx, 'Migros\'ta 450 TL harcadım', 'Migros', '450', 'cat_market'),
-            _buildVoiceChip(ctx, 'Shell benzin 1.850 TL aldım', 'Shell Akaryakıt', '1850', 'cat_transit'),
-            _buildVoiceChip(ctx, 'Starbucks kahve 185 TL', 'Starbucks', '185', 'cat_dining'),
-            _buildVoiceChip(ctx, 'Netflix abonelik 149 TL', 'Netflix', '149', 'cat_subscriptions'),
-          ],
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Cihaz içi doğal dil motoru harcamanızı anında ayrıştırır. Cümlenizi yazın veya aşağıdaki örneklerden birini seçin:',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: customVoiceController,
+                decoration: InputDecoration(
+                  hintText: 'Örn: Manava 150 TL nakit verdim',
+                  hintStyle: const TextStyle(fontSize: 12),
+                  prefixIcon: const Icon(Icons.mic_none_rounded, color: AppColors.actionPrimary, size: 20),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.send_rounded, size: 18, color: AppColors.actionPrimary),
+                    onPressed: () {
+                      final txt = customVoiceController.text.trim();
+                      if (txt.isNotEmpty) {
+                        _applyVoiceInput(ctx, txt);
+                      }
+                    },
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+              ),
+              const SizedBox(height: 14),
+              const Text(
+                'Hızlı Sesli Şablonlar:',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 8),
+              _buildVoiceChip(ctx, 'Sanayide oto tamirciye 3.500 TL nakit verdim'),
+              _buildVoiceChip(ctx, 'Migros\'ta 450 TL harcadım'),
+              _buildVoiceChip(ctx, 'Shell benzin 1.850 TL aldım'),
+              _buildVoiceChip(ctx, 'Starbucks kahve 185 TL'),
+              _buildVoiceChip(ctx, 'Netflix abonelik 149 TL'),
+              _buildVoiceChip(ctx, 'Maaşım 48.000 TL yattı'),
+            ],
+          ),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Kapat')),
@@ -102,24 +157,29 @@ class _QuickEntrySheetState extends State<QuickEntrySheet> {
     );
   }
 
-  Widget _buildVoiceChip(BuildContext ctx, String voiceText, String title, String amount, String categoryId) {
+  void _applyVoiceInput(BuildContext ctx, String voiceText) {
+    final parsed = VoiceExpenseParserService.instance.parseTurkishVoiceInput(voiceText);
+    setState(() {
+      _titleController.text = parsed.title;
+      _amountController.text = (parsed.amountCents / 100).toStringAsFixed(2).replaceAll('.00', '');
+      _selectedCategory = parsed.categoryId;
+      _selectedType = parsed.entryType;
+      _selectedAccount = parsed.isCash ? 'Nakit (Elden)' : 'Kredi Kartı';
+    });
+    Navigator.pop(ctx);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: AppColors.incomeGreen,
+        content: Text('Ses algılandı: "${parsed.title}" ₺${CurrencyNormalizer.formatCents(parsed.amountCents)}'),
+      ),
+    );
+  }
+
+  Widget _buildVoiceChip(BuildContext ctx, String voiceText) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: InkWell(
-        onTap: () {
-          setState(() {
-            _titleController.text = title;
-            _amountController.text = amount;
-            _selectedCategory = categoryId;
-          });
-          Navigator.pop(ctx);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              backgroundColor: AppColors.incomeGreen,
-              content: Text('Ses algılandı: "$voiceText" -> $title ₺$amount'),
-            ),
-          );
-        },
+        onTap: () => _applyVoiceInput(ctx, voiceText),
         borderRadius: BorderRadius.circular(12),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -343,7 +403,7 @@ class _QuickEntrySheetState extends State<QuickEntrySheet> {
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: _categories.map((cat) {
+                children: _currentCategories.map((cat) {
                   final isSelected = cat['id'] == _selectedCategory;
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
@@ -585,7 +645,12 @@ class _QuickEntrySheetState extends State<QuickEntrySheet> {
     final isSelected = _selectedType == type;
     return Expanded(
       child: InkWell(
-        onTap: () => setState(() => _selectedType = type),
+        onTap: () {
+          setState(() {
+            _selectedType = type;
+            _selectedCategory = _currentCategories.first['id'] as String;
+          });
+        },
         borderRadius: BorderRadius.circular(12),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),

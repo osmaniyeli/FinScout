@@ -27,6 +27,8 @@ dependencies:
 
   # Yardımcı & Biçimlendirme
   intl: ^0.19.0
+  share_plus: ^10.0.0
+  url_launcher: ^6.3.0
 
   # Google Play Billing & Widget
   in_app_purchase: ^3.2.0

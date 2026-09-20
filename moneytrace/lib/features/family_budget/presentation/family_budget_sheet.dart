@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/pulse_metric_badge.dart';
 import '../../../core/widgets/morphing_share_button.dart';
 import '../../../core/widgets/radar_checkout_button.dart';
+import '../../../core/services/user_profile_service.dart';
 
 class FamilyMember {
   final String id;
@@ -38,22 +39,14 @@ class _FamilyBudgetSheetState extends State<FamilyBudgetSheet> {
 
   // Aile Boyu Üyelik Paketi: Maksimum 4 Kişi (1 Asıl + 3 Aile Bireyi)
   final int _maxFamilyMembers = 4;
-  final List<FamilyMember> _members = [
-    const FamilyMember(
+  late final List<FamilyMember> _members = [
+    FamilyMember(
       id: 'mem_1',
-      name: 'Ahmet Aydın (sen)',
+      name: '${UserProfileService.instance.profile?.name ?? "Kullanıcı"} (sen)',
       role: 'Sahip (Asıl Kart)',
-      joinedDate: 'Oluşturdu • 23.07.2026',
-      initials: 'AA',
+      joinedDate: 'Oluşturuldu',
+      initials: (UserProfileService.instance.profile?.name ?? 'K').trim().split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join().toUpperCase(),
       assignedCardMask: 'Asıl Kart',
-    ),
-    const FamilyMember(
-      id: 'mem_2',
-      name: 'Zehra Aydın',
-      role: 'Eş (Ek Kart 1)',
-      joinedDate: 'Katıldı • 25.07.2026',
-      initials: 'ZA',
-      assignedCardMask: '**** 4002',
     ),
   ];
 

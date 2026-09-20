@@ -11,12 +11,22 @@ import '../../../core/parser/models/parsed_models.dart';
 import '../../../core/database/repositories/transaction_repository.dart';
 import '../../../core/security/security_guard.dart';
 import '../../../core/widgets/interactive_file_upload_button.dart';
+import '../../../core/services/user_profile_service.dart';
+import '../../wallets/presentation/wallet_selection_sheet.dart';
+import '../../wallets/models/wallet.dart';
 import 'statement_smart_wizard.dart';
 
 class StatementUploadSheet extends StatefulWidget {
   final VoidCallback? onImportSuccess;
+  final String? documentTypeHint;
+  final String? documentTypeTitle;
 
-  const StatementUploadSheet({Key? key, this.onImportSuccess}) : super(key: key);
+  const StatementUploadSheet({
+    Key? key,
+    this.onImportSuccess,
+    this.documentTypeHint,
+    this.documentTypeTitle,
+  }) : super(key: key);
 
   @override
   State<StatementUploadSheet> createState() => _StatementUploadSheetState();
@@ -31,12 +41,28 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
   String? _selectedFileName;
   String? _fileHash;
   StatementDocumentResult? _parsedResult;
+  late String _selectedDocType;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDocType = widget.documentTypeHint ?? 'CHECKING';
+  }
 
   Future<void> _pickAndProcessPdf() async {
     setState(() {
       _errorMessage = null;
       _parsedResult = null;
     });
+
+    // 10. Madde: Aylık Kota ve Limit Kontrolü
+    final quota = UserProfileService.instance.checkUploadQuota(documentTypeHint: _selectedDocType);
+    if (!quota.canUpload) {
+      setState(() {
+        _errorMessage = quota.reason;
+      });
+      return;
+    }
 
     try {
       final result = await FilePicker.platform.pickFiles(
@@ -86,8 +112,11 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
         return;
       }
 
-      // 3. Deterministik Orkestratör ile İşleme
-      final docResult = await _orchestrator.processDocument(rawPdfText: extracted.text);
+      // 3. Deterministik Orkestratör ile İşleme (Belge türü ipucuyla)
+      final docResult = await _orchestrator.processDocument(
+        rawPdfText: extracted.text,
+        documentTypeHint: _selectedDocType,
+      );
 
       setState(() {
         _isProcessing = false;
@@ -104,7 +133,7 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
   Future<void> _startSmartImportWizard() async {
     if (_parsedResult == null || _fileHash == null) return;
 
-    // Kullanıcıya yönelik akıllı sorular diyaloğunu aç
+    // 1. Kullanıcıya yönelik akıllı kararlar diyaloğunu aç
     final decision = await showDialog<SmartWizardDecisionResult>(
       context: context,
       barrierDismissible: false,
@@ -118,17 +147,31 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
       return; // Kullanıcı iptal etti
     }
 
+    // 2. Madde: Cüzdan Seçimi Diyaloğu
+    final selectedWallet = await WalletSelectionSheet.show(
+      context,
+      title: 'İşlemler Hangi Cüzdana Aktarılsın?',
+    );
+
+    if (selectedWallet == null) {
+      return; // Cüzdan seçilmedi
+    }
+
     setState(() {
       _isProcessing = true;
     });
 
     try {
-      // Kararları uygulayarak veritabanına kaydet
+      // Kararları uygulayarak veritabanına ve seçilen cüzdana kaydet
       await _repository.saveStatementResult(
         result: _parsedResult!,
         fileSha256: _fileHash!,
         fileName: _selectedFileName,
+        targetWalletId: selectedWallet.id,
       );
+
+      // Kota kullanımını kaydet
+      await UserProfileService.instance.recordDocumentUpload(_selectedDocType);
 
       if (mounted) {
         Navigator.pop(context);
@@ -137,7 +180,7 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
           SnackBar(
             backgroundColor: AppColors.incomeGreen,
             content: Text(
-              '${_parsedResult!.institution} ekstresi kararlarınızla birlikte başarıyla cüzdana aktarıldı! (${_parsedResult!.records.length} işlem)',
+              '${_parsedResult!.institution} ekstresi "${selectedWallet.name}" cüzdanına başarıyla aktarıldı! (${_parsedResult!.records.length} işlem)',
             ),
           ),
         );
@@ -222,9 +265,26 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
                   ],
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
+
+          // 1. Madde: Belge Türü Seçimi (Ekstre / Bordro / Kredi Kartı)
+          if (_parsedResult == null && !_isProcessing) ...[
+            const Text(
+              'Yüklenecek Belge Türü:',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                _buildDocTypeChip('CHECKING', 'Hesap Ekstresi', Icons.account_balance_rounded),
+                const SizedBox(width: 8),
+                _buildDocTypeChip('PAYSLIP', 'Maaş Bordrosu', Icons.work_outline_rounded),
+                const SizedBox(width: 8),
+                _buildDocTypeChip('CREDIT_CARD', 'Kredi Kartı', Icons.credit_card_rounded),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
 
           // Yükleme Alanı veya Önizleme
           if (_isProcessing)
@@ -454,6 +514,47 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
         const SizedBox(height: 2),
         Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: color)),
       ],
+    );
+  }
+
+  Widget _buildDocTypeChip(String typeKey, String label, IconData icon) {
+    final isSelected = _selectedDocType == typeKey;
+    return Expanded(
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _selectedDocType = typeKey;
+            _errorMessage = null;
+          });
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFFEFF6FF) : const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFFCBD5E1),
+              width: isSelected ? 1.5 : 1,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(icon, size: 18, color: isSelected ? AppColors.actionPrimary : AppColors.textSecondary),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  color: isSelected ? AppColors.actionPrimary : AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

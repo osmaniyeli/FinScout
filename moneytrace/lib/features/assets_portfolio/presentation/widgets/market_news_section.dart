@@ -1,6 +1,7 @@
 // lib/features/assets_portfolio/presentation/widgets/market_news_section.dart
 
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/models/market_news_item.dart';
 import '../../../../core/services/market_news_service.dart';
@@ -312,17 +313,16 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     Navigator.pop(ctx);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Haber kaynağı: ${item.link}'),
-                        action: SnackBarAction(
-                          label: 'Tamam',
-                          onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar(),
-                        ),
-                      ),
-                    );
+                    if (item.link.isNotEmpty) {
+                      final uri = Uri.parse(item.link);
+                      try {
+                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      } catch (_) {
+                        await launchUrl(uri);
+                      }
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.actionPrimary,

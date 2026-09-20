@@ -32,46 +32,46 @@ class AppColors {
   }
 
   // 1. Canvas / Zemin
-  static const Color canvasLight = Color(0xFFFFFFFF);
-  static const Color canvasDark = Color(0xFF080B11);
+  static const Color canvasLight = Color(0xFFF8FAFC); // Temiz FinTech Açık Gri Zemin
+  static const Color canvasDark = Color(0xFF0F172A);
   static const Color background = canvasLight;
 
   // 2. Surface / Yüzey Kartları
-  static const Color surfaceLight = Color(0xFFF4F7FE);
-  static const Color surfaceDark = Color(0xFF111622);
+  static const Color surfaceLight = Color(0xFFFFFFFF); // Saf Beyaz Kart Yüzeyi
+  static const Color surfaceDark = Color(0xFF1E293B);
   static const Color cardSurface = surfaceLight;
 
   // 3. Border / Çerçeve & Ayraç
-  static const Color borderLight = Color(0xFFE3EAF8);
-  static const Color borderDark = Color(0xFF1E293B);
+  static const Color borderLight = Color(0xFFE2E8F0); // İnce Nötr Çerçeve
+  static const Color borderDark = Color(0xFF334155);
   static const Color cardBorder = borderLight;
-  static const Color divider = borderLight;
+  static const Color divider = Color(0xFFF1F5F9);
 
   // 4. Metin Renkleri (Hiyerarşi)
-  static const Color textPrimary = Color(0xFF0A0F1D);
-  static const Color textSecondary = Color(0xFF4E5D78);
-  static const Color textMuted = Color(0xFF8A96A8);
+  static const Color textPrimary = Color(0xFF0F172A); // Derin Slate Lacivert
+  static const Color textSecondary = Color(0xFF64748B); // Dengeli Nötr Slate
+  static const Color textMuted = Color(0xFF94A3B8); // Açık Slate
 
   // Koyu mod metin renkleri
-  static const Color textPrimaryDark = Color(0xFFFFFFFF);
+  static const Color textPrimaryDark = Color(0xFFF8FAFC);
   static const Color textSecondaryDark = Color(0xFF94A3B8);
   static const Color textMutedDark = Color(0xFF64748B);
 
   // 5. Actions / Aksiyonlar
-  static const Color actionPrimary = Color(0xFF0052FF); // Elektrik Mavisi
-  static const Color primaryGlow = Color(0x470052FF); // rgba(0, 82, 255, 0.28)
+  static const Color actionPrimary = Color(0xFF2563EB); // Kontrollü FinTech Kobalt Mavisi
+  static const Color primaryGlow = Color(0x202563EB);
   static const Color accentBlue = actionPrimary;
 
   // 6. Status / Finansal Durum Renkleri
-  static const Color incomeGreen = Color(0xFF00D084); // Canlı Zümrüt
-  static const Color incomeGreenBg = Color(0xFFE6FAF3);
-  static const Color expenseRed = Color(0xFFFF2D55); // Canlı Kızıl Kırmızı
-  static const Color expenseRedBg = Color(0xFFFFEAEF);
-  static const Color installment = Color(0xFFFF8A00); // Enerjik Turuncu
-  static const Color tax = Color(0xFF6366F1); // İndigo / Mor
-  static const Color scout = Color(0xFF8B5CF6); // Scout Moru
-  static const Color scoutBadgeBg = Color(0xFFF3E8FF);
-  static const Color scoutBadgeText = Color(0xFF7C3AED);
+  static const Color incomeGreen = Color(0xFF10B981); // Zümrüt Yeşili
+  static const Color incomeGreenBg = Color(0xFFECFDF5);
+  static const Color expenseRed = Color(0xFFEF4444); // Mercan Kırmızı
+  static const Color expenseRedBg = Color(0xFFFEF2F2);
+  static const Color installment = Color(0xFFF59E0B); // Sıcak Amber Turuncu
+  static const Color tax = Color(0xFF6366F1); // İndigo / Vergi
+  static const Color scout = Color(0xFFF59E0B); // İzci Sıcak Amber
+  static const Color scoutBadgeBg = Color(0xFFFFFBEB);
+  static const Color scoutBadgeText = Color(0xFFB45309);
 
   // Prim / VIP Rozet
   static const Color goldPremium = Color(0xFFF59E0B);

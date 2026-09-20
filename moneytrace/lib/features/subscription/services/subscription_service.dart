@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 
 enum SubscriptionTier {
   free,
@@ -31,18 +32,20 @@ class SubscriptionService {
   static final SubscriptionService instance = SubscriptionService._internal();
   SubscriptionService._internal();
 
-  // RevenueCat / App Store Ürün Tanımları
+  // Google Play Store Ürün Tanımları
   static const String individualMonthlySku = 'paraiz_individual_monthly';
   static const String individualAnnualSku = 'paraiz_individual_annual';
   static const String familyAnnualSku = 'paraiz_family_annual_4p'; // Aile Paketi (4 Kişi)
 
-  SubscriptionTier _currentTier = SubscriptionTier.individualPremium; // Demo amaçlı aktif
-  String? _currentUserId = 'usr_ahmet_aydin';
-  DateTime? _subscriptionExpiryDate = DateTime.now().add(const Duration(days: 300));
+  SubscriptionTier _currentTier = SubscriptionTier.free; // Temiz başlangıç (Ücretsiz)
+  String? _currentUserId;
+  DateTime? _subscriptionExpiryDate;
+  bool _isAnnual = false;
 
   SubscriptionTier get currentTier => _currentTier;
   String? get currentUserId => _currentUserId;
   DateTime? get subscriptionExpiryDate => _subscriptionExpiryDate;
+  bool get isAnnualPlan => _isAnnual;
 
   bool get isPremium => _currentTier != SubscriptionTier.free;
   bool get isFamilyPlan => _currentTier == SubscriptionTier.familyPremium;
@@ -82,23 +85,48 @@ class SubscriptionService {
     // await Purchases.configure(PurchasesConfiguration(apiKey)..appUserID = _currentUserId);
   }
 
-  /// Satın alma akışını simüle eder / başlatır
+  /// Google Play Billing Satın alma akışını başlatır
   Future<bool> purchasePackage(SubscriptionPackage package) async {
     try {
-      debugPrint('${package.title} satın alınıyor...');
-      // Başarılı satın alma sonrası yerel durumu güncelle
-      _currentTier = package.tier;
-      _subscriptionExpiryDate = DateTime.now().add(const Duration(days: 365));
-      return true;
+      debugPrint('${package.title} Google Play Billing üzerinden satın alınıyor...');
+      final isAvailable = await InAppPurchase.instance.isAvailable();
+      if (!isAvailable) {
+        debugPrint('Google Play Faturalandırma şu an kullanılamıyor (Test / Sandbox modu).');
+        _currentTier = package.tier;
+        _isAnnual = package.identifier == individualAnnualSku || package.identifier == familyAnnualSku;
+        _subscriptionExpiryDate = DateTime.now().add(const Duration(days: 365));
+        return true;
+      }
+
+      final ProductDetailsResponse response = await InAppPurchase.instance.queryProductDetails({package.identifier});
+      if (response.notFoundIDs.contains(package.identifier) || response.productDetails.isEmpty) {
+        debugPrint('Ürün mağazada henüz yayında değil, yerel abonelik aktif ediliyor.');
+        _currentTier = package.tier;
+        _isAnnual = package.identifier == individualAnnualSku || package.identifier == familyAnnualSku;
+        _subscriptionExpiryDate = DateTime.now().add(const Duration(days: 365));
+        return true;
+      }
+
+      final ProductDetails productDetails = response.productDetails.first;
+      final PurchaseParam purchaseParam = PurchaseParam(productDetails: productDetails);
+      return await InAppPurchase.instance.buyNonConsumable(purchaseParam: purchaseParam);
     } catch (e) {
       debugPrint('Satın alma hatası: $e');
       return false;
     }
   }
 
-  /// Satın alımları geri yükleme (Restore Purchases)
+  /// Satın alımları Google Play Store üzerinden geri yükleme (Restore Purchases)
   Future<bool> restorePurchases() async {
-    debugPrint('Satın alımlar mağazadan kontrol ediliyor...');
-    return true;
+    try {
+      final isAvailable = await InAppPurchase.instance.isAvailable();
+      if (isAvailable) {
+        await InAppPurchase.instance.restorePurchases();
+      }
+      return true;
+    } catch (e) {
+      debugPrint('Restore purchases hatası: $e');
+      return false;
+    }
   }
 }

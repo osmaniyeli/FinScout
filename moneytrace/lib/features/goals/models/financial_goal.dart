@@ -158,13 +158,9 @@ class FinancialGoal {
       case GoalCategory.house:
         return 'Kendi kapını anahtarınla açtığın o ilk günün huzuru paha biçilemez. Her ay biriktirdiğin her kuruş, o evin temeline konan sağlam bir tuğla! 🏠';
       case GoalCategory.vehicle:
-        return brandModel != null
-            ? '$brandModel direksiyonuna geçip kontak anahtarını çevirdiğin ilk anı hayal et. Hedefe adım adım yaklaşıyorsun! 🚗'
-            : 'Yeni araç kokusu ve ilk yolculuğun heyecanı... Gaza basmaya devam! 🚗';
+        return 'Yeni araç kokusu ve ilk yolculuğun heyecanı... Finansal hedefine adım adım yaklaşıyorsun! 🚗';
       case GoalCategory.motorcycle:
-        return brandModel != null
-            ? '$brandModel ile rüzgarı hissedeceğin ilk rota çok yakın! Birikim depon hızla doluyor. 🏍️'
-            : 'Trafiğe takılmadan, rüzgarı yüzünde hissettiğin o ilk rotayı hayal et! Birikim depon hızla doluyor. 🏍️';
+        return 'Trafiğe takılmadan, rüzgarı yüzünde hissettiğin o ilk rotayı hayal et! Birikim depon hızla doluyor. 🏍️';
       case GoalCategory.boat:
         return 'Mavi sularda kendi rotanı çizeceğin, gün batımını denizden izleyeceğin günler çok yakın! ⛵';
       case GoalCategory.gift:

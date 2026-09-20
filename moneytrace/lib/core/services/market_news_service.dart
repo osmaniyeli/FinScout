@@ -125,21 +125,41 @@ class MarketNewsService {
         final cleanSummary = _cleanHtmlDescription(descriptionRaw);
         final parsedDate = _parseRssDate(pubDateRaw);
 
-        items.add(MarketNewsItem(
-          id: '${sourceName.toLowerCase()}_${items.length}_${title.hashCode}',
-          title: title,
-          summary: cleanSummary.isNotEmpty ? cleanSummary : title,
-          link: link,
-          sourceName: sourceName,
-          category: defaultCategory,
-          publishedAt: parsedDate,
-          imageUrl: imageUrl,
-        ));
-        count++;
+        // Madde 16: Piyasa Gündemi Kategori Filtresi
+        // Genel siyaset/magazin/adliye yerine sadece ekonomi, borsa, finans ve ev ekonomisi odaklı içerikler
+        if (_isEconomyOrFinanceContent(title, cleanSummary)) {
+          items.add(MarketNewsItem(
+            id: '${sourceName.toLowerCase()}_${items.length}_${title.hashCode}',
+            title: title,
+            summary: cleanSummary.isNotEmpty ? cleanSummary : title,
+            link: link,
+            sourceName: sourceName,
+            category: defaultCategory,
+            publishedAt: parsedDate,
+            imageUrl: imageUrl,
+          ));
+          count++;
+        }
       }
     }
 
     return items;
+  }
+
+  static final List<String> _economyKeywords = [
+    'ekonomi', 'borsa', 'bist', 'hisse', 'enflasyon', 'faiz', 'tcmb', 'fed',
+    'dolar', 'euro', 'döviz', 'altın', 'kredi', 'mevduat', 'vergi', 'bütçe',
+    'tahvil', 'kripto', 'fiyat', 'zam', 'indirim', 'şirket', 'fon', 'ihracat',
+    'ithalat', 'piyasa', 'emtia', 'petrol', 'asgari ücret', 'emekli', 'konut',
+    'para', 'maliye', 'gelir', 'gider', 'tasarruf', 'finans', 'banka', 'merkez bankası'
+  ];
+
+  static bool _isEconomyOrFinanceContent(String title, String summary) {
+    final lower = '$title $summary'.toLowerCase();
+    for (final kw in _economyKeywords) {
+      if (lower.contains(kw)) return true;
+    }
+    return false;
   }
 
   String _extractTagContent(String body, String tag) {

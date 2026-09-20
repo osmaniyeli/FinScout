@@ -1,10 +1,14 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/config/remote_config_service.dart';
 import '../../../core/services/data_export_service.dart';
+import '../../../core/services/user_profile_service.dart';
+import '../../../core/localization/app_strings.dart';
 import '../../../core/database/repositories/transaction_repository.dart';
-import '../../../core/widgets/dynamic_island_capsule.dart';
 import '../../../core/widgets/laser_shimmer_card.dart';
 import '../../../core/widgets/pulse_metric_badge.dart';
 import '../../../core/widgets/morphing_share_button.dart';
@@ -29,13 +33,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late String _selectedDataSource;
   late String _selectedLanguage;
   bool _isExporting = false;
-  bool _showSettingsCapsule = true;
 
   @override
   void initState() {
     super.initState();
     _selectedDataSource = _remoteConfig.marketDataSource;
-    _selectedLanguage = _remoteConfig.appLanguage;
+    _selectedLanguage = AppStrings.currentLocale.value;
   }
 
   void _changeLanguage(String lang) {
@@ -44,13 +47,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _remoteConfig.setAppLanguage(lang);
     });
 
+    UserProfileService.instance.updateLanguage(lang);
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         backgroundColor: AppColors.incomeGreen,
         content: Text(
           lang == 'en'
-              ? 'Language changed to English (İngilizce seçildi)'
-              : 'Uygulama ve iletişim dili Türkçe olarak güncellendi',
+              ? 'Language changed to English'
+              : 'Uygulama dili Türkçe olarak güncellendi',
         ),
         duration: const Duration(seconds: 2),
       ),
@@ -94,52 +99,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 0. Shakuro Inspired Dynamic Island Kapsülü (< 24% Height, Drag-to-Dismiss)
-            if (_showSettingsCapsule) ...[
-              DynamicIslandCapsule(
-                title: 'Güvenlik & Sıfır-Bilgi Mimarisi',
-                message:
-                    'Tüm finansal verileriniz ve ekstreleriniz sıfır-sunucu prensibiyle sadece bu cihazda saklanır. Elektrikli araç veya bütçe verileriniz asla dış buluta aktarılmaz.',
-                comparisonHighlight:
-                    'İpucu: Düzenli yedek alarak verilerinizi olası cihaz değişimlerine karşı koruyabilirsiniz.',
-                onDismissed: () => setState(() => _showSettingsCapsule = false),
-              ),
-              const SizedBox(height: 12),
-            ],
-
-            // 1. Video & Shakuro Crystal Dark Aesthetic: Laser Shimmer VIP Plan Kartı
+            // 1. Plan Kartı (Google Play Billing Entegrasyonu)
             LaserShimmerCard(
               margin: EdgeInsets.zero,
               padding: const EdgeInsets.all(18),
               backgroundColor: const Color(0xFF0F172A),
-              shimmerColor: const Color(0xFFF59E0B),
+              shimmerColor: _subscriptionService.isPremium ? const Color(0xFFF59E0B) : const Color(0xFF38BDF8),
               borderColor: const Color(0xFF334155),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
-                      Text(
+                    children: [
+                      const Text(
                         'AKTİF PLANINIZ',
                         style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF94A3B8), letterSpacing: 0.5),
                       ),
                       PulseMetricBadge(
-                        label: 'GÜVENLİ',
-                        value: 'PREMIUM AKTİF',
-                        pulseColor: Color(0xFFF59E0B),
-                        isPositive: true,
+                        label: _subscriptionService.isPremium ? 'GÜVENLİ' : 'TEMEL',
+                        value: _subscriptionService.isPremium ? 'PREMIUM AKTİF' : 'ÜCRETSİZ PLAN',
+                        pulseColor: _subscriptionService.isPremium ? const Color(0xFFF59E0B) : const Color(0xFF38BDF8),
+                        isPositive: _subscriptionService.isPremium,
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Bireysel Yıllık Premium',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white),
+                  Text(
+                    _subscriptionService.isPremium
+                        ? (_subscriptionService.isFamilyPlan ? 'Aile Boyu Üyelik (4 Kişi)' : 'Bireysel Premium')
+                        : 'Ücretsiz Başlangıç Paketi',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white),
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    'Yenilenme: 25.07.2027 • RevenueCat Güvencesiyle',
+                    'Google Play Store Güvencesiyle',
                     style: TextStyle(fontSize: 12, color: Color(0xFFCBD5E1)),
                   ),
                   const SizedBox(height: 14),
@@ -150,7 +144,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       side: const BorderSide(color: Color(0xFF475569)),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text('Planı Değiştir veya Aile Paketine Geç (4 Kişi)'),
+                    child: Text(_subscriptionService.isPremium ? 'Planı Değiştir veya Yönet' : 'Premium Avantajlarını Keşfet'),
                   ),
                 ],
               ),
@@ -423,6 +417,74 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildModuleStatusRow('Aile Bütçesi Senkronizasyonu', _remoteConfig.isModuleActive('family_budget')),
             _buildModuleStatusRow('Piyasa Haberleri & Gündem', _remoteConfig.isModuleActive('market_news')),
 
+            const SizedBox(height: 28),
+
+            // 6. TEHLİKELİ BÖLGE: TÜM VERİLERİMİ SIFIRLA VE SİL
+            const Text(
+              'TEHLİKELİ BÖLGE / VERİLERİ SIFIRLA',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.expenseRed, letterSpacing: 0.5),
+            ),
+            const SizedBox(height: 10),
+
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF1F2),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: const Color(0xFFFECDD3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFE4E6),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(Icons.delete_forever_rounded, color: AppColors.expenseRed, size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              'Tüm Verilerimi Sıfırla ve Sil',
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.expenseRed),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Hesaplar, ekstreler, harcamalar, hedefler ve profil cihazınızdan tamamen silinir.',
+                              style: TextStyle(fontSize: 11, color: Color(0xFF9F1239), height: 1.3),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _confirmAndResetAllData,
+                      icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                      label: const Text('Tüm Verilerimi Sıfırla ve Hesabı Sil', style: TextStyle(fontWeight: FontWeight.w800)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.expenseRed,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
             const SizedBox(height: 84),
           ],
         ),
@@ -672,22 +734,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final txList = (exportData['transactions'] as List<dynamic>? ?? []).cast<Map<String, dynamic>>();
 
       final csvContent = _exportService.exportToCsv(txList);
+      final tempDir = await getTemporaryDirectory();
+      final file = File('${tempDir.path}/ParaIz_Harcama_Raporu.csv');
+      await file.writeAsString(csvContent);
 
       if (!mounted) return;
       setState(() => _isExporting = false);
 
-      _showCsvResultModal(csvContent, txList.length);
+      await Share.shareXFiles(
+        [XFile(file.path, mimeType: 'text/csv')],
+        text: 'Paraİz Harcama ve İşlem Raporu (Excel / CSV)',
+      );
     } catch (e) {
       if (mounted) {
         setState(() => _isExporting = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('CSV oluşturulurken hata: $e')),
+          SnackBar(content: Text('CSV paylaşılırken hata: $e')),
         );
       }
     }
   }
 
-  void _showCsvResultModal(String csvContent, int rowCount) {
+  void _showCsvResultModal(String csvContent, int rowCount, String filePath) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -745,7 +813,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 14),
               Container(
-                height: 180,
+                height: 140,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF8FAFC),
@@ -763,18 +831,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(text: csvContent));
+                  onPressed: () async {
                     Navigator.pop(ctx);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        backgroundColor: Color(0xFF10B981),
-                        content: Text('CSV metni panoya kopyalandı! Excel\'e veya not defterine yapıştırabilirsiniz.'),
-                      ),
+                    await Share.shareXFiles(
+                      [XFile(filePath, mimeType: 'text/csv')],
+                      text: 'Paraİz Harcama ve İşlem Raporu (Excel / CSV)',
                     );
                   },
-                  icon: const Icon(Icons.copy_rounded, size: 16),
-                  label: const Text('CSV Metnini Kopyala', style: TextStyle(fontWeight: FontWeight.w800)),
+                  icon: const Icon(Icons.share_rounded, size: 18),
+                  label: const Text('Excel / Dosyayı Paylaş', style: TextStyle(fontWeight: FontWeight.w800)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF10B981),
                     foregroundColor: Colors.white,
@@ -802,123 +867,69 @@ class _SettingsScreenState extends State<SettingsScreen> {
         taxes: (data['tax_deductions'] as List<dynamic>? ?? []).cast<Map<String, dynamic>>(),
       );
 
+      final tempDir = await getTemporaryDirectory();
+      final file = File('${tempDir.path}/ParaIz_Sistem_Yedegi.json');
+      await file.writeAsString(backupJson);
+
       if (!mounted) return;
       setState(() => _isExporting = false);
 
-      _showJsonBackupModal(backupJson, data);
+      await Share.shareXFiles(
+        [XFile(file.path, mimeType: 'application/json')],
+        text: 'Paraİz Güvenli Kriptolu Sistem Yedeği (JSON)',
+      );
     } catch (e) {
       if (mounted) {
         setState(() => _isExporting = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Yedek oluşturulurken hata: $e')),
+          SnackBar(content: Text('Yedek paylaşılırken hata: $e')),
         );
       }
     }
   }
 
-  void _showJsonBackupModal(String backupJson, Map<String, dynamic> data) {
-    final accountsCount = (data['accounts'] as List<dynamic>? ?? []).length;
-    final txCount = (data['transactions'] as List<dynamic>? ?? []).length;
-    final stmtCount = (data['statements'] as List<dynamic>? ?? []).length;
-
-    showModalBottomSheet(
+  void _confirmAndResetAllData() {
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return Container(
-          padding: const EdgeInsets.all(20),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: AppColors.expenseRed, size: 24),
+            SizedBox(width: 8),
+            Text('Tüm Verileri Sil?', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.expenseRed)),
+          ],
+        ),
+        content: const Text(
+          'Bu işlem telefonunuzdaki tüm hesapları, yüklenmiş PDF ekstrelerini, harcama kayıtlarını, hedefleri ve kişisel bilgilerinizi kalıcı olarak sıfırlayacaktır.\n\nBu işlem geri alınamaz. Devam etmek istiyor musunuz?',
+          style: TextStyle(fontSize: 13, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Vazgeç', style: TextStyle(color: AppColors.textSecondary)),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
-                    borderRadius: BorderRadius.circular(2),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await _repository.clearAllUserData();
+              await UserProfileService.instance.resetAllUserData();
+
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    backgroundColor: AppColors.expenseRed,
+                    content: Text('Tüm verileriniz ve hesabınız başarıyla sıfırlandı.'),
                   ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEFF6FF),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(Icons.security_rounded, color: AppColors.actionPrimary, size: 20),
-                      ),
-                      const SizedBox(width: 10),
-                      const Text('Kriptolu Sistem Yedeği Hazır', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
-                    ],
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close_rounded, size: 20),
-                    onPressed: () => Navigator.pop(ctx),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Arşiv Kapsamı: $stmtCount Ekstre • $accountsCount Hesap/Kart • $txCount Finansal İşlem',
-                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-              ),
-              const SizedBox(height: 14),
-              Container(
-                height: 180,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                child: SingleChildScrollView(
-                  child: Text(
-                    backupJson,
-                    style: const TextStyle(fontSize: 10, fontFamily: 'monospace', color: Color(0xFF334155)),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(text: backupJson));
-                    Navigator.pop(ctx);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        backgroundColor: AppColors.actionPrimary,
-                        content: Text('Yedek JSON metni panoya kopyalandı! Güvenli bir yere kaydedebilirsiniz.'),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.copy_rounded, size: 16),
-                  label: const Text('Yedek Arşivini Kopyala', style: TextStyle(fontWeight: FontWeight.w800)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.actionPrimary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                ),
-              ),
-            ],
+                );
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.expenseRed, foregroundColor: Colors.white),
+            child: const Text('Evet, Hepsini Sil', style: TextStyle(fontWeight: FontWeight.w800)),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 

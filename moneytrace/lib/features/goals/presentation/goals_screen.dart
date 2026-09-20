@@ -30,7 +30,7 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
   late AnimationController _confettiController;
   int _filterIndex = 0; // 0: Tümü, 1: Aktif, 2: Tamamlanan
   bool _isLoading = false;
-  bool _showGoalsCapsule = true;
+  final bool isCleanDataMode = true; // Clean Slate sıfır mockup modu
 
   List<FinancialGoal> _goals = [];
 
@@ -56,60 +56,7 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
       final dbGoals = await _goalRepository.getAllGoals();
       if (mounted) {
         setState(() {
-          if (dbGoals.isNotEmpty) {
-            _goals = dbGoals;
-          } else if (RemoteConfigService.instance.isCleanDataMode) {
-            _goals = [];
-          } else {
-            // Başlangıç Mockup hedefleri
-            _goals = [
-              FinancialGoal(
-                id: 'goal_1',
-                title: 'Araç Alım Hedefi',
-                category: GoalCategory.vehicle,
-                targetAmountCents: 120000000, // ₺1.200.000
-                currentSavedCents: 75000000,  // ₺750.000 (%62.5)
-                targetDate: DateTime.now().add(const Duration(days: 240)), // ~8 ay
-                createdAt: DateTime.now().subtract(const Duration(days: 90)),
-              ),
-              FinancialGoal(
-                id: 'goal_2',
-                title: 'Ev Alma Hedefi',
-                category: GoalCategory.house,
-                targetAmountCents: 300000000, // ₺3.000.000
-                currentSavedCents: 180000000, // ₺1.800.000 (%60)
-                targetDate: DateTime.now().add(const Duration(days: 720)), // ~24 ay
-                createdAt: DateTime.now().subtract(const Duration(days: 180)),
-              ),
-              FinancialGoal(
-                id: 'goal_3',
-                title: 'Motorsiklet Hedefi',
-                category: GoalCategory.motorcycle,
-                targetAmountCents: 25000000, // ₺250.000
-                currentSavedCents: 18000000, // ₺180.000 (%72)
-                targetDate: DateTime.now().add(const Duration(days: 90)), // ~3 ay
-                createdAt: DateTime.now().subtract(const Duration(days: 60)),
-              ),
-              FinancialGoal(
-                id: 'goal_4',
-                title: 'Tekne Alma Hedefi',
-                category: GoalCategory.boat,
-                targetAmountCents: 150000000, // ₺1.500.000
-                currentSavedCents: 42000000,  // ₺420.000 (%28)
-                targetDate: DateTime.now().add(const Duration(days: 540)), // ~18 ay
-                createdAt: DateTime.now().subtract(const Duration(days: 30)),
-              ),
-              FinancialGoal(
-                id: 'goal_5',
-                title: 'Özel Hediye Hedefi',
-                category: GoalCategory.gift,
-                targetAmountCents: 4000000, // ₺40.000
-                currentSavedCents: 3500000, // ₺35.000 (%87.5)
-                targetDate: DateTime.now().add(const Duration(days: 30)), // ~1 ay
-                createdAt: DateTime.now().subtract(const Duration(days: 20)),
-              ),
-            ];
-          }
+          _goals = dbGoals;
           _isLoading = false;
         });
       }
@@ -401,7 +348,7 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text(
           'Hedeflerim',
@@ -429,54 +376,36 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Shakuro Inspired Yüzen Kapsül (%25 Maksimum Boyut, Drag-to-Dismiss)
-                        if (_showGoalsCapsule) ...[
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            child: DynamicIslandCapsule(
-                              title: 'Hedef İlerlemesi & Akıllı Birikim',
-                              message:
-                                  'Araç ve konut hedefleriniz ortalama %60 tamamlama oranına ulaştı. Düzenli aylık tasarruf katkılarıyla hedefinize planlanan tarihten 2 ay erken ulaşabilirsiniz.',
-                              comparisonHighlight:
-                                  'İpucu: Birikim hedefinize her katkı eklediğinizde 30 günlük finansal alışkanlık seriniz güçlenir.',
-                              onDismissed: () => setState(() => _showGoalsCapsule = false),
-                              onActionTap: () {
-                                DailyStreakModal.show(context, currentStreak: 30);
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                        ],
-
                         // 1. Özet Kartı
                         GoalSummaryHeader(summary: summary),
 
-                        // 2. "İzci" Hedef Tavsiyesi
-                        Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFFBEB),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: const Color(0xFFFEF3C7)),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.lightbulb_rounded, color: Color(0xFFD97706), size: 20),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  scoutMessage,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF92400E),
+                        // 2. "İzci" Hedef Tavsiyesi (Sadece hedef varsa)
+                        if (_goals.isNotEmpty)
+                          Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFFBEB),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: const Color(0xFFFEF3C7)),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.lightbulb_rounded, color: Color(0xFFD97706), size: 20),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    scoutMessage,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF92400E),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
 
                         // 3. Video & Shakuro Micro-Interaction: Morflayan Kayan Filtre Barı
                         MorphingSegmentedBar(

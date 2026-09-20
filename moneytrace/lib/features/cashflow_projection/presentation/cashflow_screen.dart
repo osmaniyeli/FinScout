@@ -3,14 +3,15 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/currency_normalizer.dart';
+import '../../../core/services/user_profile_service.dart';
 import '../../../core/widgets/morphing_share_button.dart';
 import '../../../core/widgets/radar_checkout_button.dart';
-import '../../../core/widgets/dynamic_island_capsule.dart';
 import '../../../core/widgets/morphing_segmented_bar.dart';
 import '../../../core/widgets/pulse_metric_badge.dart';
 import '../../../core/widgets/rolling_number_ticker.dart';
 import '../models/cashflow_event.dart';
 import '../services/cashflow_projection_service.dart';
+// DynamicIslandCapsule: Nüanslar sadece Dashboard ekranında tutuldu, diğer ekranlardan kaldırıldı (Geri Bildirim 5)
 
 class CashflowScreen extends StatefulWidget {
   const CashflowScreen({Key? key}) : super(key: key);
@@ -22,9 +23,9 @@ class CashflowScreen extends StatefulWidget {
 class _CashflowScreenState extends State<CashflowScreen> {
   final CashflowProjectionService _projectionService = CashflowProjectionService();
 
-  int _selectedMonthsFilter = 6; // 6 veya 12 ay
+  int _selectedMonthsFilter = 3; // 3, 6 veya 12 ay (Varsayılan 3 ay)
   int _salaryDayOfMonth = 15; // Maaş günü
-  int _netSalaryCents = 13360000; // ₺133.600,00
+  int _netSalaryCents = 0; // Gerçek kullanıcı profili bütçesi
 
   bool _isLoading = false;
   List<CashflowMonthSummary> _projections = [];
@@ -32,6 +33,8 @@ class _CashflowScreenState extends State<CashflowScreen> {
   @override
   void initState() {
     super.initState();
+    final profile = UserProfileService.instance.profile;
+    _netSalaryCents = profile?.monthlyBudgetCents ?? 0;
     _loadProjections();
   }
 
@@ -53,8 +56,6 @@ class _CashflowScreenState extends State<CashflowScreen> {
       if (mounted) setState(() => _isLoading = false);
     }
   }
-
-  bool _showCashflowInsight = true;
 
   void _editSalarySettings() {
     final dayController = TextEditingController(text: _salaryDayOfMonth.toString());
@@ -164,200 +165,360 @@ class _CashflowScreenState extends State<CashflowScreen> {
     final int monthlyAverage = _projections.isNotEmpty ? (totalNet / _projections.length).round() : 0;
 
     final currentMonth = _projections.isNotEmpty ? _projections.first : null;
+    final endOfCashCents = currentMonth != null ? currentMonth.netBalanceCents : 0;
+    final currentIncomeCents = currentMonth != null ? currentMonth.projectedIncomeCents : 0;
+    final currentExpenseCents = currentMonth != null ? currentMonth.projectedExpenseCents : 0;
+    final currentNetCents = currentIncomeCents - currentExpenseCents;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text(
-          'Nakit Akışı & Gelecek Projeksiyonu',
-          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+        title: Column(
+          children: [
+            const Text(
+              'Nakit Akışı',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+            ),
+            if (currentMonth != null)
+              Text(
+                currentMonth.monthLabel,
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondary),
+              ),
+          ],
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.background,
         elevation: 0,
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.tune_rounded, color: AppColors.actionPrimary),
+            icon: const Icon(Icons.tune_rounded, color: AppColors.actionPrimary, size: 22),
             onPressed: _editSalarySettings,
             tooltip: 'Maaş Ayarları',
           ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
           : RefreshIndicator(
               onRefresh: _loadProjections,
+              color: AppColors.actionPrimary,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Shakuro Inspired Yüzen Kapsül (%25 Maksimum Boyut, Drag-to-Dismiss)
-                    if (_showCashflowInsight) ...[
-                      DynamicIslandCapsule(
-                        title: 'Nakit Pisti & Finansal Öngörü',
-                        message:
-                            'Planlı gelirleriniz önümüzdeki $_selectedMonthsFilter ay boyunca sabit gider ve taksitleri %100 karşılıyor. Kümülatif tasarruf havuzunuz net artış eğilimindedir.',
-                        comparisonHighlight:
-                            'İpucu: Maaş gününüz her ayın $_salaryDayOfMonth\'i olarak takvime işlenmiştir.',
-                        onDismissed: () => setState(() => _showCashflowInsight = false),
-                        onActionTap: _editSalarySettings,
+                    // 1. ANA ODAK KARTI: TAHMİNİ AY SONU KASASI (User Req: Section 13)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x060F172A),
+                            blurRadius: 16,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 12),
-                    ],
-
-                    // Video & Shakuro Micro-Interaction: Morflayan Kayan Dönem Seçici
-                    Row(
-                      children: [
-                        Expanded(
-                          child: MorphingSegmentedBar(
-                            segments: const ['6 Aylık Plan', '12 Aylık Plan'],
-                            selectedIndex: _selectedMonthsFilter == 6 ? 0 : 1,
-                            padding: EdgeInsets.zero,
-                            height: 38,
-                            onSelected: (idx) {
-                              setState(() => _selectedMonthsFilter = idx == 0 ? 6 : 12);
-                              _loadProjections();
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        InkWell(
-                          onTap: _editSalarySettings,
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF0FDF4),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: const Color(0xFFDCFCE7)),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.calendar_today_rounded, size: 12, color: AppColors.incomeGreen),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Maaş: $_salaryDayOfMonth\'i',
-                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.incomeGreen),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'TAHMİNİ AY SONU KASASI',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textSecondary,
+                                  letterSpacing: 0.5,
                                 ),
-                              ],
+                              ),
+                              const PulseMetricBadge(
+                                label: 'CANLI KASA',
+                                value: 'PROJEKSİYON',
+                                pulseColor: AppColors.actionPrimary,
+                                isPositive: true,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          RollingNumberTicker(
+                            value: endOfCashCents / 100.0,
+                            prefix: '₺',
+                            style: const TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.textPrimary,
+                              letterSpacing: -0.5,
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 16),
+                          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildHeroStatColumn(
+                                  label: 'Gelir',
+                                  amount: CurrencyNormalizer.formatCents(currentIncomeCents),
+                                  color: AppColors.incomeGreen,
+                                ),
+                              ),
+                              Container(width: 1, height: 32, color: const Color(0xFFF1F5F9)),
+                              Expanded(
+                                child: _buildHeroStatColumn(
+                                  label: 'Gider',
+                                  amount: CurrencyNormalizer.formatCents(currentExpenseCents),
+                                  color: AppColors.expenseRed,
+                                ),
+                              ),
+                              Container(width: 1, height: 32, color: const Color(0xFFF1F5F9)),
+                              Expanded(
+                                child: _buildHeroStatColumn(
+                                  label: 'Net',
+                                  amount: (currentNetCents >= 0 ? '+' : '') +
+                                      CurrencyNormalizer.formatCents(currentNetCents),
+                                  color: currentNetCents >= 0 ? AppColors.actionPrimary : AppColors.expenseRed,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 18),
 
-                    // 1. Bu Ayın 30 Günlük Nakit Akışı Kartı
-                    if (currentMonth != null) _buildThirtyDayCashflowCard(currentMonth),
-                    const SizedBox(height: 16),
+                    // 2. PROJEKSİYON SÜTUN GRAFİĞİ (iBank Transaction Report #1 Tarzı)
+                    _buildProjectionChart(),
+                    const SizedBox(height: 18),
 
-                    // 2. Sapma Analitiği & Scout Uyarısı
-                    _buildAnomalyInsightCard(),
-                    const SizedBox(height: 20),
+                    // 3. PLAN SEÇİMİ (3 Ay / 6 Ay / 12 Ay)
+                    MorphingSegmentedBar(
+                      segments: const ['3 Aylık Plan', '6 Aylık Plan', '12 Aylık Plan'],
+                      selectedIndex: _selectedMonthsFilter == 3 ? 0 : (_selectedMonthsFilter == 6 ? 1 : 2),
+                      padding: EdgeInsets.zero,
+                      height: 40,
+                      onSelected: (idx) {
+                        setState(() {
+                          if (idx == 0) {
+                            _selectedMonthsFilter = 3;
+                          } else if (idx == 1) {
+                            _selectedMonthsFilter = 6;
+                          } else {
+                            _selectedMonthsFilter = 12;
+                          }
+                        });
+                        _loadProjections();
+                      },
+                    ),
+                    const SizedBox(height: 18),
 
-                    // 3. Projeksiyon Rapor Başlığı & Kart Izgarası
+                    // 4. İZCİ FİNANSAL ASİSTAN NOTU (User Req: Section 15)
+                    _buildScoutInsightCard(),
+                    const SizedBox(height: 22),
+
+                    // 5. DETAYLI GELECEK AYLAR PROJEKSİYONU
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '$_selectedMonthsFilter Aylık Kümülatif Bakiye',
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-                        ),
-                        const PulseMetricBadge(
-                          label: 'CANLI KASA',
-                          value: 'PROJEKSİYON',
-                          pulseColor: AppColors.actionPrimary,
-                          isPositive: true,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildMetricCard(
-                            title: '$_selectedMonthsFilter ay planlı gider',
-                            amountCents: totalExpense,
-                            textColor: AppColors.expenseRed,
-                            bgColor: const Color(0xFFFFF1F2),
+                          '$_selectedMonthsFilter AYLIK DETAYLI TAKVİM',
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textSecondary,
+                            letterSpacing: 0.5,
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildMetricCard(
-                            title: '$_selectedMonthsFilter ay planlı gelir',
-                            amountCents: totalIncome,
-                            textColor: AppColors.incomeGreen,
-                            bgColor: const Color(0xFFF0FDF4),
+                        Text(
+                          'Aylık Ort: +${CurrencyNormalizer.formatCents(monthlyAverage)}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.actionPrimary,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
-
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildMetricCard(
-                            title: 'Kümülatif Net Kasa',
-                            amountCents: totalNet,
-                            textColor: AppColors.actionPrimary,
-                            bgColor: const Color(0xFFEFF6FF),
-                            prefix: '+',
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildMetricCard(
-                            title: 'Aylık Net Tasarruf',
-                            amountCents: monthlyAverage,
-                            textColor: const Color(0xFF0D9488),
-                            bgColor: const Color(0xFFF0FDFA),
-                            prefix: '+',
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 18),
-
-                    // Video 2: Morflayan Projeksiyon Dışa Aktar Butonu (0% -> 100% -> Sosyal Paylaşım)
-                    MorphingShareButton(
-                      fileName: 'nakit_akisi_projeksiyon_${_selectedMonthsFilter}aylik.pdf',
-                      label: '$_selectedMonthsFilter Aylık Projeksiyon Raporunu İndir & Paylaş',
-                      accentColor: AppColors.actionPrimary,
-                      onDownloadComplete: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            backgroundColor: AppColors.incomeGreen,
-                            content: Text('$_selectedMonthsFilter aylık nakit projeksiyon raporu hazırlandı ve paylaşıldı.'),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 20),
-
-                    // 4. Gelecek Ayların Taksit & Gelir Takvimi Listesi
-                    const Text(
-                      'GELECEK AYLARIN TAKVİMİ',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textSecondary,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
 
                     ..._projections.map((m) => _buildMonthTimelineTile(m)).toList(),
 
-                    const SizedBox(height: 84), // FAB ve alt navigasyon boşluğu
+                    const SizedBox(height: 84), // Alt navigasyon boşluğu
                   ],
                 ),
               ),
+            );
+  }
+
+  Widget _buildHeroStatColumn({
+    required String label,
+    required String amount,
+    required Color color,
+  }) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          amount,
+          style: TextStyle(
+            fontSize: 14.5,
+            fontWeight: FontWeight.w800,
+            color: color,
+            letterSpacing: -0.2,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProjectionChart() {
+    if (_projections.isEmpty) return const SizedBox.shrink();
+
+    // En yüksek tutarı bul
+    int maxVal = 1;
+    for (final p in _projections) {
+      if (p.netBalanceCents > maxVal) maxVal = p.netBalanceCents;
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x040F172A),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Kasa Değişim Trendi',
+                style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+              ),
+              Text(
+                '$_selectedMonthsFilter Ay',
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textMuted),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 120,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: _projections.map((p) {
+                final isCurrent = p == _projections.first;
+                final ratio = maxVal > 0 ? (p.netBalanceCents / maxVal).clamp(0.15, 1.0) : 0.15;
+                final shortMonth = p.monthLabel.split(' ')[0].substring(0, 3);
+
+                return Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        '${(p.netBalanceCents / 100000).toStringAsFixed(0)}k',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w500,
+                          color: isCurrent ? AppColors.actionPrimary : AppColors.textMuted,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        width: 14,
+                        height: 70 * ratio,
+                        decoration: BoxDecoration(
+                          color: isCurrent ? AppColors.actionPrimary : const Color(0xFFCBD5E1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        shortMonth,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w600,
+                          color: isCurrent ? AppColors.actionPrimary : AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScoutInsightCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFBEB), // Açık sıcak sarı/amber
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFFDE68A)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF3C7),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.auto_awesome_rounded, size: 16, color: Color(0xFFD97706)),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'İZCİ\'DEN BİR NOT',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFFB45309),
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'Gelecek ay Vatan Bilgisayar taksidin tamamlanıyor.\n₺4.258 aylık bütçe serbest kalacak. Bu tutarı birikim hedeflerine aktararak hedef süreni 3 ay kısaltabilirsin.',
+            style: TextStyle(fontSize: 13, color: Color(0xFF78350F), height: 1.45, fontWeight: FontWeight.w500),
+          ),
+        ],
+      ),
     );
   }
 

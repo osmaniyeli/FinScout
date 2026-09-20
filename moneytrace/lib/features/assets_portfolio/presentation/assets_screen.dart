@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import '../../../core/config/remote_config_service.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/currency_normalizer.dart';
 import '../../../core/services/live_market_service.dart';
+import '../../../core/database/repositories/transaction_repository.dart';
 import '../../../core/widgets/compact_smart_insight_banner.dart';
-import '../../../core/widgets/dynamic_island_capsule.dart';
 import '../../../core/widgets/in_app_notification_sheet.dart';
 import '../../../core/widgets/morphing_share_button.dart';
+import '../../../core/widgets/fintech/fintech_components.dart';
+import '../../../core/services/user_profile_service.dart';
+import '../../statement_upload/presentation/statement_upload_sheet.dart';
 import 'widgets/market_news_section.dart';
 
 class AssetsScreen extends StatefulWidget {
@@ -18,66 +22,66 @@ class AssetsScreen extends StatefulWidget {
 
 class _AssetsScreenState extends State<AssetsScreen> {
   final LiveMarketService _marketService = LiveMarketService.instance;
+  final TransactionRepository _repository = TransactionRepository();
   int _selectedTab = 0; // 0: Birikim, 1: Araç & Mülk, 2: Kartlar
 
   bool _isLoadingRates = false;
   Map<String, MarketTicker> _marketTickers = {};
 
-  // Portföy Varlıkları
-  double _gramGoldQuantity = 10.0;
-  int _ceyrekGoldQuantity = 2;
-  int _cashTryCents = 50000; // ₺500,00
+  // Portföy Varlıkları (Temiz Başlangıç)
+  double _gramGoldQuantity = 0.0;
+  double _gramGoldCostPrice = 0.0; // Alış Maliyeti ₺/gr
+  double _gramGoldTargetPrice = 0.0; // Hedef Fiyat ₺/gr
 
-  // Araç & Konut Varlıkları
-  final List<Map<String, dynamic>> _userVehicles = [
-    {
-      'brand': 'Renault',
-      'model': 'Megane 1.5 dCi',
-      'year': '2022',
-      'fuel_type': 'Dizel',
-      'value_cents': 95000000, // ₺950.000,00
-      'monthly_cost_cents': 350000, // ₺3.500,00
-      'plate': '34 ABC 789',
-    }
-  ];
+  int _ceyrekGoldQuantity = 0;
+  double _ceyrekGoldCostPrice = 0.0; // Alış Maliyeti ₺/adet
+  double _ceyrekGoldTargetPrice = 0.0; // Hedef Fiyat ₺/adet
+
+  double _usdQuantity = 0.0;
+  double _usdCostPrice = 0.0; // Alış Kuru ₺/$
+  double _usdTargetPrice = 0.0; // Hedef Kur ₺/$
+
+  int _cashTryCents = 0;
+
+  // Araç & Konut Varlıkları (Temiz Başlangıç)
+  final List<Map<String, dynamic>> _userVehicles = [];
   String _selectedHousingType = 'Kiracı (Standart Daire)';
-  bool _showEvInsightBanner = true;
+  bool _showEvInsightBanner = false;
 
-  final List<Map<String, dynamic>> _linkedCards = [
-    {
-      'name': 'Enpara.com Kredi Kartı',
-      'mask': '**** 8281',
-      'limit': '₺150.000,00',
-      'debt': '₺42.580,00',
-      'statement_day': 'Her ayın 28\'i',
-      'holder': 'Ahmet (Asıl Kart)',
-      'is_supplementary': false,
-      'color': const Color(0xFF7C3AED),
-      'type': 'CREDIT',
-    },
-    {
-      'name': 'Yapı Kredi Worldcard',
-      'mask': '**** 4019',
-      'limit': '₺200.000,00',
-      'debt': '₺56.246,10',
-      'statement_day': 'Her ayın 10\'u',
-      'holder': 'Eş (Ek Kart)',
-      'is_supplementary': true,
-      'color': const Color(0xFF0284C7),
-      'type': 'CREDIT',
-    },
-    {
-      'name': 'VakıfBank Bankomat TL',
-      'mask': '**** 1102',
-      'limit': 'Vadesiz TL',
-      'debt': '₺12.450,00 (Bakiye)',
-      'statement_day': 'Anlık Hesap',
-      'holder': 'Ahmet',
-      'is_supplementary': false,
-      'color': const Color(0xFF10B981),
-      'type': 'DEBIT',
-    },
-  ];
+  List<Map<String, dynamic>> _linkedCards = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCardsFromDb();
+    _fetchMarketRates();
+  }
+
+  Future<void> _loadCardsFromDb() async {
+    try {
+      final accounts = await _repository.getAccounts();
+      if (mounted && accounts.isNotEmpty) {
+        setState(() {
+          _linkedCards = accounts.map((a) {
+            final isCredit = (a['account_type'] ?? '').toString().toUpperCase() == 'CREDIT';
+            return {
+              'name': a['account_name'] ?? a['institution_name'] ?? 'Banka Hesabı',
+              'mask': a['card_mask'] ?? '**** 0000',
+              'limit': isCredit ? '₺50.000,00' : 'Vadesiz TL',
+              'debt': '₺0,00',
+              'statement_day': 'Her ayın 15\'i',
+              'holder': a['card_holder'] ?? 'Hesap Sahibi',
+              'is_supplementary': false,
+              'color': isCredit ? const Color(0xFF7C3AED) : const Color(0xFF10B981),
+              'type': a['account_type'] ?? 'BANK',
+            };
+          }).toList();
+        });
+      }
+    } catch (e) {
+      debugPrint('Kartları veritabanından yükleme hatası: $e');
+    }
+  }
 
   void _showCardDetail(Map<String, dynamic> card) {
     showModalBottomSheet(
@@ -167,6 +171,24 @@ class _AssetsScreenState extends State<AssetsScreen> {
               ),
             ),
             const SizedBox(height: 18),
+            // Kart Limiti & Bakiye Düzenle Butonu
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  _showEditCardBalanceDialog(card);
+                },
+                icon: const Icon(Icons.edit_note_rounded, size: 18, color: AppColors.actionPrimary),
+                label: const Text('Bakiyeyi & Limiti Düzenle', style: TextStyle(color: AppColors.actionPrimary, fontWeight: FontWeight.w700)),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFFBAE6FD)),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
             // Kart Sahibi Değiştir Butonu
             SizedBox(
               width: double.infinity,
@@ -205,6 +227,82 @@ class _AssetsScreenState extends State<AssetsScreen> {
     );
   }
 
+  void _showEditCardBalanceDialog(Map<String, dynamic> card) {
+    final limitController = TextEditingController(
+      text: card['limit'].toString().replaceAll('₺', '').replaceAll(',00', '').replaceAll('.', '').trim(),
+    );
+    final debtController = TextEditingController(
+      text: card['debt'].toString().replaceAll('₺', '').replaceAll(',00', '').replaceAll('.', '').trim(),
+    );
+    final dayController = TextEditingController(text: card['statement_day']?.toString() ?? 'Her ayın 15\'i');
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('${card['name']} Düzenle', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: limitController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Toplam Limit (₺)'),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: debtController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Güncel Dönem Borcu (₺)'),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: dayController,
+                decoration: const InputDecoration(labelText: 'Hesap Kesim / Yenilenme Günü'),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('İptal')),
+          ElevatedButton(
+            onPressed: () {
+              final limitText = limitController.text.trim();
+              final debtText = debtController.text.trim();
+              final dayText = dayController.text.trim();
+
+              final limitCents = CurrencyNormalizer.toMinorUnits(limitText);
+              final debtCents = CurrencyNormalizer.toMinorUnits(debtText);
+
+              setState(() {
+                if (limitText.isNotEmpty) {
+                  card['limit'] = CurrencyNormalizer.formatCents(limitCents);
+                }
+                if (debtText.isNotEmpty) {
+                  card['debt'] = CurrencyNormalizer.formatCents(debtCents);
+                }
+                if (dayText.isNotEmpty) {
+                  card['statement_day'] = dayText;
+                }
+              });
+
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: AppColors.incomeGreen,
+                  content: Text('${card['name']} limit ve bakiye bilgileri güncellendi.'),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.actionPrimary),
+            child: const Text('Kaydet', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showReassignHolderDialog(Map<String, dynamic> card) {
     showDialog(
       context: context,
@@ -213,7 +311,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
         title: const Text('Kart Sahibini Ata', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: ['Ahmet (Asıl Kart)', 'Eş (Ek Kart)', 'Çocuk 1 (Harçlık Kartı)', 'Çocuk 2 (Öğrenci Kartı)'].map((h) {
+          children: ['${UserProfileService.instance.profile?.name ?? "Ben"} (Asıl Kart)', 'Eş (Ek Kart)', 'Çocuk 1 (Harçlık Kartı)', 'Çocuk 2 (Öğrenci Kartı)'].map((h) {
             return ListTile(
               title: Text(h, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
               onTap: () {
@@ -288,7 +386,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
                   'limit': '₺${limit.isNotEmpty ? limit : "50.000"},00',
                   'debt': '₺0,00',
                   'statement_day': 'Her ayın 15\'i',
-                  'holder': 'Ahmet (Asıl Kart)',
+                  'holder': '${UserProfileService.instance.profile?.name ?? "Ben"} (Asıl Kart)',
                   'is_supplementary': false,
                   'color': const Color(0xFF0D9488),
                   'type': 'CREDIT',
@@ -308,10 +406,223 @@ class _AssetsScreenState extends State<AssetsScreen> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchMarketRates();
+  void _showSelectAssetToEditDialog() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 44,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE2E8F0),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Düzenlenecek Varlığı Seçin',
+              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Gram, adet, alış maliyeti ve hedef fiyat bilgilerinizi güncelleyin.',
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const Icon(Icons.monetization_on_rounded, color: Color(0xFFF59E0B)),
+              title: const Text('Gram Altın (gr, Maliyet, Hedef)', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () {
+                Navigator.pop(ctx);
+                _showEditAssetDialog('gram_altin');
+              },
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.circle_rounded, color: Color(0xFFEAB308)),
+              title: const Text('Çeyrek Altın (Adet, Maliyet, Hedef)', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () {
+                Navigator.pop(ctx);
+                _showEditAssetDialog('ceyrek_altin');
+              },
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.attach_money_rounded, color: Color(0xFF10B981)),
+              title: const Text('Amerikan Doları / Döviz', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () {
+                Navigator.pop(ctx);
+                _showEditAssetDialog('usd');
+              },
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.account_balance_wallet_rounded, color: AppColors.incomeGreen),
+              title: const Text('TL Nakit Bakiye', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () {
+                Navigator.pop(ctx);
+                _showEditAssetDialog('nakit_tl');
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showEditAssetDialog(String key) {
+    String title = '';
+    String qtyLabel = 'Miktar';
+    String costLabel = 'Alış Birim Maliyeti (₺)';
+    String targetLabel = 'Hedef Fiyat (₺)';
+    bool showTarget = true;
+
+    final qtyController = TextEditingController();
+    final costController = TextEditingController();
+    final targetController = TextEditingController();
+
+    if (key == 'gram_altin') {
+      title = 'Gram Altın Düzenle';
+      qtyLabel = 'Gram Miktarı (gr)';
+      costLabel = 'Alış Fiyatı (₺/gr)';
+      targetLabel = 'Hedef Satış Fiyatı (₺/gr)';
+      if (_gramGoldQuantity > 0) qtyController.text = _gramGoldQuantity.toString();
+      if (_gramGoldCostPrice > 0) costController.text = _gramGoldCostPrice.toString();
+      if (_gramGoldTargetPrice > 0) targetController.text = _gramGoldTargetPrice.toString();
+    } else if (key == 'ceyrek_altin') {
+      title = 'Çeyrek Altın Düzenle';
+      qtyLabel = 'Adet';
+      costLabel = 'Alış Fiyatı (₺/adet)';
+      targetLabel = 'Hedef Satış Fiyatı (₺/adet)';
+      if (_ceyrekGoldQuantity > 0) qtyController.text = _ceyrekGoldQuantity.toString();
+      if (_ceyrekGoldCostPrice > 0) costController.text = _ceyrekGoldCostPrice.toString();
+      if (_ceyrekGoldTargetPrice > 0) targetController.text = _ceyrekGoldTargetPrice.toString();
+    } else if (key == 'usd') {
+      title = 'Amerikan Doları Düzenle';
+      qtyLabel = 'Miktar (USD \$)';
+      costLabel = 'Alış Kuru (₺/\$)';
+      targetLabel = 'Hedef Kur (₺/\$)';
+      if (_usdQuantity > 0) qtyController.text = _usdQuantity.toString();
+      if (_usdCostPrice > 0) costController.text = _usdCostPrice.toString();
+      if (_usdTargetPrice > 0) targetController.text = _usdTargetPrice.toString();
+    } else {
+      title = 'TL Nakit Cüzdan Düzenle';
+      qtyLabel = 'Nakit Bakiye (₺)';
+      showTarget = false;
+      if (_cashTryCents > 0) qtyController.text = (_cashTryCents / 100.0).toStringAsFixed(0);
+    }
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: qtyController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(labelText: qtyLabel),
+              ),
+              if (showTarget) ...[
+                const SizedBox(height: 10),
+                TextField(
+                  controller: costController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(labelText: costLabel),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: targetController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: targetLabel,
+                    helperText: 'Hedefe ulaşınca bildirim gönderilir',
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('İptal')),
+          ElevatedButton(
+            onPressed: () {
+              final qty = double.tryParse(qtyController.text.replaceAll(',', '.').trim()) ?? 0.0;
+              final cost = double.tryParse(costController.text.replaceAll(',', '.').trim()) ?? 0.0;
+              final target = double.tryParse(targetController.text.replaceAll(',', '.').trim()) ?? 0.0;
+
+              setState(() {
+                if (key == 'gram_altin') {
+                  _gramGoldQuantity = qty;
+                  _gramGoldCostPrice = cost;
+                  _gramGoldTargetPrice = target;
+                  final currentPrice = _marketTickers['ALTIN_GR']?.sellingPrice ?? 3045.50;
+                  UserProfileService.instance.checkAssetTargetAlert(
+                    assetId: 'gram_altin',
+                    assetName: 'Gram Altın',
+                    currentPrice: currentPrice,
+                    targetPrice: target,
+                  );
+                } else if (key == 'ceyrek_altin') {
+                  _ceyrekGoldQuantity = qty.toInt();
+                  _ceyrekGoldCostPrice = cost;
+                  _ceyrekGoldTargetPrice = target;
+                  final currentPrice = _marketTickers['CEYREK']?.sellingPrice ?? 5010.0;
+                  UserProfileService.instance.checkAssetTargetAlert(
+                    assetId: 'ceyrek_altin',
+                    assetName: 'Çeyrek Altın',
+                    currentPrice: currentPrice,
+                    targetPrice: target,
+                  );
+                } else if (key == 'usd') {
+                  _usdQuantity = qty;
+                  _usdCostPrice = cost;
+                  _usdTargetPrice = target;
+                  final currentPrice = _marketTickers['USD']?.sellingPrice ?? 34.28;
+                  UserProfileService.instance.checkAssetTargetAlert(
+                    assetId: 'usd',
+                    assetName: 'USD / Dolar',
+                    currentPrice: currentPrice,
+                    targetPrice: target,
+                  );
+                } else {
+                  _cashTryCents = (qty * 100).round();
+                }
+              });
+
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: AppColors.incomeGreen,
+                  content: Text('$title bilgileri başarıyla güncellendi.'),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.actionPrimary),
+            child: const Text('Kaydet', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _fetchMarketRates() async {
@@ -330,42 +641,87 @@ class _AssetsScreenState extends State<AssetsScreen> {
     // Canlı Değer Hesaplama
     final gramGoldPrice = _marketTickers['ALTIN_GR']?.sellingPrice ?? 3045.50;
     final ceyrekGoldPrice = _marketTickers['CEYREK']?.sellingPrice ?? 5010.0;
+    final usdPrice = _marketTickers['USD']?.sellingPrice ?? 34.28;
 
     final int gramGoldTotalCents = (gramGoldPrice * _gramGoldQuantity * 100).round();
     final int ceyrekGoldTotalCents = (ceyrekGoldPrice * _ceyrekGoldQuantity * 100).round();
+    final int usdTotalCents = (usdPrice * _usdQuantity * 100).round();
+
     final int vehicleTotalCents = _userVehicles.fold(
         0, (sum, v) => sum + ((v['value_cents'] as num?)?.toInt() ?? 0));
-    final int totalWealthCents = gramGoldTotalCents + ceyrekGoldTotalCents + _cashTryCents + vehicleTotalCents;
+    final int totalWealthCents = gramGoldTotalCents + ceyrekGoldTotalCents + usdTotalCents + _cashTryCents + vehicleTotalCents;
+
+    // Kâr / Zarar hesapları
+    final int gramGoldCostCents = (_gramGoldCostPrice * _gramGoldQuantity * 100).round();
+    final int gramGoldProfitCents = gramGoldTotalCents - gramGoldCostCents;
+
+    final int ceyrekGoldCostCents = (_ceyrekGoldCostPrice * _ceyrekGoldQuantity * 100).round();
+    final int ceyrekGoldProfitCents = ceyrekGoldTotalCents - ceyrekGoldCostCents;
+
+    final int usdCostCents = (_usdCostPrice * _usdQuantity * 100).round();
+    final int usdProfitCents = usdTotalCents - usdCostCents;
 
     final List<Map<String, dynamic>> assets = [
       {
+        'key': 'gram_altin',
         'title': 'Gram Altın (Kapalıçarşı)',
         'amount': '${_gramGoldQuantity.toStringAsFixed(1)} gr',
-        'cost': 'Canlı: ₺${gramGoldPrice.toStringAsFixed(2)}/gr',
+        'cost': _gramGoldCostPrice > 0
+            ? 'Maliyet: ₺${_gramGoldCostPrice.toStringAsFixed(1)} • Hedef: ₺${_gramGoldTargetPrice > 0 ? _gramGoldTargetPrice.toStringAsFixed(0) : "-"}'
+            : 'Canlı: ₺${gramGoldPrice.toStringAsFixed(2)}/gr',
         'current_value': CurrencyNormalizer.formatCents(gramGoldTotalCents),
+        'profit_text': _gramGoldCostPrice > 0
+            ? '${gramGoldProfitCents >= 0 ? "+" : ""}${CurrencyNormalizer.formatCents(gramGoldProfitCents)}'
+            : null,
+        'is_profit': gramGoldProfitCents >= 0,
         'icon': Icons.monetization_on_rounded,
         'color': const Color(0xFFF59E0B),
       },
       {
+        'key': 'ceyrek_altin',
         'title': 'Çeyrek Altın',
         'amount': '$_ceyrekGoldQuantity Adet',
-        'cost': 'Canlı: ₺${ceyrekGoldPrice.toStringAsFixed(0)}/adet',
+        'cost': _ceyrekGoldCostPrice > 0
+            ? 'Maliyet: ₺${_ceyrekGoldCostPrice.toStringAsFixed(0)} • Hedef: ₺${_ceyrekGoldTargetPrice > 0 ? _ceyrekGoldTargetPrice.toStringAsFixed(0) : "-"}'
+            : 'Canlı: ₺${ceyrekGoldPrice.toStringAsFixed(0)}/adet',
         'current_value': CurrencyNormalizer.formatCents(ceyrekGoldTotalCents),
+        'profit_text': _ceyrekGoldCostPrice > 0
+            ? '${ceyrekGoldProfitCents >= 0 ? "+" : ""}${CurrencyNormalizer.formatCents(ceyrekGoldProfitCents)}'
+            : null,
+        'is_profit': ceyrekGoldProfitCents >= 0,
         'icon': Icons.circle_rounded,
         'color': const Color(0xFFEAB308),
       },
       {
+        'key': 'usd',
+        'title': 'Amerikan Doları (USD)',
+        'amount': '\$${_usdQuantity.toStringAsFixed(0)}',
+        'cost': _usdCostPrice > 0
+            ? 'Maliyet: ₺${_usdCostPrice.toStringAsFixed(2)} • Hedef: ₺${_usdTargetPrice > 0 ? _usdTargetPrice.toStringAsFixed(2) : "-"}'
+            : 'Canlı: ₺${usdPrice.toStringAsFixed(2)}/\$',
+        'current_value': CurrencyNormalizer.formatCents(usdTotalCents),
+        'profit_text': _usdCostPrice > 0
+            ? '${usdProfitCents >= 0 ? "+" : ""}${CurrencyNormalizer.formatCents(usdProfitCents)}'
+            : null,
+        'is_profit': usdProfitCents >= 0,
+        'icon': Icons.attach_money_rounded,
+        'color': const Color(0xFF10B981),
+      },
+      {
+        'key': 'nakit_tl',
         'title': 'TL Nakit Cüzdan',
         'amount': 'Nakit',
         'cost': 'Vadesiz TL',
         'current_value': CurrencyNormalizer.formatCents(_cashTryCents),
+        'profit_text': null,
+        'is_profit': true,
         'icon': Icons.account_balance_wallet_rounded,
         'color': AppColors.incomeGreen,
       },
     ];
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text(
           'Varlıklarım & Portföy',
@@ -389,16 +745,16 @@ class _AssetsScreenState extends State<AssetsScreen> {
         color: AppColors.actionPrimary,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Segment Kontrolcü: [Birikim] | [Kartlar]
+              // Segment Kontrolcü: [Birikim] | [Araç & Mülk] | [Kartlar]
               Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
                 ),
                 child: Row(
                   children: [
@@ -412,28 +768,42 @@ class _AssetsScreenState extends State<AssetsScreen> {
 
               if (_selectedTab == 0) ...[
                 // Toplam Portföy Büyüklüğü Kartı
-                Container(
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
+                FinanceCard(
+                  padding: const EdgeInsets.all(20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Toplam Varlık Değeri', style: TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'TOPLAM PORTFÖY DEĞERİ',
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textSecondary, letterSpacing: 0.5),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEFF6FF),
+                              borderRadius: BorderRadius.circular(AppRadius.pill),
+                            ),
+                            child: const Text(
+                              'Canlı Değerleme',
+                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.actionPrimary),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
                       Text(
                         CurrencyNormalizer.formatCents(totalWealthCents),
-                        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: AppColors.textPrimary, letterSpacing: -0.5),
+                        style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: AppColors.textPrimary, letterSpacing: -0.5),
                       ),
                       const SizedBox(height: 12),
                       Row(
                         children: [
                           _buildMiniBadge('3 Varlık Kalemi'),
                           const SizedBox(width: 8),
-                          _buildMiniBadge('Canlı Piyasa Fiyatlı'),
+                          _buildMiniBadge('Anlık Kur Takibi'),
                         ],
                       ),
                     ],
@@ -471,62 +841,86 @@ class _AssetsScreenState extends State<AssetsScreen> {
                 const SizedBox(height: 20),
 
                 // Varlıklar Listesi
-                const Text(
-                  'Varlık Portföyüm',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Varlık Portföyüm',
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                    ),
+                    TextButton.icon(
+                      onPressed: () => _showSelectAssetToEditDialog(),
+                      icon: const Icon(Icons.edit_rounded, size: 16, color: AppColors.actionPrimary),
+                      label: const Text('Varlıkları Düzenle', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.actionPrimary)),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 10),
 
-                ...assets.map((asset) {
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.02),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: (asset['color'] as Color).withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(14),
+                FinanceCard(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                  child: Column(
+                    children: assets.asMap().entries.map((entry) {
+                      final idx = entry.key;
+                      final asset = entry.value;
+                      return Column(
+                        children: [
+                          if (idx > 0) const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                          InkWell(
+                            onTap: () => _showEditAssetDialog(asset['key'] as String),
+                            borderRadius: BorderRadius.circular(12),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 42,
+                                    height: 42,
+                                    decoration: BoxDecoration(
+                                      color: (asset['color'] as Color).withOpacity(0.12),
+                                      borderRadius: BorderRadius.circular(AppRadius.md),
+                                    ),
+                                    child: Icon(asset['icon'] as IconData, color: asset['color'] as Color, size: 22),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(asset['title'] as String, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+                                        const SizedBox(height: 2),
+                                        Text(asset['cost'] as String, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                                      ],
+                                    ),
+                                  ),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(asset['amount'] as String, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+                                      const SizedBox(height: 2),
+                                      Text(asset['current_value'] as String, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.incomeGreen)),
+                                      if (asset['profit_text'] != null) ...[
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'K/Z: ${asset['profit_text']}',
+                                          style: TextStyle(
+                                            fontSize: 10.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: asset['is_profit'] == true ? AppColors.incomeGreen : AppColors.expenseRed,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                          child: Icon(asset['icon'] as IconData, color: asset['color'] as Color, size: 24),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(asset['title'] as String, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
-                              const SizedBox(height: 2),
-                              Text(asset['cost'] as String, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                            ],
-                          ),
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(asset['amount'] as String, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
-                            const SizedBox(height: 2),
-                            Text(asset['current_value'] as String, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.incomeGreen)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ),
                 const SizedBox(height: 16),
                 const MarketNewsSection(),
                 const SizedBox(height: 16),
@@ -535,7 +929,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
                 MorphingShareButton(
                   fileName: 'varlik_ve_portfoy_raporu.pdf',
                   label: 'Varlık Portföyünü İndir & Paylaş',
-                  accentColor: const Color(0xFFF59E0B),
+                  accentColor: AppColors.actionPrimary,
                   onDownloadComplete: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -565,33 +959,9 @@ class _AssetsScreenState extends State<AssetsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Shakuro Inspired Yüzen Dynamic Island Kapsülü (%25 Maksimum Boyut, Drag-to-Dismiss)
-        if (_showEvInsightBanner)
-          DynamicIslandCapsule(
-            title: 'Akıllı Tasarruf: Elektrikli Araç Avantajı',
-            message:
-                'Dizel veya benzinli araçlarda motor yağı, triger, buji, egzoz ve filtre gibi ağır periyodik bakım masrafları bulunurken; elektrikli araçlarda periyodik bakım maliyeti %60-70 daha düşüktür. Evden/işten şarj ile km başına yakıt maliyeti %70-80 daha ekonomiktir.',
-            comparisonHighlight:
-                'Öneri: Yıllık 20.000 km kullanımda elektrikli araç ile ortalama ₺45.000 - ₺60.000 net tasarruf edebilirsiniz.',
-            onDismissed: () => setState(() => _showEvInsightBanner = false),
-            onActionTap: () {
-              InAppNotificationSheet.show(
-                context,
-                title: 'Elektrikli Araç Tasarruf Karşılaştırması',
-                message:
-                    'Dizel/benzinli araçların ağır motor revizyon ve parça maliyetlerine karşılık; elektrikli araç bataryaları 8 yıl/160.000 km garantili olup periyodik bakım giderleri minimumdur.',
-              );
-            },
-          ),
-
         // Konut & Ev Tipi Kartı
-        Container(
+        FinanceCard(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -608,10 +978,10 @@ class _AssetsScreenState extends State<AssetsScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppColors.accentBlue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
                     ),
-                    child: Text(_selectedHousingType, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.accentBlue)),
+                    child: Text(_selectedHousingType, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.actionPrimary)),
                   ),
                 ],
               ),
@@ -622,7 +992,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: const Color(0xFFF8FAFC),
                 ),
                 items: RemoteConfigService.instance.housingTypes
                     .map((h) => DropdownMenuItem(value: h, child: Text(h, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600))))
@@ -670,7 +1040,34 @@ class _AssetsScreenState extends State<AssetsScreen> {
         const SizedBox(height: 12),
 
         // Araç Listesi
-        ..._userVehicles.map((v) {
+        if (_userVehicles.isEmpty)
+          FinanceCard(
+            padding: const EdgeInsets.all(24),
+            child: Center(
+              child: Column(
+                children: [
+                  const Icon(Icons.directions_car_outlined, size: 36, color: Color(0xFF94A3B8)),
+                  const SizedBox(height: 8),
+                  const Text('Henüz Kayıtlı Araç Bulunmuyor', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                  const SizedBox(height: 4),
+                  const Text('Aracınızı ekleyerek kasko, yakıt ve bakım giderlerini takip edebilirsiniz.', style: TextStyle(fontSize: 11, color: AppColors.textSecondary), textAlign: TextAlign.center),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    onPressed: _showAddVehicleDialog,
+                    icon: const Icon(Icons.add_rounded, size: 16),
+                    label: const Text('İlk Aracını Ekle'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.actionPrimary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          ..._userVehicles.map((v) {
           final fuel = v['fuel_type'] as String;
           Color badgeColor = Colors.grey;
           if (fuel == 'Elektrik') badgeColor = const Color(0xFF00D084);
@@ -678,27 +1075,19 @@ class _AssetsScreenState extends State<AssetsScreen> {
           else if (fuel == 'Benzin') badgeColor = const Color(0xFFF97316);
           else if (fuel == 'Hibrit') badgeColor = const Color(0xFF06B6D4);
 
-          return Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
-              ],
-            ),
+          return FinanceCard(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(14),
             child: Row(
               children: [
                 Container(
-                  width: 44,
-                  height: 44,
+                  width: 42,
+                  height: 42,
                   decoration: BoxDecoration(
                     color: badgeColor.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
-                  child: Icon(Icons.directions_car_rounded, color: badgeColor, size: 24),
+                  child: Icon(Icons.directions_car_rounded, color: badgeColor, size: 22),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -718,7 +1107,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
                       ),
                       const SizedBox(height: 3),
                       Text('${v['year']} Model • Plaka: ${v['plate'] ?? "Belirtilmedi"}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                      Text('Aylık Ortalama Bakım/Yakıt: ${CurrencyNormalizer.formatCents((v['monthly_cost_cents'] as num?)?.toInt() ?? 0)}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFFE11D48))),
+                      Text('Aylık Bakım/Yakıt: ${CurrencyNormalizer.formatCents((v['monthly_cost_cents'] as num?)?.toInt() ?? 0)}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFFE11D48))),
                     ],
                   ),
                 ),
@@ -835,71 +1224,121 @@ class _AssetsScreenState extends State<AssetsScreen> {
   }
 
   Widget _buildLinkedCardsView() {
+    if (_linkedCards.isEmpty) {
+      return FinanceCard(
+        margin: const EdgeInsets.only(top: 8),
+        padding: const EdgeInsets.all(28),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: AppColors.actionPrimary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(Icons.credit_card_rounded, size: 28, color: AppColors.actionPrimary),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Henüz Bağlı Kart veya Hesap Yok',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Ekstre PDF\'lerinizi yüklediğinizde banka hesaplarınız ve kartlarınız otomatik olarak burada listelenir.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+              ),
+              const SizedBox(height: 18),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      StatementUploadSheet.show(context);
+                    },
+                    icon: const Icon(Icons.upload_file_rounded, size: 16),
+                    label: const Text('Ekstre Yükle'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.actionPrimary,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.button)),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  OutlinedButton.icon(
+                    onPressed: _showAddCardDialog,
+                    icon: const Icon(Icons.add_rounded, size: 16),
+                    label: const Text('Manuel Ekle'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.textPrimary,
+                      side: const BorderSide(color: Color(0xFFCBD5E1)),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.button)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Toplam Kart Limiti & Borç Özeti
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(20),
-          ),
+        FinanceCard(
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
-                  Text('TOPLAM KREDİ KARTI LİMİTİ', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF94A3B8), letterSpacing: 0.5)),
-                  Text('3 Bağlı Kart', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF38BDF8))),
+                children: [
+                  const Text('TOPLAM HESAP & KARTLAR', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textSecondary, letterSpacing: 0.5)),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.actionPrimary.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
+                    ),
+                    child: Text('${_linkedCards.length} Bağlı Hesap', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.actionPrimary)),
+                  ),
                 ],
               ),
-              const SizedBox(height: 6),
-              const Text('₺350.000,00', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white)),
+              const SizedBox(height: 8),
+              Text('${_linkedCards.length} Aktif Kart / Cüzdan', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
               const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text('Dönem Borcu', style: TextStyle(fontSize: 10, color: Color(0xFFFDA4AF))),
-                          SizedBox(height: 2),
-                          Text('₺98.826,10', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white)),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text('Kullanılabilir Limit', style: TextStyle(fontSize: 10, color: Color(0xFF86EFAC))),
-                          SizedBox(height: 2),
-                          Text('₺251.173,90', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white)),
-                        ],
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: AppColors.incomeGreen,
+                        shape: BoxShape.circle,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    const Text('Cihaz İçi Kriptolu • Sıfır-Bilgi', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textSecondary)),
+                    const Spacer(),
+                    const Text('Güvenli', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.incomeGreen)),
+                  ],
+                ),
               ),
             ],
           ),
@@ -926,71 +1365,62 @@ class _AssetsScreenState extends State<AssetsScreen> {
           final isCredit = card['type'] == 'CREDIT';
           return Container(
             margin: const EdgeInsets.only(bottom: 10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.02),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: InkWell(
-              onTap: () => _showCardDetail(card),
-              borderRadius: BorderRadius.circular(18),
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: (card['color'] as Color).withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(14),
+            child: FinanceCard(
+              padding: EdgeInsets.zero,
+              child: InkWell(
+                onTap: () => _showCardDetail(card),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: (card['color'] as Color).withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(Icons.credit_card_rounded, color: card['color'] as Color, size: 22),
                       ),
-                      child: Icon(Icons.credit_card_rounded, color: card['color'] as Color, size: 22),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text(card['name'] as String, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
-                              if (card['is_supplementary'] == true) ...[
-                                const SizedBox(width: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFEFF6FF),
-                                    borderRadius: BorderRadius.circular(6),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(card['name'] as String, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+                                if (card['is_supplementary'] == true) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFEFF6FF),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: const Text('Ek Kart', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: AppColors.actionPrimary)),
                                   ),
-                                  child: const Text('Ek Kart', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: AppColors.actionPrimary)),
-                                ),
+                                ],
                               ],
-                            ],
-                          ),
-                          const SizedBox(height: 3),
-                          Text('${card['mask']} • ${card['holder']} • ${card['statement_day']}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                            ),
+                            const SizedBox(height: 3),
+                            Text('${card['mask']} • ${card['holder']} • ${card['statement_day']}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                          ],
+                        ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(card['debt'] as String, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: isCredit ? AppColors.expenseRed : AppColors.incomeGreen)),
+                          const SizedBox(height: 2),
+                          Text(card['limit'] as String, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
                         ],
                       ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(card['debt'] as String, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: isCredit ? AppColors.expenseRed : AppColors.incomeGreen)),
-                        const SizedBox(height: 2),
-                        Text(card['limit'] as String, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
-                      ],
-                    ),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.textMuted),
-                  ],
+                      const SizedBox(width: 4),
+                      const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.textMuted),
+                    ],
+                  ),
                 ),
               ),
             ),

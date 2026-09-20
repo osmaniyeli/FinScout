@@ -153,6 +153,7 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
+                clipBehavior: Clip.antiAlias,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: isFamily ? const Color(0xFFF0FDF4) : (isAnnual ? const Color(0xFFEFF6FF) : const Color(0xFFF8FAFC)),

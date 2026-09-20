@@ -21,105 +21,80 @@ class FloatingCapsuleNavBar extends StatelessWidget {
     required this.currentIndex,
     required this.onTap,
     required this.items,
-    this.backgroundColor = const Color(0xFF0C0E14), // Shakuro Pitch Black
-    this.activeIndicatorColor = const Color(0xFF2563EB), // Neon Blue Pill
+    this.backgroundColor = Colors.white,
+    this.activeIndicatorColor = const Color(0xFF2563EB), // iBank FinTech Kobalt
     this.activeContentColor = Colors.white,
     this.inactiveColor = const Color(0xFF94A3B8), // Muted Slate
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // Ekranın altından 14dp yukarıda yüzer; yatayda 16dp marj
     return Container(
-      margin: const EdgeInsets.only(left: 16, right: 16, bottom: 14),
       decoration: BoxDecoration(
-        color: backgroundColor.withOpacity(0.92),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.12),
-          width: 1,
+        color: backgroundColor,
+        border: const Border(
+          top: BorderSide(color: Color(0xFFE2E8F0), width: 1),
         ),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withOpacity(0.35),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
-            spreadRadius: 2,
-          ),
-          BoxShadow(
-            color: activeIndicatorColor.withOpacity(0.18),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
+            color: Color(0x06000000),
+            blurRadius: 12,
+            offset: Offset(0, -3),
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(30),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: List.generate(items.length, (index) {
-                final item = items[index];
-                final isSelected = index == currentIndex;
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(items.length, (index) {
+              final item = items[index];
+              final isSelected = index == currentIndex;
 
-                return Expanded(
-                  child: InkWell(
-                    onTap: () => onTap(index),
-                    borderRadius: BorderRadius.circular(22),
-                    splashColor: activeIndicatorColor.withOpacity(0.2),
-                    highlightColor: Colors.transparent,
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 280),
-                      curve: Curves.easeOutCubic,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isSelected ? activeIndicatorColor : Colors.transparent,
-                        borderRadius: BorderRadius.circular(22),
-                        boxShadow: isSelected
-                            ? [
-                                BoxShadow(
-                                  color: activeIndicatorColor.withOpacity(0.4),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 2),
-                                )
-                              ]
-                            : null,
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          AnimatedScale(
-                            scale: isSelected ? 1.12 : 1.0,
-                            duration: const Duration(milliseconds: 240),
-                            curve: Curves.easeOutBack,
-                            child: Icon(
-                              item.icon,
-                              size: 20,
-                              color: isSelected ? activeContentColor : inactiveColor,
-                            ),
+              return Expanded(
+                child: InkWell(
+                  onTap: () => onTap(index),
+                  borderRadius: BorderRadius.circular(20),
+                  splashColor: activeIndicatorColor.withOpacity(0.12),
+                  highlightColor: Colors.transparent,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 240),
+                    curve: Curves.easeOutCubic,
+                    padding: EdgeInsets.symmetric(
+                      vertical: isSelected ? 8 : 6,
+                      horizontal: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected ? activeIndicatorColor : Colors.transparent,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          item.icon,
+                          size: 20,
+                          color: isSelected ? activeContentColor : inactiveColor,
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          item.label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                            color: isSelected ? activeContentColor : inactiveColor,
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            item.label,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                              color: isSelected ? activeContentColor : inactiveColor,
-                              letterSpacing: isSelected ? 0.3 : 0.0,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                );
-              }),
-            ),
+                ),
+              );
+            }),
           ),
         ),
       ),

@@ -4,9 +4,9 @@ import '../models/parsed_models.dart';
 import '../../utils/currency_normalizer.dart';
 
 class EnparaCheckingParser {
-  // İşlem Satırı Yakalama Deseni: "28/07/26 BİM BİRLEŞİK MAĞAZALAR A.Ş. -456,50 TL 12.340,50 TL"
+  // İşlem Satırı Yakalama Deseni: "28/07/26 BİM BİRLEŞİK MAĞAZALAR A.Ş. -456,50 TL 12.340,50 TL" veya "28/07/2026 PALGAZ Tüketim Faturası -450,00 TL"
   static final RegExp _txRowRegex = RegExp(
-    r'^(\d{2}/\d{2}/\d{2})\s+(.+?)\s+(-?\s*[\d\.,]+)\s*TL\s+([\d\.,]+)\s*TL$',
+    r'^(\d{2}/\d{2}/\d{2,4})\s+(.+?)\s+([+-]?\s*[\d\.,]+)\s*TL(?:\s+([+-]?\s*[\d\.,]+)\s*TL)?\s*$',
     multiLine: true,
   );
 
@@ -32,14 +32,16 @@ class EnparaCheckingParser {
       final amountStr = match.group(3)!.replaceAll(' ', '');
 
       final dateParts = dateStr.split('/');
+      int year = int.parse(dateParts[2]);
+      if (year < 100) year += 2000;
       final date = DateTime(
-        2000 + int.parse(dateParts[2]),
+        year,
         int.parse(dateParts[1]),
         int.parse(dateParts[0]),
       );
 
       final totalCents = CurrencyNormalizer.toMinorUnits(amountStr);
-      final isDebit = totalCents < 0;
+      final isDebit = totalCents < 0 || (!amountStr.startsWith('+') && (desc.toLowerCase().contains('fatura') || desc.toLowerCase().contains('palgaz') || desc.toLowerCase().contains('pos')));
 
       // FAST Sorgu No & Abone No Tespiti
       String? trackingId;

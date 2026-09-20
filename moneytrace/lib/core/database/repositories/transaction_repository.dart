@@ -1,9 +1,9 @@
-// lib/core/database/repositories/transaction_repository.dart
-
 import 'package:crypto/crypto.dart';
 import 'package:sqflite/sqflite.dart';
 import '../app_database.dart';
 import '../../parser/models/parsed_models.dart';
+import '../../../features/wallets/models/wallet.dart';
+import '../../../features/wallets/repositories/wallet_repository.dart';
 
 class TransactionRepository {
   final AppDatabase _dbProvider;
@@ -29,6 +29,7 @@ class TransactionRepository {
     required StatementDocumentResult result,
     required String fileSha256,
     String? fileName,
+    String? targetWalletId,
   }) async {
     final db = await _dbProvider.database;
 
@@ -122,6 +123,24 @@ class TransactionRepository {
         }
       }
     });
+
+    if (targetWalletId != null) {
+      try {
+        await WalletRepository.instance.load();
+        final wallet = WalletRepository.instance.wallets.firstWhere(
+          (w) => w.id == targetWalletId,
+          orElse: () => WalletRepository.instance.getConsolidatedWallet(),
+        );
+        int netChange = 0;
+        if (wallet.type == WalletType.creditCard) {
+          // Kredi kartı için harcamalar (debit) borcu artırır, ödemeler (credit) borcu azaltır
+          netChange = result.totalDebitCents - result.totalCreditCents;
+        } else {
+          netChange = result.totalCreditCents - result.totalDebitCents;
+        }
+        await WalletRepository.instance.updateBalance(targetWalletId, wallet.balanceCents + netChange);
+      } catch (_) {}
+    }
   }
 
   /// Manuel Hızlı Giriş (Quick Entry) kaydı ekler.
@@ -190,9 +209,33 @@ class TransactionRepository {
     };
   }
 
-  /// Son işlemleri getirir
-  Future<List<Map<String, dynamic>>> getRecentTransactions({int limit = 30}) async {
+  /// Son işlemleri getirir (opsiyonel olarak seçilen aya göre filtreler)
+  Future<List<Map<String, dynamic>>> getRecentTransactions({int limit = 30, String? yearMonth}) async {
     final db = await _dbProvider.database;
+    if (yearMonth != null && yearMonth.isNotEmpty) {
+      return await db.rawQuery('''
+        SELECT 
+          t.id,
+          t.transaction_date,
+          t.transaction_type,
+          t.clean_merchant,
+          t.billing_amount_cents,
+          c.name as category_name,
+          c.icon_name,
+          c.color_hex,
+          i.current_installment,
+          i.total_installment,
+          i.monthly_amount_cents,
+          i.remaining_amount_cents
+        FROM transactions t
+        LEFT JOIN categories c ON t.category_id = c.id
+        LEFT JOIN installments i ON t.id = i.transaction_id
+        WHERE t.transaction_date LIKE ?
+        ORDER BY t.transaction_date DESC, t.created_at DESC
+        LIMIT ?
+      ''', ['$yearMonth%', limit]);
+    }
+
     return await db.rawQuery('''
       SELECT 
         t.id,
@@ -202,10 +245,37 @@ class TransactionRepository {
         t.billing_amount_cents,
         c.name as category_name,
         c.icon_name,
-        c.color_hex
+        c.color_hex,
+        i.current_installment,
+        i.total_installment,
+        i.monthly_amount_cents,
+        i.remaining_amount_cents
       FROM transactions t
       LEFT JOIN categories c ON t.category_id = c.id
+      LEFT JOIN installments i ON t.id = i.transaction_id
       ORDER BY t.transaction_date DESC, t.created_at DESC
+      LIMIT ?
+    ''', [limit]);
+  }
+
+  /// Gelecek / Yaklaşan taksit ödemelerini getirir (kalan taksitler: current < total)
+  Future<List<Map<String, dynamic>>> getUpcomingInstallments({int limit = 10}) async {
+    final db = await _dbProvider.database;
+    return await db.rawQuery('''
+      SELECT 
+        i.id as installment_id,
+        t.clean_merchant,
+        i.current_installment,
+        i.total_installment,
+        i.monthly_amount_cents,
+        i.remaining_amount_cents,
+        i.due_date,
+        c.color_hex
+      FROM installments i
+      JOIN transactions t ON i.transaction_id = t.id
+      LEFT JOIN categories c ON t.category_id = c.id
+      WHERE i.current_installment < i.total_installment
+      ORDER BY i.due_date ASC
       LIMIT ?
     ''', [limit]);
   }
@@ -449,5 +519,11 @@ class TransactionRepository {
       await txn.delete('statements');
       await txn.delete('accounts');
     });
+  }
+
+  /// Kayıtlı tüm hesapları ve kartları getirir
+  Future<List<Map<String, dynamic>>> getAccounts() async {
+    final db = await _dbProvider.database;
+    return await db.query('accounts', orderBy: 'created_at DESC');
   }
 }

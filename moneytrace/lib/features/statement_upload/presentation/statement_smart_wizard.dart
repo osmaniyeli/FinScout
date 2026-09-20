@@ -9,6 +9,7 @@ import '../../../core/services/data_export_service.dart';
 import '../../../core/widgets/pulse_metric_badge.dart';
 import '../../../core/widgets/morphing_share_button.dart';
 import '../../../core/widgets/radar_checkout_button.dart';
+import '../../../core/services/user_profile_service.dart';
 
 class SmartWizardDecisionResult {
   final Map<String, String> cardOwnerAssignments; // cardMask -> familyMemberId
@@ -69,10 +70,10 @@ class _StatementSmartWizardDialogState extends State<StatementSmartWizardDialog>
   List<ParsedRecord> _cashAdvanceRecords = [];
   List<ParsedRecord> _recurringSubscriptionRecords = [];
 
-  final List<Map<String, String>> _familyMembers = [
-    {'id': 'mem_1', 'name': 'Ahmet Aydın (Asıl Kart)'},
-    {'id': 'mem_2', 'name': 'Zehra Aydın (Eş)'},
-    {'id': 'mem_3', 'name': 'Can Aydın (Çocuk)'},
+  late final List<Map<String, String>> _familyMembers = [
+    {'id': 'mem_1', 'name': '${UserProfileService.instance.profile?.name ?? "Kullanıcı"} (Asıl Kart)'},
+    {'id': 'mem_2', 'name': 'Eş (Ek Kart)'},
+    {'id': 'mem_3', 'name': 'Çocuk (Öğrenci Kartı)'},
   ];
 
   @override

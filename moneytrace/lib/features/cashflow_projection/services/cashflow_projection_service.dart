@@ -57,17 +57,19 @@ class CashflowProjectionService {
       int totalIncome = 0;
       int totalExpense = 0;
 
-      // A) Maaş Günü Eklemesi
-      final salaryDate = DateTime(targetDate.year, targetDate.month, salaryDayOfMonth.clamp(1, 28));
-      events.add(CashflowCalendarEvent(
-        id: 'salary_${targetDate.year}_${targetDate.month}',
-        title: 'Maaş Geliri Tahakkuku',
-        date: salaryDate,
-        amountCents: netSalaryCents,
-        type: CashflowEventType.salary,
-        subtitle: 'Düzenli Aylık Bordro',
-      ));
-      totalIncome += netSalaryCents;
+      // A) Maaş Günü Eklemesi (Sadece kullanıcı gerçek maaş/bütçe belirttiyse)
+      if (netSalaryCents > 0) {
+        final salaryDate = DateTime(targetDate.year, targetDate.month, salaryDayOfMonth.clamp(1, 28));
+        events.add(CashflowCalendarEvent(
+          id: 'salary_${targetDate.year}_${targetDate.month}',
+          title: 'Maaş Geliri Tahakkuku',
+          date: salaryDate,
+          amountCents: netSalaryCents,
+          type: CashflowEventType.salary,
+          subtitle: 'Düzenli Aylık Bordro',
+        ));
+        totalIncome += netSalaryCents;
+      }
 
       // B) Bu aya düşen taksitler
       for (final row in installmentRows) {
@@ -107,39 +109,6 @@ class CashflowProjectionService {
           subtitle: 'Aylık Düzenli Abonelik',
         ));
         totalExpense += subAmount;
-      }
-
-      // D) Eğer veritabanı boşsa (ilk kurulum/demo) zengin mockup takvim olayları ekle
-      if (installmentRows.isEmpty) {
-        final mockInst1 = CashflowCalendarEvent(
-          id: 'demo_inst_1_$i',
-          title: 'Vatan Bilgisayar (Laptop)',
-          date: DateTime(targetDate.year, targetDate.month, 18),
-          amountCents: 425800, // ₺4.258,00
-          type: CashflowEventType.installment,
-          subtitle: 'Taksit ${2 + i} / 6',
-        );
-        final mockInst2 = CashflowCalendarEvent(
-          id: 'demo_inst_2_$i',
-          title: 'IKEA Ev Eşyası',
-          date: DateTime(targetDate.year, targetDate.month, 22),
-          amountCents: 185000, // ₺1.850,00
-          type: CashflowEventType.installment,
-          subtitle: 'Taksit ${1 + i} / 3',
-        );
-        final mockSub = CashflowCalendarEvent(
-          id: 'demo_sub_$i',
-          title: 'Dijital Abonelikler (Netflix, Spotify)',
-          date: DateTime(targetDate.year, targetDate.month, 8),
-          amountCents: 35000, // ₺350,00
-          type: CashflowEventType.subscription,
-          subtitle: 'Aylık Düzenli',
-        );
-
-        events.add(mockInst1);
-        events.add(mockInst2);
-        events.add(mockSub);
-        totalExpense += (425800 + 185000 + 35000);
       }
 
       events.sort((a, b) => a.date.compareTo(b.date));

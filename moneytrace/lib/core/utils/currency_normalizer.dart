@@ -26,6 +26,19 @@ class CurrencyNormalizer {
     } else if (clean.contains(',')) {
       // Yalnızca virgül varsa: 363,84 -> 363.84
       clean = clean.replaceAll(',', '.');
+    } else if (clean.contains('.')) {
+      // Sadece nokta var: 76.000 (Binlik ayracı) vs 76.50 (Ondalık)
+      final parts = clean.split('.');
+      if (parts.length > 2) {
+        // 1.500.000 -> Binlik ayracı
+        clean = clean.replaceAll('.', '');
+      } else if (parts.length == 2) {
+        if (parts[1].length == 3) {
+          // 76.000 -> 3 basamak varsa kesinlikle binlik ayracıdır (76 bin TL)
+          clean = clean.replaceAll('.', '');
+        }
+        // Eğer 1 veya 2 basamaksa (örn 76.5 veya 76.50), ondalık nokta olarak kalır
+      }
     }
 
     final double value = double.tryParse(clean) ?? 0.0;
