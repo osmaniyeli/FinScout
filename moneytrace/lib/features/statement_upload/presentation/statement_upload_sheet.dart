@@ -28,6 +28,24 @@ class StatementUploadSheet extends StatefulWidget {
     this.documentTypeTitle,
   }) : super(key: key);
 
+  static Future<void> show(
+    BuildContext context, {
+    VoidCallback? onImportSuccess,
+    String? documentTypeHint,
+    String? documentTypeTitle,
+  }) {
+    return showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatementUploadSheet(
+        onImportSuccess: onImportSuccess,
+        documentTypeHint: documentTypeHint,
+        documentTypeTitle: documentTypeTitle,
+      ),
+    );
+  }
+
   @override
   State<StatementUploadSheet> createState() => _StatementUploadSheetState();
 }
@@ -265,6 +283,8 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
                   ],
                 ),
               ),
+            ],
+          ),
           const SizedBox(height: 16),
 
           // 1. Madde: Belge Türü Seçimi (Ekstre / Bordro / Kredi Kartı)

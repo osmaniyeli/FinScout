@@ -29,6 +29,7 @@ class StatementOrchestrator {
   /// 5. Vergi ve Taksitlerin Konsolide Edilmesi
   Future<StatementDocumentResult> processDocument({
     required String rawPdfText,
+    String? documentTypeHint,
     Map<String, String>? userMemoryRules,
   }) async {
     // 1. GÜVENLİK: Bellek içinde tüm hassas verileri (TCKN, Kart No, IBAN, Adres) maskele
@@ -39,8 +40,16 @@ class StatementOrchestrator {
 
     List<ParsedRecord> rawRecords = [];
 
+    // Belge türü ipucu varsa ve detection unknown ise veya ipucu öncelikliyse kullan
+    var docType = detection.documentType;
+    if (docType == DocumentType.unknown && documentTypeHint != null) {
+      if (documentTypeHint == 'CHECKING') docType = DocumentType.checkingAccount;
+      if (documentTypeHint == 'CREDIT_CARD') docType = DocumentType.creditCard;
+      if (documentTypeHint == 'PAYSLIP') docType = DocumentType.payslip;
+    }
+
     // 3. AYRIŞTIRMA: Tespit edilen belge tipine göre ilgili parser'ı çalıştır
-    switch (detection.documentType) {
+    switch (docType) {
       case DocumentType.checkingAccount:
         rawRecords = _enparaParser.parse(
           sanitizedText,

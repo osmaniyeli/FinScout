@@ -21,6 +21,7 @@ import '../../statement_upload/presentation/statement_upload_sheet.dart';
 import '../../settings/presentation/settings_screen.dart';
 import '../../../core/config/remote_config_service.dart';
 import '../../subscription/presentation/subscription_plans_sheet.dart';
+import '../../subscription/services/subscription_service.dart';
 import 'widgets/transaction_detail_sheet.dart';
 
 class DashboardScreen extends StatefulWidget {
