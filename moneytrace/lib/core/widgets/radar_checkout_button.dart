@@ -17,7 +17,9 @@ class RadarCheckoutButton extends StatefulWidget {
   final String? verifyingAmountText;
   final String successTitle;
   final Future<void> Function()? onAction;
+  final dynamic onPressed;
   final VoidCallback? onSuccess;
+  final VoidCallback? onVerificationComplete;
 
   const RadarCheckoutButton({
     Key? key,
@@ -27,7 +29,9 @@ class RadarCheckoutButton extends StatefulWidget {
     this.verifyingAmountText,
     this.successTitle = 'Kayıt Başarılı',
     this.onAction,
+    this.onPressed,
     this.onSuccess,
+    this.onVerificationComplete,
   }) : super(key: key);
 
   @override
@@ -43,6 +47,11 @@ class _RadarCheckoutButtonState extends State<RadarCheckoutButton>
   late AnimationController _progressController;
   String _statusText = 'İşlem Doğrulanıyor...';
   int _progressPercent = 11;
+
+  bool get _isEnabled =>
+      widget.onPressed != null ||
+      widget.onAction != null ||
+      (widget.onPressed == null && widget.onAction == null && widget.onVerificationComplete == null && widget.onSuccess == null);
 
   @override
   void initState() {
@@ -67,21 +76,25 @@ class _RadarCheckoutButtonState extends State<RadarCheckoutButton>
 
   Future<void> _startCheckout() async {
     if (_phase != _CheckoutPhase.idle) return;
+    if (!_isEnabled) return;
 
     setState(() {
       _phase = _CheckoutPhase.pulsing;
-      _statusText = 'İşlem Doğrulanıyor...';
+      _statusText = widget.verifyingAmountText ?? 'İşlem Doğrulanıyor...';
       _progressPercent = 15;
     });
 
     // Simüle aşamalı doğrulama (Videodaki %11 -> %68 -> %96 hissi)
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future.delayed(const Duration(milliseconds: 350));
     if (mounted) setState(() { _statusText = 'Güvenlik Protokolü...'; _progressPercent = 58; });
 
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 400));
     if (mounted) setState(() { _statusText = 'Güvenli Bağlantı...'; _progressPercent = 94; });
 
-    if (widget.onAction != null) {
+    if (widget.onPressed != null) {
+      final res = (widget.onPressed as dynamic)();
+      if (res is Future) await res;
+    } else if (widget.onAction != null) {
       await widget.onAction!();
     } else {
       await Future.delayed(const Duration(milliseconds: 400));
@@ -92,6 +105,7 @@ class _RadarCheckoutButtonState extends State<RadarCheckoutButton>
         _phase = _CheckoutPhase.verified;
       });
       widget.onSuccess?.call();
+      widget.onVerificationComplete?.call();
 
       // 3 saniye sonra başa dön
       Future.delayed(const Duration(milliseconds: 3000), () {
@@ -117,53 +131,57 @@ class _RadarCheckoutButtonState extends State<RadarCheckoutButton>
   }
 
   Widget _buildIdleButton() {
-    return InkWell(
-      onTap: _startCheckout,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        width: double.infinity,
-        height: 52,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF8B5CF6).withOpacity(0.35),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
+    final displayAmount = widget.idleAmountText ?? widget.amountText;
+    return Opacity(
+      opacity: _isEnabled ? 1.0 : 0.5,
+      child: InkWell(
+        onTap: _isEnabled ? _startCheckout : null,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          width: double.infinity,
+          height: 52,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.lock_outline_rounded, color: Colors.white, size: 18),
-            const SizedBox(width: 8),
-            Text(
-              widget.label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14.5,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.2,
-              ),
-            ),
-            if (widget.amountText.isNotEmpty) ...[
-              const SizedBox(width: 8),
-              Text(
-                '(${widget.amountText})',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.85),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF8B5CF6).withOpacity(0.35),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
               ),
             ],
-          ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.lock_outline_rounded, color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                widget.label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.2,
+                ),
+              ),
+              if (displayAmount.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                Text(
+                  '($displayAmount)',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.85),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );

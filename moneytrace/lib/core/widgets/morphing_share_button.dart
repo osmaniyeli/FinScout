@@ -15,6 +15,7 @@ class MorphingShareButton extends StatefulWidget {
   final String? fileName;
   final Color? accentColor;
   final Future<void> Function()? onDownload;
+  final VoidCallback? onDownloadComplete;
   final Function(String channel)? onShareChannel;
 
   const MorphingShareButton({
@@ -23,6 +24,7 @@ class MorphingShareButton extends StatefulWidget {
     this.fileName,
     this.accentColor,
     this.onDownload,
+    this.onDownloadComplete,
     this.onShareChannel,
   }) : super(key: key);
 
@@ -66,6 +68,7 @@ class _MorphingShareButtonState extends State<MorphingShareButton>
 
     if (mounted) {
       setState(() => _state = _ShareBtnState.downloaded);
+      widget.onDownloadComplete?.call();
     }
   }
 

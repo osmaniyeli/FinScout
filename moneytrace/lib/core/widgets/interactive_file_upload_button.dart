@@ -17,6 +17,7 @@ class InteractiveFileUploadButton extends StatefulWidget {
   final String? label;
   final List<String>? acceptedExtensions;
   final Future<void> Function()? onUploadAction;
+  final dynamic onFileSelected;
   final VoidCallback? onComplete;
 
   const InteractiveFileUploadButton({
@@ -27,6 +28,7 @@ class InteractiveFileUploadButton extends StatefulWidget {
     this.label,
     this.acceptedExtensions,
     this.onUploadAction,
+    this.onFileSelected,
     this.onComplete,
   }) : super(key: key);
 
@@ -66,6 +68,9 @@ class _InteractiveFileUploadButtonState
 
     if (widget.onUploadAction != null) {
       await widget.onUploadAction!();
+    } else if (widget.onFileSelected != null) {
+      final res = (widget.onFileSelected as dynamic)(null);
+      if (res is Future) await res;
     } else {
       await Future.delayed(const Duration(milliseconds: 1400));
     }
@@ -139,7 +144,7 @@ class _InteractiveFileUploadButtonState
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              widget.fileName,
+              widget.label ?? widget.fileName,
               style: const TextStyle(
                 fontSize: 13.5,
                 fontWeight: FontWeight.w700,
