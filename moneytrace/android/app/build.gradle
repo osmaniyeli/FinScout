@@ -29,7 +29,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace "com.paraiz.moneytrace"
+    namespace "com.moneytrace.app"
     compileSdkVersion 36
     ndkVersion flutter.ndkVersion
 
@@ -47,7 +47,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.paraiz.moneytrace"
+        applicationId "com.moneytrace.app"
         minSdkVersion 21
         targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()

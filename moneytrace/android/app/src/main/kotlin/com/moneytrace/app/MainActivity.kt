@@ -1,4 +1,4 @@
-package com.paraiz.moneytrace
+package com.moneytrace.app
 
 import io.flutter.embedding.android.FlutterActivity
 
