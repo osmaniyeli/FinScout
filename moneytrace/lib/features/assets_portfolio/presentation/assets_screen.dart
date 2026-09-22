@@ -193,15 +193,14 @@ class _AssetsScreenState extends State<AssetsScreen> {
                         // Kasa borç durumu arayüzde güncellendi
                       });
                       try {
-                        await _repository.insertTransaction({
-                          'id': 'tx_pay_${DateTime.now().millisecondsSinceEpoch}',
-                          'title': '${card['name']} Kart Borcu Ödemesi',
-                          'amount_cents': paidCents,
-                          'transaction_type': 'EXPENSE',
-                          'category_id': 'borc_odeme',
-                          'account_id': account,
-                          'created_at': DateTime.now().millisecondsSinceEpoch,
-                        });
+                        await _repository.saveManualTransaction(
+                          title: '${card['name']} Kart Borcu Ödemesi',
+                          amountCents: paidCents,
+                          isExpense: true,
+                          categoryId: 'borc_odeme',
+                          date: DateTime.now(),
+                          note: 'Kart borcu ödemesi - hesap: $account',
+                        );
                       } catch (e) {
                         debugPrint('Borç ödeme işlem kaydı hatası: $e');
                       }

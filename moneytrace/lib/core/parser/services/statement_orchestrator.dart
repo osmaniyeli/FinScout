@@ -83,78 +83,79 @@ class StatementOrchestrator {
       } else {
         switch (detection.institution) {
           case SupportedInstitution.enpara:
-          rawRecords = _enparaParser.parse(
-            sanitizedText,
-            accountMask: detection.detectedAccountIdentifier.isNotEmpty
-                ? detection.detectedAccountIdentifier
-                : null,
-          );
-          break;
+            rawRecords = _enparaParser.parse(
+              sanitizedText,
+              accountMask: detection.detectedAccountIdentifier.isNotEmpty
+                  ? detection.detectedAccountIdentifier
+                  : null,
+            );
+            break;
 
-        case SupportedInstitution.yapiKredi:
-          rawRecords = _yapiKrediParser.parse(sanitizedText);
-          break;
-
-        case SupportedInstitution.garanti:
-          rawRecords = _garantiParser.parse(
-            sanitizedText,
-            accountMask: detection.detectedAccountIdentifier.isNotEmpty
-                ? detection.detectedAccountIdentifier
-                : null,
-          );
-          break;
-
-        case SupportedInstitution.isBankasi:
-          rawRecords = _isBankasiParser.parse(
-            sanitizedText,
-            accountMask: detection.detectedAccountIdentifier.isNotEmpty
-                ? detection.detectedAccountIdentifier
-                : null,
-          );
-          break;
-
-        case SupportedInstitution.akbank:
-          rawRecords = _akbankParser.parse(
-            sanitizedText,
-            accountMask: detection.detectedAccountIdentifier.isNotEmpty
-                ? detection.detectedAccountIdentifier
-                : null,
-          );
-          break;
-
-        case SupportedInstitution.ziraat:
-        case SupportedInstitution.vakifbank:
-        case SupportedInstitution.halkbank:
-        case SupportedInstitution.qnb:
-          rawRecords = _genericBankParser.parse(
-            sanitizedText,
-            defaultMask: detection.detectedAccountIdentifier.isNotEmpty
-                ? detection.detectedAccountIdentifier
-                : null,
-            institutionName: _getInstitutionDisplayName(detection.institution),
-          );
-          break;
-
-        case SupportedInstitution.genericUnknown:
-        default:
-          // Bilinmeyen belgede sırasıyla parser'ları dene (Fallback Zinciri)
-          rawRecords = _enparaParser.parse(sanitizedText);
-          if (rawRecords.isEmpty) {
+          case SupportedInstitution.yapiKredi:
             rawRecords = _yapiKrediParser.parse(sanitizedText);
-          }
-          if (rawRecords.isEmpty) {
-            rawRecords = _garantiParser.parse(sanitizedText);
-          }
-          if (rawRecords.isEmpty) {
-            rawRecords = _isBankasiParser.parse(sanitizedText);
-          }
-          if (rawRecords.isEmpty) {
-            rawRecords = _akbankParser.parse(sanitizedText);
-          }
-          if (rawRecords.isEmpty) {
-            rawRecords = _genericBankParser.parse(sanitizedText);
-          }
-          break;
+            break;
+
+          case SupportedInstitution.garanti:
+            rawRecords = _garantiParser.parse(
+              sanitizedText,
+              accountMask: detection.detectedAccountIdentifier.isNotEmpty
+                  ? detection.detectedAccountIdentifier
+                  : null,
+            );
+            break;
+
+          case SupportedInstitution.isBankasi:
+            rawRecords = _isBankasiParser.parse(
+              sanitizedText,
+              accountMask: detection.detectedAccountIdentifier.isNotEmpty
+                  ? detection.detectedAccountIdentifier
+                  : null,
+            );
+            break;
+
+          case SupportedInstitution.akbank:
+            rawRecords = _akbankParser.parse(
+              sanitizedText,
+              accountMask: detection.detectedAccountIdentifier.isNotEmpty
+                  ? detection.detectedAccountIdentifier
+                  : null,
+            );
+            break;
+
+          case SupportedInstitution.ziraat:
+          case SupportedInstitution.vakifbank:
+          case SupportedInstitution.halkbank:
+          case SupportedInstitution.qnb:
+            rawRecords = _genericBankParser.parse(
+              sanitizedText,
+              defaultMask: detection.detectedAccountIdentifier.isNotEmpty
+                  ? detection.detectedAccountIdentifier
+                  : null,
+              institutionName: _getInstitutionDisplayName(detection.institution),
+            );
+            break;
+
+          case SupportedInstitution.genericUnknown:
+          default:
+            // Bilinmeyen belgede sırasıyla parser'ları dene (Fallback Zinciri)
+            rawRecords = _enparaParser.parse(sanitizedText);
+            if (rawRecords.isEmpty) {
+              rawRecords = _yapiKrediParser.parse(sanitizedText);
+            }
+            if (rawRecords.isEmpty) {
+              rawRecords = _garantiParser.parse(sanitizedText);
+            }
+            if (rawRecords.isEmpty) {
+              rawRecords = _isBankasiParser.parse(sanitizedText);
+            }
+            if (rawRecords.isEmpty) {
+              rawRecords = _akbankParser.parse(sanitizedText);
+            }
+            if (rawRecords.isEmpty) {
+              rawRecords = _genericBankParser.parse(sanitizedText);
+            }
+            break;
+        }
       }
     }
 

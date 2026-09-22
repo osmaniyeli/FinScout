@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
@@ -93,7 +94,7 @@ class AppTheme {
   }
 
   // 2. Finansal Rakamlar ve Tutarlar İçin Yardımcı Stil
-  static TextStyle get numericStyle => GoogleFonts.jetbrainsMono(
+  static TextStyle get numericStyle => GoogleFonts.jetBrainsMono(
     fontWeight: FontWeight.w600,
     letterSpacing: -0.5,
   );

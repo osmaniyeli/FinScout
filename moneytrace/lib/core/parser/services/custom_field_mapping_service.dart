@@ -261,12 +261,12 @@ class CustomFieldMappingService {
         ? descriptionParts.join(' - ')
         : '${template.bankName} Dekont İşlemi';
 
-    final isIncome = template.defaultTransactionType.toUpperCase() == 'INCOME';
     return ParsedRecord(
-      cardOrAccountMask: '****',
-      cardHolder: rawRecipientStr,
+      cardOrAccountMask: 'CUSTOM_TEMPLATE',
       date: txDate,
-      type: isIncome ? ParsedTransactionType.credit : ParsedTransactionType.debit,
+      type: template.defaultTransactionType == 'INCOME'
+          ? ParsedTransactionType.credit
+          : ParsedTransactionType.debit,
       rawDescription: finalMerchant,
       cleanMerchant: finalMerchant,
       categoryId: template.defaultCategory,

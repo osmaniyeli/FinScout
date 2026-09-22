@@ -324,7 +324,7 @@ class _QuickEntrySheetState extends State<QuickEntrySheet> {
               onToggle: (toIncome) {
                 setState(() {
                   _selectedType = toIncome ? EntryType.income : EntryType.expense;
-                  final categories = _categories;
+                  final categories = _currentCategories;
                   if (categories.isNotEmpty) {
                     _selectedCategory = categories.first['id'] as String;
                   }
