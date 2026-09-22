@@ -1,7 +1,7 @@
 name: moneytrace
 description: "Paraİz (MoneyTrace) - Deterministik Veri Motoru & Harcama Zekası Platformu"
 publish_to: 'none'
-version: 3.5.1+2
+version: 3.5.2+3
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
