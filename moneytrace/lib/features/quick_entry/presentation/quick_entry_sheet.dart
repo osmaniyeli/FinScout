@@ -5,6 +5,7 @@ import '../../../core/utils/currency_normalizer.dart';
 import '../../../core/security/security_guard.dart';
 import '../../../core/widgets/radar_checkout_button.dart';
 import '../../../core/services/voice_expense_parser_service.dart';
+import '../../../core/widgets/fintech/fintech_components.dart';
 import '../../statement_upload/presentation/statement_upload_sheet.dart';
 
 enum EntryType { expense, income, savings }
@@ -314,6 +315,81 @@ class _QuickEntrySheetState extends State<QuickEntrySheet> {
               ],
             ),
             const SizedBox(height: 16),
+
+            // Frontend Joe Inspired: Sliding Overlay Mode Card (Gider <-> Gelir Geçişi)
+            SlidingOverlayCard(
+              height: 105,
+              borderRadius: 18,
+              isSecondary: _selectedType == EntryType.income,
+              onToggle: (toIncome) {
+                setState(() {
+                  _selectedType = toIncome ? EntryType.income : EntryType.expense;
+                  final categories = _categories;
+                  if (categories.isNotEmpty) {
+                    _selectedCategory = categories.first['id'] as String;
+                  }
+                });
+              },
+              primaryHeroTitle: 'Harcama Modu',
+              primaryHeroSubtitle: 'Gider işleyin, bakiye düşsün',
+              primaryButtonText: 'GELİRE GEÇ',
+              primaryGradient: const LinearGradient(
+                colors: [Color(0xFFE11D48), Color(0xFF9F1239)],
+              ),
+              primaryForm: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF1F2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.arrow_outward_rounded, color: AppColors.expenseRed, size: 20),
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('GİDER ÇIKIŞI', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.expenseRed)),
+                        Text('Kasa bakiyesini azaltır', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              secondaryHeroTitle: 'Gelir Modu',
+              secondaryHeroSubtitle: 'Tahsilat işleyin, kasa artsın',
+              secondaryButtonText: 'GİDERE GEÇ',
+              secondaryGradient: const LinearGradient(
+                colors: [Color(0xFF059669), Color(0xFF064E3B)],
+              ),
+              secondaryForm: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFECFDF5),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.arrow_downward_rounded, color: AppColors.incomeGreen, size: 20),
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('GELİR GİRİŞİ', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.incomeGreen)),
+                        Text('Kasa bakiyesini artırır', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
 
             // Segment Tabs (Gider, Gelir, Birikim)
             Container(

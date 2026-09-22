@@ -1170,6 +1170,11 @@
 
     <div class="header-actions">
       <button class="btn btn-ghost" onclick="resetToDefaults()">Sıfırla</button>
+      <label class="btn btn-ghost" style="cursor: pointer; margin: 0;">
+        <input type="file" id="config-file-input" accept=".json" style="display: none;" onchange="importConfigFile(event)">
+        <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+        JSON İçe Aktar
+      </label>
       <button class="btn btn-primary" onclick="copyJsonToClipboard()">
         <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
         JSON Kopyala
@@ -1210,6 +1215,12 @@
         </button>
         <button class="tab-btn" onclick="switchTab('micro', this)">
           🎬 Video Laboratuvarı
+        </button>
+        <button class="tab-btn" onclick="switchTab('frontendjoe', this)">
+          ✨ Frontend Joe UI Lab
+        </button>
+        <button class="tab-btn" onclick="switchTab('mapping', this)">
+          🗺️ Dekont & Ekstre Eşleme
         </button>
         <button class="tab-btn" onclick="switchTab('json', this)">
           💻 Canlı JSON
@@ -1709,12 +1720,323 @@
           </div>
         </div>
       </div>
-      <div id="tab-json" class="tab-content">
+      <!-- TAB: FRONTEND JOE UI LAB & SLIDING OVERLAY -->
+      <div id="tab-frontendjoe" class="tab-content">
         <div class="panel-card">
           <div class="panel-header">
             <div>
+              <div class="panel-title">✨ Frontend Joe (@frontendjoe) Pure CSS Sliding Overlay & Biyometrik Giriş Laboratuvarı</div>
+              <div class="panel-desc">CSS Logins Part 19 mimarisi: 0.65s cubic transition, 50% kayar kapak ve Face ID / PIN kimlik doğrulama simülasyonu.</div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-primary" onclick="document.getElementById('fj-chk').click()">
+                🔄 Kapağı Kaydır (0.65s)
+              </button>
+            </div>
+          </div>
+
+          <!-- Pure CSS Interactive Showcase Box -->
+          <div style="background: #0B0F19; border: 1px solid var(--border-color); border-radius: 20px; padding: 32px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
+            
+            <style>
+              .fj-wrapper {
+                position: relative;
+                width: 680px;
+                max-width: 100%;
+                height: 380px;
+                background: #FFFFFF;
+                border-radius: 24px;
+                box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+                overflow: hidden;
+                display: flex;
+              }
+              .fj-side-panel {
+                width: 50%;
+                height: 100%;
+                padding: 32px 28px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                box-sizing: border-box;
+                color: #0F172A;
+              }
+              .fj-cover-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 50%;
+                height: 100%;
+                background: linear-gradient(135deg, #047857 0%, #0F172A 100%);
+                color: #FFFFFF;
+                border-radius: 20px;
+                margin: 4px;
+                height: calc(100% - 8px);
+                width: calc(50% - 8px);
+                padding: 32px 24px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                box-sizing: border-box;
+                transition: transform 0.65s cubic-bezier(0.65, 0, 0.35, 1), background 0.65s ease;
+                z-index: 10;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+              }
+              #fj-chk { display: none; }
+              #fj-chk:checked ~ .fj-wrapper .fj-cover-overlay {
+                transform: translateX(100%);
+                background: linear-gradient(135deg, #2563EB 0%, #0F172A 100%);
+              }
+              .fj-hero-signup, .fj-hero-signin {
+                transition: opacity 0.3s ease;
+              }
+              #fj-chk:checked ~ .fj-wrapper .fj-hero-signup { display: none; }
+              #fj-chk:not(:checked) ~ .fj-wrapper .fj-hero-signin { display: none; }
+              .fj-glass-btn {
+                margin-top: 16px;
+                padding: 9px 20px;
+                border-radius: 30px;
+                background: rgba(255, 255, 255, 0.16);
+                border: 1px solid rgba(255, 255, 255, 0.35);
+                color: #FFFFFF;
+                font-weight: 800;
+                font-size: 11.5px;
+                letter-spacing: 0.8px;
+                cursor: pointer;
+                transition: background 0.2s, transform 0.1s;
+                user-select: none;
+              }
+              .fj-glass-btn:hover {
+                background: rgba(255, 255, 255, 0.26);
+                transform: scale(1.03);
+              }
+            </style>
+
+            <input type="checkbox" id="fj-chk">
+
+            <div class="fj-wrapper">
+              <!-- Sol Panel: KAYIT OL FORMU (Sign Up) -->
+              <div class="fj-side-panel">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                  <span style="font-size: 18px; font-weight: 900; color: #0F172A;">Kayıt Ol</span>
+                  <span style="background: #ECFDF5; color: #047857; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 10px;">Yeni Profil</span>
+                </div>
+                <div style="font-size: 11.5px; color: #64748B; margin-bottom: 14px;">Paraİz ile bütçeni kontrol altına al.</div>
+                
+                <div style="margin-bottom: 8px;">
+                  <label style="font-size: 11px; font-weight: 700; color: #334155;">Adınız Soyadınız</label>
+                  <input type="text" value="Ahmet Yılmaz" style="width: 100%; padding: 8px 12px; border-radius: 10px; border: 1px solid #CBD5E1; font-size: 12px; margin-top: 4px; box-sizing: border-box;" readonly>
+                </div>
+                <div style="margin-bottom: 12px;">
+                  <label style="font-size: 11px; font-weight: 700; color: #334155;">Ana Banka</label>
+                  <select style="width: 100%; padding: 8px 12px; border-radius: 10px; border: 1px solid #CBD5E1; font-size: 12px; margin-top: 4px; box-sizing: border-box;">
+                    <option>Garanti BBVA</option>
+                    <option>İş Bankası</option>
+                    <option>Yapı Kredi</option>
+                  </select>
+                </div>
+                <button class="btn btn-primary" style="padding: 9px; font-size: 12px; border-radius: 12px; justify-content: center;" onclick="showToast('Profil oluşturma simüle edildi.')">
+                  Profilimi Oluştur & Başla
+                </button>
+              </div>
+
+              <!-- Sağ Panel: GİRİŞ YAP FORMU (Sign In with Biometrics) -->
+              <div class="fj-side-panel" style="background: #F8FAFC;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                  <span style="font-size: 18px; font-weight: 900; color: #0F172A;">Hızlı Giriş</span>
+                  <span style="background: #EFF6FF; color: #1D4ED8; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 10px;">Face ID & PIN</span>
+                </div>
+                <div style="font-size: 11.5px; color: #64748B; margin-bottom: 12px;">Kayıtlı cüzdanınıza ve kartlarınıza dönün.</div>
+
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                  <!-- Face ID -->
+                  <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 10px; cursor: pointer;" onclick="showToast('Yüz Tanıma (Face ID) Başarılı! Oturum Açıldı.')">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-size: 18px;">👤</span>
+                      <div>
+                        <div style="font-size: 11px; font-weight: 800; color: #065F46;">Face ID ile Giriş</div>
+                        <div style="font-size: 9.5px; color: #047857;">Kameraya bakın, anında açın</div>
+                      </div>
+                    </div>
+                    <span style="font-size: 11px; font-weight: 800; color: #059669;">Aç →</span>
+                  </div>
+                  <!-- Touch ID -->
+                  <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 10px; cursor: pointer;" onclick="showToast('Parmak İzi (Touch ID) Doğrulandı! Oturum Açıldı.')">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-size: 18px;">👆</span>
+                      <div>
+                        <div style="font-size: 11px; font-weight: 800; color: #1E40AF;">Touch ID ile Giriş</div>
+                        <div style="font-size: 9.5px; color: #1D4ED8;">Sensöre dokunarak doğrulayın</div>
+                      </div>
+                    </div>
+                    <span style="font-size: 11px; font-weight: 800; color: #2563EB;">Aç →</span>
+                  </div>
+                  <!-- PIN -->
+                  <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; cursor: pointer;" onclick="showToast('PIN Tuş Takımı Simüle Edildi: [● ● ● ●]')">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-size: 18px;">🔢</span>
+                      <div>
+                        <div style="font-size: 11px; font-weight: 800; color: #0F172A;">4 Haneli PIN Kodu</div>
+                        <div style="font-size: 9.5px; color: #64748B;">Şifrenizi tuşlayın</div>
+                      </div>
+                    </div>
+                    <span style="font-size: 11px; font-weight: 800; color: #0F172A;">Tuşla →</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Ortada Kayan Kapak (Pure CSS Sliding Overlay) -->
+              <div class="fj-cover-overlay">
+                <!-- Durum A: Giriş Yap Butonu -->
+                <div class="fj-hero-signup">
+                  <div style="font-size: 18px; font-weight: 900; margin-bottom: 6px;">Zaten hesabın var mı?</div>
+                  <div style="font-size: 12px; opacity: 0.85; max-width: 240px; line-height: 1.4;">Mevcut cüzdanına ve hesaplarına Face ID veya PIN ile anında giriş yap.</div>
+                  <label for="fj-chk" class="fj-glass-btn">GİRİŞ YAP →</label>
+                </div>
+                <!-- Durum B: Kayıt Ol Butonu -->
+                <div class="fj-hero-signin">
+                  <div style="font-size: 18px; font-weight: 900; margin-bottom: 6px;">Yeni misin?</div>
+                  <div style="font-size: 12px; opacity: 0.85; max-width: 240px; line-height: 1.4;">Paraİz ile bütçeni kontrol altına al, finansal özgürlüğe ilk adımı at.</div>
+                  <label for="fj-chk" class="fj-glass-btn">← KAYIT OL</label>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top: 18px; font-size: 12px; color: var(--text-muted); text-align: center;">
+              💡 <em>Not: Yukarıdaki kapak tamamen saf CSS (pure CSS transition) ile çalışır ve Flutter'daki <code>SlidingOverlayCard</code> bileşeninin web karşılığıdır.</em>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: DEKONT & EKSTRE MAPPING (ŞABLON ALAN EŞLEŞTİRME) -->
+      <div id="tab-mapping" class="tab-content">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">🗺️ Dekont & Ekstre Deterministik Alan Eşleştirme (Mapping Engine)</div>
+              <div class="panel-desc">Körü körüne PDF okumak yerine; yeni banka dekontlarındaki Tutar, Tarih, Açıklama ve Alıcı alanlarını Paraİz şemasıyla doğrudan eşleyin.</div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-outline" onclick="loadSampleDekont('fibabanka')">Fibabanka Örneği</button>
+              <button class="btn btn-outline" onclick="loadSampleDekont('kuveytturk')">Kuveyt Türk Örneği</button>
+              <button class="btn btn-outline" onclick="loadSampleDekont('papara')">Papara Örneği</button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <!-- Sol Kolon: Ham Metin ve Algılanan Etiketler -->
+            <div>
+              <label style="font-size: 13px; font-weight: 800; display: block; margin-bottom: 8px;">1. Dekont veya Ekstre Metni (PDF'ten Çıkarılan Metin)</label>
+              <textarea id="mapping-raw-text" rows="12" style="width: 100%; background: #0B0F19; border: 1px solid var(--border-color); border-radius: 12px; color: #E2E8F0; font-family: monospace; font-size: 11.5px; padding: 12px; box-sizing: border-box;" placeholder="Dekont metnini buraya yapıştırın veya yukarıdaki hazır örneklerden seçin..." oninput="analyzeDekontText()"></textarea>
+              <button class="btn btn-primary" style="margin-top: 10px; width: 100%;" onclick="analyzeDekontText()">
+                🔍 Belgedeki Alanları & Etiketleri Ayıkla
+              </button>
+
+              <div style="margin-top: 16px;">
+                <label style="font-size: 12px; font-weight: 800; color: var(--text-muted); display: block; margin-bottom: 6px;">Tespit Edilen Belge Etiketleri (Key-Value Çiftleri):</label>
+                <div id="mapping-detected-tags" style="background: rgba(255,255,255,0.02); border: 1px dashed var(--border-color); border-radius: 12px; padding: 10px; max-height: 180px; overflow-y: auto; font-size: 11px; font-family: monospace;">
+                  Henüz analiz yapılmadı.
+                </div>
+              </div>
+            </div>
+
+            <!-- Sağ Kolon: Alan Eşleştirme & Canlı Simülasyon -->
+            <div>
+              <div style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 16px; padding: 18px;">
+                <div style="font-size: 14px; font-weight: 800; color: #10B981; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                  <span>🎯</span> 2. Paraİz Alan Eşleştirme (Mapping Kuralları)
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                  <div>
+                    <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Banka Adı:</label>
+                    <input type="text" id="map-bank-name" value="Fibabanka" class="input-control" style="width: 100%; padding: 8px; border-radius: 8px; background: #0F172A; color: white; border: 1px solid var(--border-color);" oninput="updateMappingPreview()">
+                  </div>
+                  <div>
+                    <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Şablon Adı:</label>
+                    <input type="text" id="map-template-name" value="Fibabanka FAST Dekont Şablonu" class="input-control" style="width: 100%; padding: 8px; border-radius: 8px; background: #0F172A; color: white; border: 1px solid var(--border-color);" oninput="updateMappingPreview()">
+                  </div>
+                </div>
+
+                <!-- Tutar Eşleme -->
+                <div style="margin-bottom: 10px;">
+                  <label style="font-size: 11.5px; font-weight: 800; color: #10B981; display: block; margin-bottom: 4px;">💰 Tutar (Amount) Alanı (Zorunlu):</label>
+                  <select id="map-select-amount" class="input-control" style="width: 100%; padding: 8px; border-radius: 8px; background: #0F172A; color: #34D399; font-weight: 700; border: 1.5px solid #10B981;" onchange="updateMappingPreview()"></select>
+                </div>
+
+                <!-- Tarih Eşleme -->
+                <div style="margin-bottom: 10px;">
+                  <label style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">📅 İşlem Tarihi Alanı:</label>
+                  <select id="map-select-date" class="input-control" style="width: 100%; padding: 8px; border-radius: 8px; background: #0F172A; color: white; border: 1px solid var(--border-color);" onchange="updateMappingPreview()"></select>
+                </div>
+
+                <!-- Alıcı / Gönderen Eşleme -->
+                <div style="margin-bottom: 10px;">
+                  <label style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">👤 Alıcı / Gönderen Alanı:</label>
+                  <select id="map-select-recipient" class="input-control" style="width: 100%; padding: 8px; border-radius: 8px; background: #0F172A; color: white; border: 1px solid var(--border-color);" onchange="updateMappingPreview()"></select>
+                </div>
+
+                <!-- Açıklama Eşleme -->
+                <div style="margin-bottom: 10px;">
+                  <label style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">📝 İşlem Açıklaması Alanı:</label>
+                  <select id="map-select-desc" class="input-control" style="width: 100%; padding: 8px; border-radius: 8px; background: #0F172A; color: white; border: 1px solid var(--border-color);" onchange="updateMappingPreview()"></select>
+                </div>
+
+                <!-- İşlem Yönü -->
+                <div style="margin-bottom: 14px;">
+                  <label style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">🔄 Varsayılan İşlem Yönü:</label>
+                  <select id="map-select-type" class="input-control" style="width: 100%; padding: 8px; border-radius: 8px; background: #0F172A; color: white; border: 1px solid var(--border-color);" onchange="updateMappingPreview()">
+                    <option value="EXPENSE">Gider / Para Çıkışı (Transfer)</option>
+                    <option value="INCOME">Gelir / Para Girişi</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Canlı Çıktı Simülasyon Kartı -->
+              <div style="margin-top: 14px; background: #0F172A; border-radius: 14px; padding: 14px; border: 1px solid rgba(56, 189, 248, 0.3);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <div style="font-size: 11px; font-weight: 800; color: #38BDF8;">CANLI PARAİZ İŞLEM SİMÜLASYONU</div>
+                  <div style="font-size: 10px; color: #10B981; font-weight: 700;">✓ Deterministik Eşleşme</div>
+                </div>
+                <div id="mapping-live-preview" style="font-size: 12px; color: #E2E8F0; line-height: 1.6;">
+                  Önizleme yükleniyor...
+                </div>
+              </div>
+
+              <!-- Aksiyon Butonları -->
+              <div style="display: flex; gap: 8px; margin-top: 14px;">
+                <button class="btn btn-primary" style="flex: 1;" onclick="downloadMappingJson()">
+                  📥 Şablon JSON İndir
+                </button>
+                <button class="btn btn-outline" style="flex: 1;" onclick="copyMappingJson()">
+                  📋 JSON Kopyala
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-json" class="tab-content">
+        <div class="panel-card">
+          <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
               <div class="panel-title">Canlı remote_config.json Çıktısı</div>
               <div class="panel-desc">Bu JSON verisi mobil uygulamanın anlık okuduğu şemayla %100 uyumludur.</div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <label class="btn btn-ghost" style="cursor: pointer; margin: 0; font-size: 12px; padding: 6px 12px;">
+                <input type="file" accept=".json" style="display: none;" onchange="importConfigFile(event)">
+                📂 İçe Aktar
+              </label>
+              <button class="btn btn-ghost" style="font-size: 12px; padding: 6px 12px;" onclick="copyJsonToClipboard()">
+                📋 Kopyala
+              </button>
+              <button class="btn btn-success" style="font-size: 12px; padding: 6px 12px;" onclick="downloadConfigFile()">
+                📥 İndir
+              </button>
             </div>
           </div>
           <pre class="json-code" id="json-viewer"></pre>
@@ -1844,16 +2166,18 @@
         show_quick_actions: true
       },
       modules: {
-        statement_upload: { name: "Deterministik PDF Motoru", icon: "📄", desc: "Yapı Kredi, İş, Garanti, Enpara ekstre çözümleyici", enabled: true },
-        cashflow_projection: { name: "Nakit Akışı & 30 Günlük Projeksiyon", icon: "📈", desc: "Gelecek ay bakiye tahmini ve fatura simülasyonu", enabled: true },
-        market_rates: { name: "Piyasa & Altın / Döviz Kurları", icon: "🪙", desc: "TCMB ve Kapalıçarşı anlık kur akışları", enabled: true },
-        goals_module: { name: "Hedefler & Birikim Kumbara Modülü", icon: "🎯", desc: "Araba, ev, tatil hedefleri ve kalan gün hesabı", enabled: true },
-        assets_portfolio: { name: "Varlık & Portföy Yönetimi", icon: "💼", desc: "Altın, hisse senedi, gayrimenkul ve nakit izleme", enabled: true },
-        market_news: { name: "Piyasa Haberleri & Gündem (RSS)", icon: "📰", desc: "Bloomberg HT, Ekonomim ve TCMB canlı haberleri", enabled: true },
-        family_budget: { name: "Aile Bütçesi Senkronizasyonu", icon: "👨‍👩‍👧‍👦", desc: "Çoklu cihaz ve eşler arası harcama eşitleme", enabled: true },
-        tax_analytics: { name: "Vergi & Stopaj Raporlaması", icon: "📊", desc: "KDV, gelir vergisi ve stopaj hesaplama motoru", enabled: true },
-        scout_ai_coach: { name: "Scout AI Finans Koçu", icon: "🤖", desc: "Harcama alışkanlığı uyarıları ve tasarruf önerileri", enabled: true },
-        quick_entry: { name: "Hızlı İşlem Girişi", icon: "⚡", desc: "3 saniyede kategori ve tutar kaydetme widget'ı", enabled: true }
+        dashboard_summary: { name: "Ana Gösterge Paneli Özeti", icon: "📊", desc: "Finansal sağlık skoru, toplam varlık ve nakit durumu", enabled: true, disabled_countries: [], title: "Özellik Bakımda", message: "Planlı bakım çalışması." },
+        statement_upload: { name: "Deterministik PDF Motoru", icon: "📄", desc: "Yapı Kredi, İş, Garanti, Akbank, Enpara ekstre çözümleyici", enabled: true, disabled_countries: [], title: "Özellik Bakımda", message: "Planlı bakım çalışması." },
+        cashflow_projection: { name: "Nakit Akışı & 30 Günlük Projeksiyon", icon: "📈", desc: "Gelecek ay bakiye tahmini ve fatura simülasyonu", enabled: true, disabled_countries: [], title: "Özellik Bakımda", message: "Planlı bakım çalışması." },
+        goals_module: { name: "Hedefler & Birikim Kumbara Modülü", icon: "🎯", desc: "Araba, ev, tatil hedefleri ve kalan gün hesabı", enabled: true, disabled_countries: [], title: "Özellik Bakımda", message: "Planlı bakım çalışması." },
+        assets_portfolio: { name: "Varlık & Portföy Yönetimi", icon: "💼", desc: "Altın, hisse senedi, gayrimenkul ve nakit izleme", enabled: true, disabled_countries: [], title: "Özellik Bakımda", message: "Planlı bakım çalışması." },
+        market_rates: { name: "Piyasa & Altın / Döviz Kurları", icon: "🪙", desc: "TCMB ve Kapalıçarşı anlık kur akışları", enabled: true, disabled_countries: [], title: "Özellik Bakımda", message: "Planlı bakım çalışması." },
+        quick_entry: { name: "Hızlı İşlem Girişi", icon: "⚡", desc: "3 saniyede kategori ve tutar kaydetme widget'ı", enabled: true, disabled_countries: [], title: "Özellik Bakımda", message: "Planlı bakım çalışması." },
+        family_budget: { name: "Aile Bütçesi Senkronizasyonu", icon: "👨‍👩‍👧‍👦", desc: "Çoklu cihaz ve eşler arası harcama eşitleme", enabled: true, disabled_countries: [], title: "Özellik Bakımda", message: "Planlı bakım çalışması." },
+        tax_analytics: { name: "Vergi & Stopaj Raporlaması", icon: "🧾", desc: "KDV, gelir vergisi ve stopaj hesaplama motoru", enabled: true, disabled_countries: [], title: "Özellik Bakımda", message: "Planlı bakım çalışması." },
+        scout_ai_coach: { name: "Scout AI Finans Koçu", icon: "🤖", desc: "Harcama alışkanlığı uyarıları ve tasarruf önerileri", enabled: true, disabled_countries: [], title: "Özellik Bakımda", message: "Planlı bakım çalışması." },
+        newsletter_subscription: { name: "Finansal Bülten & İçgörüler", icon: "📧", desc: "Haftalık harcama ve piyasa bülteni aboneliği", enabled: true, disabled_countries: [], title: "Özellik Bakımda", message: "Planlı bakım çalışması." },
+        market_news: { name: "Piyasa Haberleri & Gündem (RSS)", icon: "📰", desc: "Bloomberg HT, Ekonomim ve TCMB canlı haberleri", enabled: true, disabled_countries: [], title: "Özellik Bakımda", message: "Planlı bakım çalışması." }
       },
       dynamic_lists: {
         banks: ["Yapı Kredi", "Garanti BBVA", "Türkiye İş Bankası", "Akbank", "QNB Finansbank", "Enpara.com", "Ziraat Bankası", "VakıfBank", "Halkbank", "TEB", "DenizBank"],
@@ -2687,7 +3011,7 @@
       }
 
       // JSON Viewer
-      document.getElementById('json-viewer').innerText = JSON.stringify(config, null, 2);
+      document.getElementById('json-viewer').innerText = JSON.stringify(getSerializableConfig(), null, 2);
     }
 
     // Switch Tabs
@@ -2756,13 +3080,56 @@
       setTimeout(() => { toast.style.display = 'none'; }, 2500);
     }
 
+    function getSerializableConfig() {
+      const exportData = {
+        clean_data_mode: !!config.clean_data_mode,
+        theme: {
+          primary_hex: config.theme.primary_hex,
+          income_hex: config.theme.income_hex,
+          expense_hex: config.theme.expense_hex,
+          palette_name: config.theme.palette_name,
+          dark_mode: !!config.theme.dark_mode
+        },
+        menu: {
+          tab_order: Array.isArray(config.menu.tab_order) ? [...config.menu.tab_order] : ['dashboard', 'cashflow', 'analysis', 'goals', 'assets'],
+          visible_tabs: { ...config.menu.visible_tabs },
+          default_tab_index: typeof config.menu.default_tab_index === 'number' ? config.menu.default_tab_index : 0
+        },
+        button: {
+          border_radius: typeof config.button.border_radius === 'number' ? config.button.border_radius : 14.0,
+          elevation: typeof config.button.elevation === 'number' ? config.button.elevation : 3.0,
+          fab_position: config.button.fab_position || 'endFloat',
+          show_quick_actions: config.button.show_quick_actions !== false
+        },
+        modules: {},
+        dynamic_lists: {
+          banks: [...(config.dynamic_lists.banks || [])],
+          vehicle_brands_models: (config.dynamic_lists.vehicle_brands_models || []).map(v => ({ ...v })),
+          housing_types: [...(config.dynamic_lists.housing_types || [])],
+          payment_methods: [...(config.dynamic_lists.payment_methods || [])],
+          expense_categories: [...(config.dynamic_lists.expense_categories || [])],
+          goal_types: [...(config.dynamic_lists.goal_types || [])]
+        }
+      };
+
+      for (const [key, mod] of Object.entries(config.modules)) {
+        exportData.modules[key] = {
+          enabled: mod.enabled !== false,
+          disabled_countries: Array.isArray(mod.disabled_countries) ? [...mod.disabled_countries] : [],
+          title: mod.title || 'Özellik Bakımda',
+          message: mod.message || 'Planlı bakım çalışması.'
+        };
+      }
+      return exportData;
+    }
+
     function copyJsonToClipboard() {
-      const jsonStr = JSON.stringify(config, null, 2);
+      const jsonStr = JSON.stringify(getSerializableConfig(), null, 2);
       navigator.clipboard.writeText(jsonStr).then(() => showToast('remote_config.json panoya kopyalandı!'));
     }
 
     function downloadConfigFile() {
-      const jsonStr = JSON.stringify(config, null, 2);
+      const jsonStr = JSON.stringify(getSerializableConfig(), null, 2);
       const blob = new Blob([jsonStr], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -2771,6 +3138,89 @@
       a.click();
       URL.revokeObjectURL(url);
       showToast('remote_config.json başarıyla indirildi!');
+    }
+
+    function importConfigFile(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          applyImportedConfig(data);
+          showToast('remote_config.json başarıyla içe aktarıldı!');
+        } catch (err) {
+          alert('Geçersiz JSON dosyası: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function applyImportedConfig(data) {
+      if (typeof data.clean_data_mode === 'boolean') {
+        config.clean_data_mode = data.clean_data_mode;
+        const cleanSwitch = document.getElementById('toggle-clean-mode');
+        if (cleanSwitch) cleanSwitch.checked = data.clean_data_mode;
+      }
+      if (data.theme) {
+        if (data.theme.primary_hex) config.theme.primary_hex = data.theme.primary_hex;
+        if (data.theme.income_hex) config.theme.income_hex = data.theme.income_hex;
+        if (data.theme.expense_hex) config.theme.expense_hex = data.theme.expense_hex;
+        if (data.theme.palette_name) config.theme.palette_name = data.theme.palette_name;
+        if (typeof data.theme.dark_mode === 'boolean') config.theme.dark_mode = data.theme.dark_mode;
+
+        const pPicker = document.getElementById('picker-primary');
+        const pHex = document.getElementById('hex-primary');
+        const iPicker = document.getElementById('picker-income');
+        const iHex = document.getElementById('hex-income');
+        const ePicker = document.getElementById('picker-expense');
+        const eHex = document.getElementById('hex-expense');
+
+        if (pPicker && pHex) { pPicker.value = config.theme.primary_hex; pHex.value = config.theme.primary_hex; }
+        if (iPicker && iHex) { iPicker.value = config.theme.income_hex; iHex.value = config.theme.income_hex; }
+        if (ePicker && eHex) { ePicker.value = config.theme.expense_hex; eHex.value = config.theme.expense_hex; }
+      }
+      if (data.menu) {
+        if (Array.isArray(data.menu.tab_order)) config.menu.tab_order = [...data.menu.tab_order];
+        if (data.menu.visible_tabs) config.menu.visible_tabs = { ...data.menu.visible_tabs };
+        if (typeof data.menu.default_tab_index === 'number') config.menu.default_tab_index = data.menu.default_tab_index;
+        renderMenuList();
+      }
+      if (data.button) {
+        if (typeof data.button.border_radius === 'number') {
+          config.button.border_radius = data.button.border_radius;
+          const rSlider = document.getElementById('slider-radius');
+          const rLabel = document.getElementById('label-radius');
+          if (rSlider) rSlider.value = data.button.border_radius;
+          if (rLabel) rLabel.innerText = `${data.button.border_radius} px`;
+        }
+        if (typeof data.button.elevation === 'number') {
+          config.button.elevation = data.button.elevation;
+          const eSlider = document.getElementById('slider-elevation');
+          const eLabel = document.getElementById('label-elevation');
+          if (eSlider) eSlider.value = data.button.elevation;
+          if (eLabel) eLabel.innerText = `${data.button.elevation} px`;
+        }
+        if (data.button.fab_position) {
+          updateFabPosition(data.button.fab_position);
+        }
+      }
+      if (data.modules) {
+        for (const [key, modVal] of Object.entries(data.modules)) {
+          if (config.modules[key]) {
+            config.modules[key].enabled = !!modVal.enabled;
+            if (Array.isArray(modVal.disabled_countries)) config.modules[key].disabled_countries = modVal.disabled_countries;
+            if (modVal.title) config.modules[key].title = modVal.title;
+            if (modVal.message) config.modules[key].message = modVal.message;
+          }
+        }
+        renderModuleSwitches();
+      }
+      if (data.dynamic_lists) {
+        config.dynamic_lists = { ...config.dynamic_lists, ...data.dynamic_lists };
+      }
+      updatePhoneSimulator();
     }
 
     function resetToDefaults() {
@@ -2846,6 +3296,173 @@
       config.menu.tab_order[target] = temp;
       renderMenuList();
       updatePhoneSimulator();
+    }
+
+    // ==========================================
+    // DEKONT & EKSTRE MAPPING ENGINE JS
+    // ==========================================
+    const sampleDekonts = {
+      fibabanka: {
+        bankName: "Fibabanka",
+        templateName: "Fibabanka FAST Dekont Şablonu",
+        text: `FİBABANKA A.Ş. FAST PARA TRANSFERİ DEKONTU\nDekont No: FB-2026-981240\nİşlem Tarihi: 18.09.2026 14:32:10\nGönderen Hesap: TR12 0010 3000 0000 1234 5678 90\nAlıcı Adı: Ahmet Yılmaz\nAlıcı IBAN: TR98 0006 2000 0000 9876 5432 10\nİşlem Tutarı: 2.750,00 TL\nMasraf / Komisyon: 0,00 TL\nKalan Bakiye: 34.250,00 TL\nAçıklama: Eylül Ayı Daire Kira Bedeli\nİşlem Durumu: Başarılı / Gerçekleşti`
+      },
+      kuveytturk: {
+        bankName: "Kuveyt Türk",
+        templateName: "Kuveyt Türk Para Transferi",
+        text: `KUVEYT TÜRK KATILIM BANKASI\nHESAP DETAYI VE İŞLEM DEKONTU\nİşlem Tarihi: 15.09.2026\nTutar: 1.200,00 TL\nHesap Bakiyesi: 18.400,00 TL\nAlıcı Ünvanı / Adı: Enerjisa Elektrik Dağıtım A.Ş.\nAçıklama: Fatura Ödemesi Abone No 98124\nKanal: Mobil Şube`
+      },
+      papara: {
+        bankName: "Papara",
+        templateName: "Papara Transfer Dekontu",
+        text: `PAPARA ELEKTRONİK PARA A.Ş.\nİŞLEM DEKONTU\nTarih: 19.09.2026 19:40\nİşlem Tutarı: 450,00 TL\nAlıcı: Mehmet Demir (Papara No: 129841)\nAçıklama: Sinema ve Akşam Yemeği Payı\nİşlem Ücreti: 0,00 TL\nDurum: Onaylandı`
+      }
+    };
+
+    let detectedMappingFields = {};
+
+    function loadSampleDekont(key) {
+      const sample = sampleDekonts[key];
+      if (!sample) return;
+      document.getElementById('map-bank-name').value = sample.bankName;
+      document.getElementById('map-template-name').value = sample.templateName;
+      document.getElementById('mapping-raw-text').value = sample.text;
+      analyzeDekontText();
+      showToast(`${sample.bankName} Dekont Örneği Yüklendi`);
+    }
+
+    function analyzeDekontText() {
+      const text = document.getElementById('mapping-raw-text').value || '';
+      const lines = text.split(/\r?\n/);
+      detectedMappingFields = {};
+
+      const colonRegex = /^([A-Za-zÇĞİÖŞÜçğıöşü0-9\s\.\-_/]{2,35})\s*[:=]\s*(.+)$/;
+      const moneyRegex = /([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2}\s*(?:TL|₺|EUR|USD)?)/;
+
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return;
+        const match = trimmed.match(colonRegex);
+        if (match) {
+          const key = match[1].trim() + ':';
+          const val = match[2].trim();
+          if (!detectedMappingFields[key]) detectedMappingFields[key] = val;
+        } else {
+          const mMatch = trimmed.match(moneyRegex);
+          if (mMatch) {
+            const prefix = trimmed.substring(0, mMatch.index).trim();
+            if (prefix && prefix.length <= 35) {
+              const key = prefix.endsWith(':') ? prefix : prefix + ':';
+              if (!detectedMappingFields[key]) detectedMappingFields[key] = mMatch[0];
+            }
+          }
+        }
+      });
+
+      const tagBox = document.getElementById('mapping-detected-tags');
+      const keys = Object.keys(detectedMappingFields);
+      if (keys.length === 0) {
+        tagBox.innerHTML = '<span style="color: var(--text-muted);">Belgede iki noktalı (Key: Value) alan bulunamadı.</span>';
+      } else {
+        tagBox.innerHTML = keys.map(k => `
+          <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.04);">
+            <span style="color: #38BDF8; font-weight: 700;">${k}</span>
+            <span style="color: #94A3B8;">${detectedMappingFields[k]}</span>
+          </div>
+        `).join('');
+      }
+
+      populateMappingDropdown('map-select-amount', keys, ['işlem tutarı:', 'tutar:']);
+      populateMappingDropdown('map-select-date', keys, ['işlem tarihi:', 'tarih:']);
+      populateMappingDropdown('map-select-recipient', keys, ['alıcı adı:', 'alıcı:', 'alıcı ünvanı / adı:']);
+      populateMappingDropdown('map-select-desc', keys, ['açıklama:', 'işlem açıklaması:']);
+
+      updateMappingPreview();
+    }
+
+    function populateMappingDropdown(elemId, keys, priorityKeys) {
+      const select = document.getElementById(elemId);
+      if (!select) return;
+      select.innerHTML = '<option value="">-- Alan Seçin --</option>' + keys.map(k => {
+        return `<option value="${k}">${k} (${detectedMappingFields[k]})</option>`;
+      }).join('');
+
+      for (const p of priorityKeys) {
+        const found = keys.find(k => k.toLowerCase().includes(p));
+        if (found) {
+          select.value = found;
+          break;
+        }
+      }
+    }
+
+    function updateMappingPreview() {
+      const amountKey = document.getElementById('map-select-amount').value;
+      const dateKey = document.getElementById('map-select-date').value;
+      const recipientKey = document.getElementById('map-select-recipient').value;
+      const descKey = document.getElementById('map-select-desc').value;
+      const txType = document.getElementById('map-select-type').value;
+      const bankName = document.getElementById('map-bank-name').value || 'Bilinmeyen Banka';
+
+      const amountVal = amountKey ? (detectedMappingFields[amountKey] || '0,00 TL') : '0,00 TL';
+      const dateVal = dateKey ? (detectedMappingFields[dateKey] || 'Bugün') : 'Bugün';
+      const recipientVal = recipientKey ? (detectedMappingFields[recipientKey] || '-') : '-';
+      const descVal = descKey ? (detectedMappingFields[descKey] || '-') : '-';
+
+      const previewBox = document.getElementById('mapping-live-preview');
+      if (previewBox) {
+        previewBox.innerHTML = `
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span style="color: #94A3B8;">Banka & Şablon:</span>
+            <span style="font-weight: 800; color: white;">${bankName}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span style="color: #94A3B8;">Eşlenen Tutar (Paraİz):</span>
+            <span style="font-size: 15px; font-weight: 900; color: #10B981;">${amountVal} (${txType === 'INCOME' ? 'Gelir' : 'Gider'})</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span style="color: #94A3B8;">İşlem Tarihi:</span>
+            <span style="font-weight: 600; color: white;">${dateVal}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #94A3B8;">Açıklama & Alıcı:</span>
+            <span style="font-weight: 600; color: #38BDF8;">${recipientVal} ${descVal !== '-' ? '• ' + descVal : ''}</span>
+          </div>
+        `;
+      }
+    }
+
+    function generateMappingObject() {
+      return {
+        id: 'template_' + (document.getElementById('map-bank-name').value || 'custom').toLowerCase().replace(/[^a-z0-9]/g, '_'),
+        bank_name: document.getElementById('map-bank-name').value,
+        template_name: document.getElementById('map-template-name').value,
+        document_type: 'RECEIPT',
+        amount_field: document.getElementById('map-select-amount').value,
+        date_field: document.getElementById('map-select-date').value || null,
+        recipient_field: document.getElementById('map-select-recipient').value || null,
+        description_field: document.getElementById('map-select-desc').value || null,
+        default_transaction_type: document.getElementById('map-select-type').value,
+        match_keywords: [document.getElementById('map-bank-name').value.toUpperCase(), 'DEKONT']
+      };
+    }
+
+    function copyMappingJson() {
+      const obj = generateMappingObject();
+      navigator.clipboard.writeText(JSON.stringify(obj, null, 2));
+      showToast('Şablon JSON Kopyalandı!');
+    }
+
+    function downloadMappingJson() {
+      const obj = generateMappingObject();
+      const str = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(obj, null, 2));
+      const a = document.createElement('a');
+      a.setAttribute("href", str);
+      a.setAttribute("download", `${obj.id}.json`);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      showToast(`${obj.template_name} JSON Olarak İndirildi`);
     }
 
     // Init Execution

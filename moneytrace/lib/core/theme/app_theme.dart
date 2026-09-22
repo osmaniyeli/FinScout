@@ -1,5 +1,4 @@
-// lib/core/theme/app_theme.dart
-import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 class AppSpacing {
@@ -44,6 +43,16 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       scaffoldBackgroundColor: AppColors.background,
+      // 1. Ana Marka Fontu: Plus Jakarta Sans
+      textTheme: GoogleFonts.plusJakartaSansTextTheme().copyWith(
+        // Başlıklar
+        displayLarge: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800),
+        titleLarge: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+        titleMedium: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+        // Gövde Metinleri
+        bodyLarge: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w500),
+        bodyMedium: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w400),
+      ),
       colorScheme: const ColorScheme.light(
         primary: AppColors.actionPrimary,
         surface: AppColors.cardSurface,
@@ -58,12 +67,12 @@ class AppTheme {
           side: const BorderSide(color: AppColors.cardBorder, width: 1),
         ),
       ),
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: AppColors.background,
         elevation: 0,
         centerTitle: false,
-        iconTheme: IconThemeData(color: AppColors.textPrimary),
-        titleTextStyle: TextStyle(
+        iconTheme: const IconThemeData(color: AppColors.textPrimary),
+        titleTextStyle: GoogleFonts.plusJakartaSans(
           color: AppColors.textPrimary,
           fontSize: 18,
           fontWeight: FontWeight.w700,
@@ -82,4 +91,11 @@ class AppTheme {
       ),
     );
   }
+
+  // 2. Finansal Rakamlar ve Tutarlar İçin Yardımcı Stil
+  static TextStyle get numericStyle => GoogleFonts.jetbrainsMono(
+    fontWeight: FontWeight.w600,
+    letterSpacing: -0.5,
+  );
 }
+

@@ -12,6 +12,7 @@ import '../../../core/widgets/fintech/fintech_components.dart';
 import '../../../core/services/user_profile_service.dart';
 import '../../statement_upload/presentation/statement_upload_sheet.dart';
 import 'widgets/market_news_section.dart';
+import 'widgets/credit_card_action_sheet.dart';
 
 class AssetsScreen extends StatefulWidget {
   const AssetsScreen({Key? key}) : super(key: key);
@@ -171,20 +172,50 @@ class _AssetsScreenState extends State<AssetsScreen> {
               ),
             ),
             const SizedBox(height: 18),
-            // Kart Limiti & Bakiye Düzenle Butonu
+            // Kart Limiti & Borç Öde Butonu (Frontend Joe Sliding Card)
             SizedBox(
               width: double.infinity,
-              child: OutlinedButton.icon(
+              child: ElevatedButton.icon(
                 onPressed: () {
                   Navigator.pop(ctx);
-                  _showEditCardBalanceDialog(card);
+                  CreditCardActionSheet.show(
+                    context,
+                    card: card,
+                    onCardUpdated: (updated) {
+                      setState(() {
+                        card['limit'] = updated['limit'];
+                        card['debt'] = updated['debt'];
+                        card['statement_day'] = updated['statement_day'];
+                      });
+                    },
+                    onDebtPaid: (paidCents, account) async {
+                      setState(() {
+                        // Kasa borç durumu arayüzde güncellendi
+                      });
+                      try {
+                        await _repository.insertTransaction({
+                          'id': 'tx_pay_${DateTime.now().millisecondsSinceEpoch}',
+                          'title': '${card['name']} Kart Borcu Ödemesi',
+                          'amount_cents': paidCents,
+                          'transaction_type': 'EXPENSE',
+                          'category_id': 'borc_odeme',
+                          'account_id': account,
+                          'created_at': DateTime.now().millisecondsSinceEpoch,
+                        });
+                      } catch (e) {
+                        debugPrint('Borç ödeme işlem kaydı hatası: $e');
+                      }
+                    },
+                  );
                 },
-                icon: const Icon(Icons.edit_note_rounded, size: 18, color: AppColors.actionPrimary),
-                label: const Text('Bakiyeyi & Limiti Düzenle', style: TextStyle(color: AppColors.actionPrimary, fontWeight: FontWeight.w700)),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Color(0xFFBAE6FD)),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                icon: const Icon(Icons.swap_horiz_rounded, size: 20),
+                label: const Text('Borç Öde & Kart Ayarları', style: TextStyle(fontWeight: FontWeight.w800)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0F172A),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 13),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  elevation: 0,
                 ),
               ),
             ),

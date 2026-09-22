@@ -15,6 +15,7 @@ import '../../../core/services/user_profile_service.dart';
 import '../../wallets/presentation/wallet_selection_sheet.dart';
 import '../../wallets/models/wallet.dart';
 import 'statement_smart_wizard.dart';
+import 'custom_field_mapping_sheet.dart';
 
 class StatementUploadSheet extends StatefulWidget {
   final VoidCallback? onImportSuccess;
@@ -103,7 +104,15 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
         return;
       }
 
-      // 20 Maddelik Güvenlik Kuralı #13: File Upload Validation (Magic Byte & Boyut)
+      // 20 Maddelik Güvenlik Kuralı #13: File Upload Validation & Derin Zararlı Taraması
+      final malwareScan = SecurityGuard.instance.scanPdfForMalware(bytes);
+      if (!malwareScan.isSafe) {
+        setState(() {
+          _errorMessage = 'Güvenlik Kalkanı: Belgede potansiyel zararlı içerik/exploit algılandı! (${malwareScan.threatsDetected.first})';
+        });
+        return;
+      }
+
       if (!SecurityGuard.instance.validatePdfFile(bytes: bytes)) {
         setState(() {
           _errorMessage = 'Güvenlik Reddi: Geçersiz veya bozuk PDF formatı! Dosya başlığı "%PDF-" doğrulanmalıdır.';
@@ -289,9 +298,21 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
 
           // 1. Madde: Belge Türü Seçimi (Ekstre / Bordro / Kredi Kartı)
           if (_parsedResult == null && !_isProcessing) ...[
-            const Text(
-              'Yüklenecek Belge Türü:',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Yüklenecek Belge Türü:',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                ),
+                TextButton.icon(
+                  onPressed: () {
+                    CustomFieldMappingSheet.show(context);
+                  },
+                  icon: const Icon(Icons.alt_route_rounded, size: 14, color: Color(0xFF2563EB)),
+                  label: const Text('Şablon / Alan Eşle', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF2563EB))),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             Row(
@@ -335,20 +356,41 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
           if (_errorMessage != null) ...[
             const SizedBox(height: 14),
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: const Color(0xFFFEF2F2),
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: const Color(0xFFFECACA)),
               ),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.error_outline_rounded, color: AppColors.expenseRed, size: 18),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      _errorMessage!,
-                      style: const TextStyle(fontSize: 12, color: AppColors.expenseRed, fontWeight: FontWeight.w600),
+                  Row(
+                    children: [
+                      const Icon(Icons.error_outline_rounded, color: AppColors.expenseRed, size: 18),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _errorMessage!,
+                          style: const TextStyle(fontSize: 12, color: AppColors.expenseRed, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        CustomFieldMappingSheet.show(context);
+                      },
+                      icon: const Icon(Icons.tune_rounded, size: 16, color: Color(0xFF0F172A)),
+                      label: const Text('Bu Banka İçin Alan Eşleştirmesi (Mapping) Tanımla', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF0F172A))),
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        side: const BorderSide(color: Color(0xFFCBD5E1)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
                     ),
                   ),
                 ],

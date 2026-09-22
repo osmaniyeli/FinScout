@@ -14,6 +14,7 @@ dependencies:
   # UI & Grafikler
   cupertino_icons: ^1.0.6
   fl_chart: ^0.68.0
+  google_fonts: ^6.2.1
 
   # Yerel Depolama & Veritabanı
   sqflite: ^2.3.3+1
@@ -24,6 +25,7 @@ dependencies:
   syncfusion_flutter_pdf: ^26.1.42
   file_picker: ^8.0.5
   crypto: ^3.0.3
+  encrypt: ^5.0.3
 
   # Yardımcı & Biçimlendirme
   intl: ^0.19.0

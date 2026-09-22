@@ -1,6 +1,7 @@
 // lib/core/services/data_export_service.dart
 
 import 'dart:convert';
+import '../security/aes_cipher.dart';
 import '../utils/currency_normalizer.dart';
 
 class DataExportService {
@@ -114,20 +115,52 @@ Tarih: ${DateTime.now().day}.${DateTime.now().month}.${DateTime.now().year}
     return const JsonEncoder.withIndent('  ').convert(payload);
   }
 
-  /// JSON Yedeğini Doğrular ve Ayrıştırır
-  Map<String, dynamic> validateAndParseBackup(String rawJson) {
-    final dynamic decoded = jsonDecode(rawJson);
+  /// Parola Korumalı AES-256-CBC Şifreli Kasa Yedeği (.vault) Üretir
+  String createEncryptedVaultBackup({
+    required List<Map<String, dynamic>> accounts,
+    required List<Map<String, dynamic>> statements,
+    required List<Map<String, dynamic>> transactions,
+    required List<Map<String, dynamic>> installments,
+    required List<Map<String, dynamic>> taxes,
+    required String password,
+  }) {
+    if (password.length < 6) {
+      throw ArgumentError('Yedekleme parolası en az 6 karakter olmalıdır.');
+    }
+    final rawJson = createFullVaultBackupJson(
+      accounts: accounts,
+      statements: statements,
+      transactions: transactions,
+      installments: installments,
+      taxes: taxes,
+    );
+    return AesCipher.encryptVaultPayload(plainText: rawJson, password: password);
+  }
+
+  /// Yedek Dosyasını Doğrular ve Ayrıştırır (Düz Metin JSON veya AES-256 Şifreli Kasa)
+  Map<String, dynamic> validateAndParseBackup(String rawContent, {String? password}) {
+    String resolvedJson = rawContent.trim();
+
+    // 1. Şifreli Kasa Formatı Kontrolü
+    if (resolvedJson.startsWith('PARAIZ-SEC-VAULT-V2:')) {
+      if (password == null || password.isEmpty) {
+        throw const FormatException('VAULT_PASSWORD_REQUIRED: Bu yedek dosyası AES-256 ile şifrelenmiştir. Lütfen parolanızı giriniz.');
+      }
+      resolvedJson = AesCipher.decryptVaultPayload(vaultString: resolvedJson, password: password);
+    }
+
+    final dynamic decoded = jsonDecode(resolvedJson);
     if (decoded is! Map<String, dynamic>) {
-      throw FormatException('Geçersiz yedek dosyası: JSON formatı doğrulanamadı.');
+      throw const FormatException('Geçersiz yedek dosyası: JSON formatı doğrulanamadı.');
     }
 
     if (decoded['app'] != 'ParaIz (MoneyTrace)' || !decoded.containsKey('data')) {
-      throw FormatException('Bu dosya geçerli bir Paraİz yedekleme arşivi değildir.');
+      throw const FormatException('Bu dosya geçerli bir Paraİz yedekleme arşivi değildir.');
     }
 
     final data = decoded['data'];
     if (data is! Map<String, dynamic>) {
-      throw FormatException('Yedek verisi bozuk veya eksik.');
+      throw const FormatException('Yedek verisi bozuk veya eksik.');
     }
 
     return {

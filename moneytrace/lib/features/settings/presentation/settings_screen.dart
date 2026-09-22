@@ -16,6 +16,8 @@ import '../../../core/widgets/radar_checkout_button.dart';
 import '../../../core/widgets/interactive_file_upload_button.dart';
 import '../../subscription/services/subscription_service.dart';
 import '../../subscription/presentation/subscription_plans_sheet.dart';
+import '../../../core/services/security_auth_service.dart';
+import '../../../core/widgets/fintech/security_auth_sheet.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -79,6 +81,94 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showSubscriptionPlans() {
     SubscriptionPlansSheet.show(context);
+  }
+
+  Future<void> _setNewPin() async {
+    final res = await SecurityAuthSheet.show(
+      context,
+      title: 'Yeni Güvenlik PIN Kodu Belirleyin',
+      subtitle: '4 haneli güvenli PIN kodunuzu girin.',
+      isSettingNewPin: true,
+      allowBiometrics: false,
+    );
+    if (res == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Color(0xFF059669),
+          content: Text('Güvenlik PIN kodu başarıyla oluşturuldu ve aktif edildi.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  Future<void> _changeExistingPin() async {
+    String? currentPin;
+    final verified = await SecurityAuthSheet.show(
+      context,
+      title: 'Mevcut PIN Kodunuzu Girin',
+      subtitle: 'Şifrenizi değiştirmek için lütfen mevcut PIN kodunuzu doğrulayın.',
+      allowBiometrics: false,
+      onPinEntered: (pin) {
+        currentPin = pin;
+      },
+    );
+
+    if (verified != true || currentPin == null || !mounted) return;
+
+    final newPinSet = await SecurityAuthSheet.show(
+      context,
+      title: 'Yeni PIN Kodunu Belirleyin',
+      subtitle: 'Kullanmak istediğiniz yeni 4 haneli PIN kodunu girin.',
+      isSettingNewPin: true,
+      allowBiometrics: false,
+    );
+
+    if (newPinSet == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Color(0xFF059669),
+          content: Text('Güvenlik PIN kodunuz başarıyla güncellendi.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  Future<void> _removePinWithVerification() async {
+    String? enteredPin;
+    final verified = await SecurityAuthSheet.show(
+      context,
+      title: 'Şifreyi Kaldırmak İçin Mevcut PIN Girin',
+      subtitle: 'Güvenliğiniz için lütfen mevcut 4 haneli PIN kodunuzu girerek şifreyi kaldırın.',
+      allowBiometrics: false,
+      onPinEntered: (pin) {
+        enteredPin = pin;
+      },
+    );
+
+    if (verified == true && enteredPin != null) {
+      final success = await SecurityAuthService.instance.removePin(enteredPin!);
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              backgroundColor: Color(0xFF0F172A),
+              content: Text('Güvenlik PIN kodu başarıyla kaldırıldı.'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              backgroundColor: AppColors.expenseRed,
+              content: Text('Hatalı PIN kodu! Şifre kaldırılamadı.'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -205,13 +295,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 24),
 
-            // 3. GÜVENLİK & SIFIR SUNUCU PRENSİBİ
+            // 3. GÜVENLİK & BİYOMETRİK KORUMA (Face ID, Fingerprint, PIN)
             const Text(
-              'GİZLİLİK & GÜVENLİK',
+              'GİZLİLİK & BİYOMETRİK GÜVENLİK',
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.textSecondary, letterSpacing: 0.5),
             ),
             const SizedBox(height: 10),
 
+            // Kriptolu Depolama Rozeti
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -248,6 +339,226 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ],
               ),
+            ),
+            const SizedBox(height: 12),
+
+            // 1. Yüz Tanıma (Face ID) Switch Tile
+            ValueListenableBuilder<bool>(
+              valueListenable: SecurityAuthService.instance.isFaceIdEnabledNotifier,
+              builder: (context, isFaceEnabled, _) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFECFDF5),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(Icons.face_retouching_natural, color: Color(0xFF059669), size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              'Yüz Tanıma ile Giriş (Face ID)',
+                              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Kamera ve biyometrik sensör ile anında ve güvenle giriş yapın.',
+                              style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Switch.adaptive(
+                        value: isFaceEnabled,
+                        activeColor: const Color(0xFF10B981),
+                        onChanged: (val) async {
+                          await SecurityAuthService.instance.setFaceIdEnabled(val);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                backgroundColor: val ? const Color(0xFF059669) : const Color(0xFF0F172A),
+                                content: Text(val ? 'Yüz Tanıma (Face ID) aktif edildi.' : 'Yüz Tanıma devre dışı bırakıldı.'),
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 10),
+
+            // 2. Parmak İzi (Touch ID / Fingerprint) Switch Tile
+            ValueListenableBuilder<bool>(
+              valueListenable: SecurityAuthService.instance.isFingerprintEnabledNotifier,
+              builder: (context, isFpEnabled, _) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(Icons.fingerprint_rounded, color: Color(0xFF2563EB), size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              'Parmak İzi ile Giriş (Touch ID)',
+                              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Telefonun parmak izi sensörüne dokunarak cüzdanınıza erişin.',
+                              style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Switch.adaptive(
+                        value: isFpEnabled,
+                        activeColor: const Color(0xFF2563EB),
+                        onChanged: (val) async {
+                          await SecurityAuthService.instance.setFingerprintEnabled(val);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                backgroundColor: val ? const Color(0xFF2563EB) : const Color(0xFF0F172A),
+                                content: Text(val ? 'Parmak İzi (Touch ID) aktif edildi.' : 'Parmak İzi devre dışı bırakıldı.'),
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 10),
+
+            // 3. 4 Haneli Güvenlik Şifresi / PIN Kodu Tile
+            ValueListenableBuilder<bool>(
+              valueListenable: SecurityAuthService.instance.hasPinSetNotifier,
+              builder: (context, hasPin, _) {
+                return Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: const Icon(Icons.pin_rounded, color: Color(0xFF0F172A), size: 22),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  hasPin ? 'Güvenlik Şifresi / PIN Kodu (Aktif)' : '4 Haneli Şifre / PIN Belirle',
+                                  style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  hasPin
+                                      ? 'Cihaz kasası SHA-256 tuzlu PIN ile korunuyor.'
+                                      : 'Uygulama açılışını 4 haneli sayısal şifre ile koruyun.',
+                                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (!hasPin)
+                            ElevatedButton(
+                              onPressed: _setNewPin,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF0F172A),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                elevation: 0,
+                              ),
+                              child: const Text('Şifre Belirle', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                            ),
+                        ],
+                      ),
+                      if (hasPin) ...[
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: _changeExistingPin,
+                                icon: const Icon(Icons.edit_rounded, size: 14),
+                                label: const Text('Şifreyi Değiştir', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: const Color(0xFF0F172A),
+                                  side: const BorderSide(color: Color(0xFFCBD5E1)),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: _removePinWithVerification,
+                                icon: const Icon(Icons.lock_open_rounded, size: 14, color: AppColors.expenseRed),
+                                label: const Text('Şifreyi Kaldır', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.expenseRed)),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppColors.expenseRed,
+                                  side: const BorderSide(color: Color(0xFFFECDD3)),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 24),
 
@@ -856,33 +1167,125 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _exportToJsonBackup() async {
+    final passwordController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.shield_rounded, color: Color(0xFF10B981), size: 24),
+            SizedBox(width: 8),
+            Text('Sistem Yedeği Al', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Yedeğinizi AES-256 ile şifrelemek için bir koruma parolası belirleyin (Önerilen). Boş bırakırsanız düz metin JSON olarak kaydedilir.',
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: 'Kasa Parolası (En az 6 karakter)',
+                hintText: '••••••••',
+                prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: const Text('İptal'),
+          ),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.lock_rounded, size: 16),
+            label: const Text('🔒 Güvenli Şifreli Yedek (.vault)'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF10B981),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () async {
+              final pwd = passwordController.text.trim();
+              if (pwd.length < 6) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    backgroundColor: AppColors.expenseRed,
+                    content: Text('Güvenli yedek için parola en az 6 karakter olmalıdır!'),
+                  ),
+                );
+                return;
+              }
+              Navigator.pop(dialogCtx);
+              await _executeExportProcess(password: pwd);
+            },
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(dialogCtx);
+              await _executeExportProcess(password: null);
+            },
+            child: const Text('Şifresiz JSON Al', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _executeExportProcess({String? password}) async {
     setState(() => _isExporting = true);
     try {
       final data = await _repository.getAllDataForExport();
-      final backupJson = _exportService.createFullVaultBackupJson(
-        accounts: (data['accounts'] as List<dynamic>? ?? []).cast<Map<String, dynamic>>(),
-        statements: (data['statements'] as List<dynamic>? ?? []).cast<Map<String, dynamic>>(),
-        transactions: (data['transactions'] as List<dynamic>? ?? []).cast<Map<String, dynamic>>(),
-        installments: (data['installments'] as List<dynamic>? ?? []).cast<Map<String, dynamic>>(),
-        taxes: (data['tax_deductions'] as List<dynamic>? ?? []).cast<Map<String, dynamic>>(),
-      );
+      final accounts = (data['accounts'] as List<dynamic>? ?? []).cast<Map<String, dynamic>>();
+      final statements = (data['statements'] as List<dynamic>? ?? []).cast<Map<String, dynamic>>();
+      final transactions = (data['transactions'] as List<dynamic>? ?? []).cast<Map<String, dynamic>>();
+      final installments = (data['installments'] as List<dynamic>? ?? []).cast<Map<String, dynamic>>();
+      final taxes = (data['tax_deductions'] as List<dynamic>? ?? []).cast<Map<String, dynamic>>();
+
+      final isEncrypted = password != null && password.isNotEmpty;
+      final content = isEncrypted
+          ? _exportService.createEncryptedVaultBackup(
+              accounts: accounts,
+              statements: statements,
+              transactions: transactions,
+              installments: installments,
+              taxes: taxes,
+              password: password,
+            )
+          : _exportService.createFullVaultBackupJson(
+              accounts: accounts,
+              statements: statements,
+              transactions: transactions,
+              installments: installments,
+              taxes: taxes,
+            );
 
       final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/ParaIz_Sistem_Yedegi.json');
-      await file.writeAsString(backupJson);
+      final fileName = isEncrypted ? 'ParaIz_Sistem_Yedegi.vault' : 'ParaIz_Sistem_Yedegi.json';
+      final file = File('${tempDir.path}/$fileName');
+      await file.writeAsString(content);
 
       if (!mounted) return;
       setState(() => _isExporting = false);
 
       await Share.shareXFiles(
-        [XFile(file.path, mimeType: 'application/json')],
-        text: 'Paraİz Güvenli Kriptolu Sistem Yedeği (JSON)',
+        [XFile(file.path, mimeType: isEncrypted ? 'application/octet-stream' : 'application/json')],
+        text: isEncrypted ? 'Paraİz AES-256 Şifreli Kasa Yedeği (.vault)' : 'Paraİz Sistem Yedeği (JSON)',
       );
     } catch (e) {
       if (mounted) {
         setState(() => _isExporting = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Yedek paylaşılırken hata: $e')),
+          SnackBar(content: Text('Yedek üretilirken hata: $e')),
         );
       }
     }
@@ -935,64 +1338,119 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _restoreFromJsonBackup() {
     final controller = TextEditingController();
+    final passController = TextEditingController();
+
     showDialog(
       context: context,
       builder: (ctx) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text('Yedekten Geri Yükle', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Kopyaladığınız Paraİz yedek JSON metnini buraya yapıştırın:', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-              const SizedBox(height: 10),
-              TextField(
-                controller: controller,
-                maxLines: 5,
-                style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
-                decoration: InputDecoration(
-                  hintText: '{\n  "app": "ParaIz (MoneyTrace)",\n  ...\n}',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  contentPadding: const EdgeInsets.all(10),
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final isVault = controller.text.trim().startsWith('PARAIZ-SEC-VAULT-V2:');
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Row(
+                children: [
+                  Icon(Icons.settings_backup_restore_rounded, color: AppColors.actionPrimary, size: 22),
+                  SizedBox(width: 8),
+                  Text('Yedekten Geri Yükle', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Paraİz yedek metnini (.vault veya JSON) buraya yapıştırın:', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: controller,
+                      maxLines: 4,
+                      onChanged: (_) => setDialogState(() {}),
+                      style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
+                      decoration: InputDecoration(
+                        hintText: 'PARAIZ-SEC-VAULT-V2:... veya JSON metni',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        contentPadding: const EdgeInsets.all(10),
+                      ),
+                    ),
+                    if (isVault) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFECFDF5),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFA7F3D0)),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.lock_rounded, color: Color(0xFF059669), size: 18),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Bu yedek AES-256 ile şifrelenmiştir. Çözmek için belirlediğiniz parolayı giriniz.',
+                                style: TextStyle(fontSize: 11, color: Color(0xFF065F46), fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: passController,
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          labelText: 'Kasa Parolası',
+                          prefixIcon: const Icon(Icons.key_rounded, size: 18),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
-            ],
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('İptal')),
-            ElevatedButton(
-              onPressed: () async {
-                final text = controller.text.trim();
-                if (text.isEmpty) return;
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('İptal')),
+                ElevatedButton(
+                  onPressed: () async {
+                    final text = controller.text.trim();
+                    if (text.isEmpty) return;
 
-                try {
-                  final parsed = _exportService.validateAndParseBackup(text);
-                  await _repository.restoreVaultBackup(parsed);
+                    try {
+                      final pwd = passController.text.trim();
+                      final parsed = _exportService.validateAndParseBackup(
+                        text,
+                        password: pwd.isNotEmpty ? pwd : null,
+                      );
+                      await _repository.restoreVaultBackup(parsed);
 
-                  if (mounted) {
-                    Navigator.pop(ctx);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        backgroundColor: Color(0xFF10B981),
-                        content: Text('Yedek başarıyla geri yüklendi! Verileriniz güncellendi.'),
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(backgroundColor: AppColors.expenseRed, content: Text('Geri yükleme hatası: $e')),
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.actionPrimary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              child: const Text('Geri Yükle'),
-            ),
-          ],
+                      if (mounted) {
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            backgroundColor: Color(0xFF10B981),
+                            content: Text('Yedek başarıyla geri yüklendi! Verileriniz güncellendi.'),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(backgroundColor: AppColors.expenseRed, content: Text('Geri yükleme hatası: $e')),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.actionPrimary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Text('Geri Yükle'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
