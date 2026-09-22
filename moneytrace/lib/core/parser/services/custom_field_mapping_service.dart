@@ -261,15 +261,17 @@ class CustomFieldMappingService {
         ? descriptionParts.join(' - ')
         : '${template.bankName} Dekont İşlemi';
 
+    final isIncome = template.defaultTransactionType.toUpperCase() == 'INCOME';
     return ParsedRecord(
-      rawDate: txDate.toIso8601String().substring(0, 10),
-      rawMerchant: finalMerchant,
+      cardOrAccountMask: '****',
+      cardHolder: rawRecipientStr,
+      date: txDate,
+      type: isIncome ? ParsedTransactionType.credit : ParsedTransactionType.debit,
+      rawDescription: finalMerchant,
       cleanMerchant: finalMerchant,
-      amountCents: amountCents,
-      isDebit: template.defaultTransactionType != 'INCOME',
-      taxCents: 0,
-      suggestedCategory: template.defaultCategory,
-      isRecurringCandidate: false,
+      categoryId: template.defaultCategory,
+      billingAmountCents: amountCents,
+      billingCurrency: 'TRY',
     );
   }
 
