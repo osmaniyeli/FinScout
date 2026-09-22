@@ -1141,6 +1141,47 @@ $hasWebImportExport = $webIndexText.Contains("getSerializableConfig") -and `
 
 Assert-Test -Name "Web Admin Portal Import/Export & 12-Module Engine" -Condition $hasWebImportExport -Details "Web console supports roundtrip JSON import/export and controls all 12 modules"
 
+# ---------------------------------------------------------------
+# 22. PRE-RELEASE COMPILATION HYGIENE & VERSION CODE GUARD
+# ---------------------------------------------------------------
+Write-Host "--- TEST 22: Pre-Release Compilation Hygiene & Version Code Guard ---" -ForegroundColor Yellow
+
+# 1. Pubspec Version & Gradle Fallback Parity
+$pubspecPath = Join-Path $PSScriptRoot "../pubspec.yaml"
+$pubspecText = if (Test-Path $pubspecPath) { [System.IO.File]::ReadAllText($pubspecPath, [System.Text.Encoding]::UTF8) } else { "" }
+$gradlePath = Join-Path $PSScriptRoot "../android/app/build.gradle"
+$gradleText = if (Test-Path $gradlePath) { [System.IO.File]::ReadAllText($gradlePath, [System.Text.Encoding]::UTF8) } else { "" }
+
+$versionCodeMatch = [regex]::Match($pubspecText, 'version:\s*[\d\.]+\+(\d+)')
+$pubspecVersionCode = if ($versionCodeMatch.Success) { [int]$versionCodeMatch.Groups[1].Value } else { 0 }
+$gradleHasVersionCode = $gradleText.Contains("flutterVersionCode = '$pubspecVersionCode'")
+
+Assert-Test -Name "Google Play VersionCode Integrity (>= 3)" -Condition ($pubspecVersionCode -ge 3 -and $gradleHasVersionCode) -Details "Pubspec versionCode is $pubspecVersionCode (>= 3) and Gradle fallback matches"
+
+# 2. AppTheme Material Import & JetBrains Mono Guard
+$appThemePath = Join-Path $PSScriptRoot "../lib/core/theme/app_theme.dart"
+$appThemeText = if (Test-Path $appThemePath) { [System.IO.File]::ReadAllText($appThemePath, [System.Text.Encoding]::UTF8) } else { "" }
+$hasThemeIntegrity = $appThemeText.Contains("package:flutter/material.dart") -and $appThemeText.Contains("jetBrainsMono")
+Assert-Test -Name "AppTheme Material & Typography Guard" -Condition $hasThemeIntegrity -Details "app_theme.dart has material import and jetBrainsMono numeric styling"
+
+# 3. PDF Scanner Stopwatch & Regex Guard
+$pdfScannerPath = Join-Path $PSScriptRoot "../lib/core/security/pdf_malware_scanner.dart"
+$pdfScannerText = if (Test-Path $pdfScannerPath) { [System.IO.File]::ReadAllText($pdfScannerPath, [System.Text.Encoding]::UTF8) } else { "" }
+$hasValidStopwatch = $pdfScannerText.Contains("Stopwatch()..start()") -and !($pdfScannerText.Contains("Stopwatch().start()"))
+Assert-Test -Name "PDF Scanner Stopwatch Cascade Guard" -Condition $hasValidStopwatch -Details "pdf_malware_scanner.dart uses cascade operator preventing void type inference"
+
+# 4. Assets Screen Repository Method Guard
+$assetsScreenPath = Join-Path $PSScriptRoot "../lib/features/assets_portfolio/presentation/assets_screen.dart"
+$assetsScreenText = if (Test-Path $assetsScreenPath) { [System.IO.File]::ReadAllText($assetsScreenPath, [System.Text.Encoding]::UTF8) } else { "" }
+$hasValidRepoCall = $assetsScreenText.Contains("saveManualTransaction") -and !($assetsScreenText.Contains("insertTransaction"))
+Assert-Test -Name "Assets Screen Repository Method Guard" -Condition $hasValidRepoCall -Details "assets_screen.dart calls saveManualTransaction avoiding undefined method"
+
+# 5. Quick Entry Categories Getter Guard
+$quickEntryPath = Join-Path $PSScriptRoot "../lib/features/quick_entry/presentation/quick_entry_sheet.dart"
+$quickEntryText = if (Test-Path $quickEntryPath) { [System.IO.File]::ReadAllText($quickEntryPath, [System.Text.Encoding]::UTF8) } else { "" }
+$hasValidCategories = !($quickEntryText.Contains("final categories = _categories;"))
+Assert-Test -Name "Quick Entry Categories Getter Guard" -Condition $hasValidCategories -Details "quick_entry_sheet.dart binds to _currentCategories"
+
 Write-Host "`n========================================================" -ForegroundColor Cyan
 Write-Host "  TEST RESULTS: $PassedTests / $TotalTests PASSED" -ForegroundColor $(if ($PassedTests -eq $TotalTests) { "Green" } else { "Red" })
 Write-Host "========================================================`n" -ForegroundColor Cyan
