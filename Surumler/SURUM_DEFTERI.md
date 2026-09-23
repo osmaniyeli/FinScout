@@ -32,6 +32,17 @@ Her Play yüklemesinde kod, aşağıdaki tabloda **"Play'e yüklendi"** olan en 
 
 > Play Console'da bu tablodan daha yüksek bir kod görürsen (ör. elle yüklenmiş bir sürüm), satır ekle ve pubspec kodunu ondan büyük yap.
 
+## Sonraki sürümde yapılacaklar
+
+Play Console'un 3.6.0 (kod 4) yüklemesinde verdiği uyarılar — bir sonraki sürümden önce kapatılacak:
+
+- [ ] **Reklam kimliği beyanı (AD_ID):** Play Console → Uygulama içeriği → Reklam kimliği → **"Hayır"** (Paraİz reklam
+      kimliği kullanmıyor; manifest'e izin EKLENMEYECEK). Kodda: `AndroidManifest.xml`'e
+      `<uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove"/>` ekle ki bir
+      kütüphane izni gizlice getiremesin.
+- [ ] **Paket boyutu uyarısı:** artışın ana kaynağı PDFium (pdfrx). Derlemeye `--split-debug-info` (+ `--obfuscate`)
+      ekle; `bundletool get-size total` ile cihaz başı indirme boyutunu ölç; gerekirse x86_64 ABI'yi çıkar.
+
 ## Paketler
 
 Satırları `tools/surum_derle.ps1` otomatik ekler.
