@@ -2,41 +2,93 @@
 
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
-import 'package:syncfusion_flutter_pdf/pdf.dart';
+import 'package:pdfrx_engine/pdfrx_engine.dart';
+import '../layout/statement_layout.dart';
 
 class ExtractedPdfDocument {
-  final String text;
+  final StatementLayout layout;
   final String sha256Hash;
-  final int pageCount;
 
   const ExtractedPdfDocument({
-    required this.text,
+    required this.layout,
     required this.sha256Hash,
-    required this.pageCount,
   });
+
+  /// Satır yapısı korunmuş düz metin (banka tespiti ve PII maskeleme için).
+  String get text => layout.plainText;
+  int get pageCount => layout.pageCount;
+}
+
+class PdfPasswordRequiredException implements Exception {
+  final bool wasPasswordWrong;
+  const PdfPasswordRequiredException({this.wasPasswordWrong = false});
+
+  @override
+  String toString() => wasPasswordWrong
+      ? 'PDF şifresi hatalı. Lütfen tekrar deneyin.'
+      : 'Bu ekstre şifre korumalı. Lütfen bankanızın belirlediği PDF şifresini girin.';
+}
+
+class PdfNoTextLayerException implements Exception {
+  const PdfNoTextLayerException();
+
+  @override
+  String toString() =>
+      'Bu PDF metin içermiyor (taranmış görüntü). Lütfen bankanızın internet/mobil şubesinden indirdiğiniz orijinal e-ekstreyi yükleyin.';
 }
 
 class PdfExtractorService {
-  /// Cihazdan okunan bayt dizisinden (Uint8List) metin katmanını ve SHA256 özetini çıkarır.
-  /// İşlem tamamen yereldir, hiçbir dış sunucuya gitmez.
-  static ExtractedPdfDocument extractTextFromBytes(Uint8List bytes) {
-    // 1. Dosya bütünlüğü ve tekillik kontrolü için SHA256 hash hesapla
-    final digest = sha256.convert(bytes);
-    final hashString = digest.toString();
+  /// PDF baytlarından koordinat tabanlı satır/sütun yapısını ve SHA256 özetini çıkarır.
+  /// PDFium (pdfrx) kullanır; işlem tamamen cihaz üzerindedir, hiçbir dış sunucuya gitmez.
+  ///
+  /// Uygulamada `pdfrxFlutterInitialize()`, testlerde `pdfrxInitialize()` önceden çağrılmış olmalıdır.
+  static Future<ExtractedPdfDocument> extract(Uint8List bytes, {String? password}) async {
+    final hashString = sha256.convert(bytes).toString();
 
-    // 2. Syncfusion PDF motoru ile metin katmanını tara
-    final PdfDocument document = PdfDocument(inputBytes: bytes);
-    final PdfTextExtractor extractor = PdfTextExtractor(document);
-    final String extractedText = extractor.extractText();
-    final int pageCount = document.pages.count;
+    final PdfDocument document;
+    try {
+      document = await PdfDocument.openData(
+        bytes,
+        passwordProvider: password == null ? null : () => password,
+        firstAttemptByEmptyPassword: password == null,
+      );
+    } on PdfPasswordException {
+      throw PdfPasswordRequiredException(wasPasswordWrong: password != null);
+    }
 
-    // 3. Belleği serbest bırak
-    document.dispose();
+    final fragments = <RawTextFragment>[];
+    try {
+      for (final page in document.pages) {
+        final pageText = await page.loadStructuredText();
+        for (final fragment in pageText.fragments) {
+          final text = fragment.text;
+          if (text.trim().isEmpty) continue;
+          final b = fragment.bounds;
+          // Kenar boşluğundaki döndürülmüş yazılar (seri no, vergi dairesi vb.) tablo satırlarına karışmasın
+          final isVertical = fragment.direction == PdfTextDirection.vrtl ||
+              (text.trim().length >= 3 && b.height > b.width * 2.5);
+          if (isVertical) continue;
+          fragments.add(RawTextFragment(
+            page: page.pageNumber,
+            left: b.left,
+            right: b.right,
+            top: b.top,
+            bottom: b.bottom,
+            text: text,
+          ));
+        }
+      }
+    } finally {
+      await document.dispose();
+    }
+
+    if (fragments.isEmpty) {
+      throw const PdfNoTextLayerException();
+    }
 
     return ExtractedPdfDocument(
-      text: extractedText,
+      layout: StatementLayout.fromFragments(fragments, pageCount: document.pages.length),
       sha256Hash: hashString,
-      pageCount: pageCount,
     );
   }
 }

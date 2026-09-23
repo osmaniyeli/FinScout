@@ -77,7 +77,7 @@ class _MorphingSegmentedBarState extends State<MorphingSegmentedBar> {
                       borderRadius: BorderRadius.circular(widget.height / 2),
                       boxShadow: [
                         BoxShadow(
-                          color: activeColor.withOpacity(0.35),
+                          color: activeColor.withValues(alpha: 0.35),
                           blurRadius: 10,
                           offset: const Offset(0, 3),
                         ),
@@ -103,7 +103,9 @@ class _MorphingSegmentedBarState extends State<MorphingSegmentedBar> {
                             curve: Curves.easeInOut,
                             style: TextStyle(
                               fontSize: 12.5,
-                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                              fontWeight: isSelected
+                                  ? FontWeight.w800
+                                  : FontWeight.w600,
                               color: isSelected ? activeText : inactiveText,
                               letterSpacing: 0.2,
                             ),

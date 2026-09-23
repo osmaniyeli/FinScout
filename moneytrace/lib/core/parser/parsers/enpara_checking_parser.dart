@@ -1,120 +1,193 @@
 // lib/core/parser/parsers/enpara_checking_parser.dart
 
+import '../layout/statement_layout.dart';
 import '../models/parsed_models.dart';
-import '../../utils/currency_normalizer.dart';
+import '../util/tr_statement_text.dart';
+import 'statement_parser.dart';
+import 'table_block_reader.dart';
 
-class EnparaCheckingParser {
-  // İşlem Satırı Yakalama Deseni: "28/07/26 BİM BİRLEŞİK MAĞAZALAR A.Ş. -456,50 TL 12.340,50 TL" veya "28/07/2026 PALGAZ Tüketim Faturası -450,00 TL"
-  static final RegExp _txRowRegex = RegExp(
-    r'^(\d{2}/\d{2}/\d{2,4})\s+(.+?)\s+([+-]?\s*[\d\.,]+)\s*TL(?:\s+([+-]?\s*[\d\.,]+)\s*TL)?\s*$',
-    multiLine: true,
-  );
+/// Enpara.com vadesiz hesap özeti.
+///
+/// Tablo: Tarih | Açıklama | Tutar | Bakiye. Açıklama 1-3 satıra yayılır; tarih ve tutar bloğun
+/// dikey ortasında durur. Bu yüzden satır sırasına değil, çapa eşlemeye dayanır:
+/// her işlemin bir tarih hücresi + bir tutar hücresi vardır; açıklama satırları en yakın çapaya bağlanır.
+class EnparaCheckingParser implements LayoutStatementParser {
+  static const _txHeader = {'date': 'TARIH', 'desc': 'ACIKLAMA', 'amount': 'TUTAR', 'balance': 'BAKIYE'};
+  static const _orderHeader = {'date': 'TARIH', 'name': 'TALIMAT ADI', 'amount': 'TUTAR'};
 
-  static final RegExp _fastQueryRegex = RegExp(r'sorgu no:\s*(\d+)', caseSensitive: false);
-  static final RegExp _subscriberRegex = RegExp(r'abone no:\s*(\d+)', caseSensitive: false);
-  static final RegExp _ibanHeaderRegex = RegExp(r'TR\d{2}\s?[0-9\s]{20,24}');
+  static final RegExp _iban = RegExp(r'TR\d{2}\s?\d{4}[\s*\d]{10,}\d{2}');
+  static final RegExp _fastQuery = RegExp(r'sorgu no:\s*(\d+)', caseSensitive: false);
 
-  List<ParsedRecord> parse(String text, {String? accountMask}) {
-    final List<ParsedRecord> results = [];
-    final matches = _txRowRegex.allMatches(text).toList();
+  @override
+  ParserOutput parse(StatementLayout layout) {
+    final records = <ParsedRecord>[];
+    final scheduled = <ScheduledPayment>[];
 
-    String effectiveAccountMask = accountMask ?? 'TR43 0015 **** 8065';
-    final detectedIban = _ibanHeaderRegex.firstMatch(text);
-    if (detectedIban != null && accountMask == null) {
-      effectiveAccountMask = detectedIban.group(0)!.trim();
+    final ibanRow = layout.rows.where((r) => TrStatementText.fold(r.cells.first.text) == 'IBAN').firstOrNull;
+    final iban = ibanRow == null ? null : _iban.firstMatch(ibanRow.text)?.group(0);
+
+    // Sayfa sayfa, başlık ile bitiş arasındaki bölümleri topla
+    var section = <LayoutRow>[];
+    ColumnMap? txColumns;
+    ColumnMap? orderColumns;
+
+    void flush() {
+      if (txColumns != null && section.isNotEmpty) {
+        records.addAll(_parseTxSection(section, txColumns, iban ?? 'Enpara Vadesiz'));
+      }
+      if (orderColumns != null && section.isNotEmpty) {
+        scheduled.addAll(_parseOrderSection(section, orderColumns));
+      }
+      section = [];
     }
 
-    int i = 0;
-    while (i < matches.length) {
-      final match = matches[i];
-      final dateStr = match.group(1)!;
-      final desc = match.group(2)!.trim();
-      final amountStr = match.group(3)!.replaceAll(' ', '');
-
-      final dateParts = dateStr.split('/');
-      int year = int.parse(dateParts[2]);
-      if (year < 100) year += 2000;
-      final date = DateTime(
-        year,
-        int.parse(dateParts[1]),
-        int.parse(dateParts[0]),
-      );
-
-      final totalCents = CurrencyNormalizer.toMinorUnits(amountStr);
-      final isDebit = totalCents < 0 || (!amountStr.startsWith('+') && (desc.toLowerCase().contains('fatura') || desc.toLowerCase().contains('palgaz') || desc.toLowerCase().contains('pos')));
-
-      // FAST Sorgu No & Abone No Tespiti
-      String? trackingId;
-      final fastMatch = _fastQueryRegex.firstMatch(desc);
-      if (fastMatch != null) {
-        trackingId = 'FAST:${fastMatch.group(1)}';
-      } else {
-        final subMatch = _subscriberRegex.firstMatch(desc);
-        if (subMatch != null) {
-          trackingId = 'ABONE:${subMatch.group(1)}';
-        }
+    int? page;
+    for (final row in layout.rows) {
+      if (row.page != page) {
+        flush();
+        txColumns = null;
+        orderColumns = null;
+        page = row.page;
       }
-
-      // KREDİ TAKSİT KONSOLİDASYONU:
-      // Aynı gün düşen Ana Para Taksiti, BSMV ve KKDF satırlarını tek bir işlem nesnesinde birleştirme
-      final isLoanInstallment = (desc.toLowerCase().contains('kredi') || desc.toLowerCase().contains('ihtiyaç')) &&
-          desc.toLowerCase().contains('taksiti') &&
-          !desc.contains('BSMV') &&
-          !desc.contains('KKDF');
-
-      if (isLoanInstallment) {
-        int consolidatedAmount = totalCents.abs();
-        final List<ParsedTaxData> taxes = [];
-
-        int lookAhead = 1;
-        while (lookAhead <= 2 && (i + lookAhead) < matches.length) {
-          final nextMatch = matches[i + lookAhead];
-          final nextDesc = nextMatch.group(2)!;
-          final nextAmountStr = nextMatch.group(3)!.replaceAll(' ', '');
-
-          if (nextDesc.contains('BSMV')) {
-            final bsmvCents = CurrencyNormalizer.toMinorUnits(nextAmountStr).abs();
-            consolidatedAmount += bsmvCents;
-            taxes.add(ParsedTaxData(taxType: 'BSMV', amountCents: bsmvCents));
-            lookAhead++;
-          } else if (nextDesc.contains('KKDF')) {
-            final kkdfCents = CurrencyNormalizer.toMinorUnits(nextAmountStr).abs();
-            consolidatedAmount += kkdfCents;
-            taxes.add(ParsedTaxData(taxType: 'KKDF', amountCents: kkdfCents));
-            lookAhead++;
-          } else {
-            break;
-          }
-        }
-
-        results.add(ParsedRecord(
-          cardOrAccountMask: effectiveAccountMask,
-          cardHolder: 'Hesap Sahibi',
-          date: date,
-          type: ParsedTransactionType.debit,
-          rawDescription: desc,
-          billingAmountCents: consolidatedAmount,
-          taxes: taxes,
-          fastOrTrackingId: trackingId,
-        ));
-
-        i += lookAhead; // BSMV ve KKDF satırlarını konsolide ettik, atla
+      final tx = ColumnMap.fromHeader(row, _txHeader, TrStatementText.fold);
+      if (tx != null) {
+        flush();
+        txColumns = tx;
+        orderColumns = null;
         continue;
       }
+      final order = ColumnMap.fromHeader(row, _orderHeader, TrStatementText.fold);
+      if (order != null && !order.has('balance')) {
+        flush();
+        orderColumns = order;
+        txColumns = null;
+        continue;
+      }
+      final first = TrStatementText.fold(row.cells.first.text);
+      if (first.startsWith('SAYFA') || first.startsWith('ENPARA BANK')) {
+        flush();
+        txColumns = null;
+        orderColumns = null;
+        continue;
+      }
+      // Talimat tablosu öncesi bilgilendirme paragrafı işlem tablosunu sonlandırır
+      if (txColumns != null && row.cells.length == 1 && !TrStatementText.isAmount(row.cells.first.text) &&
+          row.cells.first.left < txColumns['desc']! - 4 && TrStatementText.parseDate(row.text) == null) {
+        flush();
+        txColumns = null;
+        continue;
+      }
+      section.add(row);
+    }
+    flush();
 
-      results.add(ParsedRecord(
-        cardOrAccountMask: effectiveAccountMask,
-        cardHolder: 'Hesap Sahibi',
-        date: date,
-        type: isDebit ? ParsedTransactionType.debit : ParsedTransactionType.credit,
-        rawDescription: desc,
-        billingAmountCents: totalCents.abs(),
-        fastOrTrackingId: trackingId,
-      ));
+    return ParserOutput(
+      records: records,
+      accountIdentifier: iban,
+      accountHolder: TrStatementText.labelValue(layout, ['Ad soyad']),
+      summary: StatementSummary(
+        previousBalanceCents: TrStatementText.labelAmount(layout, ['Dönem başı bakiyesi']),
+        statementBalanceCents: TrStatementText.labelAmount(layout, ['Dönem sonu bakiyesi']),
+        statementDate: _periodEnd(layout),
+        scheduledPayments: scheduled,
+      ),
+    );
+  }
 
-      i++;
+  DateTime? _periodEnd(StatementLayout layout) {
+    final period = TrStatementText.labelValue(layout, ['Ekstre dönemi']);
+    if (period == null) return null;
+    final parts = period.split('-');
+    return parts.length == 2 ? TrStatementText.parseDate(parts[1]) : null;
+  }
+
+  List<ParsedRecord> _parseTxSection(List<LayoutRow> rows, ColumnMap cols, String account) {
+    return TableBlockReader.read(rows, cols).map((b) {
+      final classified = _classify(b.description, b.signedAmountCents);
+      final amount = b.signedAmountCents.abs();
+      return ParsedRecord(
+        cardOrAccountMask: account,
+        date: b.date,
+        type: b.signedAmountCents < 0 ? ParsedTransactionType.debit : ParsedTransactionType.credit,
+        rawDescription: b.description,
+        billingAmountCents: amount,
+        balanceAfterCents: b.balanceCents,
+        kind: classified.kind,
+        counterparty: classified.counterparty,
+        taxes: classified.tax == null ? const [] : [ParsedTaxData(taxType: classified.tax!, amountCents: amount)],
+        fastOrTrackingId: _fastQuery.firstMatch(b.description)?.group(1),
+      );
+    }).toList();
+  }
+
+  List<ScheduledPayment> _parseOrderSection(List<LayoutRow> rows, ColumnMap cols) {
+    final result = <ScheduledPayment>[];
+    DateTime? date;
+    final desc = <String>[];
+    for (final row in rows) {
+      for (final c in row.cells) {
+        if (TrStatementText.isDateCell(c.text) && c.left < cols['name']! - 4) {
+          date = TrStatementText.parseDate(c.text);
+        } else if (TrStatementText.isAmount(c.text) && c.left >= cols['amount']! - 60) {
+          if (date != null) {
+            result.add(ScheduledPayment(
+              date: date,
+              description: desc.join(' ').replaceAll(RegExp(r'\s+'), ' ').trim(),
+              amountCents: TrStatementText.amountCents(c.text)!.abs(),
+            ));
+          }
+          date = null;
+          desc.clear();
+        } else {
+          desc.add(c.text);
+        }
+      }
+    }
+    return result;
+  }
+
+  /// Enpara açıklama kalıpları: "<Tür>, <karşı taraf>, <not>, EFT (FAST) sorgu no: …"
+  _EnparaClass _classify(String description, int signedAmount) {
+    final parts = description.split(',').map((p) => p.trim()).toList();
+    final head = TrStatementText.fold(parts.first);
+    final second = parts.length > 1 ? parts[1] : '';
+
+    String posMerchant() {
+      // "Diğer, 049800001118237-ONLY PARK BOWLING Kocaeli TR" → "ONLY PARK BOWLING"
+      final m = RegExp(r'\d{5,}\s*-\s*(.+)').firstMatch(description);
+      return (m?.group(1) ?? second).replaceAll(RegExp(r'\s+pos satış.*$', caseSensitive: false), '').trim();
     }
 
-    return results;
+    if (head.startsWith('GIDEN TRANSFER')) return _EnparaClass(TransactionKind.transferOut, second);
+    if (head.startsWith('GELEN TRANSFER')) return _EnparaClass(TransactionKind.transferIn, second);
+    if (head.startsWith('IPTAL/IADE')) return _EnparaClass(TransactionKind.refund, posMerchant());
+    if (head.startsWith('ENCARD HARCAMASI') || head.startsWith('DIGER')) {
+      return _EnparaClass(TransactionKind.purchase, posMerchant());
+    }
+    if (head.startsWith('PARA CEKME')) return _EnparaClass(TransactionKind.cashAdvance, 'ATM');
+    if (head.startsWith('PARA YATIRMA')) return _EnparaClass(TransactionKind.transferIn, 'ATM Para Yatırma');
+    if (head.startsWith('VERGI KESINTISI')) {
+      final fold = TrStatementText.fold(description);
+      final tax = fold.contains('KKDF') ? 'KKDF' : (fold.contains('BSMV') ? 'BSMV' : 'OTHER_TAX');
+      return _EnparaClass(TransactionKind.tax, 'Enpara', tax: tax);
+    }
+    if (head.startsWith('ODEME')) {
+      final fold = TrStatementText.fold(description);
+      if (fold.contains('KREDI') && fold.contains('TAKSIT')) {
+        return _EnparaClass(TransactionKind.loanPayment, 'Enpara İhtiyaç Kredisi');
+      }
+      if (fold.contains('FATURA')) {
+        return _EnparaClass(TransactionKind.billPayment, second.replaceAll(RegExp(r'\s*faturası.*', caseSensitive: false), ''));
+      }
+      return _EnparaClass(TransactionKind.other, second);
+    }
+    return _EnparaClass(signedAmount < 0 ? TransactionKind.other : TransactionKind.transferIn, second);
   }
+}
+
+class _EnparaClass {
+  final TransactionKind kind;
+  final String counterparty;
+  final String? tax;
+  const _EnparaClass(this.kind, this.counterparty, {this.tax});
 }

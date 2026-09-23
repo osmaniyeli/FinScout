@@ -25,7 +25,8 @@ class DynamicIslandCapsule extends StatefulWidget {
     this.title = 'Elektrikli Araç Bakım & Yakıt Avantajı',
     this.message =
         'Dizel veya benzinli araçlarda motor yağı, triger, buji, egzoz ve filtre gibi ağır periyodik bakım masrafları bulunurken; elektrikli araçlarda periyodik bakım maliyeti %60-70 daha düşüktür. Evden/işten şarj ile km başına yakıt maliyeti %70-80 daha ekonomiktir.',
-    this.comparisonHighlight = 'Yıllık 20.000 km kullanımda net ₺45.000 - ₺60.000 tasarruf.',
+    this.comparisonHighlight =
+        'Yıllık 20.000 km kullanımda net ₺45.000 - ₺60.000 tasarruf.',
     this.onDismissed,
     this.onActionTap,
     this.initialExpanded = false,
@@ -104,7 +105,8 @@ class _DynamicIslandCapsuleState extends State<DynamicIslandCapsule>
           onVerticalDragEnd: (details) {
             // Yukarı veya aşağı hızlı kaydırma ile kapatma
             if (details.primaryVelocity != null &&
-                (details.primaryVelocity! > 250 || details.primaryVelocity! < -250)) {
+                (details.primaryVelocity! > 250 ||
+                    details.primaryVelocity! < -250)) {
               if (_isExpanded) {
                 _toggleExpand();
               } else {
@@ -124,20 +126,20 @@ class _DynamicIslandCapsuleState extends State<DynamicIslandCapsule>
                 width: double.infinity,
                 height: currentHeight,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0C0E14).withOpacity(0.96),
+                  color: const Color(0xFF0C0E14).withValues(alpha: 0.96),
                   borderRadius: BorderRadius.circular(_isExpanded ? 24 : 26),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.12),
+                    color: Colors.white.withValues(alpha: 0.12),
                     width: 1.0,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.65),
+                      color: Colors.black.withValues(alpha: 0.65),
                       blurRadius: 28,
                       offset: const Offset(0, 12),
                     ),
                     BoxShadow(
-                      color: const Color(0xFF00D084).withOpacity(0.12),
+                      color: const Color(0xFF00D084).withValues(alpha: 0.12),
                       blurRadius: 18,
                       spreadRadius: -4,
                       offset: const Offset(0, 4),
@@ -208,9 +210,10 @@ class _DynamicIslandCapsuleState extends State<DynamicIslandCapsule>
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.08),
+                    color: Colors.white.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Row(
@@ -238,7 +241,7 @@ class _DynamicIslandCapsuleState extends State<DynamicIslandCapsule>
                   onTap: _dismiss,
                   child: Icon(
                     Icons.close_rounded,
-                    color: Colors.white.withOpacity(0.5),
+                    color: Colors.white.withValues(alpha: 0.5),
                     size: 16,
                   ),
                 ),
@@ -267,18 +270,20 @@ class _DynamicIslandCapsuleState extends State<DynamicIslandCapsule>
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF00D084).withOpacity(0.18),
+                        color: const Color(0xFF00D084).withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: const Color(0xFF00D084).withOpacity(0.4),
+                          color: const Color(0xFF00D084).withValues(alpha: 0.4),
                           width: 0.8,
                         ),
                       ),
                       child: const Row(
                         children: [
-                          Icon(Icons.electric_car_rounded, color: Color(0xFF00D084), size: 12),
+                          Icon(Icons.electric_car_rounded,
+                              color: Color(0xFF00D084), size: 12),
                           SizedBox(width: 4),
                           Text(
                             'AKILLI ENERJİ NÜANSI',
@@ -300,7 +305,7 @@ class _DynamicIslandCapsuleState extends State<DynamicIslandCapsule>
                   width: 36,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.25),
+                    color: Colors.white.withValues(alpha: 0.25),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -311,7 +316,7 @@ class _DynamicIslandCapsuleState extends State<DynamicIslandCapsule>
                   child: Container(
                     padding: const EdgeInsets.all(3),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.08),
+                      color: Colors.white.withValues(alpha: 0.08),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -349,7 +354,7 @@ class _DynamicIslandCapsuleState extends State<DynamicIslandCapsule>
                     Text(
                       widget.message,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.78),
+                        color: Colors.white.withValues(alpha: 0.78),
                         fontSize: 11.5,
                         height: 1.38,
                         fontWeight: FontWeight.w400,
@@ -358,18 +363,22 @@ class _DynamicIslandCapsuleState extends State<DynamicIslandCapsule>
                     if (widget.comparisonHighlight != null) ...[
                       const SizedBox(height: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0052FF).withOpacity(0.15),
+                          color:
+                              const Color(0xFF0052FF).withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: const Color(0xFF0052FF).withOpacity(0.3),
+                            color:
+                                const Color(0xFF0052FF).withValues(alpha: 0.3),
                             width: 0.8,
                           ),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.savings_outlined, color: Color(0xFF60A5FA), size: 14),
+                            const Icon(Icons.savings_outlined,
+                                color: Color(0xFF60A5FA), size: 14),
                             const SizedBox(width: 6),
                             Expanded(
                               child: Text(
@@ -400,13 +409,13 @@ class _DynamicIslandCapsuleState extends State<DynamicIslandCapsule>
                     Icon(
                       Icons.swipe_up_rounded,
                       size: 13,
-                      color: Colors.white.withOpacity(0.4),
+                      color: Colors.white.withValues(alpha: 0.4),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       'Kaydırarak kapatın',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.4),
+                        color: Colors.white.withValues(alpha: 0.4),
                         fontSize: 10,
                         fontWeight: FontWeight.w500,
                       ),
@@ -420,13 +429,14 @@ class _DynamicIslandCapsuleState extends State<DynamicIslandCapsule>
                   },
                   borderRadius: BorderRadius.circular(16),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
                       color: const Color(0xFF00D084),
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF00D084).withOpacity(0.3),
+                          color: const Color(0xFF00D084).withValues(alpha: 0.3),
                           blurRadius: 10,
                           offset: const Offset(0, 3),
                         ),

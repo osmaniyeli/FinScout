@@ -1,9 +1,9 @@
 // lib/core/parser/services/merchant_sanitizer.dart
 
 class MerchantSanitizer {
-  // Sanal POS ve Gateway Önekleri
+  // Sanal POS ve ödeme kuruluşu önekleri: "IYZICO/X", "IYZICO  *X", "PAYTR.  *X", "PAYTR/X", "ÖDEAL//X"
   static final RegExp _gatewayPrefixes = RegExp(
-    r'^(?:IYZICO/|PAYTR[\.\/]|SİPAY(?:\s+ELEK)?/|SIPAY(?:\s+ELEK)?/|ÖDEAL//|ODEAL//|SQUARE\s*\*|PAYPAL\s*\*|PARAM/|MOKA/|PARATIKA/|POS\s*\d+\s*-?|GARANTI\s*POS\s*-?)(.+)',
+    r'^(?:IYZICO|İYZİCO|PAYTR|SİPAY(?:\s+ELEK)?|SIPAY(?:\s+ELEK)?|ÖDEAL|ODEAL|PARAM|MOKA|PARATIKA|SQUARE|PAYPAL|GARANTI\s*POS|POS\s*\d+)[\s.\/*\-]+(.+)',
     caseSensitive: false,
   );
 
@@ -32,139 +32,114 @@ class MerchantSanitizer {
     return cleaned.trim();
   }
 
-  /// Temizlenmiş marka adını ve açıklamasını ISO 18245 MCC & anahtar kelime eşleşmesiyle kategoriye bağlar.
+  /// Anahtar kelime → kategori tablosu (ASCII'ye katlanmış, büyük harf).
+  /// Eşleşme kelime başında aranır; 3 karakter ve altı kalıplar tam kelime olmalıdır
+  /// ("PET" → "PET SHOP" eşleşir ama "PETROL" eşleşmez; "SOK" → "SOKAK" eşleşmez).
+  /// Sıra önemlidir: daha özgül kategoriler (akaryakıt) genel olanlardan (market) önce gelir.
+  static const Map<String, List<String>> _rules = {
+    'cat_fuel': [
+      'OPET', 'SHELL', 'PETROL OFISI', 'BP', 'TOTAL ENERGIES', 'TOTALENERGIES', 'AYGAZ', 'AKARYAKIT', 'PETROL',
+      'WAT MOBILITE', 'NATIONAL FUEL', 'LUKOIL', 'ZES', 'TRUGO', 'ESARJ', 'E-SARJ', 'ALPET', 'KADOIL', 'MOIL',
+    ],
+    'cat_insurance': ['SIGORTA', 'ALLIANZ', 'ANADOLU HAYAT', 'EMEKLILIK', 'BES KATKI', 'AXA', 'MAPFRE', 'HDI'],
+    'cat_subscriptions': [
+      'YOUTUBE', 'SPOTIFY', 'NETFLIX', 'DISNEY', 'APPLE.COM', 'ITUNES', 'GOOGLE ONE', 'GOOGLE PLAY', 'MICROSOFT',
+      'XBOX', 'PLAYSTATION', 'STEAM', 'BLUTV', 'EXXEN', 'GAIN MEDYA', 'AMAZON PRIME', 'CLAUDE', 'ANTHROPIC', 'OPENAI',
+      'CHATGPT', 'ICLOUD', 'DROPBOX', 'ADOBE', 'CANVA',
+    ],
+    'cat_utilities': [
+      'VODAFONE', 'TURKCELL', 'TURK TELEKOM', 'TELEKOM', 'PALGAZ', 'SEPAS', 'ENERJISA', 'ISKI', 'ASKI', 'ISU',
+      'SUPERONLINE', 'DIGITURK', 'D-SMART', 'IGDAS', 'BASKENTGAZ', 'CK ENERJI', 'ELEKTRIK DAGITIM', 'TTNET',
+    ],
+    'cat_tax': ['VERGI DAIRESI', 'MOTORLU TASITLAR', 'GELIR IDARESI', 'BELEDIYE', 'HARC', 'MTV', 'GIB'],
+    'cat_home': [
+      'HIRDAVAT', 'HIRDAVA', 'MR DIY', 'MRDIY', 'MR. DIY', 'KOCTAS', 'IKEA', 'BAUHAUS', 'TEKZEN', 'ENGLISH HOME', 'MADAME COCO',
+      'KARACA', 'MOBILYA', 'YAPI MARKET', 'NALBURIYE', 'ELEKTRIK', 'ELEKTRIKLI',
+    ],
+    'cat_market': [
+      'BIM', 'A-101', 'A101', 'SOK', 'HAKMAR', 'FILE', 'MOPAS', 'CARREFOUR', 'MIGROS', 'MACROCENTER', 'HIPERMARKET',
+      'SUPERMARKET', 'MARKET', 'MARKETLERI', 'BAKKAL', 'MANAV', 'KASAP', 'ET URUNLERI', 'SARKUTERI', 'GETIR', 'ISTEGELSIN',
+    ],
+    'cat_transit': [
+      'SITAXI', 'TAKSIDE POS', 'TAKSI', 'TOPLU TASIMA', 'BELBIM', 'ISTANBULKART', 'KENTKART', 'UBER', 'BITAKSI',
+      'MARTI', 'TCDD', 'OTOBAN', 'HGS', 'OGS', 'OTOPARK', 'ISPARK', 'OTOGAR', 'METRO TURIZM', 'KAMIL KOC',
+    ],
+    'cat_dining': [
+      'FIRIN', 'LOKANTA', 'LOKANTASI', 'RESTORAN', 'RESTAURANT', 'KEBAP', 'DURUM', 'IZGARA', 'BOREK', 'BOREKCI',
+      'KAHVE', 'STARBUCKS', 'ESPRESSOLAB', 'TRENDYOL YEMEK', 'YEMEKSEPETI', 'BURGER', 'PIZZA', 'CAFE', 'KAFE',
+      'PASTANE', 'PASTANESI', 'TATLI', 'TATLIBAK', 'BUFE', 'EKMEK', 'SIMIT', 'DONER', 'KOFTE', 'MANTI', 'BALIK',
+    ],
+    'cat_pet': ['PETSHOP', 'PET SHOP', 'AKVARYUM', 'VETERINER', 'PETLEBI', 'PET'],
+    'cat_kids': ['LUNAPARK', 'LUNASAN', 'FUNKIDS', 'OYUNCAK', 'BOWLING', 'TOYZZ', 'OYUN PARKI', 'OYUN ALANI'],
+    'cat_investment': ['KUYUMCU', 'KUYUMCULUK', 'MUCEVHERAT', 'ALTIN', 'EMIN EVIM', 'EMINEVIM', 'BINANCE', 'BTCTURK', 'MIDAS', 'PARIBU'],
+    'cat_clothing': [
+      'ZARA', 'MANGO', 'LCW', 'LC WAIKIKI', 'DEFACTO', 'KOTON', 'MAVI', 'BERSHKA', 'H&M', 'PULL&BEAR', 'GIYIM',
+      'TEKSTIL', 'AYAKKABI', 'FLO', 'COLINS', 'BOYNER', 'DERIMOD',
+    ],
+    'cat_health': [
+      'ECZANE', 'ECZANESI', 'HASTANE', 'HASTANESI', 'SAGLIK', 'MEDIKAL', 'DOKTOR', 'TIP MERKEZI', 'OPTIK',
+      'DIS KLINIGI', 'LABORATUVAR', 'POLIKLINIK',
+    ],
+    'cat_shopping': ['TRENDYOL', 'HEPSIBURADA', 'AMAZON', 'N11', 'CICEKSEPETI', 'LETGO', 'SAHIBINDEN', 'PAZARAMA', 'IKAS'],
+    'cat_electronics': ['TEKNOSA', 'MEDIAMARKT', 'VATAN BILGISAYAR', 'APPLE STORE', 'SAMSUNG', 'XIAOMI', 'GSM SHOP'],
+    'cat_travel': ['OTEL', 'HOTEL', 'WYNDHAM', 'TURIZM', 'THY', 'TURK HAVA YOLLARI', 'PEGASUS', 'AJET', 'OBILET', 'ENUYGUN'],
+    'cat_education': ['OKUL', 'UNIVERSITE', 'KOLEJ', 'KIRTASIYE', 'KITAP', 'EGITIM', 'KURS'],
+    'cat_personal_care': ['GRATIS', 'WATSONS', 'ROSSMANN', 'EVE SHOP', 'KUAFOR', 'BERBER', 'GUZELLIK'],
+  };
+
+  /// Temizlenmiş işyeri adını kelime sınırlı anahtar kelime eşleşmesiyle kategoriye bağlar.
   static String resolveCategory(
     String cleanMerchant, {
     Map<String, String>? userMemoryRules,
   }) {
-    final upper = cleanMerchant.toUpperCase();
+    final folded = fold(cleanMerchant);
 
     // 1. Kullanıcı Hafıza Kuralları (Human-in-the-Loop)
     if (userMemoryRules != null) {
       for (final entry in userMemoryRules.entries) {
-        if (upper.contains(entry.key.toUpperCase())) {
+        if (folded.contains(fold(entry.key))) {
           return entry.value;
         }
       }
     }
 
-    // 2. Market & Bakkaliye (MCC 5411, 5499)
-    if (upper.contains('BIM') || upper.contains('BİM') ||
-        upper.contains('A-101') || upper.contains('A101') ||
-        upper.contains('SOK') || upper.contains('ŞOK') ||
-        upper.contains('HAKMAR') || upper.contains('FILE') || upper.contains('FİLE') ||
-        upper.contains('MOPAS') || upper.contains('MOPAŞ') ||
-        upper.contains('CARREFOUR') || upper.contains('MIGROS') || upper.contains('MİGROS') ||
-        upper.contains('MACROCENTER') || upper.contains('GROCERY') || upper.contains('MARKET')) {
-      return 'cat_market';
-    }
-
-    // 3. Akaryakıt & Şarj (MCC 5541, 5542)
-    if (upper.contains('OPET') || upper.contains('SHELL') ||
-        upper.contains('PETROL OFISI') || upper.contains('PETROL OFİSİ') ||
-        upper.contains('BP ') || upper.contains('TOTAL') || upper.contains('AYGAZ') ||
-        upper.contains('WAT MOBILITE') || upper.contains('WAT MOBİLİTE') ||
-        upper.contains('NATIONAL FUEL') || upper.contains('LUKOIL') ||
-        upper.contains('ZES') || upper.contains('TRUGO') || upper.contains('E-SARJ')) {
-      return 'cat_fuel';
-    }
-
-    // 4. Ulaşım & Taksi (MCC 4121, 4111)
-    if (upper.contains('SITAXI') || upper.contains('TAKSIDE POS') || upper.contains('TAKSİ') ||
-        upper.contains('TOPLU TASIMA') || upper.contains('TOPLU TAŞIMA') ||
-        upper.contains('BELBIM') || upper.contains('BELBİM') ||
-        upper.contains('ISTANBULKART') || upper.contains('İSTANBULKART') ||
-        upper.contains('UBER') || upper.contains('BITAKSI') || upper.contains('BİTAKSİ') ||
-        upper.contains('MARTI') || upper.contains('TCDD') || upper.contains('OTOBAN') || upper.contains('HGS')) {
-      return 'cat_transit';
-    }
-
-    // 5. Yeme - İçme & Restoran (MCC 5812, 5814)
-    if (upper.contains('YUSUF') || upper.contains('FIRIN') || upper.contains('LOKANTA') ||
-        upper.contains('RESTORAN') || upper.contains('RESTAURANT') ||
-        upper.contains('KEBAP') || upper.contains('DURUM') || upper.contains('DÜRÜM') ||
-        upper.contains('IZGARA') || upper.contains('BOREK') || upper.contains('BÖREK') ||
-        upper.contains('KAHVE') || upper.contains('STARBUCKS') || upper.contains('ESPRESSOLAB') ||
-        upper.contains('TRENDYOL YEMEK') || upper.contains('YEMEKSEPETI') || upper.contains('YEMEKSEPETİ') ||
-        upper.contains('BURGER') || upper.contains('PIZZA') || upper.contains('PİZZA') || upper.contains('CAFE')) {
-      return 'cat_dining';
-    }
-
-    // 6. Dijital Abonelik (MCC 5734, 4899)
-    if (upper.contains('GOOGLE') || upper.contains('YOUTUBE') ||
-        upper.contains('SPOTIFY') || upper.contains('NETFLIX') ||
-        upper.contains('DISNEY') || upper.contains('APPLE') ||
-        upper.contains('MICROSOFT') || upper.contains('CLAUDE') || upper.contains('ANTHROPIC') ||
-        upper.contains('OPENAI') || upper.contains('CHATGPT') ||
-        upper.contains('XBOX') || upper.contains('PLAYSTATION') || upper.contains('STEAM') ||
-        upper.contains('BLUTV') || upper.contains('GAIN')) {
-      return 'cat_subscriptions';
-    }
-
-    // 7. Faturalar & Kamu Hizmetleri (MCC 4900, 9399)
-    if (upper.contains('VODAFONE') || upper.contains('TURKCELL') || upper.contains('TELEKOM') ||
-        upper.contains('PALGAZ') || upper.contains('SEPAS') || upper.contains('SEPAŞ') ||
-        upper.contains('ENERJISA') || upper.contains('ENERJİSA') ||
-        upper.contains('ISU') || upper.contains('İSU') || upper.contains('SUPERONLINE') ||
-        upper.contains('DIGITURK') || upper.contains('D-SMART') || upper.contains('IGDAS') || upper.contains('İGDAŞ')) {
-      return 'cat_utilities';
-    }
-
-    // 8. Vergi & Harçlar (MCC 9311)
-    if (upper.contains('VERGI DAIRESI') || upper.contains('VERGİ DAİRESİ') ||
-        upper.contains('MOTORLU TASITLAR') || upper.contains('MOTORLU TAŞITLAR') ||
-        upper.contains('GELIR IDARESI') || upper.contains('GELİR İDARESİ') ||
-        upper.contains('BELEDIYE') || upper.contains('BELEDİYE') ||
-        upper.contains('HARC') || upper.contains('HARÇ') || upper.contains('MTV') || upper.contains('GIB')) {
-      return 'cat_tax';
-    }
-
-    // 9. Ev & Yapı Market (MCC 5200, 5251)
-    if (upper.contains('HIRDAVAT') || upper.contains('MR DIY') || upper.contains('MR. DIY') ||
-        upper.contains('KOCTAS') || upper.contains('KOÇTAŞ') ||
-        upper.contains('IKEA') || upper.contains('BAUHAUS') || upper.contains('TEKZEN')) {
-      return 'cat_home';
-    }
-
-    // 10. Evcil Hayvan (MCC 5995)
-    if (upper.contains('PETSHOP') || upper.contains('PET SHOP') || upper.contains('AKVARYUM') ||
-        upper.contains('VETERINER') || upper.contains('VETERİNER') || upper.contains('PET')) {
-      return 'cat_pet';
-    }
-
-    // 11. Çocuk & Eğlence (MCC 7996, 5945)
-    if (upper.contains('LUNAPARK') || upper.contains('LUNASAN') ||
-        upper.contains('FUNKIDS') || upper.contains('FUNKİDS') ||
-        upper.contains('OYUNCAK') || upper.contains('BOWLING') || upper.contains('TOYZZ')) {
-      return 'cat_kids';
-    }
-
-    // 12. Yatırım, Birikim & Altın (MCC 5094, 6051)
-    if (upper.contains('KUYUMCU') || upper.contains('MUKELLEF') ||
-        upper.contains('ALTIN') || upper.contains('MÜCEVHERAT') ||
-        upper.contains('EMINEVIM') || upper.contains('EMİN EVİM') ||
-        upper.contains('BINANCE') || upper.contains('BTCTURK') ||
-        upper.contains('MIDAS') || upper.contains('MİDAS') || upper.contains('PARIBU')) {
-      return 'cat_investment';
-    }
-
-    // 13. Giyim & Moda (MCC 5651)
-    if (upper.contains('ZARA') || upper.contains('MANGO') || upper.contains('LCW') ||
-        upper.contains('LC WAIKIKI') || upper.contains('DEFACTO') || upper.contains('KOTON') ||
-        upper.contains('MAVI') || upper.contains('MAVİ') || upper.contains('BERSHKA') ||
-        upper.contains('H&M') || upper.contains('PULL&BEAR')) {
-      return 'cat_clothing';
-    }
-
-    // 14. Sağlık & Eczane (MCC 5912, 8099)
-    if (upper.contains('ECZANE') || upper.contains('HASTANE') ||
-        upper.contains('SAGLIK') || upper.contains('SAĞLIK') ||
-        upper.contains('MEDIKAL') || upper.contains('MEDİKAL') ||
-        upper.contains('DOKTOR') || upper.contains('TIP MERKEZI')) {
-      return 'cat_health';
+    // 2. Anahtar kelime tablosu
+    for (final rule in _rules.entries) {
+      for (final keyword in rule.value) {
+        if (_matchesKeyword(folded, keyword)) return rule.key;
+      }
     }
 
     // Varsayılan Kategori
     return 'cat_general';
   }
+
+  static bool _matchesKeyword(String text, String keyword) {
+    final strict = keyword.length <= 3;
+    var index = text.indexOf(keyword);
+    while (index != -1) {
+      final beforeOk = index == 0 || !_isAlnum(text.codeUnitAt(index - 1));
+      final end = index + keyword.length;
+      final afterOk = !strict || end >= text.length || !_isAlnum(text.codeUnitAt(end));
+      if (beforeOk && afterOk) return true;
+      index = text.indexOf(keyword, index + 1);
+    }
+    return false;
+  }
+
+  static bool _isAlnum(int c) => (c >= 48 && c <= 57) || (c >= 65 && c <= 90);
+
+  /// Türkçe harfleri ASCII'ye katlar, büyük harfe çevirir.
+  static String fold(String s) => s
+      .replaceAll('i', 'İ')
+      .replaceAll('ı', 'I')
+      .toUpperCase()
+      .replaceAll('İ', 'I')
+      .replaceAll('Ş', 'S')
+      .replaceAll('Ğ', 'G')
+      .replaceAll('Ü', 'U')
+      .replaceAll('Ö', 'O')
+      .replaceAll('Ç', 'C')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
 }

@@ -1,17 +1,17 @@
 // lib/core/parser/models/bank_mapping_template.dart
 
-import 'dart:convert';
-
 /// Kullanıcı veya yönetici tarafından tanımlanan deterministik dekont & ekstre alan eşleme şablonu.
 /// Körü körüne regex tahmini yapmak yerine, belgedeki etiketleri doğrudan Paraİz şemasıyla eşleştirir.
 class BankMappingTemplate {
   final String id;
   final String bankName;
   final String templateName;
-  final String documentType; // 'RECEIPT' (Dekont), 'STATEMENT' (Ekstre), 'PAYSLIP' (Bordro)
+  final String
+      documentType; // 'RECEIPT' (Dekont), 'STATEMENT' (Ekstre), 'PAYSLIP' (Bordro)
 
   // Kaynak Belgedeki Etiket/Kolon Eşleştirmeleri
-  final String amountField; // Örn: 'İşlem Tutarı:', 'Tutar:', 'Gönderilen Tutar:'
+  final String
+      amountField; // Örn: 'İşlem Tutarı:', 'Tutar:', 'Gönderilen Tutar:'
   final String? dateField; // Örn: 'İşlem Tarihi:', 'Tarih:', 'Valör:'
   final String? descriptionField; // Örn: 'Açıklama:', 'İşlem Açıklaması:'
   final String? recipientField; // Örn: 'Alıcı:', 'Alıcı Adı:', 'Karşı Taraf:'
@@ -21,7 +21,8 @@ class BankMappingTemplate {
   // Varsayılan Alan Değerleri
   final String defaultTransactionType; // 'EXPENSE', 'INCOME', 'TRANSFER'
   final String defaultCategory; // 'diger', 'fatura', 'kira', 'finans'
-  final List<String> matchKeywords; // Belgenin bu şablona ait olduğunu doğrulayan anahtar kelimeler
+  final List<String>
+      matchKeywords; // Belgenin bu şablona ait olduğunu doğrulayan anahtar kelimeler
 
   const BankMappingTemplate({
     required this.id,
@@ -69,9 +70,13 @@ class BankMappingTemplate {
       recipientField: json['recipient_field'] as String?,
       feeField: json['fee_field'] as String?,
       balanceField: json['balance_field'] as String?,
-      defaultTransactionType: json['default_transaction_type'] as String? ?? 'EXPENSE',
+      defaultTransactionType:
+          json['default_transaction_type'] as String? ?? 'EXPENSE',
       defaultCategory: json['default_category'] as String? ?? 'diger',
-      matchKeywords: (json['match_keywords'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+      matchKeywords: (json['match_keywords'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
     );
   }
 }

@@ -16,7 +16,8 @@ class SecurityAuthSheet extends StatefulWidget {
   const SecurityAuthSheet({
     Key? key,
     this.title = 'Paraİz Güvenlik Doğrulaması',
-    this.subtitle = 'Lütfen 4 haneli PIN kodunuzu girin veya biyometrik ile doğrulayın.',
+    this.subtitle =
+        'Lütfen 4 haneli PIN kodunuzu girin veya biyometrik ile doğrulayın.',
     required this.onSuccess,
     this.onPinEntered,
     this.isSettingNewPin = false,
@@ -26,7 +27,8 @@ class SecurityAuthSheet extends StatefulWidget {
   static Future<bool?> show(
     BuildContext context, {
     String title = 'Paraİz Güvenlik Doğrulaması',
-    String subtitle = 'Lütfen 4 haneli PIN kodunuzu girin veya biyometrik ile doğrulayın.',
+    String subtitle =
+        'Lütfen 4 haneli PIN kodunuzu girin veya biyometrik ile doğrulayın.',
     bool isSettingNewPin = false,
     bool allowBiometrics = true,
     ValueChanged<String>? onPinEntered,
@@ -123,8 +125,10 @@ class _SecurityAuthSheetState extends State<SecurityAuthSheet> {
     });
 
     final success = type == BiometricAuthType.fingerprint
-        ? await SecurityAuthService.instance.authenticateFingerprint(reason: 'Parmak izi ile giriş yapılıyor')
-        : await SecurityAuthService.instance.authenticateFaceId(reason: 'Yüz tanıma ile giriş yapılıyor');
+        ? await SecurityAuthService.instance
+            .authenticateFingerprint(reason: 'Parmak izi ile giriş yapılıyor')
+        : await SecurityAuthService.instance
+            .authenticateFaceId(reason: 'Yüz tanıma ile giriş yapılıyor');
 
     if (mounted) {
       if (success) {
@@ -178,7 +182,7 @@ class _SecurityAuthSheetState extends State<SecurityAuthSheet> {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF10B981).withOpacity(0.22),
+                  color: const Color(0xFF10B981).withValues(alpha: 0.22),
                   blurRadius: 16,
                   offset: const Offset(0, 4),
                 ),
@@ -230,9 +234,13 @@ class _SecurityAuthSheetState extends State<SecurityAuthSheet> {
                 height: 16,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isFilled ? const Color(0xFF0F172A) : const Color(0xFFE2E8F0),
+                  color: isFilled
+                      ? const Color(0xFF0F172A)
+                      : const Color(0xFFE2E8F0),
                   border: Border.all(
-                    color: isFilled ? const Color(0xFF10B981) : const Color(0xFFCBD5E1),
+                    color: isFilled
+                        ? const Color(0xFF10B981)
+                        : const Color(0xFFCBD5E1),
                     width: 2,
                   ),
                 ),
@@ -279,7 +287,8 @@ class _SecurityAuthSheetState extends State<SecurityAuthSheet> {
                 ? _buildSpecialKey(
                     icon: Icons.face_retouching_natural,
                     label: 'Yüz / İz',
-                    onTap: () => _triggerBiometricAuth(BiometricAuthType.faceId),
+                    onTap: () =>
+                        _triggerBiometricAuth(BiometricAuthType.faceId),
                   )
                 : _buildSpecialKey(
                     icon: Icons.close_rounded,

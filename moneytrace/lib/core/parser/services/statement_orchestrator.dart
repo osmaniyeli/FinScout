@@ -1,254 +1,183 @@
 // lib/core/parser/services/statement_orchestrator.dart
 
+import '../../security/pii_redactor.dart';
+import '../enrichment/category_engine.dart';
+import '../enrichment/counterparty_extractor.dart';
+import '../enrichment/transaction_classifier.dart';
+import '../layout/statement_layout.dart';
 import '../models/parsed_models.dart';
 import '../parsers/enpara_checking_parser.dart';
-import '../parsers/yapikredi_card_parser.dart';
 import '../parsers/garanti_statement_parser.dart';
-import '../parsers/isbankasi_statement_parser.dart';
-import '../parsers/akbank_statement_parser.dart';
 import '../parsers/generic_bank_statement_parser.dart';
 import '../parsers/generic_payslip_parser.dart';
+import '../parsers/statement_parser.dart';
+import '../parsers/yapikredi_card_parser.dart';
+import '../util/tr_statement_text.dart';
 import 'bank_detector.dart';
-import 'merchant_sanitizer.dart';
-import '../../security/pii_redactor.dart';
 import 'custom_field_mapping_service.dart';
+import 'statement_reconciler.dart';
 
+class StatementParseException implements Exception {
+  final String message;
+  const StatementParseException(this.message);
+  @override
+  String toString() => message;
+}
+
+/// PDF düzeninden (StatementLayout) başlayıp zenginleştirilmiş ve mutabakatı yapılmış
+/// ekstre sonucuna giden deterministik boru hattı:
+///
+/// 1. Tespit      → kurum + belge türü (kart / vadesiz / bordro)
+/// 2. Ayrıştırma  → kuruma özel sütun tabanlı parser, olmazsa genel tablo okuyucu
+/// 3. Zenginleştirme → işlem türü, karşı taraf, kategori + sektör
+/// 4. Gizlilik    → açıklamalardaki TCKN / kart no / IBAN / telefon maskelenir
+/// 5. Mutabakat   → bankanın beyan ettiği toplamlar ve bakiye zinciri ile kontrol
 class StatementOrchestrator {
-  final EnparaCheckingParser _enparaParser;
-  final YapiKrediCardParser _yapiKrediParser;
-  final GarantiStatementParser _garantiParser;
-  final IsBankasiStatementParser _isBankasiParser;
-  final AkbankStatementParser _akbankParser;
-  final GenericBankStatementParser _genericBankParser;
-  final GenericPayslipParser _payslipParser;
+  final CategoryEngine _categories;
 
-  StatementOrchestrator({
-    EnparaCheckingParser? enparaParser,
-    YapiKrediCardParser? yapiKrediParser,
-    GarantiStatementParser? garantiParser,
-    IsBankasiStatementParser? isBankasiParser,
-    AkbankStatementParser? akbankParser,
-    GenericBankStatementParser? genericBankParser,
-    GenericPayslipParser? payslipParser,
-  })  : _enparaParser = enparaParser ?? EnparaCheckingParser(),
-        _yapiKrediParser = yapiKrediParser ?? YapiKrediCardParser(),
-        _garantiParser = garantiParser ?? GarantiStatementParser(),
-        _isBankasiParser = isBankasiParser ?? IsBankasiStatementParser(),
-        _akbankParser = akbankParser ?? AkbankStatementParser(),
-        _genericBankParser = genericBankParser ?? GenericBankStatementParser(),
-        _payslipParser = payslipParser ?? GenericPayslipParser();
+  StatementOrchestrator({CategoryEngine? categoryEngine})
+      : _categories = categoryEngine ?? CategoryEngine.instance;
 
-  /// PDF metin katmanını alıp baştan sona işleyen deterministik ana boru hattı.
-  /// 1. PII Maskeleme
-  /// 2. Parmak İzi ile Banka ve Belge Türü Tespiti
-  /// 3. Özel veya Evrensel Ayrıştırıcı Çalıştırma
-  /// 4. Marka Normalizasyonu ve Kategori Eşleme
-  /// 5. Vergi ve Taksitlerin Konsolide Edilmesi
   Future<StatementDocumentResult> processDocument({
-    required String rawPdfText,
+    required StatementLayout layout,
     String? documentTypeHint,
-    Map<String, String>? userMemoryRules,
+    Map<String, String> userRules = const {},
   }) async {
-    // 1. GÜVENLİK: Bellek içinde tüm hassas verileri (TCKN, Kart No, IBAN, Adres) maskele
-    final String sanitizedText = PiiRedactor.redact(rawPdfText);
+    final text = layout.plainText;
+    final detection = BankDetector.identify(text);
 
-    // 2. TESPİT: Belge türünü ve kurumu tespit et
-    final BankDetectionResult detection = BankDetector.identify(sanitizedText);
-
-    List<ParsedRecord> rawRecords = [];
-
-    // Belge türü ipucu varsa ve detection unknown ise veya ipucu öncelikliyse kullan
     var docType = detection.documentType;
     if (docType == DocumentType.unknown && documentTypeHint != null) {
-      if (documentTypeHint == 'CHECKING') docType = DocumentType.checkingAccount;
-      if (documentTypeHint == 'CREDIT_CARD') docType = DocumentType.creditCard;
-      if (documentTypeHint == 'PAYSLIP') docType = DocumentType.payslip;
+      docType = switch (documentTypeHint) {
+        'CHECKING' => DocumentType.checkingAccount,
+        'CREDIT_CARD' => DocumentType.creditCard,
+        'PAYSLIP' => DocumentType.payslip,
+        _ => DocumentType.unknown,
+      };
     }
+    final isCard = docType == DocumentType.creditCard;
 
-    // 2.5 DETERMINİSTİK ALAN EŞLEŞTİRME (Custom Field Mapping Template)
-    // Körü körüne okumak yerine kullanıcı veya yöneticinin tanımladığı özel kural varsa öncelikli uygula
-    final matchingTemplate = CustomFieldMappingService.instance.findMatchingTemplate(sanitizedText);
-    if (matchingTemplate != null) {
-      final customRecord = CustomFieldMappingService.instance.applyTemplate(sanitizedText, matchingTemplate);
-      if (customRecord != null) {
-        rawRecords = [customRecord];
+    // 1-2. Ayrıştırma
+    var output = ParserOutput.empty;
+    final template = CustomFieldMappingService.instance.findMatchingTemplate(text);
+    final templated = template == null ? null : CustomFieldMappingService.instance.applyTemplate(text, template);
+    if (templated != null) {
+      output = ParserOutput(records: [templated]);
+    } else {
+      output = _parserFor(detection.institution, docType).parse(layout);
+      if (output.records.isEmpty && docType != DocumentType.payslip) {
+        // Kurum parser'ı düzeni tanımadıysa genel tablo okuyucu dener
+        output = GenericBankStatementParser(isCardStatement: isCard).parse(layout);
       }
     }
 
-    // 3. AYRIŞTIRMA: Özel şablon bulunamadıysa tespit edilen kuruma ve belge tipine göre ilgili parser'ı çalıştır
-    if (rawRecords.isEmpty) {
-      if (docType == DocumentType.payslip) {
-        final payslipResult = _payslipParser.parse(sanitizedText);
-        rawRecords = [payslipResult.toParsedRecord()];
-      } else {
-        switch (detection.institution) {
-          case SupportedInstitution.enpara:
-            rawRecords = _enparaParser.parse(
-              sanitizedText,
-              accountMask: detection.detectedAccountIdentifier.isNotEmpty
-                  ? detection.detectedAccountIdentifier
-                  : null,
-            );
-            break;
-
-          case SupportedInstitution.yapiKredi:
-            rawRecords = _yapiKrediParser.parse(sanitizedText);
-            break;
-
-          case SupportedInstitution.garanti:
-            rawRecords = _garantiParser.parse(
-              sanitizedText,
-              accountMask: detection.detectedAccountIdentifier.isNotEmpty
-                  ? detection.detectedAccountIdentifier
-                  : null,
-            );
-            break;
-
-          case SupportedInstitution.isBankasi:
-            rawRecords = _isBankasiParser.parse(
-              sanitizedText,
-              accountMask: detection.detectedAccountIdentifier.isNotEmpty
-                  ? detection.detectedAccountIdentifier
-                  : null,
-            );
-            break;
-
-          case SupportedInstitution.akbank:
-            rawRecords = _akbankParser.parse(
-              sanitizedText,
-              accountMask: detection.detectedAccountIdentifier.isNotEmpty
-                  ? detection.detectedAccountIdentifier
-                  : null,
-            );
-            break;
-
-          case SupportedInstitution.ziraat:
-          case SupportedInstitution.vakifbank:
-          case SupportedInstitution.halkbank:
-          case SupportedInstitution.qnb:
-            rawRecords = _genericBankParser.parse(
-              sanitizedText,
-              defaultMask: detection.detectedAccountIdentifier.isNotEmpty
-                  ? detection.detectedAccountIdentifier
-                  : null,
-              institutionName: _getInstitutionDisplayName(detection.institution),
-            );
-            break;
-
-          case SupportedInstitution.genericUnknown:
-          default:
-            // Bilinmeyen belgede sırasıyla parser'ları dene (Fallback Zinciri)
-            rawRecords = _enparaParser.parse(sanitizedText);
-            if (rawRecords.isEmpty) {
-              rawRecords = _yapiKrediParser.parse(sanitizedText);
-            }
-            if (rawRecords.isEmpty) {
-              rawRecords = _garantiParser.parse(sanitizedText);
-            }
-            if (rawRecords.isEmpty) {
-              rawRecords = _isBankasiParser.parse(sanitizedText);
-            }
-            if (rawRecords.isEmpty) {
-              rawRecords = _akbankParser.parse(sanitizedText);
-            }
-            if (rawRecords.isEmpty) {
-              rawRecords = _genericBankParser.parse(sanitizedText);
-            }
-            break;
-        }
-      }
-    }
-
-    if (rawRecords.isEmpty) {
-      throw Exception(
-        'Belge içerisinde tanınan harcama veya işlem satırı bulunamadı. Lütfen desteklenen bir banka dökümü yükleyin.',
+    if (output.records.isEmpty) {
+      throw const StatementParseException(
+        'Belgede işlem tablosu bulunamadı. Lütfen bankanızın internet/mobil şubesinden indirdiğiniz e-ekstreyi yükleyin.',
       );
     }
 
-    // 4. NORMALİZASYON & KATEGORİZASYON: Her işlem satırını temizle ve kategorilendir
-    final List<ParsedRecord> finalRecords = [];
-    int totalDebit = 0;
-    int totalCredit = 0;
-    int totalTaxes = 0;
+    // 3-4. Zenginleştirme + gizlilik
+    final holder = output.accountHolder == null ? null : TrStatementText.fold(output.accountHolder!);
+    final records = output.records
+        .map((r) => _enrich(r, isCard: isCard, userRules: userRules, holder: holder))
+        .toList();
 
-    for (final record in rawRecords) {
-      final cleanMerchant = record.cleanMerchant.isNotEmpty
-          ? record.cleanMerchant
-          : MerchantSanitizer.sanitize(record.rawDescription);
+    // 5. Mutabakat
+    final reconciliation = StatementReconciler.check(
+      records: records,
+      summary: output.summary,
+      isCardStatement: isCard,
+    );
 
-      final category = (record.categoryId != 'cat_general' && record.categoryId != 'cat_salary')
-          ? record.categoryId
-          : MerchantSanitizer.resolveCategory(
-              cleanMerchant,
-              userMemoryRules: userMemoryRules,
-            );
-
-      for (final tax in record.taxes) {
-        totalTaxes += tax.amountCents;
-      }
-
-      if (record.type == ParsedTransactionType.debit) {
-        totalDebit += record.billingAmountCents;
+    var totalDebit = 0, totalCredit = 0, totalTaxes = 0;
+    var periodStart = records.first.date, periodEnd = records.first.date;
+    for (final r in records) {
+      if (r.type == ParsedTransactionType.debit) {
+        totalDebit += r.billingAmountCents;
       } else {
-        totalCredit += record.billingAmountCents;
+        totalCredit += r.billingAmountCents;
       }
-
-      finalRecords.add(record.copyWith(
-        cleanMerchant: cleanMerchant,
-        categoryId: category,
-      ));
-    }
-
-    // Tarih aralığını belirle
-    DateTime periodStart = finalRecords.first.date;
-    DateTime periodEnd = finalRecords.last.date;
-    for (final r in finalRecords) {
+      totalTaxes += r.taxes.fold<int>(0, (s, t) => s + t.amountCents);
       if (r.date.isBefore(periodStart)) periodStart = r.date;
       if (r.date.isAfter(periodEnd)) periodEnd = r.date;
     }
 
-    final String institutionName = _getInstitutionDisplayName(detection.institution);
-    final String docTypeName = detection.documentType == DocumentType.creditCard
-        ? 'CREDIT_CARD'
-        : (detection.documentType == DocumentType.checkingAccount ? 'CHECKING' : 'PAYSLIP');
+    final account = output.accountIdentifier ??
+        (detection.detectedAccountIdentifier.isNotEmpty ? detection.detectedAccountIdentifier : '');
 
     return StatementDocumentResult(
-      institution: institutionName,
-      documentType: docTypeName,
-      accountIdentifier: detection.detectedAccountIdentifier.isNotEmpty
-          ? detection.detectedAccountIdentifier
-          : (finalRecords.isNotEmpty ? finalRecords.first.cardOrAccountMask : ''),
-      records: finalRecords,
+      institution: _displayName(detection.institution, docType),
+      documentType: switch (docType) {
+        DocumentType.creditCard => 'CREDIT_CARD',
+        DocumentType.payslip => 'PAYSLIP',
+        _ => 'CHECKING',
+      },
+      accountIdentifier: PiiRedactor.redact(account),
+      records: records,
       totalDebitCents: totalDebit,
       totalCreditCents: totalCredit,
       totalTaxCents: totalTaxes,
       periodStart: periodStart,
       periodEnd: periodEnd,
+      summary: output.summary,
+      reconciliation: reconciliation,
     );
   }
 
-  String _getInstitutionDisplayName(SupportedInstitution institution) {
-    switch (institution) {
-      case SupportedInstitution.enpara:
-        return 'Enpara';
-      case SupportedInstitution.yapiKredi:
-        return 'Yapı Kredi';
-      case SupportedInstitution.garanti:
-        return 'Garanti BBVA';
-      case SupportedInstitution.isBankasi:
-        return 'İş Bankası';
-      case SupportedInstitution.akbank:
-        return 'Akbank';
-      case SupportedInstitution.ziraat:
-        return 'Ziraat Bankası';
-      case SupportedInstitution.vakifbank:
-        return 'VakıfBank';
-      case SupportedInstitution.halkbank:
-        return 'Halkbank';
-      case SupportedInstitution.qnb:
-        return 'QNB Finansbank';
-      case SupportedInstitution.genericUnknown:
-        return 'Banka Ekstresi';
+  LayoutStatementParser _parserFor(SupportedInstitution institution, DocumentType docType) {
+    if (docType == DocumentType.payslip) return GenericPayslipParser();
+    return switch (institution) {
+      SupportedInstitution.enpara => EnparaCheckingParser(),
+      SupportedInstitution.yapiKredi => YapiKrediCardParser(),
+      SupportedInstitution.garanti => GarantiStatementParser(),
+      _ => GenericBankStatementParser(isCardStatement: docType == DocumentType.creditCard),
+    };
+  }
+
+  ParsedRecord _enrich(
+    ParsedRecord record, {
+    required bool isCard,
+    required Map<String, String> userRules,
+    String? holder,
+  }) {
+    var kind = TransactionClassifier.classify(record, isCardStatement: isCard);
+    var withKind = record.copyWith(kind: kind);
+    final counterparty = CounterpartyExtractor.extract(withKind);
+
+    // Hesap sahibinin kendi adına giden/gelen havale → kendi hesapları arası aktarım
+    final isTransfer = kind == TransactionKind.transferIn || kind == TransactionKind.transferOut;
+    if (isTransfer && holder != null && TrStatementText.fold(counterparty) == holder) {
+      kind = TransactionKind.ownTransfer;
+      withKind = withKind.copyWith(kind: kind);
     }
+    final match = record.categoryId != 'cat_general'
+        ? CategoryMatch(record.categoryId, sector: record.sector, source: CategorySource.userRule)
+        : _categories.resolve(withKind, counterparty: counterparty, userRules: userRules);
+
+    final display = match.brand ?? (counterparty.isNotEmpty ? counterparty : record.rawDescription);
+    return withKind.copyWith(
+      rawDescription: PiiRedactor.redact(record.rawDescription),
+      counterparty: PiiRedactor.redact(counterparty),
+      cleanMerchant: PiiRedactor.redact(display),
+      categoryId: match.categoryId,
+      sector: match.sector,
+    );
+  }
+
+  String _displayName(SupportedInstitution institution, DocumentType docType) {
+    if (docType == DocumentType.payslip) return 'Maaş Bordrosu';
+    return switch (institution) {
+      SupportedInstitution.enpara => 'Enpara',
+      SupportedInstitution.yapiKredi => 'Yapı Kredi',
+      SupportedInstitution.garanti => 'Garanti BBVA',
+      SupportedInstitution.isBankasi => 'İş Bankası',
+      SupportedInstitution.akbank => 'Akbank',
+      SupportedInstitution.ziraat => 'Ziraat Bankası',
+      SupportedInstitution.vakifbank => 'VakıfBank',
+      SupportedInstitution.halkbank => 'Halkbank',
+      SupportedInstitution.qnb => 'QNB',
+      SupportedInstitution.genericUnknown => 'Banka Ekstresi',
+    };
   }
 }

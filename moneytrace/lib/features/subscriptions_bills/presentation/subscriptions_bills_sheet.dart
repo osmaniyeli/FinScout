@@ -19,11 +19,13 @@ class SubscriptionsBillsSheet extends StatefulWidget {
   }
 
   @override
-  State<SubscriptionsBillsSheet> createState() => _SubscriptionsBillsSheetState();
+  State<SubscriptionsBillsSheet> createState() =>
+      _SubscriptionsBillsSheetState();
 }
 
 class _SubscriptionsBillsSheetState extends State<SubscriptionsBillsSheet> {
-  final SubscriptionBillRepository _repository = SubscriptionBillRepository.instance;
+  final SubscriptionBillRepository _repository =
+      SubscriptionBillRepository.instance;
 
   @override
   void initState() {
@@ -63,13 +65,18 @@ class _SubscriptionsBillsSheetState extends State<SubscriptionsBillsSheet> {
                   child: Container(
                     width: 40,
                     height: 4,
-                    decoration: BoxDecoration(color: const Color(0xFFCBD5E1), borderRadius: BorderRadius.circular(2)),
+                    decoration: BoxDecoration(
+                        color: const Color(0xFFCBD5E1),
+                        borderRadius: BorderRadius.circular(2)),
                   ),
                 ),
                 const SizedBox(height: 16),
                 const Text(
                   'Yeni Abonelik / Fatura Ekle',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary),
                 ),
                 const SizedBox(height: 12),
 
@@ -78,7 +85,11 @@ class _SubscriptionsBillsSheetState extends State<SubscriptionsBillsSheet> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      _buildPresetChip('Superonline', 'Turkcell Superonline Fiber', BillCategory.internet, '349', () {
+                      _buildPresetChip(
+                          'Superonline',
+                          'Turkcell Superonline Fiber',
+                          BillCategory.internet,
+                          '349', () {
                         setModalState(() {
                           providerController.text = 'Turkcell Superonline';
                           titleController.text = 'Superonline Fiber İnternet';
@@ -86,7 +97,8 @@ class _SubscriptionsBillsSheetState extends State<SubscriptionsBillsSheet> {
                           selectedCat = BillCategory.internet;
                         });
                       }),
-                      _buildPresetChip('Vodafone', 'Vodafone Red Faturalı Hat', BillCategory.phone, '280', () {
+                      _buildPresetChip('Vodafone', 'Vodafone Red Faturalı Hat',
+                          BillCategory.phone, '280', () {
                         setModalState(() {
                           providerController.text = 'Vodafone';
                           titleController.text = 'Vodafone GSM Faturası';
@@ -94,7 +106,8 @@ class _SubscriptionsBillsSheetState extends State<SubscriptionsBillsSheet> {
                           selectedCat = BillCategory.phone;
                         });
                       }),
-                      _buildPresetChip('Netflix', 'Netflix Standart Plan', BillCategory.streaming, '149', () {
+                      _buildPresetChip('Netflix', 'Netflix Standart Plan',
+                          BillCategory.streaming, '149', () {
                         setModalState(() {
                           providerController.text = 'Netflix';
                           titleController.text = 'Netflix Aboneliği';
@@ -102,7 +115,11 @@ class _SubscriptionsBillsSheetState extends State<SubscriptionsBillsSheet> {
                           selectedCat = BillCategory.streaming;
                         });
                       }),
-                      _buildPresetChip('Doğalgaz (PALGAZ)', 'PALGAZ Doğalgaz Faturası', BillCategory.utilities, '450', () {
+                      _buildPresetChip(
+                          'Doğalgaz (PALGAZ)',
+                          'PALGAZ Doğalgaz Faturası',
+                          BillCategory.utilities,
+                          '450', () {
                         setModalState(() {
                           providerController.text = 'PALGAZ';
                           titleController.text = 'PALGAZ Doğalgaz Faturası';
@@ -120,7 +137,8 @@ class _SubscriptionsBillsSheetState extends State<SubscriptionsBillsSheet> {
                   decoration: InputDecoration(
                     labelText: 'Abonelik / Fatura Adı',
                     hintText: 'Örn: Superonline İnternet, Vodafone',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -134,7 +152,8 @@ class _SubscriptionsBillsSheetState extends State<SubscriptionsBillsSheet> {
                         decoration: InputDecoration(
                           prefixText: '₺ ',
                           labelText: 'Aylık Tutar',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
                     ),
@@ -146,7 +165,8 @@ class _SubscriptionsBillsSheetState extends State<SubscriptionsBillsSheet> {
                         decoration: InputDecoration(
                           labelText: 'Ödeme Günü',
                           hintText: '1 - 31',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
                     ),
@@ -161,13 +181,16 @@ class _SubscriptionsBillsSheetState extends State<SubscriptionsBillsSheet> {
                     onPressed: () async {
                       final title = titleController.text.trim();
                       if (title.isEmpty) return;
-                      final cents = CurrencyNormalizer.toMinorUnits(amountController.text);
+                      final cents = CurrencyNormalizer.toMinorUnits(
+                          amountController.text);
                       final day = int.tryParse(dayController.text) ?? 15;
 
                       final newBill = SubscriptionBillItem(
                         id: 'bill_${DateTime.now().millisecondsSinceEpoch}',
                         title: title,
-                        provider: providerController.text.trim().isNotEmpty ? providerController.text.trim() : title,
+                        provider: providerController.text.trim().isNotEmpty
+                            ? providerController.text.trim()
+                            : title,
                         category: selectedCat,
                         monthlyAmountCents: cents,
                         billingDayOfMonth: day.clamp(1, 31),
@@ -179,9 +202,11 @@ class _SubscriptionsBillsSheetState extends State<SubscriptionsBillsSheet> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF0F172A),
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
                     ),
-                    child: const Text('Aboneliği Kaydet', style: TextStyle(fontWeight: FontWeight.w800)),
+                    child: const Text('Aboneliği Kaydet',
+                        style: TextStyle(fontWeight: FontWeight.w800)),
                   ),
                 ),
               ],
@@ -192,11 +217,13 @@ class _SubscriptionsBillsSheetState extends State<SubscriptionsBillsSheet> {
     );
   }
 
-  Widget _buildPresetChip(String label, String fullTitle, BillCategory cat, String amount, VoidCallback onTap) {
+  Widget _buildPresetChip(String label, String fullTitle, BillCategory cat,
+      String amount, VoidCallback onTap) {
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: ActionChip(
-        label: Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+        label: Text(label,
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
         avatar: Icon(cat.iconData, size: 14, color: cat.color),
         backgroundColor: const Color(0xFFF1F5F9),
         onPressed: onTap,
@@ -230,7 +257,9 @@ class _SubscriptionsBillsSheetState extends State<SubscriptionsBillsSheet> {
                 child: Container(
                   width: 44,
                   height: 4,
-                  decoration: BoxDecoration(color: const Color(0xFFE2E8F0), borderRadius: BorderRadius.circular(2)),
+                  decoration: BoxDecoration(
+                      color: const Color(0xFFE2E8F0),
+                      borderRadius: BorderRadius.circular(2)),
                 ),
               ),
               const SizedBox(height: 16),
@@ -244,16 +273,21 @@ class _SubscriptionsBillsSheetState extends State<SubscriptionsBillsSheet> {
                     children: [
                       const Text(
                         'Abonelik ve Düzenli Faturalar',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.textPrimary),
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.textPrimary),
                       ),
                       Text(
                         'İnternet, telefon, dijital yayın ve kamu faturaları',
-                        style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                        style: TextStyle(
+                            fontSize: 11, color: AppColors.textSecondary),
                       ),
                     ],
                   ),
                   IconButton(
-                    icon: const Icon(Icons.add_circle_outline_rounded, color: AppColors.actionPrimary, size: 26),
+                    icon: const Icon(Icons.add_circle_outline_rounded,
+                        color: AppColors.actionPrimary, size: 26),
                     onPressed: _openAddBillModal,
                     tooltip: 'Yeni Fatura Ekle',
                   ),
@@ -281,24 +315,35 @@ class _SubscriptionsBillsSheetState extends State<SubscriptionsBillsSheet> {
                       children: [
                         const Text(
                           'AYLIK SABİT FATURA YÜKÜ',
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF94A3B8), letterSpacing: 0.5),
+                          style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF94A3B8),
+                              letterSpacing: 0.5),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           CurrencyNormalizer.formatCents(totalCents),
-                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white),
+                          style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white),
                         ),
                       ],
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF38BDF8).withOpacity(0.15),
+                        color: const Color(0xFF38BDF8).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
                         '${bills.where((b) => b.isActive).length} Aktif Fatura',
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF38BDF8)),
+                        style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF38BDF8)),
                       ),
                     ),
                   ],
@@ -313,11 +358,17 @@ class _SubscriptionsBillsSheetState extends State<SubscriptionsBillsSheet> {
                   child: Center(
                     child: Column(
                       children: [
-                        Icon(Icons.receipt_long_outlined, size: 40, color: AppColors.textMuted),
+                        Icon(Icons.receipt_long_outlined,
+                            size: 40, color: AppColors.textMuted),
                         const SizedBox(height: 10),
-                        const Text('Kayıtlı Düzenli Fatura Bulunmuyor', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                        const Text('Kayıtlı Düzenli Fatura Bulunmuyor',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w700, fontSize: 14)),
                         const SizedBox(height: 4),
-                        const Text('Superonline, Vodafone veya Netflix gibi ödemelerinizi ekleyin.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                        const Text(
+                            'Superonline, Vodafone veya Netflix gibi ödemelerinizi ekleyin.',
+                            style: TextStyle(
+                                fontSize: 12, color: AppColors.textSecondary)),
                         const SizedBox(height: 14),
                         OutlinedButton.icon(
                           onPressed: _openAddBillModal,
@@ -330,7 +381,8 @@ class _SubscriptionsBillsSheetState extends State<SubscriptionsBillsSheet> {
                 )
               else
                 ConstrainedBox(
-                  constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.45),
+                  constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height * 0.45),
                   child: ListView.separated(
                     shrinkWrap: true,
                     itemCount: bills.length,
@@ -350,10 +402,12 @@ class _SubscriptionsBillsSheetState extends State<SubscriptionsBillsSheet> {
                               width: 38,
                               height: 38,
                               decoration: BoxDecoration(
-                                color: item.category.color.withOpacity(0.12),
+                                color:
+                                    item.category.color.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: Icon(item.category.iconData, color: item.category.color, size: 20),
+                              child: Icon(item.category.iconData,
+                                  color: item.category.color, size: 20),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -365,13 +419,19 @@ class _SubscriptionsBillsSheetState extends State<SubscriptionsBillsSheet> {
                                     style: TextStyle(
                                       fontSize: 13.5,
                                       fontWeight: FontWeight.w700,
-                                      color: item.isActive ? AppColors.textPrimary : AppColors.textMuted,
-                                      decoration: item.isActive ? null : TextDecoration.lineThrough,
+                                      color: item.isActive
+                                          ? AppColors.textPrimary
+                                          : AppColors.textMuted,
+                                      decoration: item.isActive
+                                          ? null
+                                          : TextDecoration.lineThrough,
                                     ),
                                   ),
                                   Text(
                                     '${item.category.displayName} • Her ayın ${item.billingDayOfMonth}\'i',
-                                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                    style: const TextStyle(
+                                        fontSize: 11,
+                                        color: AppColors.textSecondary),
                                   ),
                                 ],
                               ),
@@ -380,18 +440,23 @@ class _SubscriptionsBillsSheetState extends State<SubscriptionsBillsSheet> {
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
                                 Text(
-                                  CurrencyNormalizer.formatCents(item.monthlyAmountCents),
+                                  CurrencyNormalizer.formatCents(
+                                      item.monthlyAmountCents),
                                   style: TextStyle(
                                     fontSize: 13.5,
                                     fontWeight: FontWeight.w800,
-                                    color: item.isActive ? AppColors.textPrimary : AppColors.textMuted,
+                                    color: item.isActive
+                                        ? AppColors.textPrimary
+                                        : AppColors.textMuted,
                                   ),
                                 ),
                                 Switch(
                                   value: item.isActive,
-                                  activeColor: AppColors.actionPrimary,
-                                  onChanged: (_) => _repository.toggleActive(item.id),
-                                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  activeThumbColor: AppColors.actionPrimary,
+                                  onChanged: (_) =>
+                                      _repository.toggleActive(item.id),
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
                                 ),
                               ],
                             ),

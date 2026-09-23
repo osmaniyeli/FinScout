@@ -34,12 +34,14 @@ class CustomFieldMappingSheet extends StatefulWidget {
   }
 
   @override
-  State<CustomFieldMappingSheet> createState() => _CustomFieldMappingSheetState();
+  State<CustomFieldMappingSheet> createState() =>
+      _CustomFieldMappingSheetState();
 }
 
 class _CustomFieldMappingSheetState extends State<CustomFieldMappingSheet> {
   final _bankNameController = TextEditingController(text: 'Fibabanka');
-  final _templateNameController = TextEditingController(text: 'Fibabanka FAST Dekont Şablonu');
+  final _templateNameController =
+      TextEditingController(text: 'Fibabanka FAST Dekont Şablonu');
   late TextEditingController _rawTextController;
 
   // Tespit edilen ham etiketler ve değerleri
@@ -81,7 +83,8 @@ Kanal: Mobil Şube
   @override
   void initState() {
     super.initState();
-    _rawTextController = TextEditingController(text: widget.initialText ?? _sampleFibabankaText);
+    _rawTextController =
+        TextEditingController(text: widget.initialText ?? _sampleFibabankaText);
     _parseRawTextAndExtractFields();
   }
 
@@ -94,15 +97,20 @@ Kanal: Mobil Şube
   }
 
   void _parseRawTextAndExtractFields() {
-    final fields = CustomFieldMappingService.instance.extractCandidateFields(_rawTextController.text);
+    final fields = CustomFieldMappingService.instance
+        .extractCandidateFields(_rawTextController.text);
     setState(() {
       _detectedFields = fields;
 
       // Otomatik varsayılan alan eşleme tahmini
-      _selectedAmountField = _findBestMatchKey(['işlem tutarı:', 'tutar:', 'gönderilen tutar:', 'tutar']);
-      _selectedDateField = _findBestMatchKey(['işlem tarihi:', 'tarih:', 'tarih / saat:']);
-      _selectedDescField = _findBestMatchKey(['açıklama:', 'işlem açıklaması:']);
-      _selectedRecipientField = _findBestMatchKey(['alıcı adı:', 'alıcı:', 'alıcı ünvanı / adı:', 'karşı taraf:']);
+      _selectedAmountField = _findBestMatchKey(
+          ['işlem tutarı:', 'tutar:', 'gönderilen tutar:', 'tutar']);
+      _selectedDateField =
+          _findBestMatchKey(['işlem tarihi:', 'tarih:', 'tarih / saat:']);
+      _selectedDescField =
+          _findBestMatchKey(['açıklama:', 'işlem açıklaması:']);
+      _selectedRecipientField = _findBestMatchKey(
+          ['alıcı adı:', 'alıcı:', 'alıcı ünvanı / adı:', 'karşı taraf:']);
     });
   }
 
@@ -174,7 +182,8 @@ Kanal: Mobil Şube
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: const Color(0xFF059669),
-          content: Text('"$templateName" şablonu kaydedildi! Artık bu bankanın dekontları hatasız okunacak.'),
+          content: Text(
+              '"$templateName" şablonu kaydedildi! Artık bu bankanın dekontları hatasız okunacak.'),
         ),
       );
     }
@@ -185,7 +194,9 @@ Kanal: Mobil Şube
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     // Canlı önizleme için tutar hesaplama
-    final amountValStr = _selectedAmountField != null ? _detectedFields[_selectedAmountField] ?? '0,00 TL' : '0,00 TL';
+    final amountValStr = _selectedAmountField != null
+        ? _detectedFields[_selectedAmountField] ?? '0,00 TL'
+        : '0,00 TL';
     final previewCents = CurrencyNormalizer.toMinorUnits(amountValStr);
 
     return Container(
@@ -221,7 +232,8 @@ Kanal: Mobil Şube
                   color: const Color(0xFFEFF6FF),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.alt_route_rounded, color: Color(0xFF2563EB), size: 24),
+                child: const Icon(Icons.alt_route_rounded,
+                    color: Color(0xFF2563EB), size: 24),
               ),
               const SizedBox(width: 12),
               const Expanded(
@@ -230,11 +242,15 @@ Kanal: Mobil Şube
                   children: [
                     Text(
                       'Banka Dekont & Ekstre Eşleme',
-                      style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                      style: TextStyle(
+                          fontSize: 16.5,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary),
                     ),
                     Text(
                       'Körü körüne okuma yerine alanları birebir eşleştirin.',
-                      style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
+                      style: TextStyle(
+                          fontSize: 11.5, color: AppColors.textSecondary),
                     ),
                   ],
                 ),
@@ -254,22 +270,31 @@ Kanal: Mobil Şube
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Hızlı Örnek Seçimi
-                  const Text('Hazır Banka Örnekleri:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF475569))),
+                  const Text('Hazır Banka Örnekleri:',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF475569))),
                   const SizedBox(height: 6),
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
                         _buildQuickSampleChip('Fibabanka FAST', () {
-                          _applySampleText('Fibabanka', 'Fibabanka FAST Dekontu', _sampleFibabankaText);
+                          _applySampleText('Fibabanka',
+                              'Fibabanka FAST Dekontu', _sampleFibabankaText);
                         }),
                         const SizedBox(width: 8),
                         _buildQuickSampleChip('Kuveyt Türk Dekont', () {
-                          _applySampleText('Kuveyt Türk', 'Kuveyt Türk Para Transferi', _sampleKuveytTurkText);
+                          _applySampleText(
+                              'Kuveyt Türk',
+                              'Kuveyt Türk Para Transferi',
+                              _sampleKuveytTurkText);
                         }),
                         const SizedBox(width: 8),
                         _buildQuickSampleChip('Metni Temizle / Yapıştır', () {
-                          _applySampleText('Yeni Banka', 'Özel Dekont Şablonu', '');
+                          _applySampleText(
+                              'Yeni Banka', 'Özel Dekont Şablonu', '');
                         }),
                       ],
                     ),
@@ -287,8 +312,12 @@ Kanal: Mobil Şube
                             labelStyle: const TextStyle(fontSize: 12),
                             filled: true,
                             fillColor: const Color(0xFFF8FAFC),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 10),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                    const BorderSide(color: Color(0xFFCBD5E1))),
                           ),
                         ),
                       ),
@@ -301,8 +330,12 @@ Kanal: Mobil Şube
                             labelStyle: const TextStyle(fontSize: 12),
                             filled: true,
                             fillColor: const Color(0xFFF8FAFC),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 10),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                    const BorderSide(color: Color(0xFFCBD5E1))),
                           ),
                         ),
                       ),
@@ -311,18 +344,27 @@ Kanal: Mobil Şube
                   const SizedBox(height: 14),
 
                   // Ham Dekont Metni Alanı
-                  const Text('Dekont / Ekstre Metni:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF475569))),
+                  const Text('Dekont / Ekstre Metni:',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF475569))),
                   const SizedBox(height: 6),
                   TextField(
                     controller: _rawTextController,
                     maxLines: 5,
-                    style: const TextStyle(fontSize: 11.5, fontFamily: 'monospace'),
+                    style: const TextStyle(
+                        fontSize: 11.5, fontFamily: 'monospace'),
                     decoration: InputDecoration(
-                      hintText: 'Dekont veya ekstre metnini buraya yapıştırın...',
+                      hintText:
+                          'Dekont veya ekstre metnini buraya yapıştırın...',
                       filled: true,
                       fillColor: const Color(0xFFF8FAFC),
                       contentPadding: const EdgeInsets.all(12),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFCBD5E1))),
                     ),
                     onChanged: (_) => _parseRawTextAndExtractFields(),
                   ),
@@ -343,18 +385,24 @@ Kanal: Mobil Şube
                       children: [
                         Row(
                           children: const [
-                            Icon(Icons.check_circle_outline_rounded, color: Color(0xFF16A34A), size: 18),
+                            Icon(Icons.check_circle_outline_rounded,
+                                color: Color(0xFF16A34A), size: 18),
                             SizedBox(width: 8),
                             Text(
                               'ALAN EŞLEŞTİRME (MAPPING)',
-                              style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: Color(0xFF15803D), letterSpacing: 0.5),
+                              style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF15803D),
+                                  letterSpacing: 0.5),
                             ),
                           ],
                         ),
                         const SizedBox(height: 4),
                         const Text(
                           'Uygulamadaki alanların belgedeki hangi satıra denk geldiğini belirleyin:',
-                          style: TextStyle(fontSize: 11, color: Color(0xFF166534)),
+                          style:
+                              TextStyle(fontSize: 11, color: Color(0xFF166534)),
                         ),
                         const SizedBox(height: 14),
 
@@ -363,7 +411,8 @@ Kanal: Mobil Şube
                           title: 'Tutar (Amount) Hangi Alanda? *',
                           icon: Icons.payments_outlined,
                           selectedValue: _selectedAmountField,
-                          onChanged: (val) => setState(() => _selectedAmountField = val),
+                          onChanged: (val) =>
+                              setState(() => _selectedAmountField = val),
                           highlightColor: const Color(0xFF16A34A),
                         ),
                         const SizedBox(height: 12),
@@ -373,7 +422,8 @@ Kanal: Mobil Şube
                           title: 'İşlem Tarihi (Date) Hangi Alanda?',
                           icon: Icons.calendar_today_rounded,
                           selectedValue: _selectedDateField,
-                          onChanged: (val) => setState(() => _selectedDateField = val),
+                          onChanged: (val) =>
+                              setState(() => _selectedDateField = val),
                         ),
                         const SizedBox(height: 12),
 
@@ -382,7 +432,8 @@ Kanal: Mobil Şube
                           title: 'Alıcı / Gönderen Adı Hangi Alanda?',
                           icon: Icons.person_outline_rounded,
                           selectedValue: _selectedRecipientField,
-                          onChanged: (val) => setState(() => _selectedRecipientField = val),
+                          onChanged: (val) =>
+                              setState(() => _selectedRecipientField = val),
                         ),
                         const SizedBox(height: 12),
 
@@ -391,21 +442,33 @@ Kanal: Mobil Şube
                           title: 'İşlem Açıklaması Hangi Alanda?',
                           icon: Icons.description_outlined,
                           selectedValue: _selectedDescField,
-                          onChanged: (val) => setState(() => _selectedDescField = val),
+                          onChanged: (val) =>
+                              setState(() => _selectedDescField = val),
                         ),
                         const SizedBox(height: 12),
 
                         // 5. İŞLEM YÖNÜ (Gider vs Gelir)
                         const Text(
                           'Varsayılan İşlem Türü',
-                          style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: Color(0xFF1E293B)),
+                          style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1E293B)),
                         ),
                         const SizedBox(height: 6),
                         Row(
                           children: [
-                            _buildTxTypeButton('Gider / Transfer', 'EXPENSE', Icons.arrow_outward_rounded, AppColors.expenseRed),
+                            _buildTxTypeButton(
+                                'Gider / Transfer',
+                                'EXPENSE',
+                                Icons.arrow_outward_rounded,
+                                AppColors.expenseRed),
                             const SizedBox(width: 8),
-                            _buildTxTypeButton('Gelir / Yatırma', 'INCOME', Icons.arrow_downward_rounded, AppColors.incomeGreen),
+                            _buildTxTypeButton(
+                                'Gelir / Yatırma',
+                                'INCOME',
+                                Icons.arrow_downward_rounded,
+                                AppColors.incomeGreen),
                           ],
                         ),
                       ],
@@ -422,7 +485,10 @@ Kanal: Mobil Şube
                       color: const Color(0xFF0F172A),
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: const [
-                        BoxShadow(color: Color(0x1F000000), blurRadius: 10, offset: Offset(0, 4)),
+                        BoxShadow(
+                            color: Color(0x1F000000),
+                            blurRadius: 10,
+                            offset: Offset(0, 4)),
                       ],
                     ),
                     child: Column(
@@ -433,19 +499,29 @@ Kanal: Mobil Şube
                           children: [
                             Text(
                               'CANLI EŞLEŞTİRME ÖNİZLEMESİ',
-                              style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, color: Color(0xFF38BDF8), letterSpacing: 0.5),
+                              style: TextStyle(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF38BDF8),
+                                  letterSpacing: 0.5),
                             ),
-                            Icon(Icons.visibility_outlined, color: Color(0xFF38BDF8), size: 16),
+                            Icon(Icons.visibility_outlined,
+                                color: Color(0xFF38BDF8), size: 16),
                           ],
                         ),
                         const SizedBox(height: 10),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Algılanan Tutar:', style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8))),
+                            const Text('Algılanan Tutar:',
+                                style: TextStyle(
+                                    fontSize: 12, color: Color(0xFF94A3B8))),
                             Text(
                               CurrencyNormalizer.formatCents(previewCents),
-                              style: AppTheme.numericStyle.copyWith(fontSize: 16, fontWeight: FontWeight.w900, color: const Color(0xFF34D399)),
+                              style: AppTheme.numericStyle.copyWith(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                  color: const Color(0xFF34D399)),
                             ),
                           ],
                         ),
@@ -453,10 +529,18 @@ Kanal: Mobil Şube
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Algılanan Tarih:', style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8))),
+                            const Text('Algılanan Tarih:',
+                                style: TextStyle(
+                                    fontSize: 12, color: Color(0xFF94A3B8))),
                             Text(
-                              _selectedDateField != null ? (_detectedFields[_selectedDateField] ?? 'Bugün') : 'Belirtilmedi',
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+                              _selectedDateField != null
+                                  ? (_detectedFields[_selectedDateField] ??
+                                      'Bugün')
+                                  : 'Belirtilmedi',
+                              style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white),
                             ),
                           ],
                         ),
@@ -464,13 +548,22 @@ Kanal: Mobil Şube
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Karşı Taraf / Açıklama:', style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8))),
+                            const Text('Karşı Taraf / Açıklama:',
+                                style: TextStyle(
+                                    fontSize: 12, color: Color(0xFF94A3B8))),
                             Expanded(
                               child: Text(
-                                _selectedRecipientField != null ? (_detectedFields[_selectedRecipientField] ?? '-') : '-',
+                                _selectedRecipientField != null
+                                    ? (_detectedFields[
+                                            _selectedRecipientField] ??
+                                        '-')
+                                    : '-',
                                 textAlign: TextAlign.right,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+                                style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white),
                               ),
                             ),
                           ],
@@ -487,11 +580,14 @@ Kanal: Mobil Şube
                     child: ElevatedButton.icon(
                       onPressed: _saveMappingTemplate,
                       icon: const Icon(Icons.save_rounded, size: 20),
-                      label: const Text('Şablonu Kaydet ve Eşlemeyi Kullan', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+                      label: const Text('Şablonu Kaydet ve Eşlemeyi Kullan',
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w800)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF2563EB),
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
                         elevation: 0,
                       ),
                     ),
@@ -508,7 +604,11 @@ Kanal: Mobil Şube
   Widget _buildQuickSampleChip(String label, VoidCallback onTap) {
     return ActionChip(
       onPressed: onTap,
-      label: Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF0F172A))),
+      label: Text(label,
+          style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF0F172A))),
       backgroundColor: const Color(0xFFF1F5F9),
       side: const BorderSide(color: Color(0xFFCBD5E1)),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -527,7 +627,8 @@ Kanal: Mobil Şube
       children: [
         Row(
           children: [
-            Icon(icon, size: 14, color: highlightColor ?? const Color(0xFF475569)),
+            Icon(icon,
+                size: 14, color: highlightColor ?? const Color(0xFF475569)),
             const SizedBox(width: 6),
             Text(
               title,
@@ -546,27 +647,35 @@ Kanal: Mobil Şube
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: highlightColor != null ? const Color(0xFF22C55E) : const Color(0xFFCBD5E1),
+              color: highlightColor != null
+                  ? const Color(0xFF22C55E)
+                  : const Color(0xFFCBD5E1),
               width: highlightColor != null ? 1.5 : 1.0,
             ),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
-              value: _detectedFields.containsKey(selectedValue) ? selectedValue : null,
-              hint: const Text('Belgeden bir alan seçin...', style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8))),
+              value: _detectedFields.containsKey(selectedValue)
+                  ? selectedValue
+                  : null,
+              hint: const Text('Belgeden bir alan seçin...',
+                  style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8))),
               isExpanded: true,
               items: _detectedFields.entries.map((entry) {
                 return DropdownMenuItem<String>(
                   value: entry.key,
                   child: Row(
                     children: [
-                      Text(entry.key, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                      Text(entry.key,
+                          style: const TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.w700)),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           entry.value,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                          style: const TextStyle(
+                              fontSize: 11, color: Color(0xFF64748B)),
                         ),
                       ),
                     ],
@@ -581,7 +690,8 @@ Kanal: Mobil Şube
     );
   }
 
-  Widget _buildTxTypeButton(String label, String value, IconData icon, Color color) {
+  Widget _buildTxTypeButton(
+      String label, String value, IconData icon, Color color) {
     final isSelected = _selectedTxType == value;
     return Expanded(
       child: InkWell(
@@ -590,14 +700,18 @@ Kanal: Mobil Şube
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? color.withOpacity(0.12) : Colors.white,
+            color: isSelected ? color.withValues(alpha: 0.12) : Colors.white,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: isSelected ? color : const Color(0xFFCBD5E1), width: isSelected ? 1.5 : 1),
+            border: Border.all(
+                color: isSelected ? color : const Color(0xFFCBD5E1),
+                width: isSelected ? 1.5 : 1),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 14, color: isSelected ? color : const Color(0xFF64748B)),
+              Icon(icon,
+                  size: 14,
+                  color: isSelected ? color : const Color(0xFF64748B)),
               const SizedBox(width: 6),
               Text(
                 label,

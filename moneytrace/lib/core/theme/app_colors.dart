@@ -121,6 +121,29 @@ class AppColors {
         return catClothing;
       case 'cat_health':
         return catHealth;
+      // v2 ekstre zekası kategorileri (renkler v2_statement_intelligence.sql ile aynı)
+      case 'cat_insurance':
+        return const Color(0xFF0E7490);
+      case 'cat_shopping':
+        return const Color(0xFFEA580C);
+      case 'cat_electronics':
+        return const Color(0xFF4338CA);
+      case 'cat_education':
+        return const Color(0xFF7C3AED);
+      case 'cat_travel':
+        return const Color(0xFF0891B2);
+      case 'cat_personal_care':
+        return const Color(0xFFDB2777);
+      case 'cat_transfer':
+        return const Color(0xFF475569);
+      case 'cat_card_payment':
+        return const Color(0xFF1D4ED8);
+      case 'cat_fees':
+        return const Color(0xFFB91C1C);
+      case 'cat_cash':
+        return const Color(0xFF15803D);
+      case 'cat_loan':
+        return const Color(0xFF9333EA);
       default:
         return catGeneral;
     }

@@ -57,7 +57,7 @@ class FloatingCapsuleNavBar extends StatelessWidget {
                 child: InkWell(
                   onTap: () => onTap(index),
                   borderRadius: BorderRadius.circular(20),
-                  splashColor: activeIndicatorColor.withOpacity(0.12),
+                  splashColor: activeIndicatorColor.withValues(alpha: 0.12),
                   highlightColor: Colors.transparent,
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 240),
@@ -67,7 +67,9 @@ class FloatingCapsuleNavBar extends StatelessWidget {
                       horizontal: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: isSelected ? activeIndicatorColor : Colors.transparent,
+                      color: isSelected
+                          ? activeIndicatorColor
+                          : Colors.transparent,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Column(
@@ -76,7 +78,8 @@ class FloatingCapsuleNavBar extends StatelessWidget {
                         Icon(
                           item.icon,
                           size: 20,
-                          color: isSelected ? activeContentColor : inactiveColor,
+                          color:
+                              isSelected ? activeContentColor : inactiveColor,
                         ),
                         const SizedBox(height: 3),
                         Text(
@@ -85,8 +88,10 @@ class FloatingCapsuleNavBar extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 10.5,
-                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                            color: isSelected ? activeContentColor : inactiveColor,
+                            fontWeight:
+                                isSelected ? FontWeight.w700 : FontWeight.w500,
+                            color:
+                                isSelected ? activeContentColor : inactiveColor,
                           ),
                         ),
                       ],

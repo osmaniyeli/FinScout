@@ -1,110 +1,93 @@
 // lib/core/parser/parsers/garanti_statement_parser.dart
 
+import '../layout/statement_layout.dart';
 import '../models/parsed_models.dart';
-import '../../utils/currency_normalizer.dart';
+import '../util/tr_statement_text.dart';
+import 'statement_parser.dart';
 
-class GarantiStatementParser {
-  // Kart veya Hesap Başlığı
-  static final RegExp _cardHeaderRegex = RegExp(
-    r'(?:Kart No|Kart Numarası|Hesap No|Müşteri No)\s*:\s*([\d\* ]+)(?:\s+([A-ZÇĞİÖŞÜa-zçğıöşü ]+))?',
-    caseSensitive: false,
-  );
+/// Garanti BBVA Paracard / Bonus hesap cetveli.
+///
+/// Tablo: İşlem Tarihi | Hesap No | Dönem İçi İşlemler | Bonus (TL) | Tutar (TL)
+/// Banka işlemleri kendi sektör başlıkları altında gruplar ("Eczane", "Ulaşım", "GSM Shop"...);
+/// bu başlıklar işlemin sektör etiketi olarak korunur. "NAKİT ÇEKİM İŞLEMLERİNİZ" bölümü nakit çekimdir.
+class GarantiStatementParser implements LayoutStatementParser {
+  static const _header = {'date': 'ISLEM TARIHI', 'desc': 'DONEM ICI ISLEMLER', 'amount': 'TUTAR'};
+  static final RegExp _cardNo = RegExp(r'\d{4}\s?\d{2}\*{2}\s?\*{4}\s?\d{4}');
 
-  // Garanti Paracard / Bonus Standart Satır: "14.08.2026 MİGROS TİCARET A.Ş. 350,75 TL" veya "15/08/2026 ZARA GİYİM 1.200,00 TL (1/3)"
-  static final RegExp _standardTxRegex = RegExp(
-    r'^(\d{2}[./]\d{2}[./]\d{2,4})\s+(.+?)\s+([+-]?\s*[\d\.,]+)\s*(?:TL|TRY)?(?:\s+(.+))?$',
-    multiLine: true,
-  );
+  @override
+  ParserOutput parse(StatementLayout layout) {
+    final records = <ParsedRecord>[];
+    ColumnMap? cols;
+    String card = '';
+    String? sector;
+    var kind = TransactionKind.purchase;
 
-  // Taksit Yakalama: "(1/3)" veya "1/6 Taksit" veya "Taksit: 1/3"
-  static final RegExp _installmentRegex = RegExp(
-    r'(?:(?:\(|\[)?(\d+)/(\d+)(?:\)|\])?\s*taksit|(?:\(|\[)(\d+)/(\d+)(?:\)|\])|taksit\s*:\s*(\d+)/(\d+))',
-    caseSensitive: false,
-  );
+    for (final row in layout.rows) {
+      final fold = TrStatementText.fold(row.text);
+      if (fold.startsWith('KART NO')) {
+        card = _cardNo.firstMatch(row.text)?.group(0) ?? card;
+        continue;
+      }
+      final header = ColumnMap.fromHeader(row, _header, TrStatementText.fold);
+      if (header != null) {
+        cols = header;
+        continue;
+      }
+      final c = cols;
+      if (c == null || fold == 'BOSLUK') continue;
 
-  List<ParsedRecord> parse(String text, {String? accountMask}) {
-    final List<ParsedRecord> records = [];
-    final lines = text.split('\n');
+      if (fold.contains('NAKIT CEKIM ISLEMLERINIZ')) {
+        kind = TransactionKind.cashAdvance;
+        sector = 'Nakit Çekim';
+        continue;
+      }
+      if (fold.contains('HARCAMALAR') && !TrStatementText.isDateCell(row.cells.first.text)) {
+        kind = TransactionKind.purchase;
+        sector = null;
+        continue;
+      }
+      if (fold.startsWith('TOPLAM')) continue;
 
-    String currentAccountMask = accountMask ?? 'TR.. 0062 **** ****';
-    String? currentAccountHolder = 'Hesap Sahibi';
-
-    for (int i = 0; i < lines.length; i++) {
-      final line = lines[i].trim();
-      if (line.isEmpty) continue;
-
-      // 1. Kart / Hesap Başlığı Tespiti
-      final headerMatch = _cardHeaderRegex.firstMatch(line);
-      if (headerMatch != null) {
-        currentAccountMask = headerMatch.group(1)!.trim();
-        if (headerMatch.group(2) != null && headerMatch.group(2)!.trim().isNotEmpty) {
-          currentAccountHolder = headerMatch.group(2)!.trim();
-        }
+      final first = row.cells.first;
+      final date = TrStatementText.isDateCell(first.text) ? TrStatementText.parseDate(first.text) : null;
+      if (date == null) {
+        // Tarihsiz tek hücreli satır: bankanın sektör başlığı ("Eczane", "Optik & Saat")
+        if (row.cells.length == 1 && kind == TransactionKind.purchase) sector = first.text.trim();
         continue;
       }
 
-      // 2. İşlem Satırı Eşleşmesi
-      final txMatch = _standardTxRegex.firstMatch(line);
-      if (txMatch != null) {
-        final dateStr = txMatch.group(1)!;
-        String desc = txMatch.group(2)!.trim();
-        final amountStr = txMatch.group(3)!.replaceAll(' ', '');
-        final trailingNote = txMatch.group(4)?.trim() ?? '';
+      final amountCell = row.cells.lastWhere((x) => TrStatementText.isAmount(x.text), orElse: () => first);
+      if (amountCell == first) continue;
+      final description = row.cells
+          .where((x) => x.left >= c['desc']! - 4 && x.right < amountCell.left && !TrStatementText.isAmount(x.text))
+          .map((x) => x.text)
+          .join(' ')
+          .trim();
+      final cents = TrStatementText.amountCents(amountCell.text)!;
 
-        // Başlık veya alt toplam satırlarını filtrele
-        final lowerDesc = desc.toLowerCase();
-        if (lowerDesc.contains('dönem borcu') ||
-            lowerDesc.contains('asgari tutar') ||
-            lowerDesc.contains('toplam borç') ||
-            lowerDesc.contains('hesap kesim') ||
-            lowerDesc.contains('son ödeme')) {
-          continue;
-        }
-
-        // Tarih Çözümleme (DD.MM.YYYY veya DD/MM/YYYY)
-        final sep = dateStr.contains('.') ? '.' : '/';
-        final dateParts = dateStr.split(sep);
-        final day = int.tryParse(dateParts[0]) ?? 1;
-        final month = int.tryParse(dateParts[1]) ?? 1;
-        int year = int.tryParse(dateParts[2]) ?? 2026;
-        if (year < 100) year += 2000;
-        final txDate = DateTime(year, month, day);
-
-        final bool isCreditPayment = amountStr.startsWith('+') || lowerDesc.contains('ödeme') || lowerDesc.contains('iade');
-        final billingCents = CurrencyNormalizer.toMinorUnits(amountStr).abs();
-        if (billingCents <= 0) continue;
-
-        // Taksit Analizi (Açıklamada veya satır sonunda taksit var mı?)
-        ParsedInstallmentData? installment;
-        final fullTextToCheck = '$desc $trailingNote';
-        final instMatch = _installmentRegex.firstMatch(fullTextToCheck);
-        if (instMatch != null) {
-          final currInst = int.tryParse(instMatch.group(1) ?? instMatch.group(3) ?? instMatch.group(5) ?? '1') ?? 1;
-          final totalInst = int.tryParse(instMatch.group(2) ?? instMatch.group(4) ?? instMatch.group(6) ?? '1') ?? 1;
-
-          if (totalInst > 1) {
-            final remainingMonths = totalInst - currInst;
-            installment = ParsedInstallmentData(
-              currentInstallment: currInst,
-              totalInstallment: totalInst,
-              remainingAmountCents: remainingMonths * billingCents,
-              monthlyAmountCents: billingCents,
-            );
-          }
-        }
-
-        records.add(ParsedRecord(
-          cardOrAccountMask: currentAccountMask,
-          cardHolder: currentAccountHolder,
-          date: txDate,
-          type: isCreditPayment ? ParsedTransactionType.credit : ParsedTransactionType.debit,
-          rawDescription: desc,
-          billingAmountCents: billingCents,
-          installment: installment,
-        ));
-      }
+      records.add(ParsedRecord(
+        cardOrAccountMask: card,
+        date: date,
+        type: cents < 0 ? ParsedTransactionType.credit : ParsedTransactionType.debit,
+        rawDescription: description,
+        billingAmountCents: cents.abs(),
+        kind: kind,
+        sector: sector,
+      ));
     }
 
-    return records;
+    final purchases = TrStatementText.labelAmount(layout, ['Toplam Alışveriş Tutarınız']);
+    final cash = TrStatementText.labelAmount(layout, ['Toplam Nakit Çekim Tutarınız']);
+    return ParserOutput(
+      records: records,
+      accountIdentifier: card.isEmpty ? null : card,
+      summary: StatementSummary(
+        statementDate: TrStatementText.labelDate(layout, ['Hesap Kesim Tarihiniz', 'Hesap Kesim Tarihi']),
+        dueDate: TrStatementText.labelDate(layout, ['Son Ödeme Tarihi']),
+        statementBalanceCents: TrStatementText.labelAmount(layout, ['Dönem Borcu', 'Toplam Borç']),
+        minimumPaymentCents: TrStatementText.labelAmount(layout, ['Asgari Ödeme Tutarı']),
+        periodDebitsCents: (purchases == null && cash == null) ? null : (purchases ?? 0) + (cash ?? 0),
+      ),
+    );
   }
 }

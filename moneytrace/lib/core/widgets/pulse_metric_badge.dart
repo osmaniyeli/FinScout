@@ -68,12 +68,13 @@ class _PulseMetricBadgeState extends State<PulseMetricBadge>
               return Transform.scale(
                 scale: outerScale,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                   decoration: BoxDecoration(
-                    color: widget.pulseColor.withOpacity(opacity * 0.5),
+                    color: widget.pulseColor.withValues(alpha: opacity * 0.5),
                     borderRadius: BorderRadius.circular(22),
                     border: Border.all(
-                      color: widget.pulseColor.withOpacity(opacity),
+                      color: widget.pulseColor.withValues(alpha: opacity),
                       width: 1.5,
                     ),
                   ),
@@ -93,17 +94,17 @@ class _PulseMetricBadgeState extends State<PulseMetricBadge>
               color: widget.baseColor,
               borderRadius: BorderRadius.circular(22),
               border: Border.all(
-                color: widget.pulseColor.withOpacity(0.4),
+                color: widget.pulseColor.withValues(alpha: 0.4),
                 width: 1.2,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.25),
+                  color: Colors.black.withValues(alpha: 0.25),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
                 BoxShadow(
-                  color: widget.pulseColor.withOpacity(0.25),
+                  color: widget.pulseColor.withValues(alpha: 0.25),
                   blurRadius: 14,
                   offset: const Offset(0, 2),
                 ),
@@ -124,7 +125,8 @@ class _PulseMetricBadgeState extends State<PulseMetricBadge>
         AnimatedBuilder(
           animation: _pulseController,
           builder: (context, _) {
-            final blink = (math.sin(_pulseController.value * math.pi * 2) + 1) / 2;
+            final blink =
+                (math.sin(_pulseController.value * math.pi * 2) + 1) / 2;
             return Container(
               width: 8,
               height: 8,
@@ -133,7 +135,8 @@ class _PulseMetricBadgeState extends State<PulseMetricBadge>
                 color: widget.pulseColor,
                 boxShadow: [
                   BoxShadow(
-                    color: widget.pulseColor.withOpacity(0.5 + (blink * 0.5)),
+                    color: widget.pulseColor
+                        .withValues(alpha: 0.5 + (blink * 0.5)),
                     blurRadius: 6,
                     spreadRadius: 1,
                   ),

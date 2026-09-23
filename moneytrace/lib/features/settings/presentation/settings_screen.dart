@@ -1,3 +1,5 @@
+import 'package:file_picker/file_picker.dart';
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -95,7 +97,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           backgroundColor: Color(0xFF059669),
-          content: Text('Güvenlik PIN kodu başarıyla oluşturuldu ve aktif edildi.'),
+          content:
+              Text('Güvenlik PIN kodu başarıyla oluşturuldu ve aktif edildi.'),
           duration: Duration(seconds: 2),
         ),
       );
@@ -107,7 +110,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final verified = await SecurityAuthSheet.show(
       context,
       title: 'Mevcut PIN Kodunuzu Girin',
-      subtitle: 'Şifrenizi değiştirmek için lütfen mevcut PIN kodunuzu doğrulayın.',
+      subtitle:
+          'Şifrenizi değiştirmek için lütfen mevcut PIN kodunuzu doğrulayın.',
       allowBiometrics: false,
       onPinEntered: (pin) {
         currentPin = pin;
@@ -140,7 +144,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final verified = await SecurityAuthSheet.show(
       context,
       title: 'Şifreyi Kaldırmak İçin Mevcut PIN Girin',
-      subtitle: 'Güvenliğiniz için lütfen mevcut 4 haneli PIN kodunuzu girerek şifreyi kaldırın.',
+      subtitle:
+          'Güvenliğiniz için lütfen mevcut 4 haneli PIN kodunuzu girerek şifreyi kaldırın.',
       allowBiometrics: false,
       onPinEntered: (pin) {
         enteredPin = pin;
@@ -178,7 +183,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       appBar: AppBar(
         title: const Text(
           'Ayarlar & Tercihler',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+          style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textPrimary),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
@@ -194,7 +202,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               margin: EdgeInsets.zero,
               padding: const EdgeInsets.all(18),
               backgroundColor: const Color(0xFF0F172A),
-              shimmerColor: _subscriptionService.isPremium ? const Color(0xFFF59E0B) : const Color(0xFF38BDF8),
+              shimmerColor: _subscriptionService.isPremium
+                  ? const Color(0xFFF59E0B)
+                  : const Color(0xFF38BDF8),
               borderColor: const Color(0xFF334155),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -204,12 +214,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     children: [
                       const Text(
                         'AKTİF PLANINIZ',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF94A3B8), letterSpacing: 0.5),
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF94A3B8),
+                            letterSpacing: 0.5),
                       ),
                       PulseMetricBadge(
-                        label: _subscriptionService.isPremium ? 'GÜVENLİ' : 'TEMEL',
-                        value: _subscriptionService.isPremium ? 'PREMIUM AKTİF' : 'ÜCRETSİZ PLAN',
-                        pulseColor: _subscriptionService.isPremium ? const Color(0xFFF59E0B) : const Color(0xFF38BDF8),
+                        label: _subscriptionService.isPremium
+                            ? 'GÜVENLİ'
+                            : 'TEMEL',
+                        value: _subscriptionService.isPremium
+                            ? 'PREMIUM AKTİF'
+                            : 'ÜCRETSİZ PLAN',
+                        pulseColor: _subscriptionService.isPremium
+                            ? const Color(0xFFF59E0B)
+                            : const Color(0xFF38BDF8),
                         isPositive: _subscriptionService.isPremium,
                       ),
                     ],
@@ -217,9 +237,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(height: 8),
                   Text(
                     _subscriptionService.isPremium
-                        ? (_subscriptionService.isFamilyPlan ? 'Aile Boyu Üyelik (4 Kişi)' : 'Bireysel Premium')
+                        ? (_subscriptionService.isFamilyPlan
+                            ? 'Aile Boyu Üyelik (4 Kişi)'
+                            : 'Bireysel Premium')
                         : 'Ücretsiz Başlangıç Paketi',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white),
+                    style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white),
                   ),
                   const SizedBox(height: 4),
                   const Text(
@@ -232,9 +257,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.white,
                       side: const BorderSide(color: Color(0xFF475569)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: Text(_subscriptionService.isPremium ? 'Planı Değiştir veya Yönet' : 'Premium Avantajlarını Keşfet'),
+                    child: Text(_subscriptionService.isPremium
+                        ? 'Planı Değiştir veya Yönet'
+                        : 'Premium Avantajlarını Keşfet'),
                   ),
                 ],
               ),
@@ -244,14 +272,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // 1.5 DİL & İLETİŞİM TERCİHİ (Bilingual TR/EN)
             const Text(
               'DİL & İLETİŞİM TERCİHİ / LANGUAGE PREFERENCE',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.textSecondary, letterSpacing: 0.5),
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textSecondary,
+                  letterSpacing: 0.5),
             ),
             const SizedBox(height: 10),
 
             _buildLanguageOptionTile(
               langKey: 'tr',
               title: 'Türkçe 🇹🇷',
-              subtitle: 'Uygulama arayüzü, e-posta bültenleri ve finansal raporlar Türkçe hazırlanır.',
+              subtitle:
+                  'Uygulama arayüzü, e-posta bültenleri ve finansal raporlar Türkçe hazırlanır.',
               badge: 'Varsayılan',
               badgeColor: const Color(0xFFDCFCE7),
               badgeTextColor: const Color(0xFF166534),
@@ -261,7 +294,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildLanguageOptionTile(
               langKey: 'en',
               title: 'English 🇬🇧',
-              subtitle: 'App interface, email newsletters, and financial exports delivered in English.',
+              subtitle:
+                  'App interface, email newsletters, and financial exports delivered in English.',
               badge: 'Global',
               badgeColor: const Color(0xFFEFF6FF),
               badgeTextColor: AppColors.actionPrimary,
@@ -271,14 +305,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // 2. VERİ KAYNAĞI SEÇİCİ
             const Text(
               'PİYASA VERİ KAYNAĞI SEÇİMİ',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.textSecondary, letterSpacing: 0.5),
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textSecondary,
+                  letterSpacing: 0.5),
             ),
             const SizedBox(height: 10),
 
             _buildSourceOptionTile(
               sourceKey: 'TCMB',
               title: 'TCMB (Türkiye Cumhuriyet Merkez Bankası)',
-              subtitle: 'Resmi kurlar, resmi gösterge fiyatları ve merkez bankası XML verisi.',
+              subtitle:
+                  'Resmi kurlar, resmi gösterge fiyatları ve merkez bankası XML verisi.',
               badge: 'Resmi',
               badgeColor: const Color(0xFFDCFCE7),
               badgeTextColor: const Color(0xFF166534),
@@ -288,7 +327,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSourceOptionTile(
               sourceKey: 'KAPALICARSI',
               title: 'Kapalıçarşı & Serbest Piyasa',
-              subtitle: 'Fiziki altın alış-satış makasları ve anlık döviz bürosu fiyatları.',
+              subtitle:
+                  'Fiziki altın alış-satış makasları ve anlık döviz bürosu fiyatları.',
               badge: 'Önerilen',
               badgeColor: const Color(0xFFEFF6FF),
               badgeTextColor: AppColors.actionPrimary,
@@ -298,7 +338,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // 3. GÜVENLİK & BİYOMETRİK KORUMA (Face ID, Fingerprint, PIN)
             const Text(
               'GİZLİLİK & BİYOMETRİK GÜVENLİK',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.textSecondary, letterSpacing: 0.5),
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textSecondary,
+                  letterSpacing: 0.5),
             ),
             const SizedBox(height: 10),
 
@@ -318,7 +362,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       color: const Color(0xFFECFDF5),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(Icons.verified_user_rounded, color: AppColors.incomeGreen, size: 22),
+                    child: const Icon(Icons.verified_user_rounded,
+                        color: AppColors.incomeGreen, size: 22),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -327,12 +372,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       children: const [
                         Text(
                           'Cihaz İçi Kriptolu Depolama',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary),
                         ),
                         SizedBox(height: 2),
                         Text(
                           'Ekstre ve finansal kayıtlarınız asla dış sunucuya gönderilmez. %100 telefonunuzda kalır.',
-                          style: TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.3),
+                          style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textSecondary,
+                              height: 1.3),
                         ),
                       ],
                     ),
@@ -344,10 +395,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             // 1. Yüz Tanıma (Face ID) Switch Tile
             ValueListenableBuilder<bool>(
-              valueListenable: SecurityAuthService.instance.isFaceIdEnabledNotifier,
+              valueListenable:
+                  SecurityAuthService.instance.isFaceIdEnabledNotifier,
               builder: (context, isFaceEnabled, _) {
                 return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(18),
@@ -361,7 +414,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           color: const Color(0xFFECFDF5),
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Icon(Icons.face_retouching_natural, color: Color(0xFF059669), size: 22),
+                        child: const Icon(Icons.face_retouching_natural,
+                            color: Color(0xFF059669), size: 22),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -370,12 +424,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           children: const [
                             Text(
                               'Yüz Tanıma ile Giriş (Face ID)',
-                              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                              style: TextStyle(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textPrimary),
                             ),
                             SizedBox(height: 2),
                             Text(
                               'Kamera ve biyometrik sensör ile anında ve güvenle giriş yapın.',
-                              style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                              style: TextStyle(
+                                  fontSize: 11, color: AppColors.textSecondary),
                             ),
                           ],
                         ),
@@ -384,12 +442,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         value: isFaceEnabled,
                         activeColor: const Color(0xFF10B981),
                         onChanged: (val) async {
-                          await SecurityAuthService.instance.setFaceIdEnabled(val);
+                          final error = val
+                              ? await SecurityAuthService.instance
+                                  .enableBiometric(BiometricAuthType.faceId)
+                              : null;
+                          if (!val)
+                            await SecurityAuthService.instance
+                                .setFaceIdEnabled(false);
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                backgroundColor: val ? const Color(0xFF059669) : const Color(0xFF0F172A),
-                                content: Text(val ? 'Yüz Tanıma (Face ID) aktif edildi.' : 'Yüz Tanıma devre dışı bırakıldı.'),
+                                backgroundColor: error != null
+                                    ? AppColors.expenseRed
+                                    : (val
+                                        ? const Color(0xFF059669)
+                                        : const Color(0xFF0F172A)),
+                                content: Text(error ??
+                                    (val
+                                        ? 'Yüz Tanıma (Face ID) aktif edildi.'
+                                        : 'Yüz Tanıma devre dışı bırakıldı.')),
                                 duration: const Duration(seconds: 2),
                               ),
                             );
@@ -405,10 +476,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             // 2. Parmak İzi (Touch ID / Fingerprint) Switch Tile
             ValueListenableBuilder<bool>(
-              valueListenable: SecurityAuthService.instance.isFingerprintEnabledNotifier,
+              valueListenable:
+                  SecurityAuthService.instance.isFingerprintEnabledNotifier,
               builder: (context, isFpEnabled, _) {
                 return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(18),
@@ -422,7 +495,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           color: const Color(0xFFEFF6FF),
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Icon(Icons.fingerprint_rounded, color: Color(0xFF2563EB), size: 22),
+                        child: const Icon(Icons.fingerprint_rounded,
+                            color: Color(0xFF2563EB), size: 22),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -431,12 +505,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           children: const [
                             Text(
                               'Parmak İzi ile Giriş (Touch ID)',
-                              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                              style: TextStyle(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textPrimary),
                             ),
                             SizedBox(height: 2),
                             Text(
                               'Telefonun parmak izi sensörüne dokunarak cüzdanınıza erişin.',
-                              style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                              style: TextStyle(
+                                  fontSize: 11, color: AppColors.textSecondary),
                             ),
                           ],
                         ),
@@ -445,12 +523,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         value: isFpEnabled,
                         activeColor: const Color(0xFF2563EB),
                         onChanged: (val) async {
-                          await SecurityAuthService.instance.setFingerprintEnabled(val);
+                          final error = val
+                              ? await SecurityAuthService.instance
+                                  .enableBiometric(
+                                      BiometricAuthType.fingerprint)
+                              : null;
+                          if (!val)
+                            await SecurityAuthService.instance
+                                .setFingerprintEnabled(false);
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                backgroundColor: val ? const Color(0xFF2563EB) : const Color(0xFF0F172A),
-                                content: Text(val ? 'Parmak İzi (Touch ID) aktif edildi.' : 'Parmak İzi devre dışı bırakıldı.'),
+                                backgroundColor: error != null
+                                    ? AppColors.expenseRed
+                                    : (val
+                                        ? const Color(0xFF2563EB)
+                                        : const Color(0xFF0F172A)),
+                                content: Text(error ??
+                                    (val
+                                        ? 'Parmak İzi (Touch ID) aktif edildi.'
+                                        : 'Parmak İzi devre dışı bırakıldı.')),
                                 duration: const Duration(seconds: 2),
                               ),
                             );
@@ -486,7 +578,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               color: const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(14),
                             ),
-                            child: const Icon(Icons.pin_rounded, color: Color(0xFF0F172A), size: 22),
+                            child: const Icon(Icons.pin_rounded,
+                                color: Color(0xFF0F172A), size: 22),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -494,15 +587,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  hasPin ? 'Güvenlik Şifresi / PIN Kodu (Aktif)' : '4 Haneli Şifre / PIN Belirle',
-                                  style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                                  hasPin
+                                      ? 'Güvenlik Şifresi / PIN Kodu (Aktif)'
+                                      : '4 Haneli Şifre / PIN Belirle',
+                                  style: const TextStyle(
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.textPrimary),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   hasPin
                                       ? 'Cihaz kasası SHA-256 tuzlu PIN ile korunuyor.'
                                       : 'Uygulama açılışını 4 haneli sayısal şifre ile koruyun.',
-                                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                  style: const TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.textSecondary),
                                 ),
                               ],
                             ),
@@ -513,11 +613,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF0F172A),
                                 foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 8),
                                 elevation: 0,
                               ),
-                              child: const Text('Şifre Belirle', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                              child: const Text('Şifre Belirle',
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700)),
                             ),
                         ],
                       ),
@@ -529,12 +634,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               child: OutlinedButton.icon(
                                 onPressed: _changeExistingPin,
                                 icon: const Icon(Icons.edit_rounded, size: 14),
-                                label: const Text('Şifreyi Değiştir', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)),
+                                label: const Text('Şifreyi Değiştir',
+                                    style: TextStyle(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w700)),
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: const Color(0xFF0F172A),
-                                  side: const BorderSide(color: Color(0xFFCBD5E1)),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  side: const BorderSide(
+                                      color: Color(0xFFCBD5E1)),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12)),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
                                 ),
                               ),
                             ),
@@ -542,13 +653,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             Expanded(
                               child: OutlinedButton.icon(
                                 onPressed: _removePinWithVerification,
-                                icon: const Icon(Icons.lock_open_rounded, size: 14, color: AppColors.expenseRed),
-                                label: const Text('Şifreyi Kaldır', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.expenseRed)),
+                                icon: const Icon(Icons.lock_open_rounded,
+                                    size: 14, color: AppColors.expenseRed),
+                                label: const Text('Şifreyi Kaldır',
+                                    style: TextStyle(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.expenseRed)),
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: AppColors.expenseRed,
-                                  side: const BorderSide(color: Color(0xFFFECDD3)),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  side: const BorderSide(
+                                      color: Color(0xFFFECDD3)),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12)),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
                                 ),
                               ),
                             ),
@@ -565,7 +684,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // 4. VERİ YÖNETİMİ & YEDEKLEME (ZERO-KNOWLEDGE)
             const Text(
               'VERİ YÖNETİMİ & YEDEKLEME (ZERO-KNOWLEDGE)',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.textSecondary, letterSpacing: 0.5),
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textSecondary,
+                  letterSpacing: 0.5),
             ),
             const SizedBox(height: 10),
 
@@ -588,16 +711,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           color: const Color(0xFFECFDF5),
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Icon(Icons.table_chart_rounded, color: Color(0xFF10B981), size: 22),
+                        child: const Icon(Icons.table_chart_rounded,
+                            color: Color(0xFF10B981), size: 22),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: const [
-                            Text('Harcama Raporunu İndir (Excel / CSV)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+                            Text('Harcama Raporunu İndir (Excel / CSV)',
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.textPrimary)),
                             SizedBox(height: 2),
-                            Text('Türkçe karakter uyumlu (UTF-8 BOM), tüm harcama, taksit ve vergiler.', style: TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.3)),
+                            Text(
+                                'Türkçe karakter uyumlu (UTF-8 BOM), tüm harcama, taksit ve vergiler.',
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.textSecondary,
+                                    height: 1.3)),
                           ],
                         ),
                       ),
@@ -635,16 +768,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           color: const Color(0xFFEFF6FF),
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Icon(Icons.security_rounded, color: AppColors.actionPrimary, size: 22),
+                        child: const Icon(Icons.security_rounded,
+                            color: AppColors.actionPrimary, size: 22),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: const [
-                            Text('Tam Sistem Yedeği Al (JSON)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+                            Text('Tam Sistem Yedeği Al (JSON)',
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.textPrimary)),
                             SizedBox(height: 2),
-                            Text('Hesaplar, ekstreler, taksitler ve ayarları içeren taşınabilir arşiv.', style: TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.3)),
+                            Text(
+                                'Hesaplar, ekstreler, taksitler ve ayarları içeren taşınabilir arşiv.',
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.textSecondary,
+                                    height: 1.3)),
                           ],
                         ),
                       ),
@@ -683,16 +826,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           color: const Color(0xFFF5F3FF),
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Icon(Icons.settings_backup_restore_rounded, color: Color(0xFF8B5CF6), size: 22),
+                        child: const Icon(Icons.settings_backup_restore_rounded,
+                            color: Color(0xFF8B5CF6), size: 22),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: const [
-                            Text('Yedekten Geri Yükle', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+                            Text('Yedekten Geri Yükle',
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.textPrimary)),
                             SizedBox(height: 2),
-                            Text('Daha önce aldığınız bir Paraİz yedek dosyasını geri yükleyin.', style: TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.3)),
+                            Text(
+                                'Daha önce aldığınız bir Paraİz yedek dosyasını geri yükleyin.',
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.textSecondary,
+                                    height: 1.3)),
                           ],
                         ),
                       ),
@@ -715,25 +868,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // 5. UZAKTAN MODÜL DURUMU BİLGİSİ
             const Text(
               'SİSTEM SAĞLIĞI & MODÜLLER',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.textSecondary, letterSpacing: 0.5),
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textSecondary,
+                  letterSpacing: 0.5),
             ),
             const SizedBox(height: 10),
 
-
-
-            _buildModuleStatusRow('Deterministik PDF Motoru', _remoteConfig.isModuleActive('statement_upload')),
-            _buildModuleStatusRow('Nakit Akışı & Projeksiyon', _remoteConfig.isModuleActive('cashflow_projection')),
-            _buildModuleStatusRow('Piyasa & Altın Veri Akışı', _remoteConfig.isModuleActive('market_rates')),
-            _buildModuleStatusRow('Hedefler Modülü', _remoteConfig.isModuleActive('goals_module')),
-            _buildModuleStatusRow('Aile Bütçesi Senkronizasyonu', _remoteConfig.isModuleActive('family_budget')),
-            _buildModuleStatusRow('Piyasa Haberleri & Gündem', _remoteConfig.isModuleActive('market_news')),
+            _buildModuleStatusRow('Deterministik PDF Motoru',
+                _remoteConfig.isModuleActive('statement_upload')),
+            _buildModuleStatusRow('Nakit Akışı & Projeksiyon',
+                _remoteConfig.isModuleActive('cashflow_projection')),
+            _buildModuleStatusRow('Piyasa & Altın Veri Akışı',
+                _remoteConfig.isModuleActive('market_rates')),
+            _buildModuleStatusRow('Hedefler Modülü',
+                _remoteConfig.isModuleActive('goals_module')),
+            _buildModuleStatusRow('Aile Bütçesi Senkronizasyonu',
+                _remoteConfig.isModuleActive('family_budget')),
+            _buildModuleStatusRow('Piyasa Haberleri & Gündem',
+                _remoteConfig.isModuleActive('market_news')),
 
             const SizedBox(height: 28),
 
             // 6. TEHLİKELİ BÖLGE: TÜM VERİLERİMİ SIFIRLA VE SİL
             const Text(
               'TEHLİKELİ BÖLGE / VERİLERİ SIFIRLA',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.expenseRed, letterSpacing: 0.5),
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.expenseRed,
+                  letterSpacing: 0.5),
             ),
             const SizedBox(height: 10),
 
@@ -755,7 +920,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           color: const Color(0xFFFFE4E6),
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Icon(Icons.delete_forever_rounded, color: AppColors.expenseRed, size: 22),
+                        child: const Icon(Icons.delete_forever_rounded,
+                            color: AppColors.expenseRed, size: 22),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -764,12 +930,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           children: const [
                             Text(
                               'Tüm Verilerimi Sıfırla ve Sil',
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.expenseRed),
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.expenseRed),
                             ),
                             SizedBox(height: 2),
                             Text(
                               'Hesaplar, ekstreler, harcamalar, hedefler ve profil cihazınızdan tamamen silinir.',
-                              style: TextStyle(fontSize: 11, color: Color(0xFF9F1239), height: 1.3),
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  color: Color(0xFF9F1239),
+                                  height: 1.3),
                             ),
                           ],
                         ),
@@ -782,13 +954,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: ElevatedButton.icon(
                       onPressed: _confirmAndResetAllData,
                       icon: const Icon(Icons.delete_outline_rounded, size: 18),
-                      label: const Text('Tüm Verilerimi Sıfırla ve Hesabı Sil', style: TextStyle(fontWeight: FontWeight.w800)),
+                      label: const Text('Tüm Verilerimi Sıfırla ve Hesabı Sil',
+                          style: TextStyle(fontWeight: FontWeight.w800)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.expenseRed,
                         foregroundColor: Colors.white,
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(vertical: 13),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
                   ),
@@ -827,7 +1001,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
+              color: Colors.black.withValues(alpha: 0.02),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -854,18 +1028,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Expanded(
                         child: Text(
                           title,
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                          style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary),
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
                           color: badgeColor,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           badge,
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: badgeTextColor),
+                          style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: badgeTextColor),
                         ),
                       ),
                     ],
@@ -873,7 +1054,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.3),
+                    style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textSecondary,
+                        height: 1.3),
                   ),
                 ],
               ),
@@ -903,12 +1087,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isSelected ? AppColors.actionPrimary : const Color(0xFFE2E8F0),
+            color:
+                isSelected ? AppColors.actionPrimary : const Color(0xFFE2E8F0),
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
+              color: Colors.black.withValues(alpha: 0.02),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -935,18 +1120,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Expanded(
                         child: Text(
                           title,
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                          style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary),
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
                           color: badgeColor,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           badge,
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: badgeTextColor),
+                          style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: badgeTextColor),
                         ),
                       ),
                     ],
@@ -954,7 +1146,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.3),
+                    style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textSecondary,
+                        height: 1.3),
                   ),
                 ],
               ),
@@ -971,7 +1166,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(name, style: const TextStyle(fontSize: 13, color: AppColors.textPrimary, fontWeight: FontWeight.w700)),
+          Text(name,
+              style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w700)),
           PulseMetricBadge(
             label: isActive ? 'CANLI' : 'BAKIM',
             value: isActive ? 'AKTİF' : 'KAPALI',
@@ -1014,9 +1213,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+                Text(title,
+                    style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary)),
                 const SizedBox(height: 2),
-                Text(subtitle, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.3)),
+                Text(subtitle,
+                    style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textSecondary,
+                        height: 1.3)),
               ],
             ),
           ),
@@ -1028,10 +1235,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               foregroundColor: AppColors.actionPrimary,
               elevation: 0,
               side: const BorderSide(color: Color(0xFFCBD5E1)),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
-            child: Text(buttonLabel, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
+            child: Text(buttonLabel,
+                style:
+                    const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
           ),
         ],
       ),
@@ -1042,7 +1252,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _isExporting = true);
     try {
       final exportData = await _repository.getAllDataForExport();
-      final txList = (exportData['transactions'] as List<dynamic>? ?? []).cast<Map<String, dynamic>>();
+      final txList = (exportData['transactions'] as List<dynamic>? ?? [])
+          .cast<Map<String, dynamic>>();
 
       final csvContent = _exportService.exportToCsv(txList);
       final tempDir = await getTemporaryDirectory();
@@ -1104,14 +1315,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           color: const Color(0xFFECFDF5),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Icon(Icons.table_chart_rounded, color: Color(0xFF10B981), size: 20),
+                        child: const Icon(Icons.table_chart_rounded,
+                            color: Color(0xFF10B981), size: 20),
                       ),
                       const SizedBox(width: 10),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Excel CSV Raporu Hazır', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
-                          Text('$rowCount İşlem Satırı • UTF-8 BOM', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                          const Text('Excel CSV Raporu Hazır',
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textPrimary)),
+                          Text('$rowCount İşlem Satırı • UTF-8 BOM',
+                              style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary)),
                         ],
                       ),
                     ],
@@ -1134,7 +1353,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: SingleChildScrollView(
                   child: Text(
                     csvContent,
-                    style: const TextStyle(fontSize: 11, fontFamily: 'monospace', color: Color(0xFF334155)),
+                    style: const TextStyle(
+                        fontSize: 11,
+                        fontFamily: 'monospace',
+                        color: Color(0xFF334155)),
                   ),
                 ),
               ),
@@ -1150,11 +1372,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     );
                   },
                   icon: const Icon(Icons.share_rounded, size: 18),
-                  label: const Text('Excel / Dosyayı Paylaş', style: TextStyle(fontWeight: FontWeight.w800)),
+                  label: const Text('Excel / Dosyayı Paylaş',
+                      style: TextStyle(fontWeight: FontWeight.w800)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF10B981),
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                 ),
@@ -1176,7 +1400,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             Icon(Icons.shield_rounded, color: Color(0xFF10B981), size: 24),
             SizedBox(width: 8),
-            Text('Sistem Yedeği Al', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+            Text('Sistem Yedeği Al',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
           ],
         ),
         content: Column(
@@ -1185,7 +1410,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             const Text(
               'Yedeğinizi AES-256 ile şifrelemek için bir koruma parolası belirleyin (Önerilen). Boş bırakırsanız düz metin JSON olarak kaydedilir.',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+              style: TextStyle(
+                  fontSize: 12, color: AppColors.textSecondary, height: 1.4),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -1195,8 +1421,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 labelText: 'Kasa Parolası (En az 6 karakter)',
                 hintText: '••••••••',
                 prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               ),
             ),
           ],
@@ -1212,7 +1440,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF10B981),
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
             ),
             onPressed: () async {
               final pwd = passwordController.text.trim();
@@ -1220,7 +1449,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     backgroundColor: AppColors.expenseRed,
-                    content: Text('Güvenli yedek için parola en az 6 karakter olmalıdır!'),
+                    content: Text(
+                        'Güvenli yedek için parola en az 6 karakter olmalıdır!'),
                   ),
                 );
                 return;
@@ -1234,7 +1464,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Navigator.pop(dialogCtx);
               await _executeExportProcess(password: null);
             },
-            child: const Text('Şifresiz JSON Al', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+            child: const Text('Şifresiz JSON Al',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
           ),
         ],
       ),
@@ -1245,11 +1476,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _isExporting = true);
     try {
       final data = await _repository.getAllDataForExport();
-      final accounts = (data['accounts'] as List<dynamic>? ?? []).cast<Map<String, dynamic>>();
-      final statements = (data['statements'] as List<dynamic>? ?? []).cast<Map<String, dynamic>>();
-      final transactions = (data['transactions'] as List<dynamic>? ?? []).cast<Map<String, dynamic>>();
-      final installments = (data['installments'] as List<dynamic>? ?? []).cast<Map<String, dynamic>>();
-      final taxes = (data['tax_deductions'] as List<dynamic>? ?? []).cast<Map<String, dynamic>>();
+      final accounts = (data['accounts'] as List<dynamic>? ?? [])
+          .cast<Map<String, dynamic>>();
+      final statements = (data['statements'] as List<dynamic>? ?? [])
+          .cast<Map<String, dynamic>>();
+      final transactions = (data['transactions'] as List<dynamic>? ?? [])
+          .cast<Map<String, dynamic>>();
+      final installments = (data['installments'] as List<dynamic>? ?? [])
+          .cast<Map<String, dynamic>>();
+      final taxes = (data['tax_deductions'] as List<dynamic>? ?? [])
+          .cast<Map<String, dynamic>>();
 
       final isEncrypted = password != null && password.isNotEmpty;
       final content = isEncrypted
@@ -1270,7 +1506,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             );
 
       final tempDir = await getTemporaryDirectory();
-      final fileName = isEncrypted ? 'ParaIz_Sistem_Yedegi.vault' : 'ParaIz_Sistem_Yedegi.json';
+      final fileName = isEncrypted
+          ? 'ParaIz_Sistem_Yedegi.vault'
+          : 'ParaIz_Sistem_Yedegi.json';
       final file = File('${tempDir.path}/$fileName');
       await file.writeAsString(content);
 
@@ -1278,8 +1516,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       setState(() => _isExporting = false);
 
       await Share.shareXFiles(
-        [XFile(file.path, mimeType: isEncrypted ? 'application/octet-stream' : 'application/json')],
-        text: isEncrypted ? 'Paraİz AES-256 Şifreli Kasa Yedeği (.vault)' : 'Paraİz Sistem Yedeği (JSON)',
+        [
+          XFile(file.path,
+              mimeType:
+                  isEncrypted ? 'application/octet-stream' : 'application/json')
+        ],
+        text: isEncrypted
+            ? 'Paraİz AES-256 Şifreli Kasa Yedeği (.vault)'
+            : 'Paraİz Sistem Yedeği (JSON)',
       );
     } catch (e) {
       if (mounted) {
@@ -1298,9 +1542,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: AppColors.expenseRed, size: 24),
+            Icon(Icons.warning_amber_rounded,
+                color: AppColors.expenseRed, size: 24),
             SizedBox(width: 8),
-            Text('Tüm Verileri Sil?', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.expenseRed)),
+            Text('Tüm Verileri Sil?',
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.expenseRed)),
           ],
         ),
         content: const Text(
@@ -1310,149 +1559,228 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Vazgeç', style: TextStyle(color: AppColors.textSecondary)),
+            child: const Text('Vazgeç',
+                style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(ctx);
               await _repository.clearAllUserData();
               await UserProfileService.instance.resetAllUserData();
+              await SecurityAuthService.instance.resetAll();
 
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     backgroundColor: AppColors.expenseRed,
-                    content: Text('Tüm verileriniz ve hesabınız başarıyla sıfırlandı.'),
+                    content: Text(
+                        'Tüm verileriniz ve hesabınız başarıyla sıfırlandı.'),
                   ),
                 );
                 Navigator.of(context).popUntil((route) => route.isFirst);
               }
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.expenseRed, foregroundColor: Colors.white),
-            child: const Text('Evet, Hepsini Sil', style: TextStyle(fontWeight: FontWeight.w800)),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.expenseRed,
+                foregroundColor: Colors.white),
+            child: const Text('Evet, Hepsini Sil',
+                style: TextStyle(fontWeight: FontWeight.w800)),
           ),
         ],
       ),
     );
   }
 
-  void _restoreFromJsonBackup() {
-    final controller = TextEditingController();
-    final passController = TextEditingController();
+  /// Yedek dosyasını seçtirir (.vault / .json); vazgeçilirse metin yapıştırma yolu açık kalır.
+  Future<void> _restoreFromJsonBackup() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.any,
+        withData: true,
+      );
 
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            final isVault = controller.text.trim().startsWith('PARAIZ-SEC-VAULT-V2:');
-
-            return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              title: const Row(
-                children: [
-                  Icon(Icons.settings_backup_restore_rounded, color: AppColors.actionPrimary, size: 22),
-                  SizedBox(width: 8),
-                  Text('Yedekten Geri Yükle', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-                ],
+      var decodedText = '';
+      if (result != null && result.files.isNotEmpty) {
+        final file = result.files.first;
+        final fileName = file.name.toLowerCase();
+        if (!fileName.endsWith('.json') && !fileName.endsWith('.vault')) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                backgroundColor: AppColors.expenseRed,
+                content: Text(
+                    'Geçersiz dosya biçimi! Yalnızca .json veya .vault uzantılı dosyalar desteklenir.'),
               ),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            );
+          }
+          return;
+        }
+
+        if (file.bytes == null) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                backgroundColor: AppColors.expenseRed,
+                content: Text('Dosya içeriği okunamadı.'),
+              ),
+            );
+          }
+          return;
+        }
+
+        decodedText = utf8.decode(file.bytes!);
+      }
+
+      if (!mounted) return;
+
+      final controller = TextEditingController(text: decodedText);
+      final passController = TextEditingController();
+
+      showDialog(
+        context: context,
+        builder: (ctx) {
+          return StatefulBuilder(
+            builder: (context, setDialogState) {
+              final isVault =
+                  controller.text.trim().startsWith('PARAIZ-SEC-VAULT-V2:');
+
+              return AlertDialog(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
+                title: const Row(
                   children: [
-                    const Text('Paraİz yedek metnini (.vault veya JSON) buraya yapıştırın:', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: controller,
-                      maxLines: 4,
-                      onChanged: (_) => setDialogState(() {}),
-                      style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
-                      decoration: InputDecoration(
-                        hintText: 'PARAIZ-SEC-VAULT-V2:... veya JSON metni',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        contentPadding: const EdgeInsets.all(10),
-                      ),
-                    ),
-                    if (isVault) ...[
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFECFDF5),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFFA7F3D0)),
-                        ),
-                        child: const Row(
-                          children: [
-                            Icon(Icons.lock_rounded, color: Color(0xFF059669), size: 18),
-                            SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                'Bu yedek AES-256 ile şifrelenmiştir. Çözmek için belirlediğiniz parolayı giriniz.',
-                                style: TextStyle(fontSize: 11, color: Color(0xFF065F46), fontWeight: FontWeight.w600),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: passController,
-                        obscureText: true,
-                        decoration: InputDecoration(
-                          labelText: 'Kasa Parolası',
-                          prefixIcon: const Icon(Icons.key_rounded, size: 18),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        ),
-                      ),
-                    ],
+                    Icon(Icons.settings_backup_restore_rounded,
+                        color: AppColors.actionPrimary, size: 22),
+                    SizedBox(width: 8),
+                    Text('Yedekten Geri Yükle',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w800)),
                   ],
                 ),
-              ),
-              actions: [
-                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('İptal')),
-                ElevatedButton(
-                  onPressed: () async {
-                    final text = controller.text.trim();
-                    if (text.isEmpty) return;
-
-                    try {
-                      final pwd = passController.text.trim();
-                      final parsed = _exportService.validateAndParseBackup(
-                        text,
-                        password: pwd.isNotEmpty ? pwd : null,
-                      );
-                      await _repository.restoreVaultBackup(parsed);
-
-                      if (mounted) {
-                        Navigator.pop(ctx);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            backgroundColor: Color(0xFF10B981),
-                            content: Text('Yedek başarıyla geri yüklendi! Verileriniz güncellendi.'),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                          'Yedek dosyasından okunan veri içeriği (gerekirse düzenleyin):',
+                          style: TextStyle(
+                              fontSize: 12, color: AppColors.textSecondary)),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: controller,
+                        maxLines: 4,
+                        onChanged: (_) => setDialogState(() {}),
+                        style: const TextStyle(
+                            fontSize: 11, fontFamily: 'monospace'),
+                        decoration: InputDecoration(
+                          hintText: 'PARAIZ-SEC-VAULT-V2:... veya JSON metni',
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          contentPadding: const EdgeInsets.all(10),
+                        ),
+                      ),
+                      if (isVault) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFECFDF5),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: const Color(0xFFA7F3D0)),
                           ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.lock_rounded,
+                                  color: Color(0xFF059669), size: 18),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Bu yedek AES-256 ile şifrelenmiştir. Çözmek için belirlediğiniz parolayı giriniz.',
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFF065F46),
+                                      fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        TextField(
+                          controller: passController,
+                          obscureText: true,
+                          decoration: InputDecoration(
+                            labelText: 'Kasa Parolası',
+                            prefixIcon: const Icon(Icons.key_rounded, size: 18),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('İptal')),
+                  ElevatedButton(
+                    onPressed: () async {
+                      final text = controller.text.trim();
+                      if (text.isEmpty) return;
+
+                      try {
+                        final pwd = passController.text.trim();
+                        final parsed = _exportService.validateAndParseBackup(
+                          text,
+                          password: pwd.isNotEmpty ? pwd : null,
+                        );
+                        await _repository.restoreVaultBackup(parsed);
+
+                        if (mounted) {
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              backgroundColor: Color(0xFF10B981),
+                              content: Text(
+                                  'Yedek başarıyla geri yüklendi! Verileriniz güncellendi.'),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              backgroundColor: AppColors.expenseRed,
+                              content: Text('Geri yükleme hatası: $e')),
                         );
                       }
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(backgroundColor: AppColors.expenseRed, content: Text('Geri yükleme hatası: $e')),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.actionPrimary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.actionPrimary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: const Text('Geri Yükle'),
                   ),
-                  child: const Text('Geri Yükle'),
-                ),
-              ],
-            );
-          },
+                ],
+              );
+            },
+          );
+        },
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: AppColors.expenseRed,
+            content: Text('Dosya seçme hatası: $e'),
+          ),
         );
-      },
-    );
+      }
+    }
   }
 }

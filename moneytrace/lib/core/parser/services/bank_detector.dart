@@ -1,5 +1,7 @@
 // lib/core/parser/services/bank_detector.dart
 
+import '../parsers/generic_payslip_parser.dart';
+
 enum DocumentType { checkingAccount, creditCard, payslip, unknown }
 
 enum SupportedInstitution {
@@ -39,6 +41,16 @@ class BankDetector {
   /// kurum ve belge türünü deterministik parmak izleriyle tespit eder.
   static BankDetectionResult identify(String text) {
     final cleanText = text.toUpperCase();
+
+    // 0. MAAŞ BORDROSU — en önce: bordroda maaşın yattığı bankanın adı da geçer
+    if (GenericPayslipParser.looksLikePayslip(text)) {
+      return const BankDetectionResult(
+        institution: SupportedInstitution.genericUnknown,
+        documentType: DocumentType.payslip,
+        confidence: 0.95,
+        detectedAccountIdentifier: 'Bordro',
+      );
+    }
 
     // 1. ENPARA VADESİZ HESAP ÖZETİ PARMAK İZLERİ
     final hasEnparaBrand = cleanText.contains('ENPARA.COM') || cleanText.contains('ENPARA BANK A.Ş.');

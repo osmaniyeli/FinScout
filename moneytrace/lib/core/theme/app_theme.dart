@@ -58,7 +58,6 @@ class AppTheme {
         primary: AppColors.actionPrimary,
         surface: AppColors.cardSurface,
         onSurface: AppColors.textPrimary,
-        background: AppColors.background,
       ),
       cardTheme: CardThemeData(
         color: AppColors.cardSurface,
@@ -82,7 +81,8 @@ class AppTheme {
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: AppColors.cardSurface,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.sheet)),
+          borderRadius:
+              BorderRadius.vertical(top: Radius.circular(AppRadius.sheet)),
         ),
       ),
       dividerTheme: const DividerThemeData(
@@ -95,8 +95,7 @@ class AppTheme {
 
   // 2. Finansal Rakamlar ve Tutarlar İçin Yardımcı Stil
   static TextStyle get numericStyle => GoogleFonts.jetBrainsMono(
-    fontWeight: FontWeight.w600,
-    letterSpacing: -0.5,
-  );
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.5,
+      );
 }
-

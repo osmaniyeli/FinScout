@@ -96,7 +96,7 @@ class _DailyStreakModalState extends State<DailyStreakModal>
           borderRadius: BorderRadius.circular(28),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFEA580C).withOpacity(0.4),
+              color: const Color(0xFFEA580C).withValues(alpha: 0.4),
               blurRadius: 30,
               offset: const Offset(0, 10),
             ),
@@ -112,11 +112,11 @@ class _DailyStreakModalState extends State<DailyStreakModal>
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.15),
+                      color: Colors.black.withValues(alpha: 0.15),
                       blurRadius: 16,
                     ),
                   ],
@@ -182,9 +182,10 @@ class _DailyStreakModalState extends State<DailyStreakModal>
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.18),
+                  color: Colors.white.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withOpacity(0.3)),
+                  border:
+                      Border.all(color: Colors.white.withValues(alpha: 0.3)),
                 ),
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -218,7 +219,7 @@ class _DailyStreakModalState extends State<DailyStreakModal>
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.15),
+                      color: Colors.black.withValues(alpha: 0.15),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -249,7 +250,7 @@ class _DailyStreakModalState extends State<DailyStreakModal>
         Text(
           label,
           style: TextStyle(
-            color: Colors.white.withOpacity(0.8),
+            color: Colors.white.withValues(alpha: 0.8),
             fontSize: 10.5,
             fontWeight: FontWeight.w600,
           ),
@@ -259,7 +260,7 @@ class _DailyStreakModalState extends State<DailyStreakModal>
           width: 24,
           height: 24,
           decoration: BoxDecoration(
-            color: isDone ? Colors.white : Colors.white.withOpacity(0.2),
+            color: isDone ? Colors.white : Colors.white.withValues(alpha: 0.2),
             shape: BoxShape.circle,
           ),
           child: isDone

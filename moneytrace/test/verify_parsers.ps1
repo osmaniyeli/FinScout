@@ -688,9 +688,10 @@ $hasWizardInteractions = $wizardText.Contains("PulseMetricBadge") -and `
 
 $familyPath = Join-Path $PSScriptRoot "../lib/features/family_budget/presentation/family_budget_sheet.dart"
 $familyText = if (Test-Path $familyPath) { [System.IO.File]::ReadAllText($familyPath) } else { "" }
+# Aile bütçesindeki MorphingShareButton sahte "davet kodu" paylaşımı içindi; sunucusuz çalışamayacağı için
+# v3.6.0'da davet özelliğiyle birlikte kaldırıldı. Ekran, abonelik ekranıyla aynı tasarım ölçütüne tabidir.
 $hasFamilyInteractions = $familyText.Contains("PulseMetricBadge") -and `
-                         $familyText.Contains("RadarCheckoutButton") -and `
-                         $familyText.Contains("MorphingShareButton")
+                         $familyText.Contains("RadarCheckoutButton")
 
 $subPlansPath = Join-Path $PSScriptRoot "../lib/features/subscription/presentation/subscription_plans_sheet.dart"
 $subPlansText = if (Test-Path $subPlansPath) { [System.IO.File]::ReadAllText($subPlansPath) } else { "" }
@@ -935,12 +936,15 @@ foreach ($l in $halkbankLines) {
 Assert-Test -Name "Generic Fallback Engine Statement Extraction" -Condition ($halkTxRows.Count -eq 2) -Details "Generic parser successfully extracted $($halkTxRows.Count) transactions"
 
 # Parser Engine File Inventory Check
+# v3.6.0: İş Bankası / Akbank için varsayıma dayalı (gerçek ekstreyle doğrulanmamış) regex parser'ları kaldırıldı;
+# bu bankalar ve diğerleri başlık tespitli genel tablo okuyucu (generic_bank + table_block_reader) ile okunur.
+# Gerçek ekstre doğrulaması: test/pdf_corpus_probe_test.dart (bankanın beyan ettiği toplamlarla mutabakat).
 $parserFiles = @(
+    "statement_parser.dart",
+    "table_block_reader.dart",
     "enpara_checking_parser.dart",
     "yapikredi_card_parser.dart",
     "garanti_statement_parser.dart",
-    "isbankasi_statement_parser.dart",
-    "akbank_statement_parser.dart",
     "generic_bank_statement_parser.dart",
     "generic_payslip_parser.dart"
 )
@@ -952,7 +956,7 @@ foreach ($pf in $parserFiles) {
         break
     }
 }
-Assert-Test -Name "All 7 Parser Engines Present & Deployed" -Condition $allParsersFound -Details "Enpara, Yapı Kredi, Garanti, İş Bankası, Akbank, Generic Bank & Payslip active"
+Assert-Test -Name "All 7 Parser Engines Present & Deployed" -Condition $allParsersFound -Details "Layout parser contract, table block reader, Enpara, Yapı Kredi, Garanti, Generic Bank (İş Bankası/Akbank/diğer) & Payslip active"
 
 # ---------------------------------------------------------------
 # 19. CUSTOM BANK RECEIPT & STATEMENT FIELD MAPPING ENGINE

@@ -16,7 +16,8 @@ class WalletSelectionSheet extends StatefulWidget {
     this.selectedWalletId,
   }) : super(key: key);
 
-  static Future<Wallet?> show(BuildContext context, {String? title, String? selectedWalletId}) {
+  static Future<Wallet?> show(BuildContext context,
+      {String? title, String? selectedWalletId}) {
     return showModalBottomSheet<Wallet>(
       context: context,
       isScrollControlled: true,
@@ -54,10 +55,14 @@ class _WalletSelectionSheetState extends State<WalletSelectionSheet> {
       context: context,
       builder: (dialogCtx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: const Text(
             'Yeni Cüzdan / Hesap Ekle',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+            style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -68,24 +73,35 @@ class _WalletSelectionSheetState extends State<WalletSelectionSheet> {
                 decoration: InputDecoration(
                   labelText: 'Cüzdan / Hesap Adı',
                   hintText: 'Örn: Maaş Hesabım, Bonus Kart',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 ),
               ),
               const SizedBox(height: 14),
-              const Text('Cüzdan Türü:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+              const Text('Cüzdan Türü:',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
               const SizedBox(height: 6),
               DropdownButtonFormField<WalletType>(
-                value: selectedType,
+                initialValue: selectedType,
                 decoration: InputDecoration(
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 ),
                 items: const [
-                  DropdownMenuItem(value: WalletType.checking, child: Text('Vadesiz / Banka Hesabı')),
-                  DropdownMenuItem(value: WalletType.creditCard, child: Text('Kredi Kartı')),
-                  DropdownMenuItem(value: WalletType.cash, child: Text('Nakit Cüzdan')),
-                  DropdownMenuItem(value: WalletType.savings, child: Text('Birikim / Yatırım')),
+                  DropdownMenuItem(
+                      value: WalletType.checking,
+                      child: Text('Vadesiz / Banka Hesabı')),
+                  DropdownMenuItem(
+                      value: WalletType.creditCard, child: Text('Kredi Kartı')),
+                  DropdownMenuItem(
+                      value: WalletType.cash, child: Text('Nakit Cüzdan')),
+                  DropdownMenuItem(
+                      value: WalletType.savings,
+                      child: Text('Birikim / Yatırım')),
                 ],
                 onChanged: (val) {
                   if (val != null) {
@@ -98,7 +114,8 @@ class _WalletSelectionSheetState extends State<WalletSelectionSheet> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogCtx),
-              child: const Text('Vazgeç', style: TextStyle(color: AppColors.textSecondary)),
+              child: const Text('Vazgeç',
+                  style: TextStyle(color: AppColors.textSecondary)),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -111,7 +128,9 @@ class _WalletSelectionSheetState extends State<WalletSelectionSheet> {
                     balanceCents: 0,
                     colorHex: selectedType == WalletType.creditCard
                         ? '#DC2626'
-                        : (selectedType == WalletType.cash ? '#10B981' : '#0284C7'),
+                        : (selectedType == WalletType.cash
+                            ? '#10B981'
+                            : '#0284C7'),
                     createdAt: DateTime.now(),
                   );
                   await _repo.addWallet(newWallet);
@@ -126,9 +145,11 @@ class _WalletSelectionSheetState extends State<WalletSelectionSheet> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.actionPrimary,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
-              child: const Text('Ekle', style: TextStyle(fontWeight: FontWeight.w800)),
+              child: const Text('Ekle',
+                  style: TextStyle(fontWeight: FontWeight.w800)),
             ),
           ],
         ),
@@ -181,7 +202,8 @@ class _WalletSelectionSheetState extends State<WalletSelectionSheet> {
               ),
               TextButton.icon(
                 onPressed: _showAddWalletDialog,
-                icon: const Icon(Icons.add_rounded, size: 16, color: AppColors.actionPrimary),
+                icon: const Icon(Icons.add_rounded,
+                    size: 16, color: AppColors.actionPrimary),
                 label: const Text(
                   'Yeni Cüzdan',
                   style: TextStyle(
@@ -204,10 +226,14 @@ class _WalletSelectionSheetState extends State<WalletSelectionSheet> {
             return Container(
               margin: const EdgeInsets.only(bottom: 10),
               decoration: BoxDecoration(
-                color: isSelected ? const Color(0xFFEFF6FF) : const Color(0xFFF8FAFC),
+                color: isSelected
+                    ? const Color(0xFFEFF6FF)
+                    : const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFFE2E8F0),
+                  color: isSelected
+                      ? const Color(0xFF3B82F6)
+                      : const Color(0xFFE2E8F0),
                   width: isSelected ? 2 : 1,
                 ),
               ),
@@ -219,14 +245,17 @@ class _WalletSelectionSheetState extends State<WalletSelectionSheet> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: w.color.withOpacity(0.15),
+                    color: w.color.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(w.type.iconData, color: w.color, size: 22),
                 ),
                 title: Text(
                   w.name,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                  style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary),
                 ),
                 subtitle: Text(
                   '${w.type.displayName} • ${CurrencyNormalizer.formatCents(w.balanceCents)}',
@@ -238,8 +267,10 @@ class _WalletSelectionSheetState extends State<WalletSelectionSheet> {
                   ),
                 ),
                 trailing: isSelected
-                    ? const Icon(Icons.check_circle_rounded, color: Color(0xFF3B82F6))
-                    : const Icon(Icons.radio_button_unchecked_rounded, color: Color(0xFFCBD5E1)),
+                    ? const Icon(Icons.check_circle_rounded,
+                        color: Color(0xFF3B82F6))
+                    : const Icon(Icons.radio_button_unchecked_rounded,
+                        color: Color(0xFFCBD5E1)),
               ),
             );
           }).toList(),
@@ -255,7 +286,8 @@ class _WalletSelectionSheetState extends State<WalletSelectionSheet> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.actionPrimary,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
             child: const Text(

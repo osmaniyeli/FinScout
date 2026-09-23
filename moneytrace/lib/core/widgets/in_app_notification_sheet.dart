@@ -42,7 +42,7 @@ class InAppNotificationSheet extends StatefulWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withOpacity(0.45),
+      barrierColor: Colors.black.withValues(alpha: 0.45),
       builder: (ctx) => InAppNotificationSheet(
         title: title ?? 'Elektrikli Araç ile %70 Bakım Tasarrufu!',
         message: message ??
@@ -104,7 +104,8 @@ class _InAppNotificationSheetState extends State<InAppNotificationSheet>
       child: GestureDetector(
         onVerticalDragEnd: (details) {
           // Aşağı kaydırınca kapatma
-          if (details.primaryVelocity != null && details.primaryVelocity! > 200) {
+          if (details.primaryVelocity != null &&
+              details.primaryVelocity! > 200) {
             _dismiss();
           }
         },
@@ -121,17 +122,17 @@ class _InAppNotificationSheetState extends State<InAppNotificationSheet>
             ),
             borderRadius: BorderRadius.circular(28),
             border: Border.all(
-              color: const Color(0xFF6366F1).withOpacity(0.35),
+              color: const Color(0xFF6366F1).withValues(alpha: 0.35),
               width: 1.2,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.6),
+                color: Colors.black.withValues(alpha: 0.6),
                 blurRadius: 32,
                 offset: const Offset(0, 12),
               ),
               BoxShadow(
-                color: const Color(0xFF6366F1).withOpacity(0.2),
+                color: const Color(0xFF6366F1).withValues(alpha: 0.2),
                 blurRadius: 20,
                 spreadRadius: -4,
               ),
@@ -146,7 +147,7 @@ class _InAppNotificationSheetState extends State<InAppNotificationSheet>
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.3),
+                  color: Colors.white.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -169,7 +170,8 @@ class _InAppNotificationSheetState extends State<InAppNotificationSheet>
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF00D084).withOpacity(0.4),
+                            color:
+                                const Color(0xFF00D084).withValues(alpha: 0.4),
                             blurRadius: 12,
                             offset: const Offset(0, 3),
                           ),
@@ -206,7 +208,7 @@ class _InAppNotificationSheetState extends State<InAppNotificationSheet>
                               child: Text(
                                 widget.message,
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.8),
+                                  color: Colors.white.withValues(alpha: 0.8),
                                   fontSize: 11,
                                   height: 1.35,
                                   fontWeight: FontWeight.w400,
@@ -231,11 +233,12 @@ class _InAppNotificationSheetState extends State<InAppNotificationSheet>
                     onTap: _dismiss,
                     borderRadius: BorderRadius.circular(14),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 8),
                       child: Text(
                         widget.dismissLabel,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.55),
+                          color: Colors.white.withValues(alpha: 0.55),
                           fontSize: 11.5,
                           fontWeight: FontWeight.w600,
                         ),
@@ -252,13 +255,14 @@ class _InAppNotificationSheetState extends State<InAppNotificationSheet>
                     },
                     borderRadius: BorderRadius.circular(20),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 18, vertical: 9),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.white.withOpacity(0.25),
+                            color: Colors.white.withValues(alpha: 0.25),
                             blurRadius: 10,
                             offset: const Offset(0, 3),
                           ),

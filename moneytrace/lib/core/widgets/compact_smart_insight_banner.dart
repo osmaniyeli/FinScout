@@ -84,12 +84,12 @@ class _CompactSmartInsightBannerState extends State<CompactSmartInsightBanner>
             ),
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: const Color(0xFF00D084).withOpacity(0.4),
+              color: const Color(0xFF00D084).withValues(alpha: 0.4),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF00D084).withOpacity(0.15),
+                color: const Color(0xFF00D084).withValues(alpha: 0.15),
                 blurRadius: 16,
                 offset: const Offset(0, 6),
               ),
@@ -111,7 +111,7 @@ class _CompactSmartInsightBannerState extends State<CompactSmartInsightBanner>
                         height: 4,
                         margin: const EdgeInsets.only(bottom: 8),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.25),
+                          color: Colors.white.withValues(alpha: 0.25),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -133,7 +133,8 @@ class _CompactSmartInsightBannerState extends State<CompactSmartInsightBanner>
                             borderRadius: BorderRadius.circular(10),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF00D084).withOpacity(0.3),
+                                color: const Color(0xFF00D084)
+                                    .withValues(alpha: 0.3),
                                 blurRadius: 8,
                               ),
                             ],
@@ -173,7 +174,8 @@ class _CompactSmartInsightBannerState extends State<CompactSmartInsightBanner>
                                     child: Container(
                                       padding: const EdgeInsets.all(2),
                                       decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.08),
+                                        color: Colors.white
+                                            .withValues(alpha: 0.08),
                                         shape: BoxShape.circle,
                                       ),
                                       child: const Icon(
@@ -222,13 +224,13 @@ class _CompactSmartInsightBannerState extends State<CompactSmartInsightBanner>
                             Icon(
                               Icons.arrow_downward_rounded,
                               size: 12,
-                              color: Colors.white.withOpacity(0.4),
+                              color: Colors.white.withValues(alpha: 0.4),
                             ),
                             const SizedBox(width: 4),
                             Text(
                               'Aşağı kaydırarak kapatabilirsiniz',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.4),
+                                color: Colors.white.withValues(alpha: 0.4),
                                 fontSize: 10,
                                 fontWeight: FontWeight.w500,
                               ),

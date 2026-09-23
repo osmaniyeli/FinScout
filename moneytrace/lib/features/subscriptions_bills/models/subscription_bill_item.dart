@@ -102,16 +102,16 @@ class SubscriptionBillItem {
   });
 
   Map<String, dynamic> toMap() => {
-    'id': id,
-    'title': title,
-    'provider': provider,
-    'category': category.name,
-    'monthlyAmountCents': monthlyAmountCents,
-    'billingDayOfMonth': billingDayOfMonth,
-    'isAutoPayment': isAutoPayment ? 1 : 0,
-    'isActive': isActive ? 1 : 0,
-    'subscriberNo': subscriberNo ?? '',
-  };
+        'id': id,
+        'title': title,
+        'provider': provider,
+        'category': category.name,
+        'monthlyAmountCents': monthlyAmountCents,
+        'billingDayOfMonth': billingDayOfMonth,
+        'isAutoPayment': isAutoPayment ? 1 : 0,
+        'isActive': isActive ? 1 : 0,
+        'subscriberNo': subscriberNo ?? '',
+      };
 
   factory SubscriptionBillItem.fromMap(Map<String, dynamic> map) {
     BillCategory cat = BillCategory.other;

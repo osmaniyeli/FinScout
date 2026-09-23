@@ -1,113 +1,94 @@
 // lib/core/parser/parsers/generic_bank_statement_parser.dart
 
+import '../layout/statement_layout.dart';
 import '../models/parsed_models.dart';
-import '../../utils/currency_normalizer.dart';
+import '../util/tr_statement_text.dart';
+import 'statement_parser.dart';
+import 'table_block_reader.dart';
 
-/// Tüm Türk bankaları (Ziraat, Halkbank, VakıfBank, QNB, TEB, DenizBank vb.) için
-/// yüksek hata toleranslı, evrensel ekstre ve hesap özeti ayrıştırıcı motoru.
-class GenericBankStatementParser {
-  // Çoklu formatlı tarih ve harcama yakalama
-  // Örnekler:
-  // "12.08.2026 SHELL PETROL 1.500,00 TL"
-  // "12/08/2026 MİGROS TİCARET -450,50 TL 1.250,00 TL"
-  // "12.08.2026 MAAS TAHAKKUK +45.000,00 TL"
-  static final RegExp _universalTxRegex = RegExp(
-    r'^(\d{2}[./-]\d{2}[./-]\d{2,4})\s+(.+?)\s+([+-]?\s*[\d\.,]+)\s*(?:TL|TRY)?(?:\s+(.+))?$',
-    multiLine: true,
-  );
+/// Özel parser'ı olmayan bankalar için genel hesap hareketi / kart ekstresi okuyucu.
+///
+/// Sayfadaki tablo başlığını (Tarih + Açıklama/İşlem + Tutar [+ Bakiye]) bulur, sütunları oradan ölçer
+/// ve çok satırlı açıklamaları çapa eşlemeyle gruplar. İşaret: "-" gider, aksi halde
+/// kredi kartında gider, vadesiz hesapta gelir kabul edilir ([isCardStatement]).
+class GenericBankStatementParser implements LayoutStatementParser {
+  final bool isCardStatement;
+  const GenericBankStatementParser({this.isCardStatement = false});
 
-  // Taksit Deseni
-  static final RegExp _installmentRegex = RegExp(
-    r'(?:(?:\(|\[)?(\d+)/(\d+)(?:\)|\])?\s*taksit|(?:\(|\[)(\d+)/(\d+)(?:\)|\])|taksit\s*:\s*(\d+)/(\d+))',
-    caseSensitive: false,
-  );
+  static const _dateLabels = ['ISLEM TARIHI', 'TARIH', 'ISLEM TAR'];
+  static const _descLabels = ['ACIKLAMA', 'ISLEM ACIKLAMASI', 'ISLEMLER', 'ISLEM DETAYI', 'ISYERI', 'DONEM ICI ISLEMLER'];
+  static const _amountLabels = ['TUTAR', 'ISLEM TUTARI', 'TUTAR(TL)', 'TUTAR (TL)'];
+  static const _balanceLabels = ['BAKIYE', 'KALAN BAKIYE'];
 
-  // IBAN veya Kart No başlığı
-  static final RegExp _accountIdentifierRegex = RegExp(
-    r'(?:TR\d{2}\s?[0-9\s]{20,24}|\b(?:\d{4}[ -]?\d{2}\*{2}[ -]?\*{4}[ -]?\d{4})\b)',
-  );
+  @override
+  ParserOutput parse(StatementLayout layout) {
+    final records = <ParsedRecord>[];
+    ColumnMap? cols;
+    var section = <LayoutRow>[];
+    int? page;
 
-  List<ParsedRecord> parse(String text, {String? defaultMask, String? institutionName}) {
-    final List<ParsedRecord> records = [];
-    final lines = text.split('\n');
-
-    String effectiveMask = defaultMask ?? 'TR.. **** **** ****';
-    final detectedId = _accountIdentifierRegex.firstMatch(text);
-    if (detectedId != null && defaultMask == null) {
-      effectiveMask = detectedId.group(0)!.trim();
-    }
-
-    for (int i = 0; i < lines.length; i++) {
-      final line = lines[i].trim();
-      if (line.isEmpty) continue;
-
-      final match = _universalTxRegex.firstMatch(line);
-      if (match != null) {
-        final dateStr = match.group(1)!;
-        String desc = match.group(2)!.trim();
-        final amountStr = match.group(3)!.replaceAll(' ', '');
-        final trailing = match.group(4)?.trim() ?? '';
-
-        final lowerDesc = desc.toLowerCase();
-        // Finansal özet veya sayfa başlığı filtreleri
-        if (lowerDesc.contains('dönem borcu') ||
-            lowerDesc.contains('asgari ödeme') ||
-            lowerDesc.contains('hesap özeti') ||
-            lowerDesc.contains('toplam limit') ||
-            lowerDesc.contains('kullanılabilir limit') ||
-            lowerDesc.contains('ekstre tarihi') ||
-            lowerDesc.contains('son ödeme')) {
-          continue;
+    void flush() {
+      final c = cols;
+      if (c != null && section.isNotEmpty) {
+        for (final b in TableBlockReader.read(section, c)) {
+          final isExpense = b.signedAmountCents < 0 || (isCardStatement && !b.description.startsWith('+'));
+          records.add(ParsedRecord(
+            cardOrAccountMask: '',
+            date: b.date,
+            type: isExpense ? ParsedTransactionType.debit : ParsedTransactionType.credit,
+            rawDescription: b.description,
+            billingAmountCents: b.signedAmountCents.abs(),
+            balanceAfterCents: b.balanceCents,
+          ));
         }
-
-        // Tarih parse
-        String sep = '.';
-        if (dateStr.contains('/')) sep = '/';
-        if (dateStr.contains('-')) sep = '-';
-        final parts = dateStr.split(sep);
-        if (parts.length < 3) continue;
-
-        final day = int.tryParse(parts[0]) ?? 1;
-        final month = int.tryParse(parts[1]) ?? 1;
-        int year = int.tryParse(parts[2]) ?? 2026;
-        if (year < 100) year += 2000;
-        final txDate = DateTime(year, month, day);
-
-        final bool isCredit = amountStr.startsWith('+') || lowerDesc.contains('ödeme') || lowerDesc.contains('iade') || lowerDesc.contains('alacak');
-        final billingCents = CurrencyNormalizer.toMinorUnits(amountStr).abs();
-        if (billingCents <= 0) continue;
-
-        // Taksit kontrolü
-        ParsedInstallmentData? installment;
-        final checkText = '$desc $trailing';
-        final instMatch = _installmentRegex.firstMatch(checkText);
-        if (instMatch != null) {
-          final currInst = int.tryParse(instMatch.group(1) ?? instMatch.group(3) ?? instMatch.group(5) ?? '1') ?? 1;
-          final totalInst = int.tryParse(instMatch.group(2) ?? instMatch.group(4) ?? instMatch.group(6) ?? '1') ?? 1;
-
-          if (totalInst > 1) {
-            final remainingMonths = totalInst - currInst;
-            installment = ParsedInstallmentData(
-              currentInstallment: currInst,
-              totalInstallment: totalInst,
-              remainingAmountCents: remainingMonths * billingCents,
-              monthlyAmountCents: billingCents,
-            );
-          }
-        }
-
-        records.add(ParsedRecord(
-          cardOrAccountMask: effectiveMask,
-          cardHolder: institutionName ?? 'Hesap Sahibi',
-          date: txDate,
-          type: isCredit ? ParsedTransactionType.credit : ParsedTransactionType.debit,
-          rawDescription: desc,
-          billingAmountCents: billingCents,
-          installment: installment,
-        ));
       }
+      section = [];
     }
 
-    return records;
+    for (final row in layout.rows) {
+      if (row.page != page) {
+        flush();
+        cols = null;
+        page = row.page;
+      }
+      final header = _detectHeader(row);
+      if (header != null) {
+        flush();
+        cols = header;
+        continue;
+      }
+      final f = TrStatementText.fold(row.cells.first.text);
+      if (f.startsWith('TOPLAM') || f.startsWith('SAYFA') || f.startsWith('DEVREDEN')) continue;
+      if (cols != null) section.add(row);
+    }
+    flush();
+
+    return ParserOutput(
+      records: records,
+      summary: StatementSummary(
+        statementDate: TrStatementText.labelDate(layout, ['Hesap Kesim Tarihi', 'Ekstre Tarihi']),
+        dueDate: TrStatementText.labelDate(layout, ['Son Ödeme Tarihi']),
+        statementBalanceCents: TrStatementText.labelAmount(layout, ['Dönem Borcu', 'Toplam Borç', 'Dönem Sonu Bakiye']),
+        minimumPaymentCents: TrStatementText.labelAmount(layout, ['Asgari Ödeme Tutarı', 'Asgari Tutar']),
+        previousBalanceCents: TrStatementText.labelAmount(layout, ['Önceki Dönem Borcu', 'Dönem Başı Bakiye']),
+      ),
+    );
+  }
+
+  ColumnMap? _detectHeader(LayoutRow row) {
+    double? find(List<String> labels) {
+      for (final cell in row.cells) {
+        final f = TrStatementText.fold(cell.text);
+        if (labels.any((l) => f == l || f.startsWith('$l ') || f.startsWith('$l('))) return cell.left;
+      }
+      return null;
+    }
+
+    final date = find(_dateLabels);
+    final desc = find(_descLabels);
+    final amount = find(_amountLabels);
+    if (date == null || desc == null || amount == null || !(date < desc && desc < amount)) return null;
+    final balance = find(_balanceLabels);
+    return ColumnMap({'date': date, 'desc': desc, 'amount': amount, if (balance != null) 'balance': balance});
   }
 }

@@ -87,7 +87,8 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => StatementUploadSheet(onImportSuccess: _loadAnalysisData),
+      builder: (ctx) =>
+          StatementUploadSheet(onImportSuccess: _loadAnalysisData),
     );
   }
 
@@ -98,7 +99,10 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       appBar: AppBar(
         title: const Text(
           'Harcama Analizi',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+          style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textPrimary),
         ),
         centerTitle: true,
         backgroundColor: Colors.white,
@@ -119,7 +123,9 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
           Expanded(
             child: _selectedTabIndex == 0
                 ? _buildDistributionTab()
-                : (_selectedTabIndex == 1 ? _buildMonthlyTrendsTab() : _buildVatTab()),
+                : (_selectedTabIndex == 1
+                    ? _buildMonthlyTrendsTab()
+                    : _buildVatTab()),
           ),
         ],
       ),
@@ -164,7 +170,10 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                 const SizedBox(width: 10),
                 Text(
                   '${cat['name']} Analitiği',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                  style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary),
                 ),
               ],
             ),
@@ -181,16 +190,26 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Dönem Toplamı:', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-                      Text(cat['amount'] as String, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
+                      const Text('Dönem Toplamı:',
+                          style: TextStyle(
+                              fontSize: 13, color: AppColors.textSecondary)),
+                      Text(cat['amount'] as String,
+                          style: const TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.w900)),
                     ],
                   ),
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Toplam Bütçedeki Pay:', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-                      Text('%${cat['percentage']}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: AppColors.actionPrimary)),
+                      const Text('Toplam Bütçedeki Pay:',
+                          style: TextStyle(
+                              fontSize: 13, color: AppColors.textSecondary)),
+                      Text('%${cat['percentage']}',
+                          style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.actionPrimary)),
                     ],
                   ),
                 ],
@@ -198,14 +217,16 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
             ),
             // Video 2: Kategori Detay Raporunu Morflayarak Paylaş
             MorphingShareButton(
-              fileName: '${(cat['name'] as String).toLowerCase()}_kategori_analizi.pdf',
+              fileName:
+                  '${(cat['name'] as String).toLowerCase()}_kategori_analizi.pdf',
               label: '${cat['name']} Raporunu İndir & Paylaş',
               accentColor: cat['color'] as Color,
               onDownloadComplete: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     backgroundColor: AppColors.incomeGreen,
-                    content: Text('${cat['name']} harcama analizi raporu paylaşıldı.'),
+                    content: Text(
+                        '${cat['name']} harcama analizi raporu paylaşıldı.'),
                   ),
                 );
               },
@@ -219,11 +240,13 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0F172A),
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   elevation: 0,
                 ),
-                child: const Text('Kapat', style: TextStyle(fontWeight: FontWeight.w700)),
+                child: const Text('Kapat',
+                    style: TextStyle(fontWeight: FontWeight.w700)),
               ),
             ),
           ],
@@ -257,25 +280,32 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
               const SizedBox(height: 18),
               Text(
                 title,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
                 message,
-                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+                style: const TextStyle(
+                    fontSize: 12, color: AppColors.textSecondary, height: 1.4),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
               ElevatedButton.icon(
                 onPressed: _openStatementUpload,
                 icon: const Icon(Icons.upload_file_rounded, size: 18),
-                label: const Text('Banka Ekstresi Yükle (PDF / Excel)', style: TextStyle(fontWeight: FontWeight.w700)),
+                label: const Text('Banka Ekstresi Yükle (PDF / Excel)',
+                    style: TextStyle(fontWeight: FontWeight.w700)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.actionPrimary,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.button)),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.button)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   elevation: 0,
                 ),
               ),
@@ -295,7 +325,8 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       return _buildEmptyState(
         icon: Icons.pie_chart_outline_rounded,
         title: 'Henüz Harcama Dağılımı Oluşmadı',
-        message: 'Kategori harcamalarınızı, oranlarını ve tasarruf fırsatlarını görmek için hesap ekstrelerinizi yükleyin.',
+        message:
+            'Kategori harcamalarınızı, oranlarını ve tasarruf fırsatlarını görmek için hesap ekstrelerinizi yükleyin.',
       );
     }
 
@@ -312,7 +343,10 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
             children: [
               const Text(
                 'Kategori Dağılımı',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary),
               ),
               PulseMetricBadge(
                 label: 'LİDER',
@@ -338,22 +372,35 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                         value: (topCat['percentage'] as int) / 100.0,
                         strokeWidth: 14,
                         backgroundColor: const Color(0xFFF1F5F9),
-                        valueColor: AlwaysStoppedAnimation<Color>(topCat['color'] as Color),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            topCat['color'] as Color),
                       ),
                       Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const Text(
                             'Toplam Harcama',
-                            style: TextStyle(fontSize: 10.5, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                                fontSize: 10.5,
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w600),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            CurrencyNormalizer.formatCents(_grandTotalCents).replaceAll('₺', '').trim(),
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.textPrimary),
+                            CurrencyNormalizer.formatCents(_grandTotalCents)
+                                .replaceAll('₺', '')
+                                .trim(),
+                            style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.textPrimary),
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const Text('TL', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.textSecondary)),
+                          const Text('TL',
+                              style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textSecondary)),
                         ],
                       ),
                     ],
@@ -381,13 +428,19 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                             Expanded(
                               child: Text(
                                 cat['name'] as String,
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                                style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textPrimary),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             Text(
                               '%${cat['percentage']}',
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.textSecondary),
+                              style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textSecondary),
                             ),
                           ],
                         ),
@@ -403,7 +456,10 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
           // 2. Kategori Dağılım Çubukları
           const Text(
             'Tüm Harcama Kalemleri',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+            style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary),
           ),
           const SizedBox(height: 10),
 
@@ -413,12 +469,14 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
               children: _categoryShares.asMap().entries.map((entry) {
                 final idx = entry.key;
                 final cat = entry.value;
-                final percentage = ((cat['percentage'] as int) / 100.0).clamp(0.02, 1.0);
+                final percentage =
+                    ((cat['percentage'] as int) / 100.0).clamp(0.02, 1.0);
                 final color = cat['color'] as Color;
 
                 return Column(
                   children: [
-                    if (idx > 0) const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                    if (idx > 0)
+                      const Divider(height: 1, color: Color(0xFFF1F5F9)),
                     InkWell(
                       onTap: () => _showCategoryDetail(cat),
                       child: Padding(
@@ -430,18 +488,25 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                                 Container(
                                   width: 8,
                                   height: 8,
-                                  decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                                  decoration: BoxDecoration(
+                                      color: color, shape: BoxShape.circle),
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
                                     cat['name'] as String,
-                                    style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                                    style: const TextStyle(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.textPrimary),
                                   ),
                                 ),
                                 Text(
                                   cat['amount'] as String,
-                                  style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                                  style: const TextStyle(
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.textPrimary),
                                 ),
                               ],
                             ),
@@ -452,7 +517,8 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                                 value: percentage,
                                 minHeight: 6,
                                 backgroundColor: const Color(0xFFF1F5F9),
-                                valueColor: AlwaysStoppedAnimation<Color>(color),
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(color),
                               ),
                             ),
                           ],
@@ -485,26 +551,34 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       buffer.writeln('PARAIZ (MONEYTRACE) HARCAMA VE KDV ANALİZ RAPORU');
       buffer.writeln('Tarih: ${DateTime.now().toLocal()}');
       buffer.writeln('--------------------------------------------------');
-      buffer.writeln('Toplam Harcama Hacmi: ${CurrencyNormalizer.formatCents(_grandTotalCents)}');
+      buffer.writeln(
+          'Toplam Harcama Hacmi: ${CurrencyNormalizer.formatCents(_grandTotalCents)}');
       buffer.writeln('');
       buffer.writeln('KATEGORİ HARCAMA DAĞILIMI:');
       for (final cat in _categoryShares) {
-        buffer.writeln('- ${cat['name']}: ${cat['amount']} (%${cat['percentage']})');
+        buffer.writeln(
+            '- ${cat['name']}: ${cat['amount']} (%${cat['percentage']})');
       }
       buffer.writeln('');
       buffer.writeln('KDV VE VERGİ DETAYI:');
       final vat = (_vatSummary['vat_cents'] as int? ?? 0);
       final oiv = (_vatSummary['communication_tax_cents'] as int? ?? 0);
       final bsmv = (_vatSummary['banking_insurance_tax_cents'] as int? ?? 0);
-      buffer.writeln('- KDV (Katma Değer Vergisi): ${CurrencyNormalizer.formatCents(vat)}');
-      buffer.writeln('- ÖİV (Özel İletişim Vergisi): ${CurrencyNormalizer.formatCents(oiv)}');
-      buffer.writeln('- BSMV (Banka/Sigorta Vergisi): ${CurrencyNormalizer.formatCents(bsmv)}');
-      buffer.writeln('Toplam Vergi Yükü: ${CurrencyNormalizer.formatCents(vat + oiv + bsmv)}');
+      buffer.writeln(
+          '- KDV (Katma Değer Vergisi): ${CurrencyNormalizer.formatCents(vat)}');
+      buffer.writeln(
+          '- ÖİV (Özel İletişim Vergisi): ${CurrencyNormalizer.formatCents(oiv)}');
+      buffer.writeln(
+          '- BSMV (Banka/Sigorta Vergisi): ${CurrencyNormalizer.formatCents(bsmv)}');
+      buffer.writeln(
+          'Toplam Vergi Yükü: ${CurrencyNormalizer.formatCents(vat + oiv + bsmv)}');
       buffer.writeln('--------------------------------------------------');
-      buffer.writeln('%100 Sıfır-Bilgi & Cihaz İçi Kriptolu • Paraİz Harcama Zekası');
+      buffer.writeln(
+          '%100 Sıfır-Bilgi & Cihaz İçi Kriptolu • Paraİz Harcama Zekası');
 
       final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/aylik_harcama_ve_kdv_analiz_raporu.txt');
+      final file =
+          File('${tempDir.path}/aylik_harcama_ve_kdv_analiz_raporu.txt');
       await file.writeAsString(buffer.toString());
 
       await Share.shareXFiles(
@@ -529,12 +603,16 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       return _buildEmptyState(
         icon: Icons.bar_chart_rounded,
         title: 'Aylık Harcama Trendi Bulunmuyor',
-        message: 'Aylar arası harcama ivmesini, ortalamaları ve dönemsel değişimleri analiz etmek için ekstre yükleyin.',
+        message:
+            'Aylar arası harcama ivmesini, ortalamaları ve dönemsel değişimleri analiz etmek için ekstre yükleyin.',
       );
     }
 
-    final int totalCents = _monthlyTrends.fold<int>(0, (sum, m) => sum + ((m['cents'] as num?)?.toInt() ?? 0));
-    final int avgCents = (_monthlyTrends.isNotEmpty ? (totalCents / _monthlyTrends.length).round() : 0);
+    final int totalCents = _monthlyTrends.fold<int>(
+        0, (sum, m) => sum + ((m['cents'] as num?)?.toInt() ?? 0));
+    final int avgCents = (_monthlyTrends.isNotEmpty
+        ? (totalCents / _monthlyTrends.length).round()
+        : 0);
     Map<String, dynamic> maxMonth = _monthlyTrends.first;
     for (final m in _monthlyTrends) {
       final cents = (m['cents'] as num?)?.toInt() ?? 0;
@@ -560,17 +638,25 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                   children: [
                     const Text(
                       'DÖNEMLİK AYLIK ORTALAMA',
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textSecondary, letterSpacing: 0.5),
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textSecondary,
+                          letterSpacing: 0.5),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         color: const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(AppRadius.pill),
                       ),
                       child: Text(
                         '${_monthlyTrends.length} Ay',
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.actionPrimary),
+                        style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.actionPrimary),
                       ),
                     ),
                   ],
@@ -578,12 +664,17 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                 const SizedBox(height: 8),
                 Text(
                   '${CurrencyNormalizer.formatCents(avgCents)} / ay',
-                  style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: AppColors.textPrimary, letterSpacing: -0.5),
+                  style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.textPrimary,
+                      letterSpacing: -0.5),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   'En yoğun harcama ayı: ${maxMonth['month']} (${CurrencyNormalizer.formatCents((maxMonth['cents'] as num?)?.toInt() ?? 0)})',
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.textSecondary),
                 ),
               ],
             ),
@@ -593,7 +684,10 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
           // 2. Karşılaştırmalı Aylık Sütun Grafiği
           const Text(
             'Aylık Harcama Karşılaştırması',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+            style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary),
           ),
           const SizedBox(height: 12),
 
@@ -606,10 +700,14 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: _monthlyTrends.map((m) {
-                    final ratio = ((m['ratio'] as num?)?.toDouble() ?? 0.1).clamp(0.08, 1.0);
+                    final ratio = ((m['ratio'] as num?)?.toDouble() ?? 0.1)
+                        .clamp(0.08, 1.0);
                     final isMax = m == maxMonth;
                     final cents = (m['cents'] as num?)?.toInt() ?? 0;
-                    final formatted = CurrencyNormalizer.formatCents(cents).replaceAll('₺', '').split(',')[0].trim();
+                    final formatted = CurrencyNormalizer.formatCents(cents)
+                        .replaceAll('₺', '')
+                        .split(',')[0]
+                        .trim();
                     return Column(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
@@ -618,7 +716,9 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
-                            color: isMax ? AppColors.actionPrimary : AppColors.textMuted,
+                            color: isMax
+                                ? AppColors.actionPrimary
+                                : AppColors.textMuted,
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -626,7 +726,9 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                           width: 28,
                           height: 120 * ratio,
                           decoration: BoxDecoration(
-                            color: isMax ? AppColors.actionPrimary : const Color(0xFFE2E8F0),
+                            color: isMax
+                                ? AppColors.actionPrimary
+                                : const Color(0xFFE2E8F0),
                             borderRadius: BorderRadius.circular(6),
                           ),
                         ),
@@ -635,8 +737,11 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                           m['month'] as String? ?? '',
                           style: TextStyle(
                             fontSize: 12,
-                            fontWeight: isMax ? FontWeight.w800 : FontWeight.w600,
-                            color: isMax ? AppColors.actionPrimary : AppColors.textSecondary,
+                            fontWeight:
+                                isMax ? FontWeight.w800 : FontWeight.w600,
+                            color: isMax
+                                ? AppColors.actionPrimary
+                                : AppColors.textSecondary,
                           ),
                         ),
                       ],
@@ -674,7 +779,8 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       return _buildEmptyState(
         icon: Icons.receipt_long_rounded,
         title: 'KDV & Fatura Verisi Bulunmuyor',
-        message: 'İçe aktarılan ekstrelerdeki KDV iadeleri ve vergiden düşülebilir harcama kalemleri burada otomatik olarak derlenir.',
+        message:
+            'İçe aktarılan ekstrelerdeki KDV iadeleri ve vergiden düşülebilir harcama kalemleri burada otomatik olarak derlenir.',
       );
     }
 
@@ -694,17 +800,25 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                   children: [
                     const Text(
                       'TOPLAM / DEVREDEN KDV',
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textSecondary, letterSpacing: 0.5),
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textSecondary,
+                          letterSpacing: 0.5),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         color: const Color(0xFFECFDF5),
                         borderRadius: BorderRadius.circular(AppRadius.pill),
                       ),
                       child: const Text(
                         'Vergi Analitiği',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.incomeGreen),
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.incomeGreen),
                       ),
                     ),
                   ],
@@ -722,23 +836,29 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                 const SizedBox(height: 4),
                 const Text(
                   'Banka kayıtlarından hesaplanan toplam KDV tutarı',
-                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  style:
+                      TextStyle(fontSize: 12, color: AppColors.textSecondary),
                 ),
                 const SizedBox(height: 10),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Row(
                     children: [
-                      Icon(Icons.info_outline_rounded, size: 14, color: AppColors.textSecondary),
+                      Icon(Icons.info_outline_rounded,
+                          size: 14, color: AppColors.textSecondary),
                       SizedBox(width: 6),
                       Expanded(
                         child: Text(
                           '* Sektör ve harcama kategorilerine göre tahmini KDV oranları (%1, %10, %20) esas alınarak hesaplanmıştır.',
-                          style: TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: AppColors.textSecondary),
+                          style: TextStyle(
+                              fontSize: 11,
+                              fontStyle: FontStyle.italic,
+                              color: AppColors.textSecondary),
                         ),
                       ),
                     ],
@@ -760,12 +880,18 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                     children: [
                       const Text(
                         'Vergi Matrahı Düşümü',
-                        style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                        style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textSecondary),
                       ),
                       const SizedBox(height: 6),
                       Text(
                         CurrencyNormalizer.formatCents(deductibleCents),
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.incomeGreen),
+                        style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.incomeGreen),
                       ),
                     ],
                   ),
@@ -780,12 +906,18 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                     children: [
                       const Text(
                         'Toplam Vergi & Kesinti',
-                        style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                        style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textSecondary),
                       ),
                       const SizedBox(height: 6),
                       Text(
                         CurrencyNormalizer.formatCents(totalTaxCents),
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.expenseRed),
+                        style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.expenseRed),
                       ),
                     ],
                   ),
@@ -798,7 +930,10 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
           // Vergi Detay Kalemleri
           const Text(
             'Vergi & Kesinti Dökümü',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+            style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary),
           ),
           const SizedBox(height: 10),
 
@@ -806,13 +941,17 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Column(
               children: [
-                _buildVatRow('KDV (Katma Değer Vergisi)', CurrencyNormalizer.formatCents(vatCents)),
+                _buildVatRow('KDV (Katma Değer Vergisi)',
+                    CurrencyNormalizer.formatCents(vatCents)),
                 const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                _buildVatRow('Gelir Vergisi Tevkifatı', CurrencyNormalizer.formatCents(incomeTaxCents)),
+                _buildVatRow('Gelir Vergisi Tevkifatı',
+                    CurrencyNormalizer.formatCents(incomeTaxCents)),
                 const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                _buildVatRow('SGK & Diğer Yasal Kesintiler', CurrencyNormalizer.formatCents(sgkCents)),
+                _buildVatRow('SGK & Diğer Yasal Kesintiler',
+                    CurrencyNormalizer.formatCents(sgkCents)),
                 const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                _buildVatRow('Vergiden Düşülebilir Harcamalar', CurrencyNormalizer.formatCents(deductibleCents)),
+                _buildVatRow('Vergiden Düşülebilir Harcamalar',
+                    CurrencyNormalizer.formatCents(deductibleCents)),
               ],
             ),
           ),
@@ -821,7 +960,10 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
           // KDV Oran Bazlı Dağılım Tablosu (%1, %10, %20)
           const Text(
             'KDV Oran Bazlı Dağılımı (%1, %10, %20)',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+            style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary),
           ),
           const SizedBox(height: 10),
 
@@ -829,11 +971,19 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                _buildVatRateItem('%1 KDV', 'Temel Gıda & Tarım', (vatCents * 0.15).round(), const Color(0xFF10B981)),
+                _buildVatRateItem('%1 KDV', 'Temel Gıda & Tarım',
+                    (vatCents * 0.15).round(), const Color(0xFF10B981)),
                 const Divider(height: 16, color: Color(0xFFF1F5F9)),
-                _buildVatRateItem('%10 KDV', 'Yeme-İçme, Hizmet & Tekstil', (vatCents * 0.35).round(), const Color(0xFF3B82F6)),
+                _buildVatRateItem('%10 KDV', 'Yeme-İçme, Hizmet & Tekstil',
+                    (vatCents * 0.35).round(), const Color(0xFF3B82F6)),
                 const Divider(height: 16, color: Color(0xFFF1F5F9)),
-                _buildVatRateItem('%20 KDV', 'Genel Tüketim, Akaryakıt & Teknoloji', (vatCents - (vatCents * 0.15).round() - (vatCents * 0.35).round()), const Color(0xFF8B5CF6)),
+                _buildVatRateItem(
+                    '%20 KDV',
+                    'Genel Tüketim, Akaryakıt & Teknoloji',
+                    (vatCents -
+                        (vatCents * 0.15).round() -
+                        (vatCents * 0.35).round()),
+                    const Color(0xFF8B5CF6)),
               ],
             ),
           ),
@@ -850,30 +1000,38 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     );
   }
 
-  Widget _buildVatRateItem(String rateBadge, String description, int cents, Color color) {
+  Widget _buildVatRateItem(
+      String rateBadge, String description, int cents, Color color) {
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.12),
+            color: color.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
             rateBadge,
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: color),
+            style: TextStyle(
+                fontSize: 11, fontWeight: FontWeight.w900, color: color),
           ),
         ),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
             description,
-            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+            style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w500),
           ),
         ),
         Text(
           CurrencyNormalizer.formatCents(cents),
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+          style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textPrimary),
         ),
       ],
     );
@@ -885,11 +1043,18 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-          Text(amount, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+          Text(title,
+              style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary)),
+          Text(amount,
+              style: const TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary)),
         ],
       ),
     );
   }
 }
-

@@ -163,7 +163,7 @@ class _InteractiveFileUploadButtonState
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFF97316).withOpacity(0.35),
+                    color: const Color(0xFFF97316).withValues(alpha: 0.35),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -218,7 +218,8 @@ class _InteractiveFileUploadButtonState
                 child: Text(
                   'Yükleniyor... %${(progress * 100).toInt()}',
                   style: TextStyle(
-                    color: progress > 0.4 ? Colors.white : const Color(0xFF9A3412),
+                    color:
+                        progress > 0.4 ? Colors.white : const Color(0xFF9A3412),
                     fontSize: 13.5,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.2,
@@ -238,11 +239,12 @@ class _InteractiveFileUploadButtonState
       width: double.infinity,
       height: 48,
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A), // Pitch dark pill (Videodaki siyah kapsül)
+        color:
+            const Color(0xFF0F172A), // Pitch dark pill (Videodaki siyah kapsül)
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 14,
             offset: const Offset(0, 4),
           ),

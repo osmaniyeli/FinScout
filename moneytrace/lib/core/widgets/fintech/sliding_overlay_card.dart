@@ -6,7 +6,7 @@ import '../../theme/app_theme.dart';
 
 /// Frontend Joe (@frontendjoe) Pure CSS Sliding Overlay mimarisinden esinlenilmiş,
 /// 60/120 FPS fizik tabanlı, çift yönlü kayar kapaklı (Sliding Overlay Dual-Card) fintech bileşeni.
-/// 
+///
 /// 0.65s cubic-bezier (Curves.easeInOutCubic) eğrisiyle kayan renkli/degrade kapak,
 /// zıt yöne kayan ve cross-fade yapan hero başlıklar ve form içeriklerini barındırır.
 class SlidingOverlayCard extends StatefulWidget {
@@ -49,7 +49,8 @@ class SlidingOverlayCard extends StatefulWidget {
   State<SlidingOverlayCard> createState() => _SlidingOverlayCardState();
 }
 
-class _SlidingOverlayCardState extends State<SlidingOverlayCard> with SingleTickerProviderStateMixin {
+class _SlidingOverlayCardState extends State<SlidingOverlayCard>
+    with SingleTickerProviderStateMixin {
   late bool _isSecondary;
   late AnimationController _controller;
   late Animation<double> _slideAnimation;
@@ -61,7 +62,8 @@ class _SlidingOverlayCardState extends State<SlidingOverlayCard> with SingleTick
     _isSecondary = widget.isSecondary;
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 650), // Frontend Joe 0.65s transition
+      duration:
+          const Duration(milliseconds: 650), // Frontend Joe 0.65s transition
     );
 
     // Frontend Joe ease-in-out / cubic-bezier(0.65, 0, 0.35, 1) eğrisi
@@ -83,7 +85,8 @@ class _SlidingOverlayCardState extends State<SlidingOverlayCard> with SingleTick
   @override
   void didUpdateWidget(covariant SlidingOverlayCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.isSecondary != oldWidget.isSecondary && widget.isSecondary != _isSecondary) {
+    if (widget.isSecondary != oldWidget.isSecondary &&
+        widget.isSecondary != _isSecondary) {
       _toggleMode(widget.isSecondary, notify: false);
     }
   }
@@ -152,11 +155,13 @@ class _SlidingOverlayCardState extends State<SlidingOverlayCard> with SingleTick
                 child: AnimatedBuilder(
                   animation: _fadeAnimation,
                   builder: (context, child) {
-                    final opacity = (1.0 - _fadeAnimation.value).clamp(0.0, 1.0);
+                    final opacity =
+                        (1.0 - _fadeAnimation.value).clamp(0.0, 1.0);
                     return Opacity(
                       opacity: opacity,
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 12),
                         child: widget.primaryForm,
                       ),
                     );
@@ -177,7 +182,8 @@ class _SlidingOverlayCardState extends State<SlidingOverlayCard> with SingleTick
                     return Opacity(
                       opacity: opacity,
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 12),
                         child: widget.secondaryForm,
                       ),
                     );
@@ -202,8 +208,11 @@ class _SlidingOverlayCardState extends State<SlidingOverlayCard> with SingleTick
                     width: halfWidth,
                     child: Container(
                       decoration: BoxDecoration(
-                        gradient: _isSecondary ? defaultSecondaryGradient : defaultPrimaryGradient,
-                        borderRadius: BorderRadius.circular(widget.borderRadius - 4),
+                        gradient: _isSecondary
+                            ? defaultSecondaryGradient
+                            : defaultPrimaryGradient,
+                        borderRadius:
+                            BorderRadius.circular(widget.borderRadius - 4),
                         boxShadow: const [
                           BoxShadow(
                             color: Color(0x28000000),
@@ -231,7 +240,9 @@ class _SlidingOverlayCardState extends State<SlidingOverlayCard> with SingleTick
                               buttonText: widget.secondaryButtonText,
                               onAction: () => _toggleMode(false),
                             ),
-                            crossFadeState: _isSecondary ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                            crossFadeState: _isSecondary
+                                ? CrossFadeState.showSecond
+                                : CrossFadeState.showFirst,
                             duration: const Duration(milliseconds: 320),
                           ),
                         ],
@@ -273,7 +284,7 @@ class _SlidingOverlayCardState extends State<SlidingOverlayCard> with SingleTick
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            color: Colors.white.withOpacity(0.82),
+            color: Colors.white.withValues(alpha: 0.82),
             fontSize: 11,
             fontWeight: FontWeight.w500,
             height: 1.3,
@@ -287,9 +298,10 @@ class _SlidingOverlayCardState extends State<SlidingOverlayCard> with SingleTick
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.16),
+              color: Colors.white.withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(AppRadius.pill),
-              border: Border.all(color: Colors.white.withOpacity(0.35), width: 1),
+              border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.35), width: 1),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -304,7 +316,8 @@ class _SlidingOverlayCardState extends State<SlidingOverlayCard> with SingleTick
                   ),
                 ),
                 const SizedBox(width: 4),
-                const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 10),
+                const Icon(Icons.arrow_forward_ios_rounded,
+                    color: Colors.white, size: 10),
               ],
             ),
           ),

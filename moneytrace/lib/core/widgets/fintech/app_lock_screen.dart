@@ -18,7 +18,8 @@ class AppLockScreen extends StatefulWidget {
   State<AppLockScreen> createState() => _AppLockScreenState();
 }
 
-class _AppLockScreenState extends State<AppLockScreen> with SingleTickerProviderStateMixin {
+class _AppLockScreenState extends State<AppLockScreen>
+    with SingleTickerProviderStateMixin {
   final List<String> _enteredDigits = [];
   bool _isVerifying = false;
   String? _errorMessage;
@@ -66,8 +67,10 @@ class _AppLockScreenState extends State<AppLockScreen> with SingleTickerProvider
     });
 
     final success = type == BiometricAuthType.fingerprint
-        ? await SecurityAuthService.instance.authenticateFingerprint(reason: 'Paraİz Kasa Kilidi - Parmak İzi')
-        : await SecurityAuthService.instance.authenticateFaceId(reason: 'Paraİz Kasa Kilidi - Yüz Tanıma');
+        ? await SecurityAuthService.instance
+            .authenticateFingerprint(reason: 'Paraİz Kasa Kilidi - Parmak İzi')
+        : await SecurityAuthService.instance
+            .authenticateFaceId(reason: 'Paraİz Kasa Kilidi - Yüz Tanıma');
 
     if (mounted) {
       if (success) {
@@ -75,7 +78,8 @@ class _AppLockScreenState extends State<AppLockScreen> with SingleTickerProvider
       } else {
         setState(() {
           _isVerifying = false;
-          _errorMessage = 'Biyometrik doğrulama başarısız oldu. Lütfen PIN kodunuzu girin.';
+          _errorMessage =
+              'Biyometrik doğrulama başarısız oldu. Lütfen PIN kodunuzu girin.';
         });
       }
     }
@@ -146,10 +150,12 @@ class _AppLockScreenState extends State<AppLockScreen> with SingleTickerProvider
               decoration: BoxDecoration(
                 color: const Color(0xFF1E293B),
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF10B981).withOpacity(0.4), width: 2),
+                border: Border.all(
+                    color: const Color(0xFF10B981).withValues(alpha: 0.4),
+                    width: 2),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF10B981).withOpacity(0.25),
+                    color: const Color(0xFF10B981).withValues(alpha: 0.25),
                     blurRadius: 28,
                     spreadRadius: 4,
                   ),
@@ -203,7 +209,9 @@ class _AppLockScreenState extends State<AppLockScreen> with SingleTickerProvider
               animation: _shakeAnimation,
               builder: (context, child) {
                 return Transform.translate(
-                  offset: Offset(_shakeAnimation.value * (_enteredDigits.isEmpty ? 1 : -1), 0),
+                  offset: Offset(
+                      _shakeAnimation.value * (_enteredDigits.isEmpty ? 1 : -1),
+                      0),
                   child: child,
                 );
               },
@@ -218,18 +226,23 @@ class _AppLockScreenState extends State<AppLockScreen> with SingleTickerProvider
                     height: 18,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: isFilled ? const Color(0xFF10B981) : const Color(0xFF334155),
+                      color: isFilled
+                          ? const Color(0xFF10B981)
+                          : const Color(0xFF334155),
                       boxShadow: isFilled
                           ? [
                               BoxShadow(
-                                color: const Color(0xFF10B981).withOpacity(0.5),
+                                color: const Color(0xFF10B981)
+                                    .withValues(alpha: 0.5),
                                 blurRadius: 10,
                                 spreadRadius: 1,
                               ),
                             ]
                           : null,
                       border: Border.all(
-                        color: isFilled ? const Color(0xFF34D399) : const Color(0xFF475569),
+                        color: isFilled
+                            ? const Color(0xFF34D399)
+                            : const Color(0xFF475569),
                         width: 2,
                       ),
                     ),
@@ -271,22 +284,35 @@ class _AppLockScreenState extends State<AppLockScreen> with SingleTickerProvider
                   children: [
                     if (auth.isFaceIdEnabled)
                       TextButton.icon(
-                        onPressed: _isVerifying ? null : () => _triggerBiometric(BiometricAuthType.faceId),
-                        icon: const Icon(Icons.face_rounded, color: Color(0xFF38BDF8), size: 18),
+                        onPressed: _isVerifying
+                            ? null
+                            : () => _triggerBiometric(BiometricAuthType.faceId),
+                        icon: const Icon(Icons.face_rounded,
+                            color: Color(0xFF38BDF8), size: 18),
                         label: const Text(
                           'Yüz Tanıma ile Aç',
-                          style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: Color(0xFF38BDF8)),
+                          style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF38BDF8)),
                         ),
                       ),
                     if (auth.isFaceIdEnabled && auth.isFingerprintEnabled)
                       const SizedBox(width: 12),
                     if (auth.isFingerprintEnabled)
                       TextButton.icon(
-                        onPressed: _isVerifying ? null : () => _triggerBiometric(BiometricAuthType.fingerprint),
-                        icon: const Icon(Icons.fingerprint_rounded, color: Color(0xFF34D399), size: 18),
+                        onPressed: _isVerifying
+                            ? null
+                            : () => _triggerBiometric(
+                                BiometricAuthType.fingerprint),
+                        icon: const Icon(Icons.fingerprint_rounded,
+                            color: Color(0xFF34D399), size: 18),
                         label: const Text(
                           'Parmak İzi ile Aç',
-                          style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: Color(0xFF34D399)),
+                          style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF34D399)),
                         ),
                       ),
                   ],

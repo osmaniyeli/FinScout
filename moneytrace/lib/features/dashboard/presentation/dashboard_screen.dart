@@ -42,8 +42,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final TransactionRepository _repository = TransactionRepository();
 
   static const List<String> _monthNames = [
-    'OCAK', 'ŞUBAT', 'MART', 'NİSAN', 'MAYIS', 'HAZİRAN',
-    'TEMMUZ', 'AĞUSTOS', 'EYLÜL', 'EKİM', 'KASIM', 'ARALIK'
+    'OCAK',
+    'ŞUBAT',
+    'MART',
+    'NİSAN',
+    'MAYIS',
+    'HAZİRAN',
+    'TEMMUZ',
+    'AĞUSTOS',
+    'EYLÜL',
+    'EKİM',
+    'KASIM',
+    'ARALIK'
   ];
 
   late String _selectedMonth;
@@ -95,13 +105,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _loadDashboardData() async {
     setState(() => _isLoading = true);
     try {
-      final summary = await _repository.getMonthlySummary(yearMonth: _selectedMonth);
-      final rawTxList = await _repository.getRecentTransactions(limit: 50, yearMonth: _selectedMonth);
+      final summary =
+          await _repository.getMonthlySummary(yearMonth: _selectedMonth);
+      final rawTxList = await _repository.getRecentTransactions(
+          limit: 50, yearMonth: _selectedMonth);
       final upcoming = await _repository.getUpcomingInstallments(limit: 10);
 
       if (mounted) {
         setState(() {
-          if (summary['totalDebitCents'] != null && (summary['totalDebitCents']! > 0 || summary['totalCreditCents']! > 0)) {
+          if (summary['totalDebitCents'] != null &&
+              (summary['totalDebitCents']! > 0 ||
+                  summary['totalCreditCents']! > 0)) {
             _totalExpenseCents = summary['totalDebitCents']!;
             _totalIncomeCents = summary['totalCreditCents']!;
             _netDifferenceCents = summary['netDifferenceCents']!;
@@ -121,15 +135,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
               }
 
               String? badgeText;
-              if (tx['current_installment'] != null && tx['total_installment'] != null) {
-                badgeText = 'Taksit: ${tx['current_installment']}/${tx['total_installment']} ödendi';
+              if (tx['current_installment'] != null &&
+                  tx['total_installment'] != null) {
+                badgeText =
+                    'Taksit: ${tx['current_installment']}/${tx['total_installment']} ödendi';
               }
 
               return {
                 'title': tx['clean_merchant'] ?? 'İşlem',
-                'subtitle': '${tx['category_name'] ?? "Genel"} • ${tx['transaction_date']}',
-                'amount': (isExpense ? '-' : '+') + CurrencyNormalizer.formatCents(tx['billing_amount_cents'] as int),
-                'icon': isExpense ? Icons.arrow_outward_rounded : Icons.arrow_downward_rounded,
+                'subtitle':
+                    '${tx['category_name'] ?? "Genel"} • ${tx['transaction_date']}',
+                'amount': (isExpense ? '-' : '+') +
+                    CurrencyNormalizer.formatCents(
+                        tx['billing_amount_cents'] as int),
+                'icon': isExpense
+                    ? Icons.arrow_outward_rounded
+                    : Icons.arrow_downward_rounded,
                 'color': color,
                 'isExpense': isExpense,
                 'badgeText': badgeText,
@@ -153,7 +174,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: AppColors.installment,
-          content: Text(RemoteConfigService.instance.getMaintenanceMessage('statement_upload')),
+          content: Text(RemoteConfigService.instance
+              .getMaintenanceMessage('statement_upload')),
         ),
       );
       return;
@@ -161,7 +183,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) => Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -169,12 +192,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
-              child: Container(width: 40, height: 4, decoration: BoxDecoration(color: const Color(0xFFCBD5E1), borderRadius: BorderRadius.circular(2))),
+              child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                      color: const Color(0xFFCBD5E1),
+                      borderRadius: BorderRadius.circular(2))),
             ),
             const SizedBox(height: 16),
-            Text(AppStrings.get('select_doc_type_title'), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+            Text(AppStrings.get('select_doc_type_title'),
+                style:
+                    const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
             const SizedBox(height: 4),
-            Text(AppStrings.get('select_doc_type_subtitle'), style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+            Text(AppStrings.get('select_doc_type_subtitle'),
+                style: const TextStyle(
+                    fontSize: 12, color: AppColors.textSecondary)),
             const SizedBox(height: 16),
             _buildDocTypeOption(
               icon: Icons.credit_card_rounded,
@@ -216,11 +248,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
       contentPadding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
       leading: Container(
         padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(12)),
+        decoration: BoxDecoration(
+            color: const Color(0xFFEFF6FF),
+            borderRadius: BorderRadius.circular(12)),
         child: Icon(icon, color: const Color(0xFF0052FF), size: 22),
       ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
-      subtitle: Text(subtitle, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+      title: Text(title,
+          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
+      subtitle: Text(subtitle,
+          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
       onTap: () {
         Navigator.pop(context);
         showModalBottomSheet(
@@ -242,7 +278,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: AppColors.installment,
-          content: Text(RemoteConfigService.instance.getMaintenanceMessage('family_budget')),
+          content: Text(RemoteConfigService.instance
+              .getMaintenanceMessage('family_budget')),
         ),
       );
       return;
@@ -271,7 +308,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 0. Kalıcı Kapatılabilir Nüans Kapsülü (Point 3 & Point 5)
-                if (!UserProfileService.instance.isNuanceDismissed('dashboard_energy_insight')) ...[
+                if (!UserProfileService.instance
+                    .isNuanceDismissed('dashboard_energy_insight')) ...[
                   Stack(
                     children: [
                       DynamicIslandCapsule(
@@ -284,23 +322,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           await UserProfileService.instance.dismissNuance(
                             'dashboard_energy_insight',
                             title: 'Akıllı Tasarruf: Finansal Bütçe Analizi',
-                            message: 'Elektrikli araç veya toplu taşıma alternatifleriyle yakıt giderinizi %40 azaltabilirsiniz.',
+                            message:
+                                'Elektrikli araç veya toplu taşıma alternatifleriyle yakıt giderinizi %40 azaltabilirsiniz.',
                           );
                           if (mounted) setState(() {});
                         },
-                        onActionTap: () => DailyStreakModal.show(context, currentStreak: 30),
+                        onActionTap: () =>
+                            DailyStreakModal.show(context, currentStreak: 30),
                       ),
                       Positioned(
                         top: 6,
                         right: 6,
                         child: IconButton(
-                          icon: const Icon(Icons.close_rounded, size: 18, color: Colors.white70),
+                          icon: const Icon(Icons.close_rounded,
+                              size: 18, color: Colors.white70),
                           tooltip: 'Gizle ve Bildirimlere Taşı',
                           onPressed: () async {
                             await UserProfileService.instance.dismissNuance(
                               'dashboard_energy_insight',
                               title: 'Akıllı Tasarruf: Finansal Bütçe Analizi',
-                              message: 'Elektrikli araç veya toplu taşıma alternatifleriyle yakıt giderinizi %40 azaltabilirsiniz.',
+                              message:
+                                  'Elektrikli araç veya toplu taşıma alternatifleriyle yakıt giderinizi %40 azaltabilirsiniz.',
                             );
                             if (mounted) setState(() {});
                           },
@@ -361,19 +403,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 if (_isLoading)
                   const Padding(
                     padding: EdgeInsets.all(30),
-                    child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                    child: Center(
+                        child: CircularProgressIndicator(strokeWidth: 2)),
                   )
                 else if (_recentTransactions.isEmpty)
                   _buildEmptyStateCard()
                 else
                   FinanceCard(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     child: ListView.separated(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: _recentTransactions.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                      itemBuilder: (ctx, index) => _buildTransactionRow(_recentTransactions[index]),
+                      separatorBuilder: (_, __) =>
+                          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                      itemBuilder: (ctx, index) =>
+                          _buildTransactionRow(_recentTransactions[index]),
                     ),
                   ),
 
@@ -394,8 +440,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ValueListenableBuilder<UserProfile?>(
           valueListenable: UserProfileService.instance.profileNotifier,
           builder: (context, profile, _) {
-            final name = profile?.name.trim().isNotEmpty == true ? profile!.name.trim() : AppStrings.get('guest_user');
-            final initials = name.split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join().toUpperCase();
+            final name = profile?.name.trim().isNotEmpty == true
+                ? profile!.name.trim()
+                : AppStrings.get('guest_user');
+            final initials = name
+                .split(' ')
+                .map((e) => e.isNotEmpty ? e[0] : '')
+                .take(2)
+                .join()
+                .toUpperCase();
 
             return InkWell(
               onTap: () {
@@ -418,7 +471,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     backgroundColor: const Color(0xFF0F172A),
                     child: Text(
                       initials.isNotEmpty ? initials : 'P',
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white),
+                      style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -427,11 +483,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       Text(
                         AppStrings.get('welcome'),
-                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                        style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w500),
                       ),
                       Text(
                         name,
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                        style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary),
                       ),
                     ],
                   ),
@@ -452,7 +514,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 boxShadow: AppShadows.card,
               ),
               child: IconButton(
-                icon: const Icon(Icons.upload_file_rounded, color: AppColors.textPrimary, size: 20),
+                icon: const Icon(Icons.upload_file_rounded,
+                    color: AppColors.textPrimary, size: 20),
                 onPressed: _showDocumentTypeSelector,
                 tooltip: AppStrings.get('upload_pdf_tooltip'),
                 constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
@@ -461,7 +524,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(width: 8),
             ValueListenableBuilder<List<InAppNotificationItem>>(
-              valueListenable: UserProfileService.instance.notificationsNotifier,
+              valueListenable:
+                  UserProfileService.instance.notificationsNotifier,
               builder: (context, notifs, _) {
                 final unreadCount = notifs.where((n) => !n.isRead).length;
                 return Container(
@@ -475,10 +539,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     alignment: Alignment.topRight,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.notifications_outlined, color: AppColors.textPrimary, size: 20),
+                        icon: const Icon(Icons.notifications_outlined,
+                            color: AppColors.textPrimary, size: 20),
                         onPressed: () => NotificationsSheet.show(context),
                         tooltip: AppStrings.get('notifications_title'),
-                        constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                        constraints:
+                            const BoxConstraints(minWidth: 40, minHeight: 40),
                         padding: EdgeInsets.zero,
                       ),
                       if (unreadCount > 0)
@@ -508,7 +574,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 borderRadius: BorderRadius.circular(AppRadius.pill),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFFBEB),
                     borderRadius: BorderRadius.circular(AppRadius.pill),
@@ -517,11 +584,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.workspace_premium_rounded, size: 14, color: Color(0xFFD97706)),
+                      Icon(Icons.workspace_premium_rounded,
+                          size: 14, color: Color(0xFFD97706)),
                       SizedBox(width: 4),
                       Text(
                         'PRO',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFFB45309)),
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFFB45309)),
                       ),
                     ],
                   ),
@@ -552,11 +623,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               borderRadius: BorderRadius.circular(AppRadius.pill),
               child: const Padding(
                 padding: EdgeInsets.all(4),
-                child: Icon(Icons.chevron_left_rounded, size: 20, color: AppColors.textSecondary),
+                child: Icon(Icons.chevron_left_rounded,
+                    size: 20, color: AppColors.textSecondary),
               ),
             ),
             const SizedBox(width: 6),
-            const Icon(Icons.calendar_month_rounded, size: 15, color: AppColors.actionPrimary),
+            const Icon(Icons.calendar_month_rounded,
+                size: 15, color: AppColors.actionPrimary),
             const SizedBox(width: 6),
             Text(
               _monthDisplayName,
@@ -573,7 +646,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               borderRadius: BorderRadius.circular(AppRadius.pill),
               child: const Padding(
                 padding: EdgeInsets.all(4),
-                child: Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.textSecondary),
+                child: Icon(Icons.chevron_right_rounded,
+                    size: 20, color: AppColors.textSecondary),
               ),
             ),
           ],
@@ -604,16 +678,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: isPositive ? const Color(0xFFECFDF5) : const Color(0xFFFEF2F2),
+                  color: isPositive
+                      ? const Color(0xFFECFDF5)
+                      : const Color(0xFFFEF2F2),
                   borderRadius: BorderRadius.circular(AppRadius.pill),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      isPositive ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+                      isPositive
+                          ? Icons.trending_up_rounded
+                          : Icons.trending_down_rounded,
                       size: 13,
-                      color: isPositive ? AppColors.incomeGreen : AppColors.expenseRed,
+                      color: isPositive
+                          ? AppColors.incomeGreen
+                          : AppColors.expenseRed,
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -621,7 +701,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: isPositive ? AppColors.incomeGreen : AppColors.expenseRed,
+                        color: isPositive
+                            ? AppColors.incomeGreen
+                            : AppColors.expenseRed,
                       ),
                     ),
                   ],
@@ -669,7 +751,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         children: [
                           const Text(
                             'Toplam Gelir',
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                            style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textSecondary),
                           ),
                           const SizedBox(height: 2),
                           RollingNumberTicker(
@@ -713,7 +798,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         children: [
                           const Text(
                             'Toplam Gider',
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                            style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textSecondary),
                           ),
                           const SizedBox(height: 2),
                           RollingNumberTicker(
@@ -738,9 +826,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Center(
             child: PulseMetricBadge(
               label: 'NET FARK: ',
-              value: (isPositive ? '+' : '') + CurrencyNormalizer.formatCents(_netDifferenceCents),
-              icon: isPositive ? Icons.trending_up_rounded : Icons.trending_down_rounded,
-              pulseColor: isPositive ? AppColors.incomeGreen : AppColors.expenseRed,
+              value: (isPositive ? '+' : '') +
+                  CurrencyNormalizer.formatCents(_netDifferenceCents),
+              icon: isPositive
+                  ? Icons.trending_up_rounded
+                  : Icons.trending_down_rounded,
+              pulseColor:
+                  isPositive ? AppColors.incomeGreen : AppColors.expenseRed,
               baseColor: const Color(0xFF0F172A),
               onTap: () {
                 widget.onOpenAnalytics?.call();
@@ -836,15 +928,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: _upcomingInstallments.length,
-            separatorBuilder: (_, __) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
+            separatorBuilder: (_, __) =>
+                const Divider(height: 1, color: Color(0xFFF1F5F9)),
             itemBuilder: (ctx, index) {
               final item = _upcomingInstallments[index];
-              final current = (item['current_installment'] as num?)?.toInt() ?? 1;
+              final current =
+                  (item['current_installment'] as num?)?.toInt() ?? 1;
               final total = (item['total_installment'] as num?)?.toInt() ?? 1;
               final remainingInstallments = (total - current).clamp(0, 999);
-              final monthlyCents = (item['monthly_amount_cents'] as num?)?.toInt() ?? 0;
-              final remainingCents = (item['remaining_amount_cents'] as num?)?.toInt() ?? 0;
-              final merchant = item['clean_merchant'] as String? ?? 'Taksitli Harcama';
+              final monthlyCents =
+                  (item['monthly_amount_cents'] as num?)?.toInt() ?? 0;
+              final remainingCents =
+                  (item['remaining_amount_cents'] as num?)?.toInt() ?? 0;
+              final merchant =
+                  item['clean_merchant'] as String? ?? 'Taksitli Harcama';
               final dueDate = item['due_date'] as String?;
 
               return Padding(
@@ -905,7 +1002,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         const SizedBox(height: 2),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: const Color(0xFFF1F5F9),
                             borderRadius: BorderRadius.circular(4),
@@ -941,17 +1039,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.actionPrimary.withOpacity(0.08),
-                  const Color(0xFF6366F1).withOpacity(0.05),
+                  AppColors.actionPrimary.withValues(alpha: 0.08),
+                  const Color(0xFF6366F1).withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(AppRadius.card),
-              border: Border.all(color: AppColors.actionPrimary.withOpacity(0.15)),
+              border: Border.all(
+                  color: AppColors.actionPrimary.withValues(alpha: 0.15)),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.auto_awesome_rounded, color: AppColors.actionPrimary, size: 20),
+                const Icon(Icons.auto_awesome_rounded,
+                    color: AppColors.actionPrimary, size: 20),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
@@ -974,29 +1074,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: const Color(0xFFEFF6FF),
               borderRadius: BorderRadius.circular(AppRadius.card),
             ),
-            child: const Icon(Icons.receipt_long_rounded, size: 32, color: AppColors.actionPrimary),
+            child: const Icon(Icons.receipt_long_rounded,
+                size: 32, color: AppColors.actionPrimary),
           ),
           const SizedBox(height: 14),
           Text(
             AppStrings.get('no_transactions_title'),
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+            style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary),
           ),
           const SizedBox(height: 6),
           Text(
             AppStrings.get('no_transactions_subtitle'),
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+            style: const TextStyle(
+                fontSize: 12, color: AppColors.textSecondary, height: 1.4),
           ),
           const SizedBox(height: 18),
           ElevatedButton.icon(
             onPressed: _showDocumentTypeSelector,
             icon: const Icon(Icons.upload_file_rounded, size: 18),
-            label: Text(AppStrings.get('upload_pdf_tooltip'), style: const TextStyle(fontWeight: FontWeight.w700)),
+            label: Text(AppStrings.get('upload_pdf_tooltip'),
+                style: const TextStyle(fontWeight: FontWeight.w700)),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.actionPrimary,
               foregroundColor: Colors.white,
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.button)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.button)),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
           ),

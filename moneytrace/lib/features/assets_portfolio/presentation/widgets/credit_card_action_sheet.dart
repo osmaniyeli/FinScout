@@ -61,13 +61,24 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
   @override
   void initState() {
     super.initState();
-    final rawDebt = widget.card['debt'].toString().replaceAll('₺', '').replaceAll(',00', '').replaceAll('.', '').trim();
-    final rawLimit = widget.card['limit'].toString().replaceAll('₺', '').replaceAll(',00', '').replaceAll('.', '').trim();
+    final rawDebt = widget.card['debt']
+        .toString()
+        .replaceAll('₺', '')
+        .replaceAll(',00', '')
+        .replaceAll('.', '')
+        .trim();
+    final rawLimit = widget.card['limit']
+        .toString()
+        .replaceAll('₺', '')
+        .replaceAll(',00', '')
+        .replaceAll('.', '')
+        .trim();
 
     _paymentAmountController = TextEditingController(text: rawDebt);
     _limitController = TextEditingController(text: rawLimit);
     _debtController = TextEditingController(text: rawDebt);
-    _dayController = TextEditingController(text: widget.card['statement_day']?.toString() ?? 'Her ayın 15\'i');
+    _dayController = TextEditingController(
+        text: widget.card['statement_day']?.toString() ?? 'Her ayın 15\'i');
   }
 
   @override
@@ -80,12 +91,18 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
   }
 
   void _selectQuickAmountRatio(double ratio) {
-    final rawDebtStr = widget.card['debt'].toString().replaceAll('₺', '').replaceAll('.', '').replaceAll(',', '.').trim();
+    final rawDebtStr = widget.card['debt']
+        .toString()
+        .replaceAll('₺', '')
+        .replaceAll('.', '')
+        .replaceAll(',', '.')
+        .trim();
     final debtNum = double.tryParse(rawDebtStr) ?? 0.0;
     final targetAmount = (debtNum * ratio).round();
 
     setState(() {
-      _paymentAmountController.text = targetAmount > 0 ? targetAmount.toString() : '0';
+      _paymentAmountController.text =
+          targetAmount > 0 ? targetAmount.toString() : '0';
     });
   }
 
@@ -97,14 +114,17 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           backgroundColor: AppColors.expenseRed,
-          content: Text('Lütfen geçerli bir ödeme tutarı girin (0\'dan büyük olmalıdır).'),
+          content: Text(
+              'Lütfen geçerli bir ödeme tutarı girin (0\'dan büyük olmalıdır).'),
         ),
       );
       return;
     }
 
-    final currentDebtCents = CurrencyNormalizer.toMinorUnits(widget.card['debt'].toString());
-    final newDebtCents = (currentDebtCents - paidCents).clamp(0, double.infinity).toInt();
+    final currentDebtCents =
+        CurrencyNormalizer.toMinorUnits(widget.card['debt'].toString());
+    final newDebtCents =
+        (currentDebtCents - paidCents).clamp(0, double.infinity).toInt();
 
     setState(() {
       widget.card['debt'] = CurrencyNormalizer.formatCents(newDebtCents);
@@ -149,14 +169,16 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         backgroundColor: const Color(0xFF7C3AED),
-        content: Text('${widget.card['name']} limit ve hesap kesim detayları başarıyla güncellendi.'),
+        content: Text(
+            '${widget.card['name']} limit ve hesap kesim detayları başarıyla güncellendi.'),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final cardColor = (widget.card['color'] as Color?) ?? const Color(0xFF2563EB);
+    final cardColor =
+        (widget.card['color'] as Color?) ?? const Color(0xFF2563EB);
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
@@ -189,10 +211,11 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: cardColor.withOpacity(0.12),
+                    color: cardColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Icon(Icons.credit_card_rounded, color: cardColor, size: 24),
+                  child: Icon(Icons.credit_card_rounded,
+                      color: cardColor, size: 24),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -201,18 +224,23 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
                     children: [
                       Text(
                         widget.card['name'] as String,
-                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                        style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary),
                       ),
                       Text(
                         '${widget.card['mask']} • ${widget.card['holder']}',
-                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                        style: const TextStyle(
+                            fontSize: 12, color: AppColors.textSecondary),
                       ),
                     ],
                   ),
                 ),
                 IconButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
+                  icon:
+                      const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
                 ),
               ],
             ),
@@ -229,11 +257,18 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildSummaryItem('Dönem Borcu', widget.card['debt'].toString(), AppColors.expenseRed),
-                  Container(width: 1, height: 28, color: const Color(0xFFE2E8F0)),
-                  _buildSummaryItem('Toplam Limit', widget.card['limit'].toString(), AppColors.textPrimary),
-                  Container(width: 1, height: 28, color: const Color(0xFFE2E8F0)),
-                  _buildSummaryItem('Kesim Günü', widget.card['statement_day']?.toString() ?? '15\'i', AppColors.actionPrimary),
+                  _buildSummaryItem('Dönem Borcu',
+                      widget.card['debt'].toString(), AppColors.expenseRed),
+                  Container(
+                      width: 1, height: 28, color: const Color(0xFFE2E8F0)),
+                  _buildSummaryItem('Toplam Limit',
+                      widget.card['limit'].toString(), AppColors.textPrimary),
+                  Container(
+                      width: 1, height: 28, color: const Color(0xFFE2E8F0)),
+                  _buildSummaryItem(
+                      'Kesim Günü',
+                      widget.card['statement_day']?.toString() ?? '15\'i',
+                      AppColors.actionPrimary),
                 ],
               ),
             ),
@@ -264,18 +299,23 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
                 children: const [
                   Row(
                     children: [
-                      Icon(Icons.payment_rounded, color: Color(0xFF059669), size: 16),
+                      Icon(Icons.payment_rounded,
+                          color: Color(0xFF059669), size: 16),
                       SizedBox(width: 6),
                       Text(
                         'HIZLI ÖDEME',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF0F172A)),
                       ),
                     ],
                   ),
                   SizedBox(height: 6),
                   Text(
                     'Asgari veya dönem borcunu seçip anında kapatın.',
-                    style: TextStyle(fontSize: 11, color: Color(0xFF64748B), height: 1.3),
+                    style: TextStyle(
+                        fontSize: 11, color: Color(0xFF64748B), height: 1.3),
                   ),
                 ],
               ),
@@ -294,18 +334,23 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
                 children: const [
                   Row(
                     children: [
-                      Icon(Icons.tune_rounded, color: Color(0xFF7C3AED), size: 16),
+                      Icon(Icons.tune_rounded,
+                          color: Color(0xFF7C3AED), size: 16),
                       SizedBox(width: 6),
                       Text(
                         'KART AYARLARI',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF0F172A)),
                       ),
                     ],
                   ),
                   SizedBox(height: 6),
                   Text(
                     'Limit, borç ve kesim günü detaylarını revize edin.',
-                    style: TextStyle(fontSize: 11, color: Color(0xFF64748B), height: 1.3),
+                    style: TextStyle(
+                        fontSize: 11, color: Color(0xFF64748B), height: 1.3),
                   ),
                 ],
               ),
@@ -318,7 +363,9 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
             AnimatedCrossFade(
               firstChild: _buildPaymentForm(),
               secondChild: _buildEditLimitForm(),
-              crossFadeState: _isSecondaryMode ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+              crossFadeState: _isSecondaryMode
+                  ? CrossFadeState.showSecond
+                  : CrossFadeState.showFirst,
               duration: const Duration(milliseconds: 320),
             ),
           ],
@@ -330,7 +377,11 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
   Widget _buildSummaryItem(String label, String value, Color valueColor) {
     return Column(
       children: [
-        Text(label, style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF64748B))),
+        Text(label,
+            style: const TextStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF64748B))),
         const SizedBox(height: 3),
         Text(
           value,
@@ -360,7 +411,10 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
         children: [
           const Text(
             'Ödeme Tutarı Seçimi',
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+            style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary),
           ),
           const SizedBox(height: 10),
 
@@ -373,9 +427,14 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     side: const BorderSide(color: Color(0xFFCBD5E1)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
                   ),
-                  child: const Text('Asgari (%20)', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: Color(0xFF0F172A))),
+                  child: const Text('Asgari (%20)',
+                      style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF0F172A))),
                 ),
               ),
               const SizedBox(width: 8),
@@ -385,9 +444,14 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     side: const BorderSide(color: Color(0xFFCBD5E1)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
                   ),
-                  child: const Text('Yarısı (%50)', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: Color(0xFF0F172A))),
+                  child: const Text('Yarısı (%50)',
+                      style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF0F172A))),
                 ),
               ),
               const SizedBox(width: 8),
@@ -398,10 +462,13 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
                     backgroundColor: const Color(0xFF059669),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
                     elevation: 0,
                   ),
-                  child: const Text('Tamamı', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800)),
+                  child: const Text('Tamamı',
+                      style: TextStyle(
+                          fontSize: 11.5, fontWeight: FontWeight.w800)),
                 ),
               ),
             ],
@@ -411,7 +478,10 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
           // Tutar Giriş TextField
           const Text(
             'Ödenecek Tutar (TL) *',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary),
           ),
           const SizedBox(height: 6),
           TextField(
@@ -420,13 +490,22 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
             decoration: InputDecoration(
               hintText: 'Örn: 5000',
               prefixText: '₺ ',
-              prefixStyle: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+              prefixStyle: const TextStyle(
+                  fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
               filled: true,
               fillColor: Colors.white,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF059669), width: 1.5)),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+              enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+              focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      const BorderSide(color: Color(0xFF059669), width: 1.5)),
             ),
           ),
           const SizedBox(height: 14),
@@ -434,7 +513,10 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
           // Ödeme Kaynak Hesabı
           const Text(
             'Ödeme Yapılacak Kaynak Hesap',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary),
           ),
           const SizedBox(height: 6),
           Container(
@@ -448,10 +530,14 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
               child: DropdownButton<String>(
                 value: _selectedSourceAccount,
                 isExpanded: true,
-                items: _sourceAccounts.map((acc) => DropdownMenuItem(
-                  value: acc,
-                  child: Text(acc, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                )).toList(),
+                items: _sourceAccounts
+                    .map((acc) => DropdownMenuItem(
+                          value: acc,
+                          child: Text(acc,
+                              style: const TextStyle(
+                                  fontSize: 13, fontWeight: FontWeight.w600)),
+                        ))
+                    .toList(),
                 onChanged: (val) {
                   if (val != null) setState(() => _selectedSourceAccount = val);
                 },
@@ -467,11 +553,14 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
             child: ElevatedButton.icon(
               onPressed: _submitDebtPayment,
               icon: const Icon(Icons.check_circle_rounded, size: 18),
-              label: const Text('Borç Ödemesini Tamamla', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
+              label: const Text('Borç Ödemesini Tamamla',
+                  style:
+                      TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF059669),
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
                 elevation: 0,
               ),
             ),
@@ -497,12 +586,19 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
         children: [
           const Text(
             'Kart Limit & Kesim Bilgileri',
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+            style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary),
           ),
           const SizedBox(height: 12),
 
           // Toplam Limit
-          const Text('Toplam Limit (TL)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+          const Text('Toplam Limit (TL)',
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary)),
           const SizedBox(height: 6),
           TextField(
             controller: _limitController,
@@ -510,19 +606,32 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
             decoration: InputDecoration(
               hintText: 'Örn: 75000',
               prefixText: '₺ ',
-              prefixStyle: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+              prefixStyle: const TextStyle(
+                  fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
               filled: true,
               fillColor: Colors.white,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 1.5)),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+              enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+              focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      const BorderSide(color: Color(0xFF7C3AED), width: 1.5)),
             ),
           ),
           const SizedBox(height: 12),
 
           // Güncel Dönem Borcu
-          const Text('Güncel Dönem Borcu (TL)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+          const Text('Güncel Dönem Borcu (TL)',
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary)),
           const SizedBox(height: 6),
           TextField(
             controller: _debtController,
@@ -530,31 +639,53 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
             decoration: InputDecoration(
               hintText: 'Örn: 12500',
               prefixText: '₺ ',
-              prefixStyle: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+              prefixStyle: const TextStyle(
+                  fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
               filled: true,
               fillColor: Colors.white,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 1.5)),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+              enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+              focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      const BorderSide(color: Color(0xFF7C3AED), width: 1.5)),
             ),
           ),
           const SizedBox(height: 12),
 
           // Hesap Kesim Günü
-          const Text('Hesap Kesim / Yenilenme Günü', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+          const Text('Hesap Kesim / Yenilenme Günü',
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary)),
           const SizedBox(height: 6),
           TextField(
             controller: _dayController,
             decoration: InputDecoration(
               hintText: 'Örn: Her ayın 15\'i',
-              prefixIcon: const Icon(Icons.calendar_today_rounded, size: 18, color: Color(0xFF64748B)),
+              prefixIcon: const Icon(Icons.calendar_today_rounded,
+                  size: 18, color: Color(0xFF64748B)),
               filled: true,
               fillColor: Colors.white,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 1.5)),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+              enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+              focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      const BorderSide(color: Color(0xFF7C3AED), width: 1.5)),
             ),
           ),
           const SizedBox(height: 18),
@@ -566,11 +697,14 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
             child: ElevatedButton.icon(
               onPressed: _submitCardDetails,
               icon: const Icon(Icons.save_rounded, size: 18),
-              label: const Text('Değişiklikleri Kaydet', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
+              label: const Text('Değişiklikleri Kaydet',
+                  style:
+                      TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF7C3AED),
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
                 elevation: 0,
               ),
             ),

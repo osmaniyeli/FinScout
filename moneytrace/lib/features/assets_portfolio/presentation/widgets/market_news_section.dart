@@ -61,7 +61,8 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
                 onTap: () => _loadNews(forceRefresh: true),
                 borderRadius: BorderRadius.circular(8),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                   child: Row(
                     children: [
                       if (_isLoading)
@@ -71,11 +72,15 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       else
-                        const Icon(Icons.sync_rounded, size: 14, color: AppColors.actionPrimary),
+                        const Icon(Icons.sync_rounded,
+                            size: 14, color: AppColors.actionPrimary),
                       const SizedBox(width: 4),
                       const Text(
                         'Yenile',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.actionPrimary),
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.actionPrimary),
                       ),
                     ],
                   ),
@@ -86,7 +91,10 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
           const SizedBox(height: 4),
           const Text(
             'Kaynak: Bloomberg HT & Dünya Gazetesi (Resmi RSS)',
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.textMuted),
+            style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textMuted),
           ),
           const SizedBox(height: 12),
 
@@ -100,7 +108,8 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
                 border: Border.all(color: const Color(0xFFE2E8F0)),
               ),
               child: const Center(
-                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.actionPrimary),
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: AppColors.actionPrimary),
               ),
             )
           else
@@ -121,8 +130,10 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
 
   Widget _buildNewsCard(BuildContext context, MarketNewsItem item) {
     final isBloomberg = item.sourceName.contains('Bloomberg');
-    final sourceColor = isBloomberg ? const Color(0xFF1E3A8A) : const Color(0xFF047857);
-    final sourceBgColor = isBloomberg ? const Color(0xFFEFF6FF) : const Color(0xFFECFDF5);
+    final sourceColor =
+        isBloomberg ? const Color(0xFF1E3A8A) : const Color(0xFF047857);
+    final sourceBgColor =
+        isBloomberg ? const Color(0xFFEFF6FF) : const Color(0xFFECFDF5);
 
     return InkWell(
       onTap: () => _showNewsDetailModal(context, item),
@@ -135,7 +146,7 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
           border: Border.all(color: const Color(0xFFE2E8F0)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
+              color: Colors.black.withValues(alpha: 0.02),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -148,11 +159,13 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: sourceBgColor,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: sourceColor.withOpacity(0.2)),
+                    border:
+                        Border.all(color: sourceColor.withValues(alpha: 0.2)),
                   ),
                   child: Text(
                     item.sourceName,
@@ -165,24 +178,32 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     item.category,
-                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFF64748B)),
+                    style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF64748B)),
                   ),
                 ),
                 const Spacer(),
                 Row(
                   children: [
-                    const Icon(Icons.access_time_rounded, size: 12, color: AppColors.textMuted),
+                    const Icon(Icons.access_time_rounded,
+                        size: 12, color: AppColors.textMuted),
                     const SizedBox(width: 4),
                     Text(
                       item.timeAgoFormatted,
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textMuted),
+                      style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textMuted),
                     ),
                   ],
                 ),
@@ -253,20 +274,25 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       item.sourceName,
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                      style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Text(
                     item.timeAgoFormatted,
-                    style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                    style: const TextStyle(
+                        fontSize: 12, color: AppColors.textMuted),
                   ),
                 ],
               ),
@@ -275,14 +301,19 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
               // Tam Başlık
               Text(
                 item.title,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.textPrimary, height: 1.3),
+                style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.textPrimary,
+                    height: 1.3),
               ),
               const SizedBox(height: 14),
 
               // Tam Özet / İçerik
               Text(
                 item.summary,
-                style: const TextStyle(fontSize: 14, color: Color(0xFF334155), height: 1.5),
+                style: const TextStyle(
+                    fontSize: 14, color: Color(0xFF334155), height: 1.5),
               ),
               const SizedBox(height: 20),
 
@@ -296,12 +327,14 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.verified_user_rounded, size: 16, color: Color(0xFF10B981)),
+                    const Icon(Icons.verified_user_rounded,
+                        size: 16, color: Color(0xFF10B981)),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Kaynak: ${item.sourceName} resmi açık RSS akışı. Tüm telif ve yayın hakları kaynağa aittir.',
-                        style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                        style: const TextStyle(
+                            fontSize: 11, color: Color(0xFF64748B)),
                       ),
                     ),
                   ],
@@ -318,7 +351,8 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
                     if (item.link.isNotEmpty) {
                       final uri = Uri.parse(item.link);
                       try {
-                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        await launchUrl(uri,
+                            mode: LaunchMode.externalApplication);
                       } catch (_) {
                         await launchUrl(uri);
                       }
@@ -327,7 +361,8 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.actionPrimary,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     elevation: 0,
                   ),
@@ -336,7 +371,9 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
                     children: [
                       Icon(Icons.open_in_new_rounded, size: 16),
                       SizedBox(width: 8),
-                      Text('Haberi Orijinal Kaynağından Aç', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+                      Text('Haberi Orijinal Kaynağından Aç',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w800, fontSize: 13)),
                     ],
                   ),
                 ),

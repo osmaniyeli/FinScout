@@ -15,7 +15,8 @@ class TransactionDetailSheet extends StatelessWidget {
     this.onDelete,
   }) : super(key: key);
 
-  static void show(BuildContext context, {required Map<String, dynamic> transaction, VoidCallback? onDelete}) {
+  static void show(BuildContext context,
+      {required Map<String, dynamic> transaction, VoidCallback? onDelete}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -74,7 +75,7 @@ class TransactionDetailSheet extends StatelessWidget {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.12),
+                      color: color.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: Icon(icon, color: color, size: 24),
@@ -85,18 +86,23 @@ class TransactionDetailSheet extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                        style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary),
                       ),
                       Text(
                         subtitle,
-                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                        style: const TextStyle(
+                            fontSize: 12, color: AppColors.textSecondary),
                       ),
                     ],
                   ),
                 ],
               ),
               IconButton(
-                icon: const Icon(Icons.close_rounded, size: 20, color: AppColors.textSecondary),
+                icon: const Icon(Icons.close_rounded,
+                    size: 20, color: AppColors.textSecondary),
                 onPressed: () => Navigator.pop(context),
               ),
             ],
@@ -108,7 +114,8 @@ class TransactionDetailSheet extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: isExpense ? const Color(0xFFFFF1F2) : const Color(0xFFF0FDF4),
+              color:
+                  isExpense ? const Color(0xFFFFF1F2) : const Color(0xFFF0FDF4),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
@@ -119,7 +126,9 @@ class TransactionDetailSheet extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
-                    color: isExpense ? AppColors.expenseRed : AppColors.incomeGreen,
+                    color: isExpense
+                        ? AppColors.expenseRed
+                        : AppColors.incomeGreen,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -129,7 +138,9 @@ class TransactionDetailSheet extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w900,
-                    color: isExpense ? AppColors.expenseRed : AppColors.incomeGreen,
+                    color: isExpense
+                        ? AppColors.expenseRed
+                        : AppColors.incomeGreen,
                   ),
                 ),
               ],
@@ -138,9 +149,20 @@ class TransactionDetailSheet extends StatelessWidget {
           const SizedBox(height: 16),
 
           // Detay Bilgi Satırları
-          _buildDetailRow(Icons.calendar_today_rounded, 'Tarih', subtitle.contains('•') ? subtitle.split('•').last.trim() : 'Güncel'),
-          _buildDetailRow(Icons.category_rounded, 'Kategori', subtitle.contains('•') ? subtitle.split('•').first.trim() : 'Genel'),
-          _buildDetailRow(Icons.security_rounded, 'Kayıt Türü', 'Sıfır Bilgili Cihaz İçi Kasa (Zero-Knowledge)'),
+          _buildDetailRow(
+              Icons.calendar_today_rounded,
+              'Tarih',
+              subtitle.contains('•')
+                  ? subtitle.split('•').last.trim()
+                  : 'Güncel'),
+          _buildDetailRow(
+              Icons.category_rounded,
+              'Kategori',
+              subtitle.contains('•')
+                  ? subtitle.split('•').first.trim()
+                  : 'Genel'),
+          _buildDetailRow(Icons.security_rounded, 'Kayıt Türü',
+              'Sıfır Bilgili Cihaz İçi Kasa (Zero-Knowledge)'),
 
           const SizedBox(height: 16),
 
@@ -169,12 +191,17 @@ class TransactionDetailSheet extends StatelessWidget {
                     Navigator.pop(context);
                     if (onDelete != null) onDelete!();
                   },
-                  icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.expenseRed),
-                  label: const Text('Sil', style: TextStyle(color: AppColors.expenseRed, fontWeight: FontWeight.w700)),
+                  icon: const Icon(Icons.delete_outline_rounded,
+                      size: 18, color: AppColors.expenseRed),
+                  label: const Text('Sil',
+                      style: TextStyle(
+                          color: AppColors.expenseRed,
+                          fontWeight: FontWeight.w700)),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFFFECDD3)),
                     padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
                   ),
                 ),
               ),
@@ -183,12 +210,14 @@ class TransactionDetailSheet extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.check_rounded, size: 18),
-                  label: const Text('Tamam', style: TextStyle(fontWeight: FontWeight.w700)),
+                  label: const Text('Tamam',
+                      style: TextStyle(fontWeight: FontWeight.w700)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0F172A),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
                     elevation: 0,
                   ),
                 ),
@@ -207,9 +236,17 @@ class TransactionDetailSheet extends StatelessWidget {
         children: [
           Icon(icon, size: 18, color: AppColors.textMuted),
           const SizedBox(width: 10),
-          Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500)),
           const Spacer(),
-          Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+          Text(value,
+              style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary)),
         ],
       ),
     );

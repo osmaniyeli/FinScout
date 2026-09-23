@@ -52,7 +52,7 @@ class GoalCardTile extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: themeColor.withOpacity(0.12),
+                    color: themeColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -87,8 +87,10 @@ class GoalCardTile extends StatelessWidget {
                               color: AppColors.textSecondary,
                             ),
                           ),
-                          if (goal.subType != null || goal.brandModel != null) ...[
-                            const Text(' • ', style: TextStyle(color: AppColors.textMuted)),
+                          if (goal.subType != null ||
+                              goal.brandModel != null) ...[
+                            const Text(' • ',
+                                style: TextStyle(color: AppColors.textMuted)),
                             Expanded(
                               child: Text(
                                 goal.subType ?? goal.brandModel ?? '',
@@ -109,17 +111,22 @@ class GoalCardTile extends StatelessWidget {
 
                 // Kalan Süre Rozeti
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    goal.isCompleted ? 'Tamamlandı' : '${goal.monthsRemaining} ay kaldı',
+                    goal.isCompleted
+                        ? 'Tamamlandı'
+                        : '${goal.monthsRemaining} ay kaldı',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: goal.isCompleted ? AppColors.incomeGreen : AppColors.textSecondary,
+                      color: goal.isCompleted
+                          ? AppColors.incomeGreen
+                          : AppColors.textSecondary,
                     ),
                   ),
                 ),
@@ -139,7 +146,8 @@ class GoalCardTile extends StatelessWidget {
                     ),
                     children: [
                       TextSpan(
-                        text: CurrencyNormalizer.formatCents(goal.currentSavedCents),
+                        text: CurrencyNormalizer.formatCents(
+                            goal.currentSavedCents),
                         style: const TextStyle(
                           fontSize: 15.5,
                           fontWeight: FontWeight.w800,
@@ -155,7 +163,8 @@ class GoalCardTile extends StatelessWidget {
                         ),
                       ),
                       TextSpan(
-                        text: CurrencyNormalizer.formatCents(goal.targetAmountCents),
+                        text: CurrencyNormalizer.formatCents(
+                            goal.targetAmountCents),
                         style: const TextStyle(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w600,
@@ -195,7 +204,8 @@ class GoalCardTile extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                if (!goal.isCompleted && goal.recommendedMonthlySavingsCents > 0)
+                if (!goal.isCompleted &&
+                    goal.recommendedMonthlySavingsCents > 0)
                   Text(
                     'Aylık hedef: ${CurrencyNormalizer.formatCents(goal.recommendedMonthlySavingsCents)}',
                     style: const TextStyle(
@@ -211,9 +221,10 @@ class GoalCardTile extends StatelessWidget {
                     onTap: onAddContribution,
                     borderRadius: BorderRadius.circular(10),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: themeColor.withOpacity(0.12),
+                        color: themeColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(

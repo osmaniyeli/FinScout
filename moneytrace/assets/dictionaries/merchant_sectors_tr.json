@@ -1,0 +1,5963 @@
+{
+ "version": 1,
+ "entries": [
+  {
+   "pattern": "A1 CAPITAL",
+   "brand": "A1 Capital",
+   "sector": "Yatırım & Menkul Değerler",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "A1 CAPİTAL",
+   "brand": "A1 Capital",
+   "sector": "Yatırım & Menkul Değerler",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "A101 YENI MAGAZACILIK",
+   "brand": "A101",
+   "sector": "Süpermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "A101 YENİ MAĞAZACILIK",
+   "brand": "A101",
+   "sector": "Süpermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "ACCOR",
+   "brand": "Accor Hotels",
+   "sector": "Otel",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "ACIBADEM",
+   "brand": "Acıbadem Sağlık Grubu",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "ACIBADEM SAGLIK",
+   "brand": "Acıbadem Sağlık Grubu",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "ACIBADEM SAĞLIK",
+   "brand": "Acıbadem Sağlık Grubu",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "ADIDAS",
+   "brand": "Adidas",
+   "sector": "Spor Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "ADOBE CREATIVE",
+   "brand": "Adobe",
+   "sector": "Yazılım",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "ADOBE SYSTEMS",
+   "brand": "Adobe",
+   "sector": "Yazılım",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "AGA KULCE",
+   "brand": "Ağa Külçe",
+   "sector": "Altın & Kıymetli Maden",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "AGESA HAYAT EMEKLILIK",
+   "brand": "Agesa Hayat ve Emeklilik",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "AGESA HAYAT EMEKLİLİK",
+   "brand": "Agesa Hayat ve Emeklilik",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "AGODA",
+   "brand": "Agoda",
+   "sector": "Seyahat Sitesi",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "AHLATCI KUYUMCULUK",
+   "brand": "Ahlatcı",
+   "sector": "Altın & Kıymetli Maden",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "AHLATCI METAL",
+   "brand": "Ahlatcı Metal Rafineri",
+   "sector": "Altın & Kıymetli Maden",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "AHLATÇI KUYUMCULUK",
+   "brand": "Ahlatcı",
+   "sector": "Altın & Kıymetli Maden",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "AJET",
+   "brand": "AJet",
+   "sector": "Havayolu",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "AKDENIZ ELEKTRIK",
+   "brand": "Aksa Akdeniz Elektrik",
+   "sector": "Elektrik",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "AKDENİZ ELEKTRİK",
+   "brand": "Aksa Akdeniz Elektrik",
+   "sector": "Elektrik",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "AKSA DOGALGAZ",
+   "brand": "Aksa Doğalgaz",
+   "sector": "Doğalgaz",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "AKSA DOĞALGAZ",
+   "brand": "Aksa Doğalgaz",
+   "sector": "Doğalgaz",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "AKSA SARJ",
+   "brand": "Aksa Şarj",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "AKSA ŞARJ",
+   "brand": "Aksa Şarj",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "AKSIGORTA",
+   "brand": "AkSigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "AKSİGORTA",
+   "brand": "AkSigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "AKYURT SUPERMARKET",
+   "brand": "Akyurt Süpermarket",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "ALFEMO",
+   "brand": "Alfemo",
+   "sector": "Mobilya",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "ALI OSMAN ULUSOY",
+   "brand": "Ali Osman Ulusoy",
+   "sector": "Otobüs Firmaları",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "ALLIANZ SIGORTA",
+   "brand": "Allianz Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "ALLIANZ SİGORTA",
+   "brand": "Allianz Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "ALLIANZ YASAM EMEKLILIK",
+   "brand": "Allianz Yaşam ve Emeklilik",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "ALLIANZ YAŞAM EMEKLİLİK",
+   "brand": "Allianz Yaşam ve Emeklilik",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "ALPET PETROL",
+   "brand": "Alpet",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "ALTINBAS",
+   "brand": "Altınbaş",
+   "sector": "Kuyumculuk",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "ALTINBAŞ",
+   "brand": "Altınbaş",
+   "sector": "Kuyumculuk",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "ALTINYILDIZ",
+   "brand": "Altınyıldız Classics",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "ALTINYILDIZ CLASSICS",
+   "brand": "Altınyıldız Classics",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "ALTUNBILEKLER",
+   "brand": "Altunbilekler",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "ALTUNBİLEKLER",
+   "brand": "Altunbilekler",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "ALİ OSMAN ULUSOY",
+   "brand": "Ali Osman Ulusoy",
+   "sector": "Otobüs Firmaları",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "AMAZON",
+   "brand": "Amazon Türkiye",
+   "sector": "E-Ticaret",
+   "category": "cat_shopping"
+  },
+  {
+   "pattern": "AMAZON PRIME",
+   "brand": "Amazon Prime",
+   "sector": "Video/Alışveriş",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "AMAZONPRIME",
+   "brand": "Amazon Prime",
+   "sector": "Video/Alışveriş",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "AMERICAN LIFE",
+   "brand": "American Life",
+   "sector": "Kurs & Dil Okulu",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "AMERIKAN HASTANESI",
+   "brand": "Amerikan Hastanesi",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "AMERİKAN HASTANESİ",
+   "brand": "Amerikan Hastanesi",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "ANADOLU HAYAT EMEKLILIK",
+   "brand": "Anadolu Hayat Emeklilik",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "ANADOLU HAYAT EMEKLİLİK",
+   "brand": "Anadolu Hayat Emeklilik",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "ANADOLU PET",
+   "brand": "Anadolu Pet",
+   "sector": "Pet Shop",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "ANADOLU SAGLIK",
+   "brand": "Anadolu Sağlık Merkezi",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "ANADOLU SAĞLIK",
+   "brand": "Anadolu Sağlık Merkezi",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "ANADOLU SIGORTA",
+   "brand": "Anadolu Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "ANADOLU SİGORTA",
+   "brand": "Anadolu Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "ANADOLUJET",
+   "brand": "AnadoluJet",
+   "sector": "Havayolu",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "ANEX TOUR",
+   "brand": "Anex Tour",
+   "sector": "Tur Operatörü",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "ANIMALIA VET",
+   "brand": "Animalia",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "ANIMALIA VETERINER",
+   "brand": "Animalia",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "ANKARA KART",
+   "brand": "Ankarakart",
+   "sector": "Toplu Taşıma",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "ANKARA VETERINER",
+   "brand": "Ankara Veteriner",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "ANKARAKART",
+   "brand": "Ankarakart",
+   "sector": "Toplu Taşıma",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "APPLE BILL",
+   "brand": "Apple",
+   "sector": "Bulut/Yazılım/Müzik",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "APPLE COM TR",
+   "brand": "Apple",
+   "sector": "Tüketici Elektroniği",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "APPLE STORE",
+   "brand": "Apple",
+   "sector": "Tüketici Elektroniği",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "APPLE.COM/BILL",
+   "brand": "Apple",
+   "sector": "Bulut/Yazılım/Müzik",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "ARABICA COFFEE",
+   "brand": "Arabica Coffee",
+   "sector": "Kahve Zinciri",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "ARBYS",
+   "brand": "Arby's",
+   "sector": "Fast Food",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "ARCELIK",
+   "brand": "Arçelik",
+   "sector": "Beyaz Eşya",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "ARIS PIRLANTA",
+   "brand": "Ariş Pırlanta",
+   "sector": "Kuyumculuk",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "ARMAGAN OYUNCAK",
+   "brand": "Armağan Oyuncak",
+   "sector": "Oyuncak",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "ARMAGAN OYUNCAK SAN",
+   "brand": "Armağan Oyuncak",
+   "sector": "Oyuncak",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "ARTISIST TEKNOLOJI",
+   "brand": "Troy",
+   "sector": "Tüketici Elektroniği",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "ARTİSİST TEKNOLOJİ",
+   "brand": "Troy",
+   "sector": "Tüketici Elektroniği",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "ARÇELİK",
+   "brand": "Arçelik",
+   "sector": "Beyaz Eşya",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "ARİŞ PIRLANTA",
+   "brand": "Ariş Pırlanta",
+   "sector": "Kuyumculuk",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "ASKI GENEL",
+   "brand": "ASKİ Ankara",
+   "sector": "Su",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "ASTOR CHARGE",
+   "brand": "Astor Charge",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "ATASAY",
+   "brand": "Atasay",
+   "sector": "Kuyumculuk",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "ATASUN OPTIK",
+   "brand": "Atasun Optik",
+   "sector": "Optik",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "ATASUN OPTİK",
+   "brand": "Atasun Optik",
+   "sector": "Optik",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "ATELIER REBUL",
+   "brand": "Atelier Rebul",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "AVON",
+   "brand": "Avon",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "AVRASYA TUNELI",
+   "brand": "Avrasya Tüneli",
+   "sector": "Otoyol/Köprü",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "AVRASYA TÜNELİ",
+   "brand": "Avrasya Tüneli",
+   "sector": "Otoyol/Köprü",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "AVVA",
+   "brand": "Avva",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "AXA HAYAT EMEKLILIK",
+   "brand": "Axa Hayat ve Emeklilik",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "AXA HAYAT EMEKLİLİK",
+   "brand": "Axa Hayat ve Emeklilik",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "AXA SIGORTA",
+   "brand": "Axa Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "AXA SİGORTA",
+   "brand": "Axa Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "AYDEM ELEKTRIK",
+   "brand": "Aydem Elektrik",
+   "sector": "Elektrik",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "AYDEM ELEKTRİK",
+   "brand": "Aydem Elektrik",
+   "sector": "Elektrik",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "AYGAZ OTOGAZ",
+   "brand": "Aygaz",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "AYTEMIZ PETROL",
+   "brand": "Aytemiz",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "AYTEMİZ PETROL",
+   "brand": "Aytemiz",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "AĞA KÜLÇE",
+   "brand": "Ağa Külçe",
+   "sector": "Altın & Kıymetli Maden",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "AŞKİ GENEL",
+   "brand": "ASKİ Ankara",
+   "sector": "Su",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "BAD BEAR",
+   "brand": "Bad Bear",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "BAHCESEHIR KOLEJI",
+   "brand": "Bahçeşehir Koleji",
+   "sector": "Özel Okul",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "BAHÇEŞEHİR KOLEJİ",
+   "brand": "Bahçeşehir Koleji",
+   "sector": "Özel Okul",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "BAMBI",
+   "brand": "Bambi",
+   "sector": "Ayakkabı",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "BAMBİ",
+   "brand": "Bambi",
+   "sector": "Ayakkabı",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "BARGELLO",
+   "brand": "Bargello",
+   "sector": "Parfüm & Esans",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "BASKENTGAZ",
+   "brand": "Başkentgaz",
+   "sector": "Doğalgaz",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "BATH & BODY WORKS",
+   "brand": "Bath & Body Works",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "BAUHAUS",
+   "brand": "Bauhaus",
+   "sector": "Yapı Market",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "BAYDONER",
+   "brand": "Baydöner",
+   "sector": "Restoran",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "BAYDÖNER",
+   "brand": "Baydöner",
+   "sector": "Restoran",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "BAYINDIR HASTANESI",
+   "brand": "Bayındır Sağlık Grubu",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "BAYINDIR HASTANESİ",
+   "brand": "Bayındır Sağlık Grubu",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "BAŞKENTGAZ",
+   "brand": "Başkentgaz",
+   "sector": "Doğalgaz",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "BEEFULL SARJ",
+   "brand": "Beefull",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "BEEFULL ŞARJ",
+   "brand": "Beefull",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "BEKO",
+   "brand": "Beko",
+   "sector": "Beyaz Eşya",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "BEKO MAGAZALARI",
+   "brand": "Beko",
+   "sector": "Beyaz Eşya & Elektronik",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "BEKO MAĞAZALARI",
+   "brand": "Beko",
+   "sector": "Beyaz Eşya & Elektronik",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "BELBIM",
+   "brand": "İstanbulkart",
+   "sector": "Toplu Taşıma",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "BELBİM",
+   "brand": "İstanbulkart",
+   "sector": "Toplu Taşıma",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "BELLONA",
+   "brand": "Bellona",
+   "sector": "Mobilya",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "BEREKET EMEKLILIK",
+   "brand": "Bereket Emeklilik",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "BEREKET EMEKLİLİK",
+   "brand": "Bereket Emeklilik",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "BEREKET SIGORTA",
+   "brand": "Bereket Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "BEREKET SİGORTA",
+   "brand": "Bereket Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "BERSHKA",
+   "brand": "Bershka",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "BESIKTAS VET",
+   "brand": "Beşiktaş Veteriner",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "BEYMEN",
+   "brand": "Beymen",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "BEYMEN CLUB",
+   "brand": "Beymen Club",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "BI TAKSI",
+   "brand": "BiTaksi",
+   "sector": "Taksi Uygulamaları",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "BICEN MARKET",
+   "brand": "Biçen Market",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "BIG CHEFS",
+   "brand": "BigChefs",
+   "sector": "Restoran/Kafe",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "BIGCHEFS",
+   "brand": "BigChefs",
+   "sector": "Restoran/Kafe",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "BILDIRICI",
+   "brand": "Bildirici Market",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "BILFEN KOLEJI",
+   "brand": "Bilfen Okulları",
+   "sector": "Özel Okul",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "BILNET KOLEJI",
+   "brand": "Bilnet Okulları",
+   "sector": "Özel Okul",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "BIM MAGAZALARI",
+   "brand": "BİM",
+   "sector": "Süpermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "BINANCE TR",
+   "brand": "Binance TR",
+   "sector": "Kripto Varlık",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "BINBIN",
+   "brand": "BinBin",
+   "sector": "Scooter",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "BIREVIM",
+   "brand": "Birevim",
+   "sector": "Tasarruf Finansman",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "BIRUNI LABORATUVARI",
+   "brand": "Biruni Laboratuvarı",
+   "sector": "Laboratuvar",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "BITAKSI",
+   "brand": "BiTaksi",
+   "sector": "Taksi Uygulamaları",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "BITEXEN",
+   "brand": "Bitexen",
+   "sector": "Kripto Varlık",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "BITLO",
+   "brand": "Bitlo",
+   "sector": "Kripto Varlık",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "BIZIM GAZ",
+   "brand": "Bizim Gaz",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "BIZIM TOPTAN",
+   "brand": "Bizim Toptan",
+   "sector": "Hipermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "BKM KITAP",
+   "brand": "BKM Kitap",
+   "sector": "Kitap & Kırtasiye",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "BKM KİTAP",
+   "brand": "BKM Kitap",
+   "sector": "Kitap & Kırtasiye",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "BLU TV",
+   "brand": "BluTV",
+   "sector": "Video Yayın",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "BLUE DIAMOND",
+   "brand": "Blue Diamond",
+   "sector": "Kuyumculuk",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "BLUTV",
+   "brand": "BluTV",
+   "sector": "Video Yayın",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "BN TEKNOLOJI",
+   "brand": "Binance TR",
+   "sector": "Kripto Varlık",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "BN TEKNOLOJİ",
+   "brand": "Binance TR",
+   "sector": "Kripto Varlık",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "BNP PARIBAS CARDIF",
+   "brand": "BNP Paribas Cardif",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "BNP PARIBAS CARDİF",
+   "brand": "BNP Paribas Cardif",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "BOBBI BROWN",
+   "brand": "Bobbi Brown",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "BOGAZICI ELEKTRIK",
+   "brand": "CK Boğaziçi Elektrik",
+   "sector": "Elektrik",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "BOOKING",
+   "brand": "Booking.com",
+   "sector": "Seyahat Sitesi",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "BOSCH",
+   "brand": "Bosch",
+   "sector": "Beyaz Eşya",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "BOWLERO",
+   "brand": "Bowlero",
+   "sector": "Bowling",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "BOYNER",
+   "brand": "Boyner",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "BOĞAZİÇİ ELEKTRİK",
+   "brand": "CK Boğaziçi Elektrik",
+   "sector": "Elektrik",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "BP PETROL",
+   "brand": "BP",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "BRITISH TIME",
+   "brand": "British Time",
+   "sector": "Kurs & Dil Okulu",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "BTCTURK",
+   "brand": "BtcTurk",
+   "sector": "Kripto Varlık",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "BUMPER CARS",
+   "brand": "Lunapark Eğlence",
+   "sector": "Lunapark",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "BUPA ACIBADEM SIGORTA",
+   "brand": "Bupa Acıbadem Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "BUPA ACIBADEM SİGORTA",
+   "brand": "Bupa Acıbadem Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "BURGER KING",
+   "brand": "Burger King",
+   "sector": "Fast Food",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "BURSA KEBAP EVI",
+   "brand": "Bursa Kebap Evi",
+   "sector": "Restoran",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "BURSA KEBAP EVİ",
+   "brand": "Bursa Kebap Evi",
+   "sector": "Restoran",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "BURSAGAZ",
+   "brand": "Bursagaz",
+   "sector": "Doğalgaz",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "BUSKI",
+   "brand": "BUSKİ",
+   "sector": "Su",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "BUSKİ",
+   "brand": "BUSKİ",
+   "sector": "Su",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "BİLDİRİCİ",
+   "brand": "Bildirici Market",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "BİLFEN KOLEJİ",
+   "brand": "Bilfen Okulları",
+   "sector": "Özel Okul",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "BİLNET KOLEJİ",
+   "brand": "Bilnet Okulları",
+   "sector": "Özel Okul",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "BİM MAĞAZALARI",
+   "brand": "BİM",
+   "sector": "Süpermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "BİNBİN",
+   "brand": "BinBin",
+   "sector": "Scooter",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "BİREVİM",
+   "brand": "Birevim",
+   "sector": "Tasarruf Finansman",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "BİRUNİ LABORATUVARI",
+   "brand": "Biruni Laboratuvarı",
+   "sector": "Laboratuvar",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "BİTAKSİ",
+   "brand": "BiTaksi",
+   "sector": "Taksi Uygulamaları",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "BİTEXEN",
+   "brand": "Bitexen",
+   "sector": "Kripto Varlık",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "BİTLO",
+   "brand": "Bitlo",
+   "sector": "Kripto Varlık",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "BİZİM GAZ",
+   "brand": "Bizim Gaz",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "BİZİM TOPTAN",
+   "brand": "Bizim Toptan",
+   "sector": "Hipermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "BİÇEN MARKET",
+   "brand": "Biçen Market",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "CACHAREL",
+   "brand": "Cacharel",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "CAGRI MARKET",
+   "brand": "Çağrı Market",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "CAKA PET",
+   "brand": "Çaka Pet",
+   "sector": "Pet Shop",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "CAKA PETSHOP",
+   "brand": "Çaka Pet",
+   "sector": "Pet Shop",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "CAMBLY",
+   "brand": "Cambly",
+   "sector": "Online Eğitim",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "CANVA",
+   "brand": "Canva",
+   "sector": "Yazılım",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "CARREFOUR",
+   "brand": "CarrefourSA",
+   "sector": "Süpermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "CARREFOURSA",
+   "brand": "CarrefourSA",
+   "sector": "Süpermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "CASPER BILGISAYAR",
+   "brand": "Casper",
+   "sector": "Bilgisayar & Donanım",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "CASPER BİLGİSAYAR",
+   "brand": "Casper",
+   "sector": "Bilgisayar & Donanım",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "CEYLAN MOBILYA",
+   "brand": "Bellona",
+   "sector": "Mobilya",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "CICEKSEPETI",
+   "brand": "Çiçeksepeti",
+   "sector": "E-Ticaret",
+   "category": "cat_shopping"
+  },
+  {
+   "pattern": "CILEK MOBILYA",
+   "brand": "Çilek Mobilya",
+   "sector": "Mobilya",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "CK BOGAZICI",
+   "brand": "CK Boğaziçi Elektrik",
+   "sector": "Elektrik",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "CK BOĞAZİÇİ",
+   "brand": "CK Boğaziçi Elektrik",
+   "sector": "Elektrik",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "CLASS PETROL",
+   "brand": "Class Petrol",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "CLINIQUE",
+   "brand": "Clinique",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "COINTR",
+   "brand": "CoinTR",
+   "sector": "Kripto Varlık",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "COLINS",
+   "brand": "Colin's",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "COLUMBIA",
+   "brand": "Columbia",
+   "sector": "Spor Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "COOKSHOP",
+   "brand": "Cookshop",
+   "sector": "Restoran/Kafe",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "CORAL TRAVEL",
+   "brand": "Coral Travel",
+   "sector": "Tur Operatörü",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "CORPUS SIGORTA",
+   "brand": "Corpus Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "CORPUS SİGORTA",
+   "brand": "Corpus Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "COSMETICA",
+   "brand": "Cosmetica",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "COURSERA",
+   "brand": "Coursera",
+   "sector": "Online Eğitim",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "CVK HOTELS",
+   "brand": "CVK Hotels",
+   "sector": "Otel",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "D&R MAGAZACILIK",
+   "brand": "D&R",
+   "sector": "Kitap & Kırtasiye",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "D-SMART",
+   "brand": "D-Smart",
+   "sector": "Video Yayın",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "DAGI",
+   "brand": "Dagi",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "DAGİ",
+   "brand": "Dagi",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "DAMAT",
+   "brand": "D'S Damat",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "DAVID WALKER",
+   "brand": "David Walker",
+   "sector": "Parfüm & Esans",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "DECATHLON",
+   "brand": "Decathlon",
+   "sector": "Spor Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "DEEZER",
+   "brand": "Deezer",
+   "sector": "Müzik Yayın",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "DEFACTO",
+   "brand": "DeFacto",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "DEICHMANN",
+   "brand": "Deichmann",
+   "sector": "Ayakkabı",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "DENT GROUP",
+   "brand": "Dentgroup",
+   "sector": "Diş Sağlığı",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "DENTAKAY",
+   "brand": "Dentakay",
+   "sector": "Diş Sağlığı",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "DENTGROUP",
+   "brand": "Dentgroup",
+   "sector": "Diş Sağlığı",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "DENTISTANBUL",
+   "brand": "Dentistanbul",
+   "sector": "Diş Sağlığı",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "DENTİSTANBUL",
+   "brand": "Dentistanbul",
+   "sector": "Diş Sağlığı",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "DERIMOD",
+   "brand": "Derimod",
+   "sector": "Ayakkabı",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "DERMOECZANE",
+   "brand": "DermoEczane",
+   "sector": "Dermokozmetik",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "DERMOMARKET",
+   "brand": "DermoMarket",
+   "sector": "Dermokozmetik",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "DERİMOD",
+   "brand": "Derimod",
+   "sector": "Ayakkabı",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "DIGITURK",
+   "brand": "Digiturk",
+   "sector": "TV Yayıncılık",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "DILEK PASTANESI",
+   "brand": "Dilek Pastanesi",
+   "sector": "Pastane/Kafe",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "DISNEY PLUS",
+   "brand": "Disney+",
+   "sector": "Video Yayın",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "DISNEYPLUS",
+   "brand": "Disney+",
+   "sector": "Video Yayın",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "DIVAN",
+   "brand": "Divan Otelleri",
+   "sector": "Otel",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "DIVAN PASTANESI",
+   "brand": "Divan Pastanesi",
+   "sector": "Pastane",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "DOGA KOLEJI",
+   "brand": "Doğa Koleji",
+   "sector": "Özel Okul",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "DOGA SIGORTA",
+   "brand": "Doğa Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "DOGRU VET",
+   "brand": "Doğru Veteriner",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "DOGRU VETERINER",
+   "brand": "Doğru Veteriner",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "DOMINOS PIZZA",
+   "brand": "Domino's Pizza",
+   "sector": "Fast Food",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "DOPING HAFIZA",
+   "brand": "Doping Hafıza",
+   "sector": "Online Eğitim",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "DOPİNG HAFIZA",
+   "brand": "Doping Hafıza",
+   "sector": "Online Eğitim",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "DOST KITABEVI",
+   "brand": "Dost Kitabevi",
+   "sector": "Kitap & Kırtasiye",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "DOST KİTABEVİ",
+   "brand": "Dost Kitabevi",
+   "sector": "Kitap & Kırtasiye",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "DOSTLAR MOBILYA",
+   "brand": "Kelebek",
+   "sector": "Mobilya",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "DOĞA KOLEJİ",
+   "brand": "Doğa Koleji",
+   "sector": "Özel Okul",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "DOĞA SİGORTA",
+   "brand": "Doğa Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "DP PERFUME",
+   "brand": "D&P Perfume",
+   "sector": "Parfüm & Esans",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "DR MAGAZACILIK",
+   "brand": "D&R",
+   "sector": "Kitap & Kırtasiye",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "DROPBOX",
+   "brand": "Dropbox",
+   "sector": "Bulut Depolama",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "DS DAMAT",
+   "brand": "D'S Damat",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "DSMART",
+   "brand": "D-Smart",
+   "sector": "Video Yayın",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "DUOLINGO",
+   "brand": "Duolingo",
+   "sector": "Eğitim",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "DUZEN LABORATUVARI",
+   "brand": "Düzen Laboratuvarı",
+   "sector": "Laboratuvar",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "DYSON TURKIYE",
+   "brand": "Dyson",
+   "sector": "Tüketici Elektroniği",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "DYSON TÜRKİYE",
+   "brand": "Dyson",
+   "sector": "Tüketici Elektroniği",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "DÜZEN LABORATUVARI",
+   "brand": "Düzen Laboratuvarı",
+   "sector": "Laboratuvar",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "DİGİTÜRK",
+   "brand": "Digiturk",
+   "sector": "TV Yayıncılık",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "DİLEK PASTANESİ",
+   "brand": "Dilek Pastanesi",
+   "sector": "Pastane/Kafe",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "DİVAN",
+   "brand": "Divan Otelleri",
+   "sector": "Otel",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "DİVAN PASTANESİ",
+   "brand": "Divan Pastanesi",
+   "sector": "Pastane",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "E-BEBEK",
+   "brand": "ebebek",
+   "sector": "Bebek ve Oyuncak",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "EASY CEP BILISIM",
+   "brand": "EasyCep",
+   "sector": "Yenilenmiş Elektronik",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "EASY CEP BİLİŞİM",
+   "brand": "EasyCep",
+   "sector": "Yenilenmiş Elektronik",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "EASYCEP",
+   "brand": "EasyCep",
+   "sector": "Yenilenmiş Elektronik",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "EBEBEK",
+   "brand": "ebebek",
+   "sector": "Bebek ve Oyuncak",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "ECZANE",
+   "brand": "Bağımsız Eczane",
+   "sector": "Eczane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "ECZANESI",
+   "brand": "Bağımsız Eczane",
+   "sector": "Eczane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "ECZANESİ",
+   "brand": "Bağımsız Eczane",
+   "sector": "Eczane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "ELEKTRIP SARJ",
+   "brand": "Elektrip",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "ELEKTRİP ŞARJ",
+   "brand": "Elektrip",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "ELI KOD TEKNOLOJI",
+   "brand": "BtcTurk",
+   "sector": "Kripto Varlık",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "ELLE AYAKKABI",
+   "brand": "Elle",
+   "sector": "Ayakkabı",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "ELİ KOD TEKNOLOJİ",
+   "brand": "BtcTurk",
+   "sector": "Kripto Varlık",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "EMAY",
+   "brand": "Korkmaz",
+   "sector": "Ev Eşyası",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "EMIN OTOMOTIV",
+   "brand": "Eminevim",
+   "sector": "Tasarruf Finansman",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "EMINEVIM",
+   "brand": "Eminevim",
+   "sector": "Tasarruf Finansman",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "EMO OPTIK",
+   "brand": "Emo Optik",
+   "sector": "Optik",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "EMO OPTİK",
+   "brand": "Emo Optik",
+   "sector": "Optik",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "EMİN OTOMOTİV",
+   "brand": "Eminevim",
+   "sector": "Tasarruf Finansman",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "EMİNEVİM",
+   "brand": "Eminevim",
+   "sector": "Tasarruf Finansman",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "ENERJISA",
+   "brand": "Enerjisa",
+   "sector": "Elektrik",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "ENERJİSA",
+   "brand": "Enerjisa",
+   "sector": "Elektrik",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "ENGLISH HOME",
+   "brand": "English Home",
+   "sector": "Ev Tekstili",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "ENGLISH TIME",
+   "brand": "English Time",
+   "sector": "Kurs & Dil Okulu",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "ENKA OKULLARI",
+   "brand": "Enka Okulları",
+   "sector": "Özel Okul",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "ENUYGUN",
+   "brand": "Enuygun",
+   "sector": "Seyahat Sitesi",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "ENZA HOME",
+   "brand": "Enza Home",
+   "sector": "Mobilya",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "EPIC GAMES",
+   "brand": "Epic Games",
+   "sector": "Oyun Platformu",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "EPICGAMES",
+   "brand": "Epic Games",
+   "sector": "Oyun Platformu",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "EPTTM",
+   "brand": "PTTAVM",
+   "sector": "E-Ticaret",
+   "category": "cat_shopping"
+  },
+  {
+   "pattern": "ERDEM KIRAMER",
+   "brand": "Erdem Kıramer",
+   "sector": "Kuaför & Güzellik",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "ERDEM KİRAMER",
+   "brand": "Erdem Kıramer",
+   "sector": "Kuaför & Güzellik",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "ESARJ ELEKTRIK",
+   "brand": "Eşarj",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "ESPRESSOLAB",
+   "brand": "Espressolab",
+   "sector": "Kahve Zinciri",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "ESTATION SARJ",
+   "brand": "eStation",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "ESTATION ŞARJ",
+   "brand": "eStation",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "ESTEE LAUDER",
+   "brand": "Estée Lauder",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "ETS TUR",
+   "brand": "ETSTUR",
+   "sector": "Tur Operatörü",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "ETSTUR",
+   "brand": "ETSTUR",
+   "sector": "Tur Operatörü",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "EUREKO SIGORTA",
+   "brand": "Eureko Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "EUREKO SİGORTA",
+   "brand": "Eureko Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "EVE SHOP",
+   "brand": "Eve Shop",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "EVESHOP",
+   "brand": "Eve Shop",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "EXPEDIA",
+   "brand": "Expedia",
+   "sector": "Seyahat Sitesi",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "EXXEN",
+   "brand": "Exxen",
+   "sector": "Video Yayın",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "EXXEN DIJITAL",
+   "brand": "Exxen",
+   "sector": "Video Yayın",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "EXXEN DİJİTAL",
+   "brand": "Exxen",
+   "sector": "Video Yayın",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "EYUBOGLU EGITIM",
+   "brand": "Eyüboğlu Eğitim Kurumları",
+   "sector": "Özel Okul",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "EYÜBOĞLU EĞİTİM",
+   "brand": "Eyüboğlu Eğitim Kurumları",
+   "sector": "Özel Okul",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "EŞARJ ELEKTRİK",
+   "brand": "Eşarj",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "FALAPARK",
+   "brand": "Vialand",
+   "sector": "Tema Park",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "FARMASI",
+   "brand": "Farmasi",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "FARMASİ",
+   "brand": "Farmasi",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "FIBA EMEKLILIK",
+   "brand": "Fibaemeklilik",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "FILE MARKET",
+   "brand": "File Market",
+   "sector": "Süpermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "FIZY",
+   "brand": "Fizy",
+   "sector": "Müzik Yayın",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "FLO",
+   "brand": "Flo",
+   "sector": "Ayakkabı",
+   "category": "cat_shopping"
+  },
+  {
+   "pattern": "FLO MAGAZACILIK",
+   "brand": "FLO",
+   "sector": "Ayakkabı",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "FLORENCE N",
+   "brand": "Florence Nightingale",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "FLORENCE NIGHTINGALE",
+   "brand": "Florence Nightingale",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "FLORMAR",
+   "brand": "Flormar",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "FLYING TIGER",
+   "brand": "Flying Tiger",
+   "sector": "Oyuncak ve Hediye",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "FMV ISIK OKULLARI",
+   "brand": "FMV Işık Okulları",
+   "sector": "Özel Okul",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "FMV IŞIK OKULLARI",
+   "brand": "FMV Işık Okulları",
+   "sector": "Özel Okul",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "FODER",
+   "brand": "Coral Travel",
+   "sector": "Tur Operatörü",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "FUN LAB",
+   "brand": "Funlab",
+   "sector": "Eğlence Merkezi",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "FUNLAB",
+   "brand": "Funlab",
+   "sector": "Eğlence Merkezi",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "FUZUL EV",
+   "brand": "Fuzul Ev",
+   "sector": "Tasarruf Finansman",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "FUZUL TASARRUF",
+   "brand": "Fuzul Ev",
+   "sector": "Tasarruf Finansman",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "FUZULEV",
+   "brand": "Fuzul Ev",
+   "sector": "Tasarruf Finansman",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "FİBA EMEKLİLİK",
+   "brand": "Fibaemeklilik",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "FİLE MARKET",
+   "brand": "File Market",
+   "sector": "Süpermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "FİZY",
+   "brand": "Fizy",
+   "sector": "Müzik Yayın",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "GAIN MEDYA",
+   "brand": "Gain",
+   "sector": "Video Yayın",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "GAME+",
+   "brand": "GeForce Now",
+   "sector": "Oyun Platformu",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "GAMEPLUS",
+   "brand": "GeForce Now",
+   "sector": "Oyun Platformu",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "GAMING GEN TR",
+   "brand": "Gaming.Gen.TR",
+   "sector": "Bilgisayar & Donanım",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "GARANTI BBVA EMEKLILIK",
+   "brand": "Garanti BBVA Emeklilik",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "GARANTI YATIRIM",
+   "brand": "Garanti BBVA Yatırım",
+   "sector": "Yatırım & Menkul Değerler",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "GARANTİ BBVA EMEKLİLİK",
+   "brand": "Garanti BBVA Emeklilik",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "GARANTİ YATIRIM",
+   "brand": "Garanti BBVA Yatırım",
+   "sector": "Yatırım & Menkul Değerler",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "GASKI",
+   "brand": "GASKİ",
+   "sector": "Su",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "GASKİ",
+   "brand": "GASKİ",
+   "sector": "Su",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "GAİN MEDYA",
+   "brand": "Gain",
+   "sector": "Video Yayın",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "GEDIK YATIRIM",
+   "brand": "Gedik Yatırım",
+   "sector": "Yatırım & Menkul Değerler",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "GEDIZ ELEKTRIK",
+   "brand": "Gediz Elektrik",
+   "sector": "Elektrik",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "GEDİK YATIRIM",
+   "brand": "Gedik Yatırım",
+   "sector": "Yatırım & Menkul Değerler",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "GEDİZ ELEKTRİK",
+   "brand": "Gediz Elektrik",
+   "sector": "Elektrik",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "GEFORCE NOW",
+   "brand": "GeForce Now",
+   "sector": "Oyun Platformu",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "GELISIM LABORATUVARI",
+   "brand": "Gelişim Laboratuvarı",
+   "sector": "Laboratuvar",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "GELİŞİM LABORATUVARI",
+   "brand": "Gelişim Laboratuvarı",
+   "sector": "Laboratuvar",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "GENERALI SIGORTA",
+   "brand": "Generali Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "GENERALİ SİGORTA",
+   "brand": "Generali Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "GENPA TELEKOMUNIKASYON",
+   "brand": "Genpa",
+   "sector": "Telekomünikasyon & Dağıtım",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "GENPA TELEKOMÜNİKASYON",
+   "brand": "Genpa",
+   "sector": "Telekomünikasyon & Dağıtım",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "GETIR",
+   "brand": "Getir",
+   "sector": "Hızlı Market",
+   "category": "cat_shopping"
+  },
+  {
+   "pattern": "GETIR PERAKENDE",
+   "brand": "Getir",
+   "sector": "Online Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "GETIRBUYUK",
+   "brand": "GetirBüyük",
+   "sector": "Online Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "GETIRYEMEK",
+   "brand": "GetirYemek",
+   "sector": "Yemek Siparişi",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "GETMOBIL",
+   "brand": "Getmobil",
+   "sector": "Yenilenmiş Elektronik",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "GETMOBİL",
+   "brand": "Getmobil",
+   "sector": "Yenilenmiş Elektronik",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "GETİR",
+   "brand": "Getir",
+   "sector": "Hızlı Market",
+   "category": "cat_shopping"
+  },
+  {
+   "pattern": "GETİR PERAKENDE",
+   "brand": "Getir",
+   "sector": "Online Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "GETİRBÜYÜK",
+   "brand": "GetirBüyük",
+   "sector": "Online Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "GIMSA",
+   "brand": "Gimsa",
+   "sector": "Hipermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "GIOEV SARJ",
+   "brand": "GioEV",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "GITHUB",
+   "brand": "GitHub",
+   "sector": "Yazılım/Geliştirici",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "GLORIA JEANS",
+   "brand": "Gloria Jean's",
+   "sector": "Kahve Zinciri",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "GO PETROL",
+   "brand": "Go Petrol",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "GOLDEN ROSE",
+   "brand": "Golden Rose",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "GOOGLE CLOUD",
+   "brand": "Google Cloud",
+   "sector": "Bulut Depolama",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "GOOGLE STORAGE",
+   "brand": "Google One",
+   "sector": "Bulut Depolama",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "GOOGLE YOUTUBE",
+   "brand": "YouTube",
+   "sector": "Video/Müzik Yayın",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "GOZ GRUP OPTIK",
+   "brand": "Göz Grup Optik",
+   "sector": "Optik",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "GRATIS",
+   "brand": "Gratis",
+   "sector": "Kozmetik",
+   "category": "cat_shopping"
+  },
+  {
+   "pattern": "GRATİS",
+   "brand": "Gratis",
+   "sector": "Kozmetik",
+   "category": "cat_shopping"
+  },
+  {
+   "pattern": "GREEN SALADS",
+   "brand": "Green Salads",
+   "sector": "Restoran",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "GROSERI",
+   "brand": "Groseri",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "GROSERİ",
+   "brand": "Groseri",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "GULER PET",
+   "brand": "Güler Pet",
+   "sector": "Pet Shop",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "GULER PETSHOP",
+   "brand": "Güler Pet",
+   "sector": "Pet Shop",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "GULLUOGLU",
+   "brand": "Güllüoğlu",
+   "sector": "Pastane",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "GURAL PORSELEN",
+   "brand": "Güral Porselen",
+   "sector": "Ev Eşyası",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "GURGENCLER",
+   "brand": "Gürgençler",
+   "sector": "Tüketici Elektroniği",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "GUVEN HASTANESI",
+   "brand": "Güven Hastanesi",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "GÖZ GRUP OPTİK",
+   "brand": "Göz Grup Optik",
+   "sector": "Optik",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "GÜLLÜOĞLU",
+   "brand": "Güllüoğlu",
+   "sector": "Pastane",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "GÜRAL PORSELEN",
+   "brand": "Güral Porselen",
+   "sector": "Ev Eşyası",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "GÜRGENÇLER",
+   "brand": "Gürgençler",
+   "sector": "Tüketici Elektroniği",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "GÜVEN HASTANESİ",
+   "brand": "Güven Hastanesi",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "GİMSA",
+   "brand": "Gimsa",
+   "sector": "Hipermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "GİOEV ŞARJ",
+   "brand": "GioEV",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "HADIM MARKET",
+   "brand": "Hadim Market",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "HADİM MARKET",
+   "brand": "Hadim Market",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "HAKMAR EXPRESS",
+   "brand": "Hakmar",
+   "sector": "Süpermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "HAPPY CENTER",
+   "brand": "Happy Center",
+   "sector": "Süpermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "HAPPY MOONS",
+   "brand": "Happy Moon's",
+   "sector": "Restoran/Kafe",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "HAREM ALTIN",
+   "brand": "Harem Altın",
+   "sector": "Döviz & Kıymetli Maden",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "HAYVAN HASTANESI",
+   "brand": "Hayvan Hastanesi",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "HD ISKENDER",
+   "brand": "HD İskender",
+   "sector": "Restoran",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "HD İSKENDER",
+   "brand": "HD İskender",
+   "sector": "Restoran",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "HDI SIGORTA",
+   "brand": "HDI Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "HDİ SİGORTA",
+   "brand": "HDI Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "HEPIYI SIGORTA",
+   "brand": "Hepiyi Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "HEPSIBURADA",
+   "brand": "Hepsiburada",
+   "sector": "E-Ticaret",
+   "category": "cat_shopping"
+  },
+  {
+   "pattern": "HEPSİBURADA",
+   "brand": "Hepsiburada",
+   "sector": "E-Ticaret",
+   "category": "cat_shopping"
+  },
+  {
+   "pattern": "HEPİYİ SİGORTA",
+   "brand": "Hepiyi Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "HGS YUKLEME",
+   "brand": "HGS",
+   "sector": "Otoyol/Köprü",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "HGS YÜKLEME",
+   "brand": "HGS",
+   "sector": "Otoyol/Köprü",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "HILTON",
+   "brand": "Hilton Hotels",
+   "sector": "Otel",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "HOP SCOOTER",
+   "brand": "Hop",
+   "sector": "Scooter",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "HOSPITADENT",
+   "brand": "Hospitadent",
+   "sector": "Diş Sağlığı",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "HOSPİTADENT",
+   "brand": "Hospitadent",
+   "sector": "Diş Sağlığı",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "HOTELSCOM",
+   "brand": "Hotels.com",
+   "sector": "Seyahat Sitesi",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "HOTIC",
+   "brand": "Hotiç",
+   "sector": "Ayakkabı",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "HOTİÇ",
+   "brand": "Hotiç",
+   "sector": "Ayakkabı",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "HUAWEI ONLINE MAGAZA",
+   "brand": "Huawei",
+   "sector": "Tüketici Elektroniği",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "HUAWEI ONLINE MAĞAZA",
+   "brand": "Huawei",
+   "sector": "Tüketici Elektroniği",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "HUGON",
+   "brand": "Teka",
+   "sector": "Beyaz Eşya",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "HUQQA",
+   "brand": "Huqqa",
+   "sector": "Restoran/Kafe",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "HYPCO PETROL",
+   "brand": "Hypco",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "ICA OTOYOL",
+   "brand": "ICA Yavuz Sultan Selim Köprüsü",
+   "sector": "Otoyol/Köprü",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "ICRYPEX",
+   "brand": "ICRYPEX",
+   "sector": "Kripto Varlık",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "IGA OTOPARK",
+   "brand": "İstanbul Havalimanı Otopark",
+   "sector": "Otopark",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "IGDAS",
+   "brand": "İGDAŞ",
+   "sector": "Doğalgaz",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "IMECE TASARRUF",
+   "brand": "İmece Tasarruf",
+   "sector": "Tasarruf Finansman",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "INCEHESAP",
+   "brand": "İncehesap",
+   "sector": "Bilgisayar & Donanım",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "INFO YATIRIM",
+   "brand": "İnfo Yatırım",
+   "sector": "Yatırım & Menkul Değerler",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "INTERSPORT",
+   "brand": "Intersport",
+   "sector": "Spor Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "IPEKYOL",
+   "brand": "İpekyol",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "IPRAGAZ OTOGAZ",
+   "brand": "İpragaz",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "IS KULTUR YAYINLARI",
+   "brand": "İş Kültür Yayınları",
+   "sector": "Kitap & Kırtasiye",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "IS YATIRIM",
+   "brand": "İş Yatırım",
+   "sector": "Yatırım & Menkul Değerler",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "ISFANBUL",
+   "brand": "İsfanbul",
+   "sector": "Tema Park",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "ISFANBUL TEMA PARK",
+   "brand": "İsfanbul",
+   "sector": "Tema Park",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "ISG OTOPARK",
+   "brand": "Sabiha Gökçen Otopark",
+   "sector": "Otopark",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "ISKI",
+   "brand": "İSKİ",
+   "sector": "Su",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "ISKI GENEL",
+   "brand": "İSKİ",
+   "sector": "Su",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "ISPARK",
+   "brand": "İspark",
+   "sector": "Otopark",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "ISTANBUL ALTIN RAFINERISI",
+   "brand": "İstanbul Altın Rafinerisi",
+   "sector": "Altın & Kıymetli Maden",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "ISTANBUL KART",
+   "brand": "İstanbulkart",
+   "sector": "Toplu Taşıma",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "ISTANBUL VETERINER",
+   "brand": "İstanbul Veteriner",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "ISTANBUL VETERINERLIK",
+   "brand": "İstanbul Veteriner",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "ISTANBULKART",
+   "brand": "İstanbulkart",
+   "sector": "Toplu Taşıma",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "ISTEGELSIN",
+   "brand": "İstegelsin",
+   "sector": "Online Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "ISTEK OKULLARI",
+   "brand": "İSTEK Okulları",
+   "sector": "Özel Okul",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "ISTIKBAL",
+   "brand": "İstikbal",
+   "sector": "Mobilya",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "ITAKSI",
+   "brand": "iTaksi",
+   "sector": "Taksi Uygulamaları",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "ITOPYA",
+   "brand": "İtopya",
+   "sector": "Bilgisayar & Donanım",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "ITOPYA BILGISAYAR",
+   "brand": "İtopya",
+   "sector": "Bilgisayar & Donanım",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "IZGAZ",
+   "brand": "İZGAZ",
+   "sector": "Doğalgaz",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "IZMIR VET",
+   "brand": "İzmir Veteriner",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "IZMIR VETERINER",
+   "brand": "İzmir Veteriner",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "IZMIRGAZ",
+   "brand": "İzmirgaz",
+   "sector": "Doğalgaz",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "IZMIRIMKART",
+   "brand": "İzmirim Kart",
+   "sector": "Toplu Taşıma",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "IZSU",
+   "brand": "İZSU",
+   "sector": "Su",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "JO MALONE",
+   "brand": "Jo Malone",
+   "sector": "Parfüm & Esans",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "JOKER BABY",
+   "brand": "Joker",
+   "sector": "Bebek ve Oyuncak",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "JOKER OYUNCAK",
+   "brand": "Joker",
+   "sector": "Bebek ve Oyuncak",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "JOLLY TUR",
+   "brand": "Jolly Tur",
+   "sector": "Tur Operatörü",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "JOLLY TURIZM",
+   "brand": "Jolly Tur",
+   "sector": "Tur Operatörü",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "JOLLY TURİZM",
+   "brand": "Jolly Tur",
+   "sector": "Tur Operatörü",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "JOY LAND",
+   "brand": "Joyland",
+   "sector": "Eğlence Merkezi",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "JOYLAND",
+   "brand": "Joyland",
+   "sector": "Eğlence Merkezi",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "JUST ENGLISH",
+   "brand": "Just English",
+   "sector": "Kurs & Dil Okulu",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "KABALCI KITABEVI",
+   "brand": "Kabalcı Kitabevi",
+   "sector": "Kitap & Kırtasiye",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "KABALCI KİTABEVİ",
+   "brand": "Kabalcı Kitabevi",
+   "sector": "Kitap & Kırtasiye",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "KADIKOY VET",
+   "brand": "Kadıköy Veteriner",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "KADIKOY VETERINER",
+   "brand": "Kadıköy Veteriner",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "KADOIL PETROL",
+   "brand": "Kadoil",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "KAHVE DUNYASI",
+   "brand": "Kahve Dünyası",
+   "sector": "Kahve Zinciri",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "KAHVE DÜNYASI",
+   "brand": "Kahve Dünyası",
+   "sector": "Kahve Zinciri",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "KAMIL KOC",
+   "brand": "Kamil Koç",
+   "sector": "Otobüs Firmaları",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "KAMILKOC",
+   "brand": "Kamil Koç",
+   "sector": "Seyahat Sitesi",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "KAMİL KOÇ",
+   "brand": "Kamil Koç",
+   "sector": "Otobüs Firmaları",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "KARACA",
+   "brand": "Karaca",
+   "sector": "Ev Eşyası",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "KARACA ZACEN",
+   "brand": "Karaca",
+   "sector": "Ev Eşyası",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "KATILIM EMEKLILIK",
+   "brand": "Katılım Emeklilik",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "KATILIM EMEKLİLİK",
+   "brand": "Katılım Emeklilik",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "KATILIMEVIM",
+   "brand": "Katılımevim",
+   "sector": "Tasarruf Finansman",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "KATILIMEVİM",
+   "brand": "Katılımevim",
+   "sector": "Tasarruf Finansman",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "KAVRAM VET",
+   "brand": "Kavram Veteriner",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "KAVRAM VETERINER",
+   "brand": "Kavram Veteriner",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "KELEBEK MOBILYA",
+   "brand": "Kelebek",
+   "sector": "Mobilya",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "KENT HASTANESI",
+   "brand": "Kent Hastanesi",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "KENT HASTANESİ",
+   "brand": "Kent Hastanesi",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "KENTKART",
+   "brand": "Kentkart",
+   "sector": "Toplu Taşıma",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "KGM GECIS",
+   "brand": "KGM Karayolları Geçiş",
+   "sector": "Otoyol/Köprü",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "KGM GEÇİŞ",
+   "brand": "KGM Karayolları Geçiş",
+   "sector": "Otoyol/Köprü",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "KIDZANIA",
+   "brand": "KidZania",
+   "sector": "Çocuk Eğlence",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "KIDZANIA ISTANBUL",
+   "brand": "KidZania",
+   "sector": "Çocuk Eğlence",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "KIEHLS",
+   "brand": "Kiehl's",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "KIGILI",
+   "brand": "Kiğılı",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "KIKO MILANO",
+   "brand": "Kiko Milano",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "KIM MARKET",
+   "brand": "Kim Market",
+   "sector": "Süpermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "KIPA",
+   "brand": "Kipa",
+   "sector": "Süpermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "KIRINTI",
+   "brand": "Kırıntı",
+   "sector": "Restoran/Kafe",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "KIRMIZI KEDI YAYINEVI",
+   "brand": "Kırmızı Kedi Yayınevi",
+   "sector": "Kitap & Kırtasiye",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "KIRMIZI KEDİ YAYINEVİ",
+   "brand": "Kırmızı Kedi Yayınevi",
+   "sector": "Kitap & Kırtasiye",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "KITAPYURDU",
+   "brand": "Kitapyurdu",
+   "sector": "Kitap & Kırtasiye",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "KOCAK GOLD",
+   "brand": "Koçak",
+   "sector": "Kuyumculuk",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "KOCHTAS",
+   "brand": "Koçtaş",
+   "sector": "Yapı Market",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "KOCTAS",
+   "brand": "Koçtaş",
+   "sector": "Yapı Market",
+   "category": "cat_shopping"
+  },
+  {
+   "pattern": "KOFTECI YUSUF",
+   "brand": "Köfteci Yusuf",
+   "sector": "Restoran",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "KOLAN HASTANESI",
+   "brand": "Kolan Hospital",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "KOLAN HASTANESİ",
+   "brand": "Kolan Hospital",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "KORKMAZ",
+   "brand": "Korkmaz",
+   "sector": "Ev Eşyası",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "KORU SIGORTA",
+   "brand": "Koru Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "KORU SİGORTA",
+   "brand": "Koru Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "KORUPARK BOWL",
+   "brand": "Korupark Bowling",
+   "sector": "Bowling",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "KOSKI",
+   "brand": "KOSKİ",
+   "sector": "Su",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "KOSKİ",
+   "brand": "KOSKİ",
+   "sector": "Su",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "KOTON",
+   "brand": "Koton",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "KOÇAK GOLD",
+   "brand": "Koçak",
+   "sector": "Kuyumculuk",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "KOÇTAŞ",
+   "brand": "Koçtaş",
+   "sector": "Yapı Market",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "KUNDUZ EGITIM",
+   "brand": "Kunduz",
+   "sector": "Online Eğitim",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "KUNDUZ EĞİTİM",
+   "brand": "Kunduz",
+   "sector": "Online Eğitim",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "KUTAHYA PORSELEN",
+   "brand": "Kütahya Porselen",
+   "sector": "Ev Eşyası",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "KUZ OPTIK",
+   "brand": "Kuz Optik",
+   "sector": "Optik",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "KUZ OPTİK",
+   "brand": "Kuz Optik",
+   "sector": "Optik",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "KUZEY MARMARA",
+   "brand": "Kuzey Marmara Otoyolu",
+   "sector": "Otoyol/Köprü",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "KVK TEKNIK SERVIS",
+   "brand": "KVK",
+   "sector": "Teknik Servis & İletişim",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "KVK TEKNİK SERVİS",
+   "brand": "KVK",
+   "sector": "Teknik Servis & İletişim",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "KÖFTECİ YUSUF",
+   "brand": "Köfteci Yusuf",
+   "sector": "Restoran",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "KÜTAHYA PORSELEN",
+   "brand": "Kütahya Porselen",
+   "sector": "Ev Eşyası",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "KİM MARKET",
+   "brand": "Kim Market",
+   "sector": "Süpermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "KİPA",
+   "brand": "Kipa",
+   "sector": "Süpermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "KİTAP YURDU",
+   "brand": "Kitapyurdu",
+   "sector": "Kitap & Kırtasiye",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "KİĞILI",
+   "brand": "Kiğılı",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "LC WAIKIKI",
+   "brand": "LC Waikiki",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "LCWAIKIKI",
+   "brand": "LC Waikiki",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "LEGO MAGAZASI",
+   "brand": "Lego Store",
+   "sector": "Oyuncak",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "LEGO STORE",
+   "brand": "Lego Store",
+   "sector": "Oyuncak",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "LEGOLAND",
+   "brand": "Legoland Discovery Centre",
+   "sector": "Eğlence Merkezi",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "LIMAK ELEKTRIK",
+   "brand": "Limak Uludağ Elektrik",
+   "sector": "Elektrik",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "LIMAK HOTELS",
+   "brand": "Limak Hotels",
+   "sector": "Otel",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "LINK SCOOTER",
+   "brand": "Link",
+   "sector": "Scooter",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "LINKEDIN PREMIUM",
+   "brand": "LinkedIn",
+   "sector": "Sosyal Ağ/Abonelik",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "LITTLE CAESARS",
+   "brand": "Little Caesars",
+   "sector": "Fast Food",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "LIV HOSP",
+   "brand": "Liv Hospital",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "LIV HOSPITAL",
+   "brand": "Liv Hospital",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "LIZAY PIRLANTA",
+   "brand": "Lizay",
+   "sector": "Kuyumculuk",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "LOCCITANE",
+   "brand": "L'Occitane",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "LOFT",
+   "brand": "Loft",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "LORIS PARFUM",
+   "brand": "Loris Parfum",
+   "sector": "Parfüm & Esans",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "LORİS PARFÜM",
+   "brand": "Loris Parfum",
+   "sector": "Parfüm & Esans",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "LTB JEANS",
+   "brand": "LTB",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "LUCCA",
+   "brand": "Lucca",
+   "sector": "Restoran/Kafe",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "LUIS BIEN",
+   "brand": "Luis Bien",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "LUKOIL PETROL",
+   "brand": "Lukoil",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "LİMAK ELEKTRİK",
+   "brand": "Limak Uludağ Elektrik",
+   "sector": "Elektrik",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "LİMAK HOTELS",
+   "brand": "Limak Hotels",
+   "sector": "Otel",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "LİNKEDİN PREMIUM",
+   "brand": "LinkedIn",
+   "sector": "Sosyal Ağ/Abonelik",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "LİZAY PIRLANTA",
+   "brand": "Lizay",
+   "sector": "Kuyumculuk",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "MAC COSMETICS",
+   "brand": "M.A.C Cosmetics",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "MACHKA",
+   "brand": "Machka",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "MACRO CENTER",
+   "brand": "Macrocenter",
+   "sector": "Süpermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "MACROCENTER",
+   "brand": "Macrocenter",
+   "sector": "Süpermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "MAD PARFUM",
+   "brand": "MAD Parfum",
+   "sector": "Parfüm & Esans",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "MAD PARFÜM",
+   "brand": "MAD Parfum",
+   "sector": "Parfüm & Esans",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "MADAM COCO",
+   "brand": "Madame Coco",
+   "sector": "Ev Tekstili",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "MADAME COCO",
+   "brand": "Madame Coco",
+   "sector": "Ev Tekstili",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "MADO",
+   "brand": "Mado",
+   "sector": "Pastane/Kafe",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "MAGDEBURGER SIGORTA",
+   "brand": "Magdeburger Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "MAGDEBURGER SİGORTA",
+   "brand": "Magdeburger Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "MAKARON TURIZM",
+   "brand": "Makaron Turizm",
+   "sector": "Tur Operatörü",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "MANCO OYUNCAK",
+   "brand": "Manço Oyuncak",
+   "sector": "Oyuncak",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "MANGO",
+   "brand": "Mango",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "MANGO OYUNCAK",
+   "brand": "Manço Oyuncak",
+   "sector": "Oyuncak",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "MAPFRE SIGORTA",
+   "brand": "Mapfre Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "MAPFRE SİGORTA",
+   "brand": "Mapfre Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "MARRIOTT",
+   "brand": "Marriott Hotels",
+   "sector": "Otel",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "MARTI TEKNOLOJI",
+   "brand": "Martı",
+   "sector": "Scooter",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "MARTI TEKNOLOJİ",
+   "brand": "Martı",
+   "sector": "Scooter",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "MASSIMO DUTTI",
+   "brand": "Massimo Dutti",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "MAVI",
+   "brand": "Mavi",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "MAVİ",
+   "brand": "Mavi",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "MCDONALDS",
+   "brand": "McDonald's",
+   "sector": "Fast Food",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "MEDIA MARKT",
+   "brand": "MediaMarkt",
+   "sector": "Elektronik",
+   "category": "cat_shopping"
+  },
+  {
+   "pattern": "MEDIAMARKT",
+   "brand": "MediaMarkt",
+   "sector": "Elektronik Perakende",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "MEDICAL PARK",
+   "brand": "Medical Park",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "MEDICALPARK",
+   "brand": "Medical Park",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "MEDICANA",
+   "brand": "Medicana",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "MEDICANA SAGLIK",
+   "brand": "Medicana",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "MEDICANA SAĞLIK",
+   "brand": "Medicana",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "MEDIPOL HASTANESI",
+   "brand": "Medipol",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "MEDİPOL HASTANESİ",
+   "brand": "Medipol",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "MEKTEBIM KOLEJI",
+   "brand": "Mektebim Koleji",
+   "sector": "Özel Okul",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "MEKTEBİM KOLEJİ",
+   "brand": "Mektebim Koleji",
+   "sector": "Özel Okul",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "MEMOIL PETROL",
+   "brand": "Memoil",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "MEMORIAL",
+   "brand": "Memorial Sağlık Grubu",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "MEMORIAL SAGLIK",
+   "brand": "Memorial Sağlık Grubu",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "MEMORIAL SAĞLIK",
+   "brand": "Memorial Sağlık Grubu",
+   "sector": "Hastane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "MERT OPTIK",
+   "brand": "Mert Optik",
+   "sector": "Optik",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "MERT OPTİK",
+   "brand": "Mert Optik",
+   "sector": "Optik",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "METLIFE EMEKLILIK",
+   "brand": "MetLife Emeklilik",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "METLİFE EMEKLİLİK",
+   "brand": "MetLife Emeklilik",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "METRO GROSMARKET",
+   "brand": "Metro Grosmarket",
+   "sector": "Hipermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "METRO GROSSMARKET",
+   "brand": "Metro",
+   "sector": "Yapı Market",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "METRO TURIZM",
+   "brand": "Metro Turizm",
+   "sector": "Otobüs Firmaları",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "METRO TURİZM",
+   "brand": "Metro Turizm",
+   "sector": "Otobüs Firmaları",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "MI STORE",
+   "brand": "Xiaomi",
+   "sector": "Tüketici Elektroniği",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "MICROSOFT XBOX",
+   "brand": "Xbox",
+   "sector": "Oyun Platformu",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "MICROSOFT*365",
+   "brand": "Microsoft 365",
+   "sector": "Yazılım/Bulut",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "MIDAS MENKUL",
+   "brand": "Midas",
+   "sector": "Yatırım & Menkul Değerler",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "MIDJOURNEY",
+   "brand": "Midjourney",
+   "sector": "Yapay Zeka",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "MIDPOINT",
+   "brand": "Midpoint",
+   "sector": "Restoran/Kafe",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "MIELE",
+   "brand": "Miele",
+   "sector": "Beyaz Eşya",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "MIGROS",
+   "brand": "Migros",
+   "sector": "Süpermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "MIGROS SANAL MARKET",
+   "brand": "Migros Sanal Market",
+   "sector": "Online Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "MILANGAZ",
+   "brand": "Milangaz",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "MILLENICOM",
+   "brand": "Millenicom",
+   "sector": "İnternet",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "MISTORE",
+   "brand": "Xiaomi",
+   "sector": "Tüketici Elektroniği",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "MNG MOBILYA",
+   "brand": "Bellona",
+   "sector": "Mobilya",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "MOI PARK",
+   "brand": "Moipark",
+   "sector": "Eğlence Merkezi",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "MOIL PETROL",
+   "brand": "M Oil",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "MOIPARK",
+   "brand": "Moipark",
+   "sector": "Eğlence Merkezi",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "MONO CHARGE",
+   "brand": "Mono Charge",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "MONSTER BILGISAYAR",
+   "brand": "Monster Notebook",
+   "sector": "Bilgisayar & Donanım",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "MONSTER BİLGİSAYAR",
+   "brand": "Monster Notebook",
+   "sector": "Bilgisayar & Donanım",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "MONSTER NOTEBOOK",
+   "brand": "Monster Notebook",
+   "sector": "Bilgisayar & Donanım",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "MOPAS",
+   "brand": "Mopaş",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "MOPAŞ",
+   "brand": "Mopaş",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "MORHIPO",
+   "brand": "Morhipo",
+   "sector": "E-Ticaret",
+   "category": "cat_shopping"
+  },
+  {
+   "pattern": "MOS KUAFOR",
+   "brand": "MOS Kuaför",
+   "sector": "Kuaför & Güzellik",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "MOS KUAFÖR",
+   "brand": "MOS Kuaför",
+   "sector": "Kuaför & Güzellik",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "MUBI",
+   "brand": "Mubi",
+   "sector": "Video Yayın",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "MUDO",
+   "brand": "Mudo",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "MUDO CONCEPT",
+   "brand": "Mudo Concept",
+   "sector": "Mobilya",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "MİDAS MENKUL",
+   "brand": "Midas",
+   "sector": "Yatırım & Menkul Değerler",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "MİGROS",
+   "brand": "Migros",
+   "sector": "Süpermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "MİGROS SANAL MARKET",
+   "brand": "Migros Sanal Market",
+   "sector": "Online Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "MİLANGAZ",
+   "brand": "Milangaz",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "MİLLENİCOM",
+   "brand": "Millenicom",
+   "sector": "İnternet",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "NADIR METAL",
+   "brand": "Nadir Gold",
+   "sector": "Altın & Kıymetli Maden",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "NADİR METAL",
+   "brand": "Nadir Gold",
+   "sector": "Altın & Kıymetli Maden",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "NECIIP OYUNCAK",
+   "brand": "Necip Oyuncak",
+   "sector": "Oyuncak",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "NECIP OYUNCAK",
+   "brand": "Necip Oyuncak",
+   "sector": "Oyuncak",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "NEOVA KATILIM SIGORTA",
+   "brand": "Neova Katılım Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "NEOVA KATILIM SİGORTA",
+   "brand": "Neova Katılım Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "NETFLIX",
+   "brand": "Netflix",
+   "sector": "Video Yayın",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "NETFLIX.COM",
+   "brand": "Netflix",
+   "sector": "Video Yayın",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "NETWORK",
+   "brand": "NetWork",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "NEVA CHARGE",
+   "brand": "Neva Charge",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "NEZIH KITAP",
+   "brand": "Nezih Kitap Kirtasiye",
+   "sector": "Kitap & Kırtasiye",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "NEZİH KİTAP",
+   "brand": "Nezih Kitap Kirtasiye",
+   "sector": "Kitap & Kırtasiye",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "NIKE",
+   "brand": "Nike",
+   "sector": "Spor Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "NILUFER TURIZM",
+   "brand": "Nilüfer Turizm",
+   "sector": "Otobüs Firmaları",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "NN HAYAT EMEKLILIK",
+   "brand": "NN Hayat ve Emeklilik",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "NN HAYAT EMEKLİLİK",
+   "brand": "NN Hayat ve Emeklilik",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "NOAH VETERINER",
+   "brand": "Noah Veteriner",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "NOTE COSMETICS",
+   "brand": "Note Cosmetics",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "NOTION",
+   "brand": "Notion",
+   "sector": "Yazılım/Verimlilik",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "NUSR-ET",
+   "brand": "Nusr-Et",
+   "sector": "Restoran",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "NUSRET",
+   "brand": "Nusr-Et",
+   "sector": "Restoran",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "NYX COSMETICS",
+   "brand": "NYX Cosmetics",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "NİLÜFER TURİZM",
+   "brand": "Nilüfer Turizm",
+   "sector": "Otobüs Firmaları",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "OBILIT",
+   "brand": "Obilet",
+   "sector": "Seyahat Sitesi",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "OBİLET",
+   "brand": "Obilet",
+   "sector": "Seyahat Sitesi",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "OKX TR",
+   "brand": "OKX TR",
+   "sector": "Kripto Varlık",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "OKYANUS KOLEJI",
+   "brand": "Okyanus Koleji",
+   "sector": "Özel Okul",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "OKYANUS KOLEJİ",
+   "brand": "Okyanus Koleji",
+   "sector": "Özel Okul",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "ONUR MARKET",
+   "brand": "Onur Market",
+   "sector": "Süpermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "OPEN ENGLISH",
+   "brand": "Open English",
+   "sector": "Online Eğitim",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "OPENAI",
+   "brand": "OpenAI",
+   "sector": "Yapay Zeka",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "OPET PETROL",
+   "brand": "Opet",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "OPMAR OPTIK",
+   "brand": "Opmar Optik",
+   "sector": "Optik",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "OPMAR OPTİK",
+   "brand": "Opmar Optik",
+   "sector": "Optik",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "ORIFLAME",
+   "brand": "Oriflame",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "ORUC MARKET",
+   "brand": "Oruç Market",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "ORUÇ MARKET",
+   "brand": "Oruç Market",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "OSMANLI YATIRIM",
+   "brand": "Osmanlı Yatırım",
+   "sector": "Yatırım & Menkul Değerler",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "OTOYOL YATIRIM",
+   "brand": "Osmangazi Köprüsü OYAS",
+   "sector": "Otoyol/Köprü",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "OVERGAME",
+   "brand": "OverGame",
+   "sector": "Oyun & Konsol",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "OYAK YATIRIM",
+   "brand": "Oyak Yatırım",
+   "sector": "Yatırım & Menkul Değerler",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "OYSHO",
+   "brand": "Oysho",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "OZDILEK",
+   "brand": "Özdilek",
+   "sector": "Ev Tekstili",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "OZDILEK HIPERMARKET",
+   "brand": "Özdilek",
+   "sector": "Hipermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "OZEL VETERINER",
+   "brand": "Özel Veteriner",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "OZELLIKLI VET",
+   "brand": "Özellikli Veteriner",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "OZKURUSLAR",
+   "brand": "Özkuruşlar",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "OZSUT",
+   "brand": "Özsüt",
+   "sector": "Pastane/Kafe",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "PAGO PET",
+   "brand": "Pago Pet",
+   "sector": "Pet Shop",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "PAGOPET",
+   "brand": "Pago Pet",
+   "sector": "Pet Shop",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "PAMUKKALE TURIZM",
+   "brand": "Pamukkale Turizm",
+   "sector": "Otobüs Firmaları",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "PAMUKKALE TURİZM",
+   "brand": "Pamukkale Turizm",
+   "sector": "Otobüs Firmaları",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "PARIBU",
+   "brand": "Paribu",
+   "sector": "Kripto Varlık",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "PARİBU",
+   "brand": "Paribu",
+   "sector": "Kripto Varlık",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "PASABAHCE",
+   "brand": "Paşabahçe",
+   "sector": "Ev Eşyası",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "PASAPORT PIZZA",
+   "brand": "Pasaport Pizza",
+   "sector": "Fast Food",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "PASAPORT PİZZA",
+   "brand": "Pasaport Pizza",
+   "sector": "Fast Food",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "PATI VET",
+   "brand": "Pati Veteriner",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "PATI VETERINER",
+   "brand": "Pati Veteriner",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "PAŞABAHÇE",
+   "brand": "Paşabahçe",
+   "sector": "Ev Eşyası",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "PEGASUS",
+   "brand": "Pegasus Airlines",
+   "sector": "Havayolu",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "PEHLIVANOGLU",
+   "brand": "Pehlivanoğlu",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "PEHLİVANOĞLU",
+   "brand": "Pehlivanoğlu",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "PELIT",
+   "brand": "Pelit",
+   "sector": "Pastane",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "PELİT",
+   "brand": "Pelit",
+   "sector": "Pastane",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "PENGUEN KITABEVI",
+   "brand": "Penguen Kitabevi",
+   "sector": "Kitap & Kırtasiye",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "PENGUEN KİTABEVİ",
+   "brand": "Penguen Kitabevi",
+   "sector": "Kitap & Kırtasiye",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "PENTI",
+   "brand": "Penti",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "PENTİ",
+   "brand": "Penti",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "PET SHOP ONLINE",
+   "brand": "Pet Shop Online",
+   "sector": "Pet Shop",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "PET SHOP ZUCCACIYE",
+   "brand": "Pet Shop Züccaciye",
+   "sector": "Pet Shop",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "PETLINE",
+   "brand": "Petline",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "PETROL OFISI",
+   "brand": "Petrol Ofisi",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "PETROL OFİSİ",
+   "brand": "Petrol Ofisi",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "PETSHOP ZUCCACIYE",
+   "brand": "Pet Shop Züccaciye",
+   "sector": "Pet Shop",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "PETSHOPONLINE",
+   "brand": "Pet Shop Online",
+   "sector": "Pet Shop",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "PEYNIRCI BABA",
+   "brand": "Peynirci Baba",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "PEYNİRCİ BABA",
+   "brand": "Peynirci Baba",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "PHILLIPCAPITAL",
+   "brand": "PhillipCapital",
+   "sector": "Yatırım & Menkul Değerler",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "PIERRE CARDIN",
+   "brand": "Pierre Cardin",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "PIZZA HUT",
+   "brand": "Pizza Hut",
+   "sector": "Fast Food",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "PLAY LAND",
+   "brand": "Playland",
+   "sector": "Çocuk Eğlence",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "PLAYLAND",
+   "brand": "Playland",
+   "sector": "Çocuk Eğlence",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "PLAYSTATION",
+   "brand": "PlayStation Network",
+   "sector": "Oyun Platformu",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "PLAYSTATION NETWORK",
+   "brand": "PlayStation Network",
+   "sector": "Oyun Platformu",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "PLAZA PET",
+   "brand": "Plaza Pet",
+   "sector": "Pet Shop",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "POZITIF TEKNOLOJI",
+   "brand": "Pozitif Teknoloji",
+   "sector": "Tüketici Elektroniği",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "POZİTİF TEKNOLOJİ",
+   "brand": "Pozitif Teknoloji",
+   "sector": "Tüketici Elektroniği",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "PROFILO",
+   "brand": "Profilo",
+   "sector": "Beyaz Eşya",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "PRONTOTOUR",
+   "brand": "Prontotour",
+   "sector": "Tur Operatörü",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "PRONTOTUR",
+   "brand": "Prontotour",
+   "sector": "Tur Operatörü",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "PTT HGS",
+   "brand": "HGS",
+   "sector": "Otoyol/Köprü",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "PULL AND BEAR",
+   "brand": "Pull&Bear",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "PULL&BEAR",
+   "brand": "Pull&Bear",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "PUMA",
+   "brand": "Puma",
+   "sector": "Spor Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "PİLLİ",
+   "brand": "Penti",
+   "sector": "Giyim",
+   "category": "cat_shopping"
+  },
+  {
+   "pattern": "QNB SIGORTA",
+   "brand": "QNB Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "QNB SİGORTA",
+   "brand": "QNB Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "QP BILISIM",
+   "brand": "QP Bilişim",
+   "sector": "Bilgisayar & Donanım",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "QP BİLİŞİM",
+   "brand": "QP Bilişim",
+   "sector": "Bilgisayar & Donanım",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "QUICK SIGORTA",
+   "brand": "Quick Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "QUICK SİGORTA",
+   "brand": "Quick Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "RAMSEY",
+   "brand": "Ramsey",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "RAY SIGORTA",
+   "brand": "Ray Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "RAY SİGORTA",
+   "brand": "Ray Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "RECETE",
+   "brand": "Reçete",
+   "sector": "Eczane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "REEBOK",
+   "brand": "Reebok",
+   "sector": "Spor Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "REGAL",
+   "brand": "Regal",
+   "sector": "Beyaz Eşya",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "REMZI KITABEVI",
+   "brand": "Remzi Kitabevi",
+   "sector": "Kitap & Kırtasiye",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "REMZİ KİTABEVİ",
+   "brand": "Remzi Kitabevi",
+   "sector": "Kitap & Kırtasiye",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "REÇETE",
+   "brand": "Reçete",
+   "sector": "Eczane",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "RHINO CHARGE",
+   "brand": "Rhino Charge",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "RIXOS",
+   "brand": "Rixos Hotels",
+   "sector": "Otel",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "ROLLING BOWL",
+   "brand": "Rolling Bowl",
+   "sector": "Bowling",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "ROLLINGBOWLING",
+   "brand": "Rolling Bowl",
+   "sector": "Bowling",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "ROSSMANN",
+   "brand": "Rossmann",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "S SPORT PLUS",
+   "brand": "S Sport Plus",
+   "sector": "Video/Spor Yayın",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "SAMSUNG",
+   "brand": "Samsung",
+   "sector": "Tüketici Elektroniği",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "SAMSUNG MAGAZASI",
+   "brand": "Samsung",
+   "sector": "Tüketici Elektroniği",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "SAMSUNG MAĞAZASI",
+   "brand": "Samsung",
+   "sector": "Tüketici Elektroniği",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "SANSIRO",
+   "brand": "Sansiro",
+   "sector": "Parfüm & Esans",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "SARAR",
+   "brand": "Sarar",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "SARAY MUHALLEBICISI",
+   "brand": "Saray Muhallebicisi",
+   "sector": "Restoran/Kafe",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "SARAY MUHALLEBİCİSİ",
+   "brand": "Saray Muhallebicisi",
+   "sector": "Restoran/Kafe",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "SARIYER MARKET",
+   "brand": "Sarıyer Market",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "SBARRO",
+   "brand": "Sbarro",
+   "sector": "Fast Food",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "SEHZADE MARKET",
+   "brand": "Şehzade Market",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "SEPHORA",
+   "brand": "Sephora",
+   "sector": "Kozmetik",
+   "category": "cat_shopping"
+  },
+  {
+   "pattern": "SETUR",
+   "brand": "Setur",
+   "sector": "Tur Operatörü",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "SEVGILI VET",
+   "brand": "Sevgili Veteriner",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "SEVGILI VETERINER",
+   "brand": "Sevgili Veteriner",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "SEYHANLAR",
+   "brand": "Seyhanlar Market",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "SHAKESPEARE BISTRO",
+   "brand": "Shakespeare Bistro",
+   "sector": "Restoran/Kafe",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "SHARZ NET",
+   "brand": "Sharz.net",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "SHELL & TURCAS",
+   "brand": "Shell",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "SHELL PETROL",
+   "brand": "Shell",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "SHOW MARKET",
+   "brand": "Show Market",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "SIEMENS",
+   "brand": "Siemens",
+   "sector": "Beyaz Eşya",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "SIMIT SARAYI",
+   "brand": "Simit Sarayı",
+   "sector": "Restoran/Kafe",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "SINAV KOLEJI",
+   "brand": "Sınav Koleji",
+   "sector": "Özel Okul",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "SINAV KOLEJİ",
+   "brand": "Sınav Koleji",
+   "sector": "Özel Okul",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "SINERJI BILGISAYAR",
+   "brand": "Sinerji Bilgisayar",
+   "sector": "Bilgisayar & Donanım",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "SINOZ",
+   "brand": "Sinoz",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "SINPAS TASARRUF",
+   "brand": "Sinpaş Yapı Tasarruf Sandığı",
+   "sector": "Tasarruf Finansman",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "SKECHERS",
+   "brand": "Skechers",
+   "sector": "Ayakkabı",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "SKYSCRANER",
+   "brand": "Skyscanner",
+   "sector": "Seyahat Sitesi",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "SNEAKS UP",
+   "brand": "Sneaks Up",
+   "sector": "Ayakkabı",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "SOIL PETROL",
+   "brand": "Soil Petrol",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "SOK MARKET",
+   "brand": "Şok Market",
+   "sector": "Süpermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "SOMPO SIGORTA",
+   "brand": "Sompo Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "SOMPO SİGORTA",
+   "brand": "Sompo Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "SPIGEN TURKIYE",
+   "brand": "Spigen",
+   "sector": "Elektronik Aksesuar",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "SPIGEN TÜRKİYE",
+   "brand": "Spigen",
+   "sector": "Elektronik Aksesuar",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "SPOTIFY",
+   "brand": "Spotify",
+   "sector": "Müzik Yayın",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "SPOTIFY PREMIUM",
+   "brand": "Spotify",
+   "sector": "Müzik Yayın",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "SSPORTPLUS",
+   "brand": "S Sport Plus",
+   "sector": "Video/Spor Yayın",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "STAR PARK",
+   "brand": "Star Park",
+   "sector": "Lunapark",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "STARBUCKS",
+   "brand": "Starbucks",
+   "sector": "Kahve Zinciri",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "STARPARK",
+   "brand": "Star Park",
+   "sector": "Lunapark",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "STEAM GAMES",
+   "brand": "Steam",
+   "sector": "Oyun Platformu",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "STEAMPOWERED",
+   "brand": "Steam",
+   "sector": "Oyun Platformu",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "STORYTEL",
+   "brand": "Storytel",
+   "sector": "Sesli Kitap",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "STRADIVARIUS",
+   "brand": "Stradivarius",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "SUBWAY",
+   "brand": "Subway",
+   "sector": "Fast Food",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "SUNEXPRESS",
+   "brand": "SunExpress",
+   "sector": "Havayolu",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "SUNPET",
+   "brand": "Sunpet",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "SUPERONLINE",
+   "brand": "Superonline",
+   "sector": "İnternet",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "SUPERSTEP",
+   "brand": "SuperStep",
+   "sector": "Ayakkabı",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "SUTIS",
+   "brand": "Sütiş",
+   "sector": "Restoran/Kafe",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "SUWEN",
+   "brand": "Suwen",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "SYNEVO LABORATUVAR",
+   "brand": "Synevo Laboratuvarı",
+   "sector": "Laboratuvar",
+   "category": "cat_health"
+  },
+  {
+   "pattern": "SÜPERONLİNE",
+   "brand": "Superonline",
+   "sector": "İnternet",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "SÜTİŞ",
+   "brand": "Sütiş",
+   "sector": "Restoran/Kafe",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "SİMİT SARAYI",
+   "brand": "Simit Sarayı",
+   "sector": "Restoran/Kafe",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "SİNERJİ BİLGİSAYAR",
+   "brand": "Sinerji Bilgisayar",
+   "sector": "Bilgisayar & Donanım",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "SİNOZ",
+   "brand": "Sinoz",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "SİNPAŞ TASARRUF",
+   "brand": "Sinpaş Yapı Tasarruf Sandığı",
+   "sector": "Tasarruf Finansman",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "TAC EV",
+   "brand": "Taç",
+   "sector": "Ev Tekstili",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "TACIRLER YATIRIM",
+   "brand": "Tacirler Yatırım",
+   "sector": "Yatırım & Menkul Değerler",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "TACİRLER YATIRIM",
+   "brand": "Tacirler Yatırım",
+   "sector": "Yatırım & Menkul Değerler",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "TARIM KREDI KOOP",
+   "brand": "Tarım Kredi Kooperatif Market",
+   "sector": "Süpermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "TARIM KREDİ KOOP",
+   "brand": "Tarım Kredi Kooperatif Market",
+   "sector": "Süpermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "TATILSEPETI",
+   "brand": "Tatilsepeti",
+   "sector": "Tur Operatörü",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "TATİLSEPETİ",
+   "brand": "Tatilsepeti",
+   "sector": "Tur Operatörü",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "TAVADA TAVUK",
+   "brand": "Tavada Tavuk",
+   "sector": "Restoran",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "TAVUK DUNYASI",
+   "brand": "Tavuk Dünyası",
+   "sector": "Restoran",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "TAVUK DÜNYASI",
+   "brand": "Tavuk Dünyası",
+   "sector": "Restoran",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "TAZEDIRECT",
+   "brand": "Tazedirekt",
+   "sector": "Online Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "TAZEDİREKT",
+   "brand": "Tazedirekt",
+   "sector": "Online Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "TAÇ EV",
+   "brand": "Taç",
+   "sector": "Ev Tekstili",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "TCHIBO",
+   "brand": "Tchibo",
+   "sector": "Kahve Zinciri",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "TEBILON",
+   "brand": "Tebilon",
+   "sector": "Bilgisayar & Donanım",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "TEBOIL PETROL",
+   "brand": "Teboil",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "TEBİLON",
+   "brand": "Tebilon",
+   "sector": "Bilgisayar & Donanım",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "TED KOLEJI",
+   "brand": "TED Koleji",
+   "sector": "Özel Okul",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "TED KOLEJİ",
+   "brand": "TED Koleji",
+   "sector": "Özel Okul",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "TEKA",
+   "brand": "Teka",
+   "sector": "Beyaz Eşya",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "TEKNOSA",
+   "brand": "Teknosa",
+   "sector": "Elektronik",
+   "category": "cat_shopping"
+  },
+  {
+   "pattern": "TEKNOSA IC VE DIS TIC",
+   "brand": "Teknosa",
+   "sector": "Elektronik Perakende",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "TEKZEN",
+   "brand": "Tekzen",
+   "sector": "Yapı Market",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "TEKZEN DIY",
+   "brand": "Tekzen",
+   "sector": "Yapı Market",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "TEPE HOME",
+   "brand": "Tepe Home",
+   "sector": "Mobilya",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "TERGAN",
+   "brand": "Tergan",
+   "sector": "Ayakkabı",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "TERMOPET",
+   "brand": "Termopet",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "TERRA PIZZA",
+   "brand": "Terra Pizza",
+   "sector": "Fast Food",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "TERRA PİZZA",
+   "brand": "Terra Pizza",
+   "sector": "Fast Food",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "TESPO CASH",
+   "brand": "Tespo",
+   "sector": "Hipermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "THE BODY SHOP",
+   "brand": "The Body Shop",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "TIGER COPENHAGEN",
+   "brand": "Flying Tiger",
+   "sector": "Oyuncak ve Hediye",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "TIME PLAY",
+   "brand": "Timeplay",
+   "sector": "Eğlence Merkezi",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "TIMEPLAY",
+   "brand": "Timeplay",
+   "sector": "Eğlence Merkezi",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "TIRNAK BUTIK",
+   "brand": "Tırnak Butik",
+   "sector": "Kuaför & Güzellik",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "TIRNAK BUTİK",
+   "brand": "Tırnak Butik",
+   "sector": "Kuaför & Güzellik",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "TOD TV",
+   "brand": "Tod",
+   "sector": "Video Yayın",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "TODTV",
+   "brand": "Tod",
+   "sector": "Video Yayın",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "TONGUC AKADEMI",
+   "brand": "Tonguç Akademi",
+   "sector": "Online Eğitim",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "TONGUÇ AKADEMİ",
+   "brand": "Tonguç Akademi",
+   "sector": "Online Eğitim",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "TOTAL PETROL",
+   "brand": "TotalEnergies",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "TOTALENERGIES",
+   "brand": "TotalEnergies",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "TOYZ SHOP",
+   "brand": "Toyzz Shop",
+   "sector": "Oyuncak",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "TOYZZ SHOP",
+   "brand": "Toyzz Shop",
+   "sector": "Oyuncak",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "TOYZZSHOP",
+   "brand": "Toyzz Shop",
+   "sector": "Oyuncak",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "TRENDYOL",
+   "brand": "Trendyol",
+   "sector": "E-Ticaret",
+   "category": "cat_shopping"
+  },
+  {
+   "pattern": "TRENDYOL GO",
+   "brand": "Trendyol Hızlı Market",
+   "sector": "Online Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "TRENDYOL YEMEK",
+   "brand": "Trendyol Yemek",
+   "sector": "Yemek Siparişi",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "TRIO KUAFOR",
+   "brand": "Trio Kuaför",
+   "sector": "Kuaför & Güzellik",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "TRIO KUAFÖR",
+   "brand": "Trio Kuaför",
+   "sector": "Kuaför & Güzellik",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "TRIPADVISOR",
+   "brand": "Tripadvisor",
+   "sector": "Seyahat Sitesi",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "TROY STORE",
+   "brand": "Troy",
+   "sector": "Tüketici Elektroniği",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "TRUGO AKILLI SARJ",
+   "brand": "Trugo",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "TRUGO AKILLI ŞARJ",
+   "brand": "Trugo",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "TTNET",
+   "brand": "Türk Telekom",
+   "sector": "İnternet",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "TUDORS",
+   "brand": "Tudors",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "TURK AMERIKAN DERNEGI",
+   "brand": "Türk Amerikan Derneği",
+   "sector": "Kurs & Dil Okulu",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "TURK HAVA YOLLARI",
+   "brand": "Türk Hava Yolları",
+   "sector": "Havayolu",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "TURK TELEKOM",
+   "brand": "Türk Telekom",
+   "sector": "GSM ve İnternet",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "TURK.NET",
+   "brand": "TurkNet",
+   "sector": "İnternet",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "TURKCELL",
+   "brand": "Turkcell",
+   "sector": "GSM",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "TURKCELL ILETISIM",
+   "brand": "Turkcell",
+   "sector": "GSM",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "TURKCELL İLETİŞİM",
+   "brand": "Turkcell",
+   "sector": "GSM",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "TURKIYE HAYAT EMEKLILIK",
+   "brand": "Türkiye Hayat Emeklilik",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "TURKIYE PETROLLER",
+   "brand": "Türkiye Petrolleri",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "TURKIYE SIGORTA",
+   "brand": "Türkiye Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "TURKNET",
+   "brand": "TurkNet",
+   "sector": "İnternet",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "TURKSAT",
+   "brand": "Türksat Kablonet",
+   "sector": "İnternet ve TV",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "TURMOBIL",
+   "brand": "Tur Mobil",
+   "sector": "Seyahat Sitesi",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "TURMOBİL",
+   "brand": "Tur Mobil",
+   "sector": "Seyahat Sitesi",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "TWIST",
+   "brand": "Twist",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "TÜRK AMERİKAN DERNEĞİ",
+   "brand": "Türk Amerikan Derneği",
+   "sector": "Kurs & Dil Okulu",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "TÜRK HAVA YOLLARI",
+   "brand": "Türk Hava Yolları",
+   "sector": "Havayolu",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "TÜRK TELEKOM",
+   "brand": "Türk Telekom",
+   "sector": "GSM ve İnternet",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "TÜRKSAT",
+   "brand": "Türksat Kablonet",
+   "sector": "İnternet ve TV",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "TÜRKİYE HAYAT EMEKLİLİK",
+   "brand": "Türkiye Hayat Emeklilik",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "TÜRKİYE PETROLLERİ",
+   "brand": "Türkiye Petrolleri",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "TÜRKİYE SİGORTA",
+   "brand": "Türkiye Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "UBER TR",
+   "brand": "Uber",
+   "sector": "Taksi Uygulamaları",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "UBER TRIP",
+   "brand": "Uber",
+   "sector": "Taksi Uygulamaları",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "UCLER MARKET",
+   "brand": "Üçler Market",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "UDEMY",
+   "brand": "Udemy",
+   "sector": "Eğitim",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "UGUR OKULLARI",
+   "brand": "Uğur Okulları",
+   "sector": "Özel Okul",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "ULUDAG ELEKTRIK",
+   "brand": "Limak Uludağ Elektrik",
+   "sector": "Elektrik",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "ULUDAĞ ELEKTRİK",
+   "brand": "Limak Uludağ Elektrik",
+   "sector": "Elektrik",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "UNDER ARMOUR",
+   "brand": "Under Armour",
+   "sector": "Spor Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "UNICO SIGORTA",
+   "brand": "Unico Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "UNİCO SİGORTA",
+   "brand": "Unico Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "US POLO ASSN",
+   "brand": "U.S. Polo Assn.",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "UĞUR OKULLARI",
+   "brand": "Uğur Okulları",
+   "sector": "Özel Okul",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "VAKKO",
+   "brand": "Vakko",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "VARAN TURIZM",
+   "brand": "Varan Turizm",
+   "sector": "Otobüs Firmaları",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "VARAN TURİZM",
+   "brand": "Varan Turizm",
+   "sector": "Otobüs Firmaları",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "VATAN",
+   "brand": "Vatan Bilgisayar",
+   "sector": "Elektronik",
+   "category": "cat_shopping"
+  },
+  {
+   "pattern": "VATAN BILGISAYAR",
+   "brand": "Vatan Bilgisayar",
+   "sector": "Elektronik Perakende",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "VATAN BİLGİSAYAR",
+   "brand": "Vatan Bilgisayar",
+   "sector": "Elektronik Perakende",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "VESTEL",
+   "brand": "Vestel",
+   "sector": "Beyaz Eşya",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "VESTEL TICARET",
+   "brand": "Vestel",
+   "sector": "Beyaz Eşya & Elektronik",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "VESTEL TİCARET",
+   "brand": "Vestel",
+   "sector": "Beyaz Eşya & Elektronik",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "VET POINT",
+   "brand": "Vetpoint",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "VETLIFE KLINIK",
+   "brand": "Vetlife",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "VETLIFE VET",
+   "brand": "Vetlife",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "VETPLUS KLINIK",
+   "brand": "Vetplus",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "VETPLUS VET",
+   "brand": "Vetplus Vet",
+   "sector": "",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "VETPOINT",
+   "brand": "Vetpoint",
+   "sector": "Veteriner",
+   "category": "cat_pet"
+  },
+  {
+   "pattern": "VIALAND",
+   "brand": "Vialand",
+   "sector": "Tema Park",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "VIENNALIFE EMEKLILIK",
+   "brand": "ViennaLife Emeklilik",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "VIVENSE",
+   "brand": "Vivense",
+   "sector": "Mobilya",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "VODAFONE",
+   "brand": "Vodafone",
+   "sector": "GSM",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "VODAFONE TELEKOMUNIKASYON",
+   "brand": "Vodafone",
+   "sector": "GSM",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "VODAFONE TELEKOMÜNİKASYON",
+   "brand": "Vodafone",
+   "sector": "GSM",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "VOLTRUN SARJ",
+   "brand": "Voltrun",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "VOLTRUN ŞARJ",
+   "brand": "Voltrun",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "VİENNALİFE EMEKLİLİK",
+   "brand": "ViennaLife Emeklilik",
+   "sector": "Bireysel Emeklilik",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "WALL STREET ENGLISH",
+   "brand": "Wall Street English",
+   "sector": "Kurs & Dil Okulu",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "WAT MOBILITE",
+   "brand": "Wat Mobilite",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "WAT MOBİLİTE",
+   "brand": "Wat Mobilite",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "WATSONS",
+   "brand": "Watsons",
+   "sector": "Kozmetik",
+   "category": "cat_shopping"
+  },
+  {
+   "pattern": "WONDERLAND",
+   "brand": "Wonderland",
+   "sector": "Eğlence Merkezi",
+   "category": "cat_kids"
+  },
+  {
+   "pattern": "WYNDHAM",
+   "brand": "Wyndham Hotels",
+   "sector": "Otel",
+   "category": "cat_travel"
+  },
+  {
+   "pattern": "XBOX GAME PASS",
+   "brand": "Xbox",
+   "sector": "Oyun Platformu",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "XIAOMI TURKIYE",
+   "brand": "Xiaomi",
+   "sector": "Tüketici Elektroniği",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "XIAOMI TÜRKİYE",
+   "brand": "Xiaomi",
+   "sector": "Tüketici Elektroniği",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "YAPI KREDI YATIRIM",
+   "brand": "Yapı Kredi Yatırım",
+   "sector": "Yatırım & Menkul Değerler",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "YAPI KREDİ YATIRIM",
+   "brand": "Yapı Kredi Yatırım",
+   "sector": "Yatırım & Menkul Değerler",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "YATAS",
+   "brand": "Yataş",
+   "sector": "Ev Tekstili",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "YATAŞ",
+   "brand": "Yataş",
+   "sector": "Ev Tekstili",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "YEMEKSEPETI",
+   "brand": "Yemeksepeti",
+   "sector": "Yemek Siparişi",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "YEMEKSEPETI BANABI",
+   "brand": "Yemeksepeti Market",
+   "sector": "Online Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "YEMEKSEPETI MAHALLE",
+   "brand": "Yemeksepeti Mahalle",
+   "sector": "Online Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "YEMEKSEPETİ",
+   "brand": "Yemeksepeti",
+   "sector": "Yemek & Market",
+   "category": "cat_shopping"
+  },
+  {
+   "pattern": "YEMEKSEPETİ BANABİ",
+   "brand": "Yemeksepeti Market",
+   "sector": "Online Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "YEMEKSEPETİ MAHALLE",
+   "brand": "Yemeksepeti Mahalle",
+   "sector": "Online Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "YOUTUBE PREMIUM",
+   "brand": "YouTube",
+   "sector": "Video/Müzik Yayın",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "YUNUS MARKET",
+   "brand": "Yunus Market",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "YVES ROCHER",
+   "brand": "Yves Rocher",
+   "sector": "Kozmetik & Kişisel Bakım",
+   "category": "cat_personal_care"
+  },
+  {
+   "pattern": "ZARA",
+   "brand": "Zara",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "ZEBRA CHARGE",
+   "brand": "Zebra Charge",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "ZEN PIRLANTA",
+   "brand": "Zen Pırlanta",
+   "sector": "Kuyumculuk",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "ZEN PIRLANTA A S",
+   "brand": "Zen Pırlanta",
+   "sector": "Kuyumculuk",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "ZES SARJ",
+   "brand": "ZES",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "ZES ŞARJ",
+   "brand": "ZES",
+   "sector": "EV Şarj",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "ZOOM.US",
+   "brand": "Zoom",
+   "sector": "Yazılım/İletişim",
+   "category": "cat_subscriptions"
+  },
+  {
+   "pattern": "ZURICH SIGORTA",
+   "brand": "Zurich Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "ZURICH SİGORTA",
+   "brand": "Zurich Sigorta",
+   "sector": "Sigorta",
+   "category": "cat_insurance"
+  },
+  {
+   "pattern": "ÇAĞRI MARKET",
+   "brand": "Çağrı Market",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "ÇİLEK MOBİLYA",
+   "brand": "Çilek Mobilya",
+   "sector": "Mobilya",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "ÇİÇEKSEPETİ",
+   "brand": "Çiçeksepeti",
+   "sector": "E-Ticaret",
+   "category": "cat_shopping"
+  },
+  {
+   "pattern": "ÖZDİLEK",
+   "brand": "Özdilek",
+   "sector": "Ev Tekstili",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "ÖZDİLEK HİPERMARKET",
+   "brand": "Özdilek",
+   "sector": "Hipermarket",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "ÖZKURUŞLAR",
+   "brand": "Özkuruşlar",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "ÖZSÜT",
+   "brand": "Özsüt",
+   "sector": "Pastane/Kafe",
+   "category": "cat_dining"
+  },
+  {
+   "pattern": "ÜÇLER MARKET",
+   "brand": "Üçler Market",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "İCRYPEX",
+   "brand": "ICRYPEX",
+   "sector": "Kripto Varlık",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "İGA OTOPARK",
+   "brand": "İstanbul Havalimanı Otopark",
+   "sector": "Otopark",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "İGDAŞ",
+   "brand": "İGDAŞ",
+   "sector": "Doğalgaz",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "İMECE TASARRUF",
+   "brand": "İmece Tasarruf",
+   "sector": "Tasarruf Finansman",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "İNCEHESAP",
+   "brand": "İncehesap",
+   "sector": "Bilgisayar & Donanım",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "İNFO YATIRIM",
+   "brand": "İnfo Yatırım",
+   "sector": "Yatırım & Menkul Değerler",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "İPEKYOL",
+   "brand": "İpekyol",
+   "sector": "Giyim",
+   "category": "cat_clothing"
+  },
+  {
+   "pattern": "İPRAGAZ OTOGAZ",
+   "brand": "İpragaz",
+   "sector": "Akaryakıt",
+   "category": "cat_fuel"
+  },
+  {
+   "pattern": "İSKİ",
+   "brand": "İSKİ",
+   "sector": "Su",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "İSKİ GENEL",
+   "brand": "İSKİ",
+   "sector": "Su",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "İSPARK",
+   "brand": "İspark",
+   "sector": "Otopark",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "İSTANBUL ALTIN RAFİNERİSİ",
+   "brand": "İstanbul Altın Rafinerisi",
+   "sector": "Altın & Kıymetli Maden",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "İSTEGELSİN",
+   "brand": "İstegelsin",
+   "sector": "Online Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "İSTEK OKULLARI",
+   "brand": "İSTEK Okulları",
+   "sector": "Özel Okul",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "İSTİKBAL",
+   "brand": "İstikbal",
+   "sector": "Mobilya",
+   "category": "cat_home"
+  },
+  {
+   "pattern": "İTAKSİ",
+   "brand": "iTaksi",
+   "sector": "Taksi Uygulamaları",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "İTOPYA",
+   "brand": "İtopya",
+   "sector": "Bilgisayar & Donanım",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "İTOPYA BİLGİSAYAR",
+   "brand": "İtopya",
+   "sector": "Bilgisayar & Donanım",
+   "category": "cat_electronics"
+  },
+  {
+   "pattern": "İZGAZ",
+   "brand": "İZGAZ",
+   "sector": "Doğalgaz",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "İZMİRGAZ",
+   "brand": "İzmirgaz",
+   "sector": "Doğalgaz",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "İZMİRİMKART",
+   "brand": "İzmirim Kart",
+   "sector": "Toplu Taşıma",
+   "category": "cat_transit"
+  },
+  {
+   "pattern": "İZSU",
+   "brand": "İZSU",
+   "sector": "Su",
+   "category": "cat_utilities"
+  },
+  {
+   "pattern": "İŞ KÜLTÜR YAYINLARI",
+   "brand": "İş Kültür Yayınları",
+   "sector": "Kitap & Kırtasiye",
+   "category": "cat_education"
+  },
+  {
+   "pattern": "İŞ YATIRIM",
+   "brand": "İş Yatırım",
+   "sector": "Yatırım & Menkul Değerler",
+   "category": "cat_investment"
+  },
+  {
+   "pattern": "ŞEHZADE MARKET",
+   "brand": "Şehzade Market",
+   "sector": "Yerel Market",
+   "category": "cat_market"
+  },
+  {
+   "pattern": "ŞOK MARKET",
+   "brand": "Şok Market",
+   "sector": "Süpermarket",
+   "category": "cat_market"
+  }
+ ]
+}

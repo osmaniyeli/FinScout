@@ -2,7 +2,6 @@
 
 import 'dart:convert';
 import 'dart:math';
-import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'aes_cipher.dart';
@@ -140,7 +139,8 @@ class SecurityGuard {
   // ===========================================================================
   String generateCsrfToken() {
     final rand = Random.secure();
-    final bytes = Uint8List.fromList(List<int>.generate(24, (_) => rand.nextInt(256)));
+    final bytes =
+        Uint8List.fromList(List<int>.generate(24, (_) => rand.nextInt(256)));
     final token = base64UrlEncode(bytes);
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     return 'csrf-$token-$timestamp';
@@ -166,16 +166,24 @@ class SecurityGuard {
   // ===========================================================================
   // 9. Secure Storage & Cookies (Gerçek Kriptografik Şifreleme)
   // ===========================================================================
-  Map<String, String> secureStoragePayload(String key, String value, {String? masterSecret}) {
+  Map<String, String> secureStoragePayload(String key, String value,
+      {String? masterSecret}) {
     final secret = masterSecret ?? 'PARAIZ_DEVICE_INTERNAL_SALT_KEY_v2';
-    final encryptedPackage = AesCipher.encryptVaultPayload(plainText: value, password: secret);
-    return {'key': key, 'cipher': 'AES-256-CBC-HMAC', 'payload': encryptedPackage};
+    final encryptedPackage =
+        AesCipher.encryptVaultPayload(plainText: value, password: secret);
+    return {
+      'key': key,
+      'cipher': 'AES-256-CBC-HMAC',
+      'payload': encryptedPackage
+    };
   }
 
-  String decryptStoragePayload(Map<String, String> stored, {String? masterSecret}) {
+  String decryptStoragePayload(Map<String, String> stored,
+      {String? masterSecret}) {
     final secret = masterSecret ?? 'PARAIZ_DEVICE_INTERNAL_SALT_KEY_v2';
     final payload = stored['payload'] ?? '';
-    return AesCipher.decryptVaultPayload(vaultString: payload, password: secret);
+    return AesCipher.decryptVaultPayload(
+        vaultString: payload, password: secret);
   }
 
   // ===========================================================================
@@ -184,7 +192,7 @@ class SecurityGuard {
   bool checkRateLimit(String actionKey, {int maxPerMinute = 20}) {
     final now = DateTime.now();
     final list = _rateLimitBuckets.putIfAbsent(actionKey, () => []);
-    
+
     // 1 dakikadan eski istekleri temizle
     list.removeWhere((t) => now.difference(t).inSeconds > 60);
 
@@ -211,7 +219,8 @@ class SecurityGuard {
     if (!hasAccess) {
       logAudit(
         action: 'IDOR_VIOLATION_ATTEMPT',
-        details: 'Profile $_currentProfileId tried to access record of $recordOwnerProfileId',
+        details:
+            'Profile $_currentProfileId tried to access record of $recordOwnerProfileId',
         severity: 'CRITICAL',
       );
     }
@@ -235,7 +244,8 @@ class SecurityGuard {
   // ===========================================================================
   // 13. File Upload Validation (Magic Bytes, Size & Deep Malware Scan)
   // ===========================================================================
-  bool validatePdfFile({required Uint8List bytes, int maxSizeBytes = 15728640}) {
+  bool validatePdfFile(
+      {required Uint8List bytes, int maxSizeBytes = 15728640}) {
     if (bytes.length > maxSizeBytes) return false;
     if (bytes.length < 5) return false;
     // PDF Magic Bytes: %PDF- (0x25, 0x50, 0x44, 0x46, 0x2D)
@@ -251,7 +261,8 @@ class SecurityGuard {
     if (!scanResult.isSafe) {
       logAudit(
         action: 'PDF_MALWARE_BLOCKED',
-        details: 'Zararlı PDF Girişimi Engellendi: ${scanResult.threatsDetected.join("; ")}',
+        details:
+            'Zararlı PDF Girişimi Engellendi: ${scanResult.threatsDetected.join("; ")}',
         severity: 'CRITICAL',
       );
       return false;
@@ -264,7 +275,8 @@ class SecurityGuard {
     return PdfMalwareScanner.scanBytes(bytes);
   }
 
-  bool validateExcelFile({required Uint8List bytes, int maxSizeBytes = 15728640}) {
+  bool validateExcelFile(
+      {required Uint8List bytes, int maxSizeBytes = 15728640}) {
     if (bytes.length > maxSizeBytes) return false;
     if (bytes.length < 4) return false;
     // XLSX is a ZIP archive: PK\x03\x04 (0x50, 0x4B, 0x03, 0x04)
@@ -278,7 +290,8 @@ class SecurityGuard {
   // ===========================================================================
   // 14. Global Exception Handling
   // ===========================================================================
-  T safeExecute<T>(T Function() block, {required T fallback, String actionName = 'Operation'}) {
+  T safeExecute<T>(T Function() block,
+      {required T fallback, String actionName = 'Operation'}) {
     try {
       return block();
     } catch (e, stack) {
@@ -288,7 +301,8 @@ class SecurityGuard {
         severity: 'ERROR',
       );
       if (kDebugMode) {
-        debugPrint('SecurityGuard SafeExecute Hatası ($actionName): $e\n$stack');
+        debugPrint(
+            'SecurityGuard SafeExecute Hatası ($actionName): $e\n$stack');
       }
       return fallback;
     }
@@ -299,7 +313,8 @@ class SecurityGuard {
   // ===========================================================================
   Map<String, String> getRecommendedSecurityHeaders() {
     return {
-      'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:;",
+      'Content-Security-Policy':
+          "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:;",
       'X-Frame-Options': 'DENY',
       'X-Content-Type-Options': 'nosniff',
       'Referrer-Policy': 'strict-origin-when-cross-origin',
@@ -343,14 +358,17 @@ class SecurityGuard {
   // ===========================================================================
   // 19. Backup (Gerçek AES-256-CBC-HMAC Şifreli Yedekleme)
   // ===========================================================================
-  String createEncryptedBackupPackage({required String jsonPayload, String? password}) {
+  String createEncryptedBackupPackage(
+      {required String jsonPayload, String? password}) {
     final pass = password ?? 'PARAIZ_DEFAULT_VAULT_PASSWD_2026';
-    return AesCipher.encryptVaultPayload(plainText: jsonPayload, password: pass);
+    return AesCipher.encryptVaultPayload(
+        plainText: jsonPayload, password: pass);
   }
 
   String decryptBackupPackage({required String vaultString, String? password}) {
     final pass = password ?? 'PARAIZ_DEFAULT_VAULT_PASSWD_2026';
-    return AesCipher.decryptVaultPayload(vaultString: vaultString, password: pass);
+    return AesCipher.decryptVaultPayload(
+        vaultString: vaultString, password: pass);
   }
 
   // ===========================================================================

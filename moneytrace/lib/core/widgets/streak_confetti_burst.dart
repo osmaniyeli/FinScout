@@ -25,7 +25,8 @@ class StreakConfettiBurst extends StatefulWidget {
 class _StreakConfettiBurstState extends State<StreakConfettiBurst>
     with SingleTickerProviderStateMixin {
   late final AnimationController _internalController;
-  AnimationController get _controller => widget.controller ?? _internalController;
+  AnimationController get _controller =>
+      widget.controller ?? _internalController;
   final List<_Particle> _particles = [];
   final math.Random _random = math.Random();
 
@@ -43,14 +44,17 @@ class _StreakConfettiBurstState extends State<StreakConfettiBurst>
       }
     });
 
-    if (widget.trigger || (widget.controller != null && widget.controller!.isAnimating)) {
+    if (widget.trigger ||
+        (widget.controller != null && widget.controller!.isAnimating)) {
       _startBurst();
     }
     widget.controller?.addListener(_onExternalController);
   }
 
   void _onExternalController() {
-    if (widget.controller != null && widget.controller!.isAnimating && _particles.isEmpty) {
+    if (widget.controller != null &&
+        widget.controller!.isAnimating &&
+        _particles.isEmpty) {
       _startBurst();
     }
   }
@@ -169,10 +173,12 @@ class _ConfettiPainter extends CustomPainter {
       final distance = p.speed * progress;
       final dx = center.dx + (math.cos(p.angle) * distance);
       // Yerçekimi ivmesi
-      final dy = center.dy + (math.sin(p.angle) * distance) + (progress * progress * 60);
+      final dy = center.dy +
+          (math.sin(p.angle) * distance) +
+          (progress * progress * 60);
 
       final paint = Paint()
-        ..color = p.color.withOpacity(opacity)
+        ..color = p.color.withValues(alpha: opacity)
         ..style = PaintingStyle.fill;
 
       canvas.save();
@@ -180,7 +186,8 @@ class _ConfettiPainter extends CustomPainter {
       canvas.rotate(p.rotation + (progress * 4));
       canvas.drawRRect(
         RRect.fromRectAndRadius(
-          Rect.fromCenter(center: Offset.zero, width: p.size, height: p.size * 0.6),
+          Rect.fromCenter(
+              center: Offset.zero, width: p.size, height: p.size * 0.6),
           const Radius.circular(2),
         ),
         paint,

@@ -1,9 +1,16 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:pdfrx/pdfrx.dart' show pdfrxFlutterInitialize;
 import 'core/config/remote_config_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/localization/app_strings.dart';
 import 'core/services/user_profile_service.dart';
 import 'core/services/security_auth_service.dart';
+import 'core/parser/enrichment/category_engine.dart';
+import 'core/services/notification_service.dart';
+import 'features/subscription/services/subscription_service.dart';
+import 'core/database/repositories/transaction_repository.dart';
 import 'core/widgets/fintech/fintech_components.dart';
 import 'features/navigation/main_navigation_scaffold.dart';
 import 'features/onboarding/presentation/onboarding_screen.dart';
@@ -13,7 +20,34 @@ void main() async {
   await RemoteConfigService.instance.loadFromAsset();
   await UserProfileService.instance.load();
   await SecurityAuthService.instance.initialize();
+  // PDF motoru (PDFium) — ekstreler tamamen cihaz üzerinde okunur
+  pdfrxFlutterInitialize();
+  await _loadMerchantDictionary();
   runApp(const MoneyTraceApp());
+  // Açılışı bekletmeden: kart son ödeme ve ekstre talimatı hatırlatıcılarını güncelle
+  unawaited(syncPaymentReminders());
+  // Google Play Billing: satın alma akışını dinle, kayıtlı yetkiyi mağazayla doğrula
+  unawaited(SubscriptionService.instance.initialize());
+}
+
+/// Ekstrelerden okunan yaklaşan ödemeler için hatırlatıcıları (yeniden) kurar. Hata uygulamayı etkilemez.
+Future<void> syncPaymentReminders() async {
+  try {
+    await NotificationService.instance.initialize();
+    final upcoming = await TransactionRepository().getUpcomingPayments();
+    await NotificationService.instance.syncUpcomingPayments(upcoming);
+  } catch (e) {
+    debugPrint('Ödeme hatırlatıcıları kurulamadı: $e');
+  }
+}
+
+/// Üye işyeri → sektör sözlüğü. Dosya yoksa kategori motoru yerleşik kurallarla çalışır.
+Future<void> _loadMerchantDictionary() async {
+  try {
+    CategoryEngine.instance.loadDictionary(
+      await rootBundle.loadString('assets/dictionaries/merchant_sectors_tr.json'),
+    );
+  } catch (_) {}
 }
 
 class MoneyTraceApp extends StatefulWidget {

@@ -25,7 +25,8 @@ class GoalsScreen extends StatefulWidget {
   State<GoalsScreen> createState() => _GoalsScreenState();
 }
 
-class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStateMixin {
+class _GoalsScreenState extends State<GoalsScreen>
+    with SingleTickerProviderStateMixin {
   final GoalRepository _goalRepository = GoalRepository();
   late AnimationController _confettiController;
   int _filterIndex = 0; // 0: Tümü, 1: Aktif, 2: Tamamlanan
@@ -88,12 +89,14 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
         title: Row(
           children: [
-            Icon(goal.category.iconData, color: goal.category.themeColor, size: 22),
+            Icon(goal.category.iconData,
+                color: goal.category.themeColor, size: 22),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 '${goal.title} - Birikim Ekle',
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
               ),
             ),
           ],
@@ -115,7 +118,9 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
                   return Padding(
                     padding: const EdgeInsets.only(right: 6),
                     child: ActionChip(
-                      label: Text('+₺$val', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                      label: Text('+₺$val',
+                          style: const TextStyle(
+                              fontSize: 11, fontWeight: FontWeight.w700)),
                       backgroundColor: const Color(0xFFF1F5F9),
                       onPressed: () => amountController.text = val.toString(),
                     ),
@@ -126,7 +131,8 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
             const SizedBox(height: 12),
             TextField(
               controller: amountController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               decoration: InputDecoration(
                 prefixText: '₺ ',
                 labelText: 'Eklenecek Tutar',
@@ -151,7 +157,10 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
                   idleAmountText: '₺${amountController.text}',
                   verifyingAmountText: 'Kasa Güncelleniyor...',
                   onPressed: () async {
-                    final rawText = amountController.text.trim().replaceAll('.', '').replaceAll(',', '.');
+                    final rawText = amountController.text
+                        .trim()
+                        .replaceAll('.', '')
+                        .replaceAll(',', '.');
                     final parsedNum = double.tryParse(rawText);
                     if (parsedNum == null || parsedNum <= 0) return;
 
@@ -168,7 +177,8 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         backgroundColor: AppColors.incomeGreen,
-                        content: Text('"${goal.title}" hedefine birikim aktarıldı!'),
+                        content:
+                            Text('"${goal.title}" hedefine birikim aktarıldı!'),
                       ),
                     );
                     // Video 1 Habit Streak & Başarı Kutlaması + Konfeti Efekti
@@ -178,7 +188,8 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Vazgeç', style: TextStyle(color: AppColors.textSecondary)),
+                  child: const Text('Vazgeç',
+                      style: TextStyle(color: AppColors.textSecondary)),
                 ),
               ],
             ),
@@ -222,10 +233,11 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: goal.category.themeColor.withOpacity(0.12),
+                        color: goal.category.themeColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      child: Icon(goal.category.iconData, color: goal.category.themeColor, size: 24),
+                      child: Icon(goal.category.iconData,
+                          color: goal.category.themeColor, size: 24),
                     ),
                     const SizedBox(width: 12),
                     Column(
@@ -233,11 +245,15 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
                       children: [
                         Text(
                           goal.title,
-                          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                          style: const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary),
                         ),
                         Text(
                           '${goal.category.displayName} • ${goal.monthsRemaining} ay kaldı',
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                              fontSize: 12, color: AppColors.textSecondary),
                         ),
                       ],
                     ),
@@ -263,10 +279,15 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Mevcut Birikim:', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                      const Text('Mevcut Birikim:',
+                          style: TextStyle(
+                              fontSize: 12, color: AppColors.textSecondary)),
                       Text(
                         '₺${(goal.currentSavedCents / 100).toStringAsFixed(2)}',
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.incomeGreen),
+                        style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.incomeGreen),
                       ),
                     ],
                   ),
@@ -274,10 +295,15 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Hedef Tutar:', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                      const Text('Hedef Tutar:',
+                          style: TextStyle(
+                              fontSize: 12, color: AppColors.textSecondary)),
                       Text(
                         '₺${(goal.targetAmountCents / 100).toStringAsFixed(2)}',
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                        style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary),
                       ),
                     ],
                   ),
@@ -285,10 +311,15 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Aylık Önerilen Tasarruf:', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                      const Text('Aylık Önerilen Tasarruf:',
+                          style: TextStyle(
+                              fontSize: 12, color: AppColors.textSecondary)),
                       Text(
                         '₺${(goal.recommendedMonthlySavingsCents / 100).toStringAsFixed(2)} / ay',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: goal.category.themeColor),
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: goal.category.themeColor),
                       ),
                     ],
                   ),
@@ -299,13 +330,15 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
             // Video 2: Hedef İlerlemesi Morflayan Paylaşım Butonu
             MorphingShareButton(
               fileName: '${goal.title.replaceAll(" ", "_")}_ilerleme.pdf',
-              label: 'Hedef İlerlemesini Paylaş (%${goal.progressPercentage.toStringAsFixed(0)})',
+              label:
+                  'Hedef İlerlemesini Paylaş (%${goal.progressPercentage.toStringAsFixed(0)})',
               accentColor: goal.category.themeColor,
               onDownloadComplete: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     backgroundColor: AppColors.incomeGreen,
-                    content: Text('"${goal.title}" hedef ilerlemeniz paylaşıldı.'),
+                    content:
+                        Text('"${goal.title}" hedef ilerlemeniz paylaşıldı.'),
                   ),
                 );
               },
@@ -320,11 +353,13 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
                   _showContributionDialog(goal);
                 },
                 icon: const Icon(Icons.savings_rounded, size: 18),
-                label: const Text('+ Birikim Katkısı Ekle', style: TextStyle(fontWeight: FontWeight.w700)),
+                label: const Text('+ Birikim Katkısı Ekle',
+                    style: TextStyle(fontWeight: FontWeight.w700)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: goal.category.themeColor,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
                   elevation: 0,
                 ),
               ),
@@ -338,7 +373,8 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     final summary = GoalCalculatorService.calculateSummary(_goals);
-    final scoutMessage = GoalCalculatorService.generateScoutGoalInsight(summary, _goals);
+    final scoutMessage =
+        GoalCalculatorService.generateScoutGoalInsight(summary, _goals);
 
     List<FinancialGoal> filteredGoals = _goals;
     if (_filterIndex == 1) {
@@ -352,14 +388,18 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
       appBar: AppBar(
         title: const Text(
           'Hedeflerim',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+          style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textPrimary),
         ),
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_circle_outline_rounded, color: AppColors.actionPrimary, size: 24),
+            icon: const Icon(Icons.add_circle_outline_rounded,
+                color: AppColors.actionPrimary, size: 24),
             onPressed: _openAddGoal,
             tooltip: 'Yeni Hedef Ekle',
           ),
@@ -382,16 +422,20 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
                         // 2. "İzci" Hedef Tavsiyesi (Sadece hedef varsa)
                         if (_goals.isNotEmpty)
                           Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
                             decoration: BoxDecoration(
                               color: const Color(0xFFFFFBEB),
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: const Color(0xFFFEF3C7)),
+                              border:
+                                  Border.all(color: const Color(0xFFFEF3C7)),
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.lightbulb_rounded, color: Color(0xFFD97706), size: 20),
+                                const Icon(Icons.lightbulb_rounded,
+                                    color: Color(0xFFD97706), size: 20),
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
@@ -415,80 +459,99 @@ class _GoalsScreenState extends State<GoalsScreen> with SingleTickerProviderStat
                             'Tamamlanan (${summary.completedGoalsCount})',
                           ],
                           selectedIndex: _filterIndex,
-                          onSelected: (idx) => setState(() => _filterIndex = idx),
+                          onSelected: (idx) =>
+                              setState(() => _filterIndex = idx),
                         ),
 
-                    // 4. Hedef Kartları Listesi
-                    if (_goals.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                width: 72,
-                                height: 72,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFEFF6FF),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: const Color(0xFFDBEAFE)),
-                                ),
-                                child: const Icon(Icons.flag_rounded, size: 36, color: AppColors.actionPrimary),
+                        // 4. Hedef Kartları Listesi
+                        if (_goals.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 48),
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 72,
+                                    height: 72,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFEFF6FF),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                          color: const Color(0xFFDBEAFE)),
+                                    ),
+                                    child: const Icon(Icons.flag_rounded,
+                                        size: 36,
+                                        color: AppColors.actionPrimary),
+                                  ),
+                                  const SizedBox(height: 18),
+                                  const Text(
+                                    'Henüz Bir Finansal Hedef Eklenmedi',
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.textPrimary),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    'Konut, araç, acil durum fonu veya tatil için birikim hedefi oluşturarak tasarruf planınızı hemen başlatın.',
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.textSecondary,
+                                        height: 1.4),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 20),
+                                  ElevatedButton.icon(
+                                    onPressed: _openAddGoal,
+                                    icon:
+                                        const Icon(Icons.add_rounded, size: 18),
+                                    label: const Text(
+                                        'İlk Hedefinizi Oluşturun',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w800)),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.actionPrimary,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(14)),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 20, vertical: 12),
+                                      elevation: 0,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 18),
-                              const Text(
-                                'Henüz Bir Finansal Hedef Eklenmedi',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-                                textAlign: TextAlign.center,
+                            ),
+                          )
+                        else if (filteredGoals.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.all(40),
+                            child: Center(
+                              child: Text(
+                                'Bu filtrede hedef bulunamadı.',
+                                style: TextStyle(color: AppColors.textMuted),
                               ),
-                              const SizedBox(height: 8),
-                              const Text(
-                                'Konut, araç, acil durum fonu veya tatil için birikim hedefi oluşturarak tasarruf planınızı hemen başlatın.',
-                                style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 20),
-                              ElevatedButton.icon(
-                                onPressed: _openAddGoal,
-                                icon: const Icon(Icons.add_rounded, size: 18),
-                                label: const Text('İlk Hedefinizi Oluşturun', style: TextStyle(fontWeight: FontWeight.w800)),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.actionPrimary,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                                  elevation: 0,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    else if (filteredGoals.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.all(40),
-                        child: Center(
-                          child: Text(
-                            'Bu filtrede hedef bulunamadı.',
-                            style: TextStyle(color: AppColors.textMuted),
-                          ),
-                        ),
-                      )
-                    else
-                      ...filteredGoals.map((g) {
-                        return GoalCardTile(
-                          goal: g,
-                          onTap: () => _showGoalDetail(g),
-                          onAddContribution: () => _showContributionDialog(g),
-                        );
-                      }).toList(),
+                            ),
+                          )
+                        else
+                          ...filteredGoals.map((g) {
+                            return GoalCardTile(
+                              goal: g,
+                              onTap: () => _showGoalDetail(g),
+                              onAddContribution: () =>
+                                  _showContributionDialog(g),
+                            );
+                          }).toList(),
 
-                    const SizedBox(height: 84), // Navigasyon & FAB boşluğu
-                  ],
+                        const SizedBox(height: 84), // Navigasyon & FAB boşluğu
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
           // Video Kutlama Efekti: Konfeti Patlaması
           IgnorePointer(
             child: StreakConfettiBurst(controller: _confettiController),

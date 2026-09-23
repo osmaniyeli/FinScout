@@ -82,7 +82,8 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
       return;
     }
 
-    final targetCents = CurrencyNormalizer.toMinorUnits(_targetAmountController.text);
+    final targetCents =
+        CurrencyNormalizer.toMinorUnits(_targetAmountController.text);
     if (targetCents <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Lütfen geçerli bir hedef tutar girin.')),
@@ -90,7 +91,8 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
       return;
     }
 
-    final initialCents = CurrencyNormalizer.toMinorUnits(_initialSavedController.text);
+    final initialCents =
+        CurrencyNormalizer.toMinorUnits(_initialSavedController.text);
 
     String? subType;
     String? brandModel;
@@ -166,10 +168,11 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: themeColor.withOpacity(0.12),
+                        color: themeColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(_selectedCategory.iconData, color: themeColor, size: 20),
+                      child: Icon(_selectedCategory.iconData,
+                          color: themeColor, size: 20),
                     ),
                     const SizedBox(width: 10),
                     const Text(
@@ -183,7 +186,8 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
                   ],
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded, size: 20, color: AppColors.textSecondary),
+                  icon: const Icon(Icons.close_rounded,
+                      size: 20, color: AppColors.textSecondary),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -193,7 +197,10 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
             // Kategori Seçici Yatay Çip Listesi
             const Text(
               'Hedef Kategorisi',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textSecondary),
             ),
             const SizedBox(height: 8),
             SingleChildScrollView(
@@ -216,12 +223,15 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
                       labelStyle: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: isSelected ? Colors.white : AppColors.textPrimary,
+                        color:
+                            isSelected ? Colors.white : AppColors.textPrimary,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                         side: BorderSide(
-                          color: isSelected ? cat.themeColor : const Color(0xFFE2E8F0),
+                          color: isSelected
+                              ? cat.themeColor
+                              : const Color(0xFFE2E8F0),
                         ),
                       ),
                       onSelected: (val) {
@@ -240,9 +250,12 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
             const SizedBox(height: 16),
 
             // DİNAMİK ALANLAR (Ev Tipi / Araç Marka Model / Motor Marka Model)
-            if (_selectedCategory == GoalCategory.house) _buildHouseTypeSelector(),
-            if (_selectedCategory == GoalCategory.vehicle) _buildVehicleSelector(),
-            if (_selectedCategory == GoalCategory.motorcycle) _buildMotorcycleSelector(),
+            if (_selectedCategory == GoalCategory.house)
+              _buildHouseTypeSelector(),
+            if (_selectedCategory == GoalCategory.vehicle)
+              _buildVehicleSelector(),
+            if (_selectedCategory == GoalCategory.motorcycle)
+              _buildMotorcycleSelector(),
             if (_selectedCategory == GoalCategory.boat) _buildBoatSelector(),
             if (_selectedCategory == GoalCategory.gift) _buildGiftSelector(),
 
@@ -279,7 +292,8 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
                   child: TextField(
                     controller: _targetAmountController,
                     keyboardType: TextInputType.number,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w800),
                     decoration: InputDecoration(
                       labelText: 'Hedef Tutar (₺)',
                       hintText: '1.200.000',
@@ -302,7 +316,8 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
                   child: TextField(
                     controller: _initialSavedController,
                     keyboardType: TextInputType.number,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w800),
                     decoration: InputDecoration(
                       labelText: 'Mevcut Birikim (₺)',
                       hintText: '0',
@@ -339,7 +354,8 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
               },
               borderRadius: BorderRadius.circular(16),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(16),
@@ -350,7 +366,8 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.calendar_today_rounded, size: 18, color: AppColors.textSecondary),
+                        const Icon(Icons.calendar_today_rounded,
+                            size: 18, color: AppColors.textSecondary),
                         const SizedBox(width: 8),
                         Text(
                           'Hedef Tarih: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
@@ -362,7 +379,8 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
                         ),
                       ],
                     ),
-                    const Icon(Icons.edit, size: 16, color: AppColors.textMuted),
+                    const Icon(Icons.edit,
+                        size: 16, color: AppColors.textMuted),
                   ],
                 ),
               ),
@@ -372,7 +390,9 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
             // Video 4: Radar Dalgalı Doğrulama ve Güvenli Başlatma Butonu
             RadarCheckoutButton(
               label: 'Hedefi Doğrula & Başlat',
-              idleAmountText: _targetAmountController.text.isNotEmpty ? '₺${_targetAmountController.text}' : '',
+              idleAmountText: _targetAmountController.text.isNotEmpty
+                  ? '₺${_targetAmountController.text}'
+                  : '',
               verifyingAmountText: 'Hedef Oluşturuluyor...',
               onPressed: () async {
                 _submit();
@@ -393,7 +413,10 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
       children: [
         const Text(
           'Ev Tipi Seçin',
-          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
+          style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textSecondary),
         ),
         const SizedBox(height: 6),
         Container(
@@ -410,7 +433,9 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
               items: GoalPresetData.houseTypes.map((type) {
                 return DropdownMenuItem(
                   value: type,
-                  child: Text(type, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                  child: Text(type,
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w600)),
                 );
               }).toList(),
               onChanged: (val) {
@@ -430,14 +455,18 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
 
   // 2. Araç Marka & Model Seçici
   Widget _buildVehicleSelector() {
-    final models = GoalPresetData.popularVehicles[_selectedVehicleBrand] ?? ['Özel Model'];
+    final models =
+        GoalPresetData.popularVehicles[_selectedVehicleBrand] ?? ['Özel Model'];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           'Araç Marka & Model Seçin',
-          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
+          style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textSecondary),
         ),
         const SizedBox(height: 6),
         Row(
@@ -459,14 +488,17 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
                     items: GoalPresetData.popularVehicles.keys.map((brand) {
                       return DropdownMenuItem(
                         value: brand,
-                        child: Text(brand, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                        child: Text(brand,
+                            style: const TextStyle(
+                                fontSize: 13, fontWeight: FontWeight.w700)),
                       );
                     }).toList(),
                     onChanged: (brand) {
                       if (brand != null) {
                         setState(() {
                           _selectedVehicleBrand = brand;
-                          _selectedVehicleModel = GoalPresetData.popularVehicles[brand]!.first;
+                          _selectedVehicleModel =
+                              GoalPresetData.popularVehicles[brand]!.first;
                           _updateDefaultTitle();
                         });
                       }
@@ -488,12 +520,16 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
-                    value: models.contains(_selectedVehicleModel) ? _selectedVehicleModel : models.first,
+                    value: models.contains(_selectedVehicleModel)
+                        ? _selectedVehicleModel
+                        : models.first,
                     isExpanded: true,
                     items: models.map((model) {
                       return DropdownMenuItem(
                         value: model,
-                        child: Text(model, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                        child: Text(model,
+                            style: const TextStyle(
+                                fontSize: 13, fontWeight: FontWeight.w600)),
                       );
                     }).toList(),
                     onChanged: (model) {
@@ -516,14 +552,18 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
 
   // 3. Motorsiklet Marka & Model Seçici
   Widget _buildMotorcycleSelector() {
-    final models = GoalPresetData.popularMotorcycles[_selectedMotoBrand] ?? ['Özel Model'];
+    final models =
+        GoalPresetData.popularMotorcycles[_selectedMotoBrand] ?? ['Özel Model'];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           'Motorsiklet / Scooter Seçin',
-          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
+          style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textSecondary),
         ),
         const SizedBox(height: 6),
         Row(
@@ -544,14 +584,17 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
                     items: GoalPresetData.popularMotorcycles.keys.map((brand) {
                       return DropdownMenuItem(
                         value: brand,
-                        child: Text(brand, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                        child: Text(brand,
+                            style: const TextStyle(
+                                fontSize: 13, fontWeight: FontWeight.w700)),
                       );
                     }).toList(),
                     onChanged: (brand) {
                       if (brand != null) {
                         setState(() {
                           _selectedMotoBrand = brand;
-                          _selectedMotoModel = GoalPresetData.popularMotorcycles[brand]!.first;
+                          _selectedMotoModel =
+                              GoalPresetData.popularMotorcycles[brand]!.first;
                           _updateDefaultTitle();
                         });
                       }
@@ -572,12 +615,16 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
-                    value: models.contains(_selectedMotoModel) ? _selectedMotoModel : models.first,
+                    value: models.contains(_selectedMotoModel)
+                        ? _selectedMotoModel
+                        : models.first,
                     isExpanded: true,
                     items: models.map((model) {
                       return DropdownMenuItem(
                         value: model,
-                        child: Text(model, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                        child: Text(model,
+                            style: const TextStyle(
+                                fontSize: 13, fontWeight: FontWeight.w600)),
                       );
                     }).toList(),
                     onChanged: (model) {
@@ -605,7 +652,10 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
       children: [
         const Text(
           'Tekne Tipi Seçin',
-          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
+          style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textSecondary),
         ),
         const SizedBox(height: 6),
         Container(
@@ -622,7 +672,9 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
               items: GoalPresetData.boatTypes.map((type) {
                 return DropdownMenuItem(
                   value: type,
-                  child: Text(type, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                  child: Text(type,
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w600)),
                 );
               }).toList(),
               onChanged: (val) {
@@ -647,7 +699,10 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
       children: [
         const Text(
           'Hediye Amacı Seçin',
-          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
+          style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textSecondary),
         ),
         const SizedBox(height: 6),
         Container(
@@ -664,7 +719,9 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
               items: GoalPresetData.giftOccasions.map((type) {
                 return DropdownMenuItem(
                   value: type,
-                  child: Text(type, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                  child: Text(type,
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w600)),
                 );
               }).toList(),
               onChanged: (val) {
@@ -687,22 +744,28 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
     String text = '';
     switch (_selectedCategory) {
       case GoalCategory.house:
-        text = 'Kendi kapını anahtarınla açtığın o ilk günün huzuru paha biçilemez. Her ay biriktirdiğin her kuruş, o evin temeline konan sağlam bir tuğla! 🏠';
+        text =
+            'Kendi kapını anahtarınla açtığın o ilk günün huzuru paha biçilemez. Her ay biriktirdiğin her kuruş, o evin temeline konan sağlam bir tuğla! 🏠';
         break;
       case GoalCategory.vehicle:
-        text = '$_selectedVehicleBrand $_selectedVehicleModel direksiyonuna geçip kontağı çevirdiğin ilk anı ve yeni araç kokusunu hayal et. Gaza basmaya devam! 🚗';
+        text =
+            '$_selectedVehicleBrand $_selectedVehicleModel direksiyonuna geçip kontağı çevirdiğin ilk anı ve yeni araç kokusunu hayal et. Gaza basmaya devam! 🚗';
         break;
       case GoalCategory.motorcycle:
-        text = '$_selectedMotoBrand $_selectedMotoModel ile trafiğe takılmadan rüzgarı hissedeceğin o ilk rota çok yakın! Birikim depon hızla doluyor. 🏍️';
+        text =
+            '$_selectedMotoBrand $_selectedMotoModel ile trafiğe takılmadan rüzgarı hissedeceğin o ilk rota çok yakın! Birikim depon hızla doluyor. 🏍️';
         break;
       case GoalCategory.boat:
-        text = 'Mavi sularda kendi rotanı çizeceğin, gün batımını denizden izleyeceğin günler yakın! ⛵';
+        text =
+            'Mavi sularda kendi rotanı çizeceğin, gün batımını denizden izleyeceğin günler yakın! ⛵';
         break;
       case GoalCategory.gift:
-        text = 'Sevdiklerinin yüzündeki o samimi tebessüm, bu birikimin en büyük getirisi olacak. 🎁';
+        text =
+            'Sevdiklerinin yüzündeki o samimi tebessüm, bu birikimin en büyük getirisi olacak. 🎁';
         break;
       default:
-        text = 'Bugün attığın her disiplinli adım, yarının finansal özgürlüğünün güvencesidir! 🌟';
+        text =
+            'Bugün attığın her disiplinli adım, yarının finansal özgürlüğünün güvencesidir! 🌟';
         break;
     }
 
@@ -721,7 +784,11 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(fontSize: 12, color: Color(0xFF166534), fontWeight: FontWeight.w600, height: 1.3),
+              style: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF166534),
+                  fontWeight: FontWeight.w600,
+                  height: 1.3),
             ),
           ),
         ],

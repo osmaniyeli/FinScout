@@ -1,6 +1,8 @@
 // lib/features/newsletter/presentation/newsletter_subscription_sheet.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/radar_checkout_button.dart';
 import '../../../core/config/remote_config_service.dart';
@@ -9,15 +11,16 @@ class NewsletterSubscriptionSheet extends StatefulWidget {
   const NewsletterSubscriptionSheet({Key? key}) : super(key: key);
 
   @override
-  State<NewsletterSubscriptionSheet> createState() => _NewsletterSubscriptionSheetState();
+  State<NewsletterSubscriptionSheet> createState() =>
+      _NewsletterSubscriptionSheetState();
 }
 
-class _NewsletterSubscriptionSheetState extends State<NewsletterSubscriptionSheet> {
+class _NewsletterSubscriptionSheetState
+    extends State<NewsletterSubscriptionSheet> {
   final TextEditingController _emailController = TextEditingController();
   late String _newsletterLanguage;
   bool _sendWeeklySummary = true;
   bool _sendGoldAlerts = true;
-  bool _isSubscribed = false;
 
   @override
   void initState() {
@@ -31,7 +34,7 @@ class _NewsletterSubscriptionSheetState extends State<NewsletterSubscriptionShee
     super.dispose();
   }
 
-  void _submitSubscription() {
+  Future<void> _submitSubscription() async {
     final email = _emailController.text.trim();
     if (email.isEmpty || !email.contains('@') || !email.contains('.')) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -43,22 +46,95 @@ class _NewsletterSubscriptionSheetState extends State<NewsletterSubscriptionShee
       return;
     }
 
-    setState(() {
-      _isSubscribed = true;
-    });
+    final langText = _newsletterLanguage == 'en' ? 'English' : 'Türkçe';
+    final weeklyText = _sendWeeklySummary ? 'Evet' : 'Hayır';
+    final goldText = _sendGoldAlerts ? 'Evet' : 'Hayır';
 
-    Future.delayed(const Duration(seconds: 1), () {
-      if (mounted) {
-        Navigator.pop(context);
-        final langText = _newsletterLanguage == 'en' ? 'English 🇬🇧' : 'Türkçe 🇹🇷';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: AppColors.incomeGreen,
-            content: Text('$email bülten listesine başarıyla eklendi! (Bülten Dili: $langText)'),
-          ),
-        );
+    final String subject = Uri.encodeComponent('Bülten Aboneliği');
+    final String body = Uri.encodeComponent(
+        'E-posta: $email\nDil: $langText\nHaftalık Karne: $weeklyText\nKritik Fiyat Bildirimleri: $goldText');
+    final Uri mailUri =
+        Uri.parse('mailto:support@paraiz.app?subject=$subject&body=$body');
+
+    try {
+      final bool launched =
+          await launchUrl(mailUri, mode: LaunchMode.externalApplication);
+      if (launched) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              backgroundColor: AppColors.incomeGreen,
+              content:
+                  Text('E-posta uygulamanız açıldı, göndermeyi tamamlayın.'),
+            ),
+          );
+          Navigator.pop(context);
+        }
+      } else {
+        if (mounted) {
+          _showCopyFallback(email, langText, weeklyText, goldText);
+        }
       }
-    });
+    } catch (_) {
+      if (mounted) {
+        _showCopyFallback(email, langText, weeklyText, goldText);
+      }
+    }
+  }
+
+  void _showCopyFallback(
+      String email, String lang, String weekly, String gold) {
+    final content =
+        'Alıcı: support@paraiz.app\nKonu: Bülten Aboneliği\nE-posta: $email\nDil: $lang\nHaftalık Karne: $weekly\nFiyat Bildirimleri: $gold';
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'E-posta Açılamadı',
+          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'E-posta istemcisi otomatik başlatılamadı. Bültene abone olmak için aşağıdaki bilgileri kopyalayıp support@paraiz.app adresine gönderebilirsiniz:',
+              style: TextStyle(fontSize: 12),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: SelectableText(
+                content,
+                style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: content));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Bilgiler panoya kopyalandı!')),
+              );
+              Navigator.pop(ctx);
+              Navigator.pop(context);
+            },
+            child: const Text('Kopyala & Kapat'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Kapat'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -79,7 +155,6 @@ class _NewsletterSubscriptionSheetState extends State<NewsletterSubscriptionShee
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Üst Tutamaç
             Center(
               child: Container(
                 width: 44,
@@ -91,8 +166,6 @@ class _NewsletterSubscriptionSheetState extends State<NewsletterSubscriptionShee
               ),
             ),
             const SizedBox(height: 16),
-
-            // Başlık & İkon
             Row(
               children: [
                 Container(
@@ -101,7 +174,8 @@ class _NewsletterSubscriptionSheetState extends State<NewsletterSubscriptionShee
                     color: const Color(0xFFEFF6FF),
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: const Icon(Icons.mark_email_unread_rounded, color: AppColors.actionPrimary, size: 24),
+                  child: const Icon(Icons.mark_email_unread_rounded,
+                      color: AppColors.actionPrimary, size: 24),
                 ),
                 const SizedBox(width: 12),
                 Column(
@@ -109,24 +183,27 @@ class _NewsletterSubscriptionSheetState extends State<NewsletterSubscriptionShee
                   children: const [
                     Text(
                       'Haftalık Finans Bülteni',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary),
                     ),
                     Text(
                       'Harcama raporları ve piyasa analizleri e-postanda',
-                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                      style: TextStyle(
+                          fontSize: 11, color: AppColors.textSecondary),
                     ),
                   ],
                 ),
               ],
             ),
             const SizedBox(height: 18),
-
-            // E-Posta Giriş Kutusu
             TextField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.email_outlined, color: AppColors.textMuted),
+                prefixIcon: const Icon(Icons.email_outlined,
+                    color: AppColors.textMuted),
                 labelText: 'E-Posta Adresiniz',
                 hintText: 'ornek@email.com',
                 filled: true,
@@ -142,8 +219,6 @@ class _NewsletterSubscriptionSheetState extends State<NewsletterSubscriptionShee
               ),
             ),
             const SizedBox(height: 14),
-
-            // Tercihler
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
@@ -158,20 +233,29 @@ class _NewsletterSubscriptionSheetState extends State<NewsletterSubscriptionShee
                     children: [
                       const Text(
                         'Bülten Dili / Language:',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                        style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary),
                       ),
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           GestureDetector(
-                            onTap: () => setState(() => _newsletterLanguage = 'tr'),
+                            onTap: () =>
+                                setState(() => _newsletterLanguage = 'tr'),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
                               decoration: BoxDecoration(
-                                color: _newsletterLanguage == 'tr' ? const Color(0xFFDCFCE7) : Colors.white,
+                                color: _newsletterLanguage == 'tr'
+                                    ? const Color(0xFFDCFCE7)
+                                    : Colors.white,
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
-                                  color: _newsletterLanguage == 'tr' ? const Color(0xFF166534) : const Color(0xFFCBD5E1),
+                                  color: _newsletterLanguage == 'tr'
+                                      ? const Color(0xFF166534)
+                                      : const Color(0xFFCBD5E1),
                                 ),
                               ),
                               child: Text(
@@ -179,21 +263,29 @@ class _NewsletterSubscriptionSheetState extends State<NewsletterSubscriptionShee
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w800,
-                                  color: _newsletterLanguage == 'tr' ? const Color(0xFF166534) : AppColors.textSecondary,
+                                  color: _newsletterLanguage == 'tr'
+                                      ? const Color(0xFF166534)
+                                      : AppColors.textSecondary,
                                 ),
                               ),
                             ),
                           ),
                           const SizedBox(width: 6),
                           GestureDetector(
-                            onTap: () => setState(() => _newsletterLanguage = 'en'),
+                            onTap: () =>
+                                setState(() => _newsletterLanguage = 'en'),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
                               decoration: BoxDecoration(
-                                color: _newsletterLanguage == 'en' ? const Color(0xFFEFF6FF) : Colors.white,
+                                color: _newsletterLanguage == 'en'
+                                    ? const Color(0xFFEFF6FF)
+                                    : Colors.white,
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
-                                  color: _newsletterLanguage == 'en' ? AppColors.actionPrimary : const Color(0xFFCBD5E1),
+                                  color: _newsletterLanguage == 'en'
+                                      ? AppColors.actionPrimary
+                                      : const Color(0xFFCBD5E1),
                                 ),
                               ),
                               child: Text(
@@ -201,7 +293,9 @@ class _NewsletterSubscriptionSheetState extends State<NewsletterSubscriptionShee
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w800,
-                                  color: _newsletterLanguage == 'en' ? AppColors.actionPrimary : AppColors.textSecondary,
+                                  color: _newsletterLanguage == 'en'
+                                      ? AppColors.actionPrimary
+                                      : AppColors.textSecondary,
                                 ),
                               ),
                             ),
@@ -217,13 +311,17 @@ class _NewsletterSubscriptionSheetState extends State<NewsletterSubscriptionShee
                       const Expanded(
                         child: Text(
                           'Haftalık Harcama & Tasarruf Karnesi',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                          style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary),
                         ),
                       ),
                       Switch(
                         value: _sendWeeklySummary,
-                        activeColor: AppColors.actionPrimary,
-                        onChanged: (val) => setState(() => _sendWeeklySummary = val),
+                        activeThumbColor: AppColors.actionPrimary,
+                        onChanged: (val) =>
+                            setState(() => _sendWeeklySummary = val),
                       ),
                     ],
                   ),
@@ -234,13 +332,17 @@ class _NewsletterSubscriptionSheetState extends State<NewsletterSubscriptionShee
                       const Expanded(
                         child: Text(
                           'Altın & Döviz Kritik Fiyat Bildirimleri',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                          style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary),
                         ),
                       ),
                       Switch(
                         value: _sendGoldAlerts,
-                        activeColor: AppColors.actionPrimary,
-                        onChanged: (val) => setState(() => _sendGoldAlerts = val),
+                        activeThumbColor: AppColors.actionPrimary,
+                        onChanged: (val) =>
+                            setState(() => _sendGoldAlerts = val),
                       ),
                     ],
                   ),
@@ -248,13 +350,13 @@ class _NewsletterSubscriptionSheetState extends State<NewsletterSubscriptionShee
               ),
             ),
             const SizedBox(height: 20),
-
-            // Video 4: Radar Dalgalı Doğrulama ve Güvenli Abonelik Butonu
             RadarCheckoutButton(
               label: 'Bültene Doğrula & Abone Ol',
               idleAmountText: 'Ücretsiz',
-              verifyingAmountText: 'Kaydediliyor...',
-              onPressed: _isSubscribed ? null : () async => _submitSubscription(),
+              verifyingAmountText: 'Hazırlanıyor...',
+              onPressed: () async {
+                await _submitSubscription();
+              },
               onVerificationComplete: () {},
             ),
             const SizedBox(height: 10),

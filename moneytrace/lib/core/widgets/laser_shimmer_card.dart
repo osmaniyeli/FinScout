@@ -123,7 +123,7 @@ class _LaserBorderPainter extends CustomPainter {
 
     // 1. Temel Çerçeve Çizgisi
     final basePaint = Paint()
-      ..color = baseBorderColor.withOpacity(0.5)
+      ..color = baseBorderColor.withValues(alpha: 0.5)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
     canvas.drawRRect(rrect, basePaint);
@@ -143,7 +143,7 @@ class _LaserBorderPainter extends CustomPainter {
         ],
         colors: [
           Colors.transparent,
-          shimmerColor.withOpacity(0.85),
+          shimmerColor.withValues(alpha: 0.85),
           Colors.transparent,
         ],
       ).createShader(rect);

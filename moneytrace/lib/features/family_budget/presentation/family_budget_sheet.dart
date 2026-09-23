@@ -1,10 +1,11 @@
 // lib/features/family_budget/presentation/family_budget_sheet.dart
 
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/pulse_metric_badge.dart';
-import '../../../core/widgets/morphing_share_button.dart';
 import '../../../core/widgets/radar_checkout_button.dart';
 import '../../../core/services/user_profile_service.dart';
 
@@ -34,42 +35,95 @@ class FamilyBudgetSheet extends StatefulWidget {
 }
 
 class _FamilyBudgetSheetState extends State<FamilyBudgetSheet> {
-  String _inviteCode = '429YJD';
   bool _isPrivateRecordsEnabled = false;
-
-  // Aile Boyu Üyelik Paketi: Maksimum 4 Kişi (1 Asıl + 3 Aile Bireyi)
   final int _maxFamilyMembers = 4;
-  late final List<FamilyMember> _members = [
-    FamilyMember(
+  List<FamilyMember> _members = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMembers();
+  }
+
+  Future<File> _getStorageFile() async {
+    final directory = await getApplicationDocumentsDirectory();
+    return File('${directory.path}/paraiz_family_members.json');
+  }
+
+  Future<void> _loadMembers() async {
+    try {
+      final file = await _getStorageFile();
+      if (await file.exists()) {
+        final content = await file.readAsString();
+        final List<dynamic> jsonList = jsonDecode(content);
+        final loaded = jsonList
+            .map((item) => FamilyMember(
+                  id: item['id'] as String,
+                  name: item['name'] as String,
+                  role: item['role'] as String,
+                  joinedDate: item['joinedDate'] as String,
+                  initials: item['initials'] as String,
+                  assignedCardMask: item['assignedCardMask'] as String?,
+                ))
+            .toList();
+
+        if (loaded.isEmpty || !loaded.any((m) => m.id == 'mem_1')) {
+          _initializeDefaultOwner(loaded);
+        }
+
+        setState(() {
+          _members = loaded;
+        });
+      } else {
+        final List<FamilyMember> initial = [];
+        _initializeDefaultOwner(initial);
+        setState(() {
+          _members = initial;
+        });
+        await _saveMembers(initial);
+      }
+    } catch (_) {
+      final List<FamilyMember> fallback = [];
+      _initializeDefaultOwner(fallback);
+      setState(() {
+        _members = fallback;
+      });
+    }
+  }
+
+  void _initializeDefaultOwner(List<FamilyMember> list) {
+    final owner = FamilyMember(
       id: 'mem_1',
       name: '${UserProfileService.instance.profile?.name ?? "Kullanıcı"} (sen)',
       role: 'Sahip (Asıl Kart)',
       joinedDate: 'Oluşturuldu',
-      initials: (UserProfileService.instance.profile?.name ?? 'K').trim().split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join().toUpperCase(),
+      initials: (UserProfileService.instance.profile?.name ?? 'K')
+          .trim()
+          .split(' ')
+          .map((e) => e.isNotEmpty ? e[0] : '')
+          .take(2)
+          .join()
+          .toUpperCase(),
       assignedCardMask: 'Asıl Kart',
-    ),
-  ];
-
-  void _copyCode() {
-    Clipboard.setData(ClipboardData(text: _inviteCode));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Davet kodu panoya kopyalandı!'),
-        duration: Duration(seconds: 2),
-      ),
     );
+    list.insert(0, owner);
   }
 
-  void _refreshCode() {
-    setState(() {
-      _inviteCode = 'MT${(1000 + DateTime.now().millisecond % 9000)}';
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Yeni davet kodu üretildi!'),
-        duration: Duration(seconds: 2),
-      ),
-    );
+  Future<void> _saveMembers(List<FamilyMember> membersToSave) async {
+    try {
+      final file = await _getStorageFile();
+      final jsonList = membersToSave
+          .map((m) => {
+                'id': m.id,
+                'name': m.name,
+                'role': m.role,
+                'joinedDate': m.joinedDate,
+                'initials': m.initials,
+                'assignedCardMask': m.assignedCardMask,
+              })
+          .toList();
+      await file.writeAsString(jsonEncode(jsonList));
+    } catch (_) {}
   }
 
   void _addNewMember() {
@@ -113,7 +167,6 @@ class _FamilyBudgetSheetState extends State<FamilyBudgetSheet> {
               ),
             ),
             const SizedBox(height: 16),
-            // Video 4: Radar Dalgalı Doğrulama ve Güvenli Birey Ekleme Butonu
             RadarCheckoutButton(
               label: 'Bireyi Doğrula ve Ekle',
               idleAmountText: '${_members.length + 1}/$_maxFamilyMembers Kişi',
@@ -121,16 +174,25 @@ class _FamilyBudgetSheetState extends State<FamilyBudgetSheet> {
               onPressed: () async {
                 if (nameController.text.trim().isNotEmpty) {
                   final name = nameController.text.trim();
-                  final initials = name.split(' ').map((w) => w[0]).take(2).join('').toUpperCase();
+                  final initials = name
+                      .split(' ')
+                      .map((w) => w.isNotEmpty ? w[0] : '')
+                      .take(2)
+                      .join('')
+                      .toUpperCase();
+
+                  final newMember = FamilyMember(
+                    id: 'mem_${DateTime.now().millisecondsSinceEpoch}',
+                    name: name,
+                    role: roleController.text.trim(),
+                    joinedDate: 'Yeni Katıldı',
+                    initials: initials,
+                  );
+
                   setState(() {
-                    _members.add(FamilyMember(
-                      id: 'mem_${DateTime.now().millisecondsSinceEpoch}',
-                      name: name,
-                      role: roleController.text.trim(),
-                      joinedDate: 'Yeni Katıldı',
-                      initials: initials,
-                    ));
+                    _members.add(newMember);
                   });
+                  await _saveMembers(_members);
                 }
               },
               onVerificationComplete: () {
@@ -138,7 +200,8 @@ class _FamilyBudgetSheetState extends State<FamilyBudgetSheet> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     backgroundColor: AppColors.incomeGreen,
-                    content: Text('${nameController.text} aile bütçenize eklendi.'),
+                    content:
+                        Text('${nameController.text} aile bütçenize eklendi.'),
                   ),
                 );
               },
@@ -167,7 +230,6 @@ class _FamilyBudgetSheetState extends State<FamilyBudgetSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Üst Tutamaç
             Center(
               child: Container(
                 width: 44,
@@ -179,8 +241,6 @@ class _FamilyBudgetSheetState extends State<FamilyBudgetSheet> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // Başlık & Aile Paketi Rozeti
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -192,7 +252,8 @@ class _FamilyBudgetSheetState extends State<FamilyBudgetSheet> {
                         color: const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.group_rounded, color: AppColors.actionPrimary, size: 22),
+                      child: const Icon(Icons.group_rounded,
+                          color: AppColors.actionPrimary, size: 22),
                     ),
                     const SizedBox(width: 12),
                     const Text(
@@ -215,8 +276,6 @@ class _FamilyBudgetSheetState extends State<FamilyBudgetSheet> {
               ],
             ),
             const SizedBox(height: 16),
-
-            // Davet Kodu Kartı
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
@@ -224,91 +283,60 @@ class _FamilyBudgetSheetState extends State<FamilyBudgetSheet> {
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: const Color(0xFFE2E8F0)),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  const Text(
-                    'AİLE KATILIM KODU',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textMuted,
-                      letterSpacing: 0.5,
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(12),
                     ),
+                    child: const Icon(Icons.info_outline_rounded,
+                        color: AppColors.actionPrimary, size: 22),
                   ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        _inviteCode,
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.textPrimary,
-                          letterSpacing: 2.0,
-                        ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Text(
+                      'Aile üyeleri bu cihazda yerel olarak tutulur. Cihazlar arası ortak bütçe yakında.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.copy_rounded, color: AppColors.textSecondary, size: 22),
-                        onPressed: _copyCode,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  // Video 2: Morflayan Davet Paylaşım Butonu
-                  MorphingShareButton(
-                    fileName: 'Aile_Daveti_$_inviteCode.txt',
-                    label: 'Davet Kodunu Paylaş & Gönder',
-                    accentColor: AppColors.actionPrimary,
-                    onDownloadComplete: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Davet kodu paylaşıldı.')),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton.icon(
-                      onPressed: _refreshCode,
-                      icon: const Icon(Icons.refresh_rounded, size: 14, color: AppColors.textSecondary),
-                      label: const Text('Yeni Kod Üret', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'Aile Boyu Üyelik ile 4 kişiye kadar tek çatı altında bütçe, ekstre ve hedef takibi.',
-                    style: TextStyle(fontSize: 12, color: AppColors.textMuted),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 20),
-
-            // Üyeler Başlığı + Yeni Üye Butonu
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   'Üyeler (${_members.length}/$_maxFamilyMembers)',
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                  style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary),
                 ),
                 if (_members.length < _maxFamilyMembers)
                   TextButton.icon(
                     onPressed: _addNewMember,
-                    icon: const Icon(Icons.add_circle_outline_rounded, size: 16, color: AppColors.actionPrimary),
+                    icon: const Icon(Icons.add_circle_outline_rounded,
+                        size: 16, color: AppColors.actionPrimary),
                     label: const Text(
                       'Üye Ekle',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.actionPrimary),
+                      style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.actionPrimary),
                     ),
                   ),
               ],
             ),
             const SizedBox(height: 10),
-
             ..._members.map((m) {
-              final isOwner = m.role.contains('Sahip');
+              final isOwner = m.id == 'mem_1';
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: _buildMemberRow(
@@ -316,18 +344,16 @@ class _FamilyBudgetSheetState extends State<FamilyBudgetSheet> {
                   isOwner: isOwner,
                   onDelete: isOwner
                       ? null
-                      : () {
+                      : () async {
                           setState(() {
                             _members.removeWhere((item) => item.id == m.id);
                           });
+                          await _saveMembers(_members);
                         },
                 ),
               );
             }).toList(),
-
             const SizedBox(height: 16),
-
-            // Gizlilik Kutusu
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -343,7 +369,8 @@ class _FamilyBudgetSheetState extends State<FamilyBudgetSheet> {
                       color: const Color(0xFFF3E8FF),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(Icons.lock_rounded, color: AppColors.scout, size: 20),
+                    child: const Icon(Icons.lock_rounded,
+                        color: AppColors.scout, size: 20),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -352,20 +379,25 @@ class _FamilyBudgetSheetState extends State<FamilyBudgetSheet> {
                       children: const [
                         Text(
                           'Kişisel Harcamalarımı Gizle',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary),
                         ),
                         SizedBox(height: 2),
                         Text(
                           'Özel işaretlediğin işlemler diğer aile üyelerine görünmez',
-                          style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                          style: TextStyle(
+                              fontSize: 11, color: AppColors.textMuted),
                         ),
                       ],
                     ),
                   ),
                   Switch(
                     value: _isPrivateRecordsEnabled,
-                    activeColor: AppColors.scout,
-                    onChanged: (val) => setState(() => _isPrivateRecordsEnabled = val),
+                    activeThumbColor: AppColors.scout,
+                    onChanged: (val) =>
+                        setState(() => _isPrivateRecordsEnabled = val),
                   ),
                 ],
               ),
@@ -392,7 +424,8 @@ class _FamilyBudgetSheetState extends State<FamilyBudgetSheet> {
         children: [
           CircleAvatar(
             radius: 18,
-            backgroundColor: isOwner ? const Color(0xFF0A0F1D) : const Color(0xFFE2E8F0),
+            backgroundColor:
+                isOwner ? const Color(0xFF0A0F1D) : const Color(0xFFE2E8F0),
             child: Text(
               member.initials,
               style: TextStyle(
@@ -409,20 +442,25 @@ class _FamilyBudgetSheetState extends State<FamilyBudgetSheet> {
               children: [
                 Text(
                   member.name,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                  style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary),
                 ),
                 Text(
                   member.assignedCardMask != null
                       ? '${member.role} • ${member.assignedCardMask}'
                       : member.role,
-                  style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                  style:
+                      const TextStyle(fontSize: 11, color: AppColors.textMuted),
                 ),
               ],
             ),
           ),
           if (onDelete != null)
             IconButton(
-              icon: const Icon(Icons.close_rounded, size: 18, color: AppColors.expenseRed),
+              icon: const Icon(Icons.close_rounded,
+                  size: 18, color: AppColors.expenseRed),
               onPressed: onDelete,
               constraints: const BoxConstraints(),
               padding: const EdgeInsets.all(4),

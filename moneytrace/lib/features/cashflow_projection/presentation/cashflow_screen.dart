@@ -21,7 +21,8 @@ class CashflowScreen extends StatefulWidget {
 }
 
 class _CashflowScreenState extends State<CashflowScreen> {
-  final CashflowProjectionService _projectionService = CashflowProjectionService();
+  final CashflowProjectionService _projectionService =
+      CashflowProjectionService();
 
   int _selectedMonthsFilter = 3; // 3, 6 veya 12 ay (Varsayılan 3 ay)
   int _salaryDayOfMonth = 15; // Maaş günü
@@ -58,9 +59,12 @@ class _CashflowScreenState extends State<CashflowScreen> {
   }
 
   void _editSalarySettings() {
-    final dayController = TextEditingController(text: _salaryDayOfMonth.toString());
+    final dayController =
+        TextEditingController(text: _salaryDayOfMonth.toString());
     final salaryController = TextEditingController(
-      text: CurrencyNormalizer.formatCents(_netSalaryCents).replaceAll('₺', '').trim(),
+      text: CurrencyNormalizer.formatCents(_netSalaryCents)
+          .replaceAll('₺', '')
+          .trim(),
     );
 
     showModalBottomSheet(
@@ -95,7 +99,10 @@ class _CashflowScreenState extends State<CashflowScreen> {
             const SizedBox(height: 16),
             const Text(
               'Maaş & Nakit Akışı Ayarları',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary),
             ),
             const SizedBox(height: 6),
             const Text(
@@ -111,7 +118,8 @@ class _CashflowScreenState extends State<CashflowScreen> {
                 hintText: '15',
                 filled: true,
                 fillColor: const Color(0xFFF8FAFC),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
               ),
             ),
             const SizedBox(height: 12),
@@ -123,7 +131,8 @@ class _CashflowScreenState extends State<CashflowScreen> {
                 hintText: '133.600',
                 filled: true,
                 fillColor: const Color(0xFFF8FAFC),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
               ),
             ),
             const SizedBox(height: 20),
@@ -135,7 +144,8 @@ class _CashflowScreenState extends State<CashflowScreen> {
               onPressed: () async {
                 await Future.delayed(const Duration(milliseconds: 1400));
                 final parsedDay = int.tryParse(dayController.text.trim()) ?? 15;
-                final parsedSalary = CurrencyNormalizer.toMinorUnits(salaryController.text.trim());
+                final parsedSalary = CurrencyNormalizer.toMinorUnits(
+                    salaryController.text.trim());
                 setState(() {
                   _salaryDayOfMonth = parsedDay.clamp(1, 28);
                   if (parsedSalary > 0) _netSalaryCents = parsedSalary;
@@ -162,12 +172,16 @@ class _CashflowScreenState extends State<CashflowScreen> {
       totalExpense += p.projectedExpenseCents;
     }
     final int totalNet = totalIncome - totalExpense;
-    final int monthlyAverage = _projections.isNotEmpty ? (totalNet / _projections.length).round() : 0;
+    final int monthlyAverage =
+        _projections.isNotEmpty ? (totalNet / _projections.length).round() : 0;
 
     final currentMonth = _projections.isNotEmpty ? _projections.first : null;
-    final endOfCashCents = currentMonth != null ? currentMonth.netBalanceCents : 0;
-    final currentIncomeCents = currentMonth != null ? currentMonth.projectedIncomeCents : 0;
-    final currentExpenseCents = currentMonth != null ? currentMonth.projectedExpenseCents : 0;
+    final endOfCashCents =
+        currentMonth != null ? currentMonth.netBalanceCents : 0;
+    final currentIncomeCents =
+        currentMonth != null ? currentMonth.projectedIncomeCents : 0;
+    final currentExpenseCents =
+        currentMonth != null ? currentMonth.projectedExpenseCents : 0;
     final currentNetCents = currentIncomeCents - currentExpenseCents;
 
     return Scaffold(
@@ -177,12 +191,18 @@ class _CashflowScreenState extends State<CashflowScreen> {
           children: [
             const Text(
               'Nakit Akışı',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary),
             ),
             if (currentMonth != null)
               Text(
                 currentMonth.monthLabel,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondary),
+                style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondary),
               ),
           ],
         ),
@@ -191,7 +211,8 @@ class _CashflowScreenState extends State<CashflowScreen> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.tune_rounded, color: AppColors.actionPrimary, size: 22),
+            icon: const Icon(Icons.tune_rounded,
+                color: AppColors.actionPrimary, size: 22),
             onPressed: _editSalarySettings,
             tooltip: 'Maaş Ayarları',
           ),
@@ -204,7 +225,8 @@ class _CashflowScreenState extends State<CashflowScreen> {
               color: AppColors.actionPrimary,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -266,25 +288,36 @@ class _CashflowScreenState extends State<CashflowScreen> {
                               Expanded(
                                 child: _buildHeroStatColumn(
                                   label: 'Gelir',
-                                  amount: CurrencyNormalizer.formatCents(currentIncomeCents),
+                                  amount: CurrencyNormalizer.formatCents(
+                                      currentIncomeCents),
                                   color: AppColors.incomeGreen,
                                 ),
                               ),
-                              Container(width: 1, height: 32, color: const Color(0xFFF1F5F9)),
+                              Container(
+                                  width: 1,
+                                  height: 32,
+                                  color: const Color(0xFFF1F5F9)),
                               Expanded(
                                 child: _buildHeroStatColumn(
                                   label: 'Gider',
-                                  amount: CurrencyNormalizer.formatCents(currentExpenseCents),
+                                  amount: CurrencyNormalizer.formatCents(
+                                      currentExpenseCents),
                                   color: AppColors.expenseRed,
                                 ),
                               ),
-                              Container(width: 1, height: 32, color: const Color(0xFFF1F5F9)),
+                              Container(
+                                  width: 1,
+                                  height: 32,
+                                  color: const Color(0xFFF1F5F9)),
                               Expanded(
                                 child: _buildHeroStatColumn(
                                   label: 'Net',
                                   amount: (currentNetCents >= 0 ? '+' : '') +
-                                      CurrencyNormalizer.formatCents(currentNetCents),
-                                  color: currentNetCents >= 0 ? AppColors.actionPrimary : AppColors.expenseRed,
+                                      CurrencyNormalizer.formatCents(
+                                          currentNetCents),
+                                  color: currentNetCents >= 0
+                                      ? AppColors.actionPrimary
+                                      : AppColors.expenseRed,
                                 ),
                               ),
                             ],
@@ -300,8 +333,14 @@ class _CashflowScreenState extends State<CashflowScreen> {
 
                     // 3. PLAN SEÇİMİ (3 Ay / 6 Ay / 12 Ay)
                     MorphingSegmentedBar(
-                      segments: const ['3 Aylık Plan', '6 Aylık Plan', '12 Aylık Plan'],
-                      selectedIndex: _selectedMonthsFilter == 3 ? 0 : (_selectedMonthsFilter == 6 ? 1 : 2),
+                      segments: const [
+                        '3 Aylık Plan',
+                        '6 Aylık Plan',
+                        '12 Aylık Plan'
+                      ],
+                      selectedIndex: _selectedMonthsFilter == 3
+                          ? 0
+                          : (_selectedMonthsFilter == 6 ? 1 : 2),
                       padding: EdgeInsets.zero,
                       height: 40,
                       onSelected: (idx) {
@@ -348,7 +387,9 @@ class _CashflowScreenState extends State<CashflowScreen> {
                     ),
                     const SizedBox(height: 12),
 
-                    ..._projections.map((m) => _buildMonthTimelineTile(m)).toList(),
+                    ..._projections
+                        .map((m) => _buildMonthTimelineTile(m))
+                        .toList(),
 
                     const SizedBox(height: 84), // Alt navigasyon boşluğu
                   ],
@@ -419,11 +460,17 @@ class _CashflowScreenState extends State<CashflowScreen> {
             children: [
               const Text(
                 'Kasa Değişim Trendi',
-                style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary),
               ),
               Text(
                 '$_selectedMonthsFilter Ay',
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textMuted),
+                style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textMuted),
               ),
             ],
           ),
@@ -434,7 +481,9 @@ class _CashflowScreenState extends State<CashflowScreen> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: _projections.map((p) {
                 final isCurrent = p == _projections.first;
-                final ratio = maxVal > 0 ? (p.netBalanceCents / maxVal).clamp(0.15, 1.0) : 0.15;
+                final ratio = maxVal > 0
+                    ? (p.netBalanceCents / maxVal).clamp(0.15, 1.0)
+                    : 0.15;
                 final shortMonth = p.monthLabel.split(' ')[0].substring(0, 3);
 
                 return Expanded(
@@ -445,8 +494,11 @@ class _CashflowScreenState extends State<CashflowScreen> {
                         '${(p.netBalanceCents / 100000).toStringAsFixed(0)}k',
                         style: TextStyle(
                           fontSize: 10,
-                          fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w500,
-                          color: isCurrent ? AppColors.actionPrimary : AppColors.textMuted,
+                          fontWeight:
+                              isCurrent ? FontWeight.w800 : FontWeight.w500,
+                          color: isCurrent
+                              ? AppColors.actionPrimary
+                              : AppColors.textMuted,
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -455,7 +507,9 @@ class _CashflowScreenState extends State<CashflowScreen> {
                         width: 14,
                         height: 70 * ratio,
                         decoration: BoxDecoration(
-                          color: isCurrent ? AppColors.actionPrimary : const Color(0xFFCBD5E1),
+                          color: isCurrent
+                              ? AppColors.actionPrimary
+                              : const Color(0xFFCBD5E1),
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
@@ -464,8 +518,11 @@ class _CashflowScreenState extends State<CashflowScreen> {
                         shortMonth,
                         style: TextStyle(
                           fontSize: 11,
-                          fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w600,
-                          color: isCurrent ? AppColors.actionPrimary : AppColors.textSecondary,
+                          fontWeight:
+                              isCurrent ? FontWeight.w800 : FontWeight.w600,
+                          color: isCurrent
+                              ? AppColors.actionPrimary
+                              : AppColors.textSecondary,
                         ),
                       ),
                     ],
@@ -499,7 +556,8 @@ class _CashflowScreenState extends State<CashflowScreen> {
                   color: const Color(0xFFFEF3C7),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.auto_awesome_rounded, size: 16, color: Color(0xFFD97706)),
+                child: const Icon(Icons.auto_awesome_rounded,
+                    size: 16, color: Color(0xFFD97706)),
               ),
               const SizedBox(width: 8),
               const Text(
@@ -516,7 +574,11 @@ class _CashflowScreenState extends State<CashflowScreen> {
           const SizedBox(height: 10),
           const Text(
             'Gelecek ay Vatan Bilgisayar taksidin tamamlanıyor.\n₺4.258 aylık bütçe serbest kalacak. Bu tutarı birikim hedeflerine aktararak hedef süreni 3 ay kısaltabilirsin.',
-            style: TextStyle(fontSize: 13, color: Color(0xFF78350F), height: 1.45, fontWeight: FontWeight.w500),
+            style: TextStyle(
+                fontSize: 13,
+                color: Color(0xFF78350F),
+                height: 1.45,
+                fontWeight: FontWeight.w500),
           ),
         ],
       ),
@@ -537,7 +599,8 @@ class _CashflowScreenState extends State<CashflowScreen> {
           color: isSelected ? const Color(0xFFE0F2FE) : const Color(0xFFF8FAFC),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? AppColors.actionPrimary : const Color(0xFFE2E8F0),
+            color:
+                isSelected ? AppColors.actionPrimary : const Color(0xFFE2E8F0),
           ),
         ),
         child: Text(
@@ -545,7 +608,8 @@ class _CashflowScreenState extends State<CashflowScreen> {
           style: TextStyle(
             fontSize: 13,
             fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-            color: isSelected ? AppColors.actionPrimary : AppColors.textSecondary,
+            color:
+                isSelected ? AppColors.actionPrimary : AppColors.textSecondary,
           ),
         ),
       ),
@@ -561,7 +625,7 @@ class _CashflowScreenState extends State<CashflowScreen> {
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -575,7 +639,8 @@ class _CashflowScreenState extends State<CashflowScreen> {
             children: [
               Row(
                 children: const [
-                  Icon(Icons.trending_up_rounded, color: AppColors.actionPrimary, size: 20),
+                  Icon(Icons.trending_up_rounded,
+                      color: AppColors.actionPrimary, size: 20),
                   SizedBox(width: 8),
                   Text(
                     'Önümüzdeki 30 Günlük Akış',
@@ -612,14 +677,24 @@ class _CashflowScreenState extends State<CashflowScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Beklenen Gelir', style: TextStyle(fontSize: 11, color: Color(0xFF166534), fontWeight: FontWeight.w600)),
+                      const Text('Beklenen Gelir',
+                          style: TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFF166534),
+                              fontWeight: FontWeight.w600)),
                       const SizedBox(height: 4),
                       Text(
-                        CurrencyNormalizer.formatCents(currentMonth.projectedIncomeCents),
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF166534)),
+                        CurrencyNormalizer.formatCents(
+                            currentMonth.projectedIncomeCents),
+                        style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF166534)),
                       ),
                       const SizedBox(height: 2),
-                      const Text('Maaş & Sabit Girişler', style: TextStyle(fontSize: 10, color: Color(0xFF15803D))),
+                      const Text('Maaş & Sabit Girişler',
+                          style: TextStyle(
+                              fontSize: 10, color: Color(0xFF15803D))),
                     ],
                   ),
                 ),
@@ -635,14 +710,25 @@ class _CashflowScreenState extends State<CashflowScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Kesinleşen Gider', style: TextStyle(fontSize: 11, color: Color(0xFF9F1239), fontWeight: FontWeight.w600)),
+                      const Text('Kesinleşen Gider',
+                          style: TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFF9F1239),
+                              fontWeight: FontWeight.w600)),
                       const SizedBox(height: 4),
                       Text(
-                        CurrencyNormalizer.formatCents(currentMonth.projectedExpenseCents),
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF9F1239)),
+                        CurrencyNormalizer.formatCents(
+                            currentMonth.projectedExpenseCents),
+                        style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF9F1239)),
                       ),
                       const SizedBox(height: 2),
-                      Text('${currentMonth.events.where((e) => !e.isIncome).length} Taksit & Abonelik', style: const TextStyle(fontSize: 10, color: Color(0xFFBE123C))),
+                      Text(
+                          '${currentMonth.events.where((e) => !e.isIncome).length} Taksit & Abonelik',
+                          style: const TextStyle(
+                              fontSize: 10, color: Color(0xFFBE123C))),
                     ],
                   ),
                 ),
@@ -664,7 +750,10 @@ class _CashflowScreenState extends State<CashflowScreen> {
               children: [
                 const Text(
                   'Tahmini Ay Sonu Kasası:',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary),
                 ),
                 Text(
                   '+${CurrencyNormalizer.formatCents(currentMonth.netBalanceCents)}',
@@ -699,7 +788,8 @@ class _CashflowScreenState extends State<CashflowScreen> {
               color: const Color(0xFFFFEDD5),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.savings_rounded, color: Color(0xFFEA580C), size: 20),
+            child: const Icon(Icons.savings_rounded,
+                color: Color(0xFFEA580C), size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -708,12 +798,16 @@ class _CashflowScreenState extends State<CashflowScreen> {
               children: const [
                 Text(
                   'İzci Akış Tüyosu',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF9A3412)),
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF9A3412)),
                 ),
                 SizedBox(height: 4),
                 Text(
                   'Önümüzdeki ay Vatan Bilgisayar taksidi tamamlanıyor! Bütçende açılacak ₺4.258,00 tutarı doğrudan Araç/Ev hedefine aktarabilirsin.',
-                  style: TextStyle(fontSize: 12, color: Color(0xFF9A3412), height: 1.3),
+                  style: TextStyle(
+                      fontSize: 12, color: Color(0xFF9A3412), height: 1.3),
                 ),
               ],
             ),
@@ -739,7 +833,11 @@ class _CashflowScreenState extends State<CashflowScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: textColor.withOpacity(0.85))),
+          Text(title,
+              style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: textColor.withValues(alpha: 0.85))),
           const SizedBox(height: 6),
           RollingNumberTicker(
             value: amountCents / 100.0,
@@ -766,7 +864,7 @@ class _CashflowScreenState extends State<CashflowScreen> {
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -780,17 +878,24 @@ class _CashflowScreenState extends State<CashflowScreen> {
             children: [
               Text(
                 summary.monthLabel,
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: const Color(0xFFEFF6FF),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   'Net: +${CurrencyNormalizer.formatCents(summary.netBalanceCents)}',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.actionPrimary),
+                  style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.actionPrimary),
                 ),
               ),
             ],
@@ -805,13 +910,19 @@ class _CashflowScreenState extends State<CashflowScreen> {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: e.isIncome ? const Color(0xFFE6FAF3) : const Color(0xFFFFF1F2),
+                      color: e.isIncome
+                          ? const Color(0xFFE6FAF3)
+                          : const Color(0xFFFFF1F2),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
-                      e.isIncome ? Icons.arrow_downward_rounded : Icons.calendar_today_rounded,
+                      e.isIncome
+                          ? Icons.arrow_downward_rounded
+                          : Icons.calendar_today_rounded,
                       size: 16,
-                      color: e.isIncome ? AppColors.incomeGreen : AppColors.expenseRed,
+                      color: e.isIncome
+                          ? AppColors.incomeGreen
+                          : AppColors.expenseRed,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -819,21 +930,29 @@ class _CashflowScreenState extends State<CashflowScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(e.title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                        Text(e.title,
+                            style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textPrimary)),
                         if (e.subtitle != null)
                           Text(
                             '${e.date.day} ${summary.monthLabel.split(' ')[0]} • ${e.subtitle!}',
-                            style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                            style: const TextStyle(
+                                fontSize: 11, color: AppColors.textMuted),
                           ),
                       ],
                     ),
                   ),
                   Text(
-                    (e.isIncome ? '+' : '-') + CurrencyNormalizer.formatCents(e.amountCents),
+                    (e.isIncome ? '+' : '-') +
+                        CurrencyNormalizer.formatCents(e.amountCents),
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
-                      color: e.isIncome ? AppColors.incomeGreen : AppColors.expenseRed,
+                      color: e.isIncome
+                          ? AppColors.incomeGreen
+                          : AppColors.expenseRed,
                     ),
                   ),
                 ],

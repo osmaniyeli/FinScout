@@ -5,6 +5,32 @@ enum ParsedTransactionType {
   credit,
 }
 
+/// İşlemin ekonomik anlamı. Borç/alacak yönünden bağımsızdır; analiz ve kategorizasyon bunu kullanır.
+enum TransactionKind {
+  purchase, // Kartla / POS ile alışveriş
+  refund, // İptal / iade
+  cardPayment, // Kredi kartı borç ödemesi
+  interestFee, // Dönem faizi, gecikme faizi, kart ücreti, işlem ücreti
+  tax, // BSMV, KKDF, MTV, vergi dairesi
+  cashAdvance, // Nakit çekim / ATM
+  transferIn, // Gelen havale / EFT / FAST
+  transferOut, // Giden havale / EFT / FAST
+  ownTransfer, // Kişinin kendi hesapları arası aktarım (gelir/gider sayılmaz)
+  salary, // Maaş / bordro geliri
+  billPayment, // Fatura ödemesi (elektrik, su, doğalgaz, telekom)
+  loanPayment, // Kredi taksidi
+  other,
+}
+
+extension TransactionKindCode on TransactionKind {
+  String get code => name.toUpperCase();
+
+  static TransactionKind fromCode(String? code) => TransactionKind.values.firstWhere(
+        (k) => k.code == code,
+        orElse: () => TransactionKind.other,
+      );
+}
+
 class ParsedInstallmentData {
   final int currentInstallment;
   final int totalInstallment;
@@ -62,6 +88,18 @@ class ParsedRecord {
   final List<ParsedTaxData> taxes;
   final String? fastOrTrackingId;
 
+  /// İşlemin ekonomik türü (alışveriş, kart ödemesi, faiz, havale...)
+  final TransactionKind kind;
+
+  /// Paranın gittiği / geldiği taraf (üye işyeri, havale alıcısı/göndereni, kurum)
+  final String counterparty;
+
+  /// Sektör etiketi (ör. "Süpermarket", "Akaryakıt"); sözlükten veya kurallardan gelir
+  final String? sector;
+
+  /// İşlem sonrası hesap bakiyesi (vadesiz hesap ekstrelerinde)
+  final int? balanceAfterCents;
+
   ParsedRecord({
     required this.cardOrAccountMask,
     this.cardHolder,
@@ -78,7 +116,15 @@ class ParsedRecord {
     this.installment,
     this.taxes = const [],
     this.fastOrTrackingId,
+    this.kind = TransactionKind.other,
+    this.counterparty = '',
+    this.sector,
+    this.balanceAfterCents,
   });
+
+  /// İşaretli tutar: gider negatif, gelir pozitif (kuruş)
+  int get signedAmountCents =>
+      type == ParsedTransactionType.debit ? -billingAmountCents : billingAmountCents;
 
   ParsedRecord copyWith({
     String? cardOrAccountMask,
@@ -96,6 +142,10 @@ class ParsedRecord {
     ParsedInstallmentData? installment,
     List<ParsedTaxData>? taxes,
     String? fastOrTrackingId,
+    TransactionKind? kind,
+    String? counterparty,
+    String? sector,
+    int? balanceAfterCents,
   }) {
     return ParsedRecord(
       cardOrAccountMask: cardOrAccountMask ?? this.cardOrAccountMask,
@@ -113,6 +163,10 @@ class ParsedRecord {
       installment: installment ?? this.installment,
       taxes: taxes ?? this.taxes,
       fastOrTrackingId: fastOrTrackingId ?? this.fastOrTrackingId,
+      kind: kind ?? this.kind,
+      counterparty: counterparty ?? this.counterparty,
+      sector: sector ?? this.sector,
+      balanceAfterCents: balanceAfterCents ?? this.balanceAfterCents,
     );
   }
 
@@ -133,6 +187,10 @@ class ParsedRecord {
       'installment': installment?.toMap(),
       'taxes': taxes.map((t) => t.toMap()).toList(),
       'fast_or_tracking_id': fastOrTrackingId,
+      'kind': kind.code,
+      'counterparty': counterparty,
+      'sector': sector,
+      'balance_after_cents': balanceAfterCents,
     };
   }
 }
@@ -174,6 +232,66 @@ class ParsedPayslipResult {
   }
 }
 
+/// Ekstrede bildirilen, henüz gerçekleşmemiş planlı ödeme (talimat, kredi taksidi).
+class ScheduledPayment {
+  final DateTime date;
+  final String description;
+  final int amountCents;
+
+  const ScheduledPayment({required this.date, required this.description, required this.amountCents});
+}
+
+/// Ekstrenin başlık bölümündeki banka beyanları (ödeme düzeni ve mutabakat için).
+class StatementSummary {
+  final DateTime? statementDate; // Hesap kesim tarihi
+  final DateTime? dueDate; // Son ödeme tarihi
+  final int? statementBalanceCents; // Dönem borcu (kart) / dönem sonu bakiyesi (hesap)
+  final int? minimumPaymentCents; // Asgari ödeme tutarı
+  final int? previousBalanceCents; // Önceki dönem borcu / dönem başı bakiyesi
+  final int? periodDebitsCents; // Dönem içi harcamalar (banka beyanı)
+  final int? periodCreditsCents; // Dönem içi ödemeler (banka beyanı)
+  final int? creditLimitCents;
+  final DateTime? nextStatementDate;
+  final DateTime? nextDueDate;
+  final List<ScheduledPayment> scheduledPayments;
+
+  const StatementSummary({
+    this.statementDate,
+    this.dueDate,
+    this.statementBalanceCents,
+    this.minimumPaymentCents,
+    this.previousBalanceCents,
+    this.periodDebitsCents,
+    this.periodCreditsCents,
+    this.creditLimitCents,
+    this.nextStatementDate,
+    this.nextDueDate,
+    this.scheduledPayments = const [],
+  });
+
+  static const empty = StatementSummary();
+}
+
+/// Ayrıştırılan işlemlerin bankanın beyan ettiği toplamlarla karşılaştırılması.
+class ReconciliationReport {
+  /// Kontrol yapılabildi mi (bankanın beyan ettiği bir toplam/bakiye bulundu mu)
+  final bool isVerifiable;
+
+  /// Tüm kontroller tuttu mu
+  final bool isBalanced;
+
+  /// Kullanıcıya gösterilecek açıklamalar (tutmayan kalemler)
+  final List<String> issues;
+
+  const ReconciliationReport({
+    required this.isVerifiable,
+    required this.isBalanced,
+    this.issues = const [],
+  });
+
+  static const notVerifiable = ReconciliationReport(isVerifiable: false, isBalanced: false);
+}
+
 class StatementDocumentResult {
   final String institution;
   final String documentType;
@@ -184,6 +302,8 @@ class StatementDocumentResult {
   final int totalTaxCents;
   final DateTime periodStart;
   final DateTime periodEnd;
+  final StatementSummary summary;
+  final ReconciliationReport reconciliation;
 
   const StatementDocumentResult({
     required this.institution,
@@ -195,5 +315,7 @@ class StatementDocumentResult {
     required this.totalTaxCents,
     required this.periodStart,
     required this.periodEnd,
+    this.summary = StatementSummary.empty,
+    this.reconciliation = ReconciliationReport.notVerifiable,
   });
 }

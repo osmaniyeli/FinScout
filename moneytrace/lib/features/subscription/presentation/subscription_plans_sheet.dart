@@ -1,5 +1,3 @@
-// lib/features/subscription/presentation/subscription_plans_sheet.dart
-
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/radar_checkout_button.dart';
@@ -14,7 +12,8 @@ class SubscriptionPlansSheet extends StatefulWidget {
     this.onSubscriptionUpdated,
   }) : super(key: key);
 
-  static void show(BuildContext context, {VoidCallback? onSubscriptionUpdated}) {
+  static void show(BuildContext context,
+      {VoidCallback? onSubscriptionUpdated}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -33,44 +32,86 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
   final SubscriptionService _service = SubscriptionService.instance;
   bool _isProcessing = false;
 
-  Future<void> _selectPackage(SubscriptionPackage pkg) async {
-    setState(() => _isProcessing = true);
-    final success = await _service.purchasePackage(pkg);
-    if (!mounted) return;
-    setState(() => _isProcessing = false);
+  @override
+  void initState() {
+    super.initState();
+    _service.tierNotifier.addListener(_onTierChanged);
+    _service.isPurchasingNotifier.addListener(_onPurchasingChanged);
+    _isProcessing = _service.isPurchasingNotifier.value;
+  }
 
-    if (success) {
+  @override
+  void dispose() {
+    _service.tierNotifier.removeListener(_onTierChanged);
+    _service.isPurchasingNotifier.removeListener(_onPurchasingChanged);
+    super.dispose();
+  }
+
+  void _onTierChanged() {
+    if (_service.isPremium) {
       widget.onSubscriptionUpdated?.call();
-      Navigator.pop(context);
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: AppColors.incomeGreen,
+            content:
+                Text('Tebrikler! Premium üyeliğiniz başarıyla aktif edildi.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  void _onPurchasingChanged() {
+    if (mounted) {
+      setState(() {
+        _isProcessing = _service.isPurchasingNotifier.value;
+      });
+
+      if (!_isProcessing && _service.lastError != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: AppColors.expenseRed,
+            content: Text(_service.lastError!),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _selectPackage(SubscriptionPackage pkg) async {
+    final success = await _service.purchasePackage(pkg);
+    if (!success && mounted) {
+      final errorMsg = _service.lastError ??
+          'Satın alma işlemi başlatılamadı. Lütfen tekrar deneyin.';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          backgroundColor: AppColors.incomeGreen,
-          content: Text('${pkg.title} üyeliğiniz başarıyla aktif edildi!'),
-          duration: const Duration(seconds: 3),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
           backgroundColor: AppColors.expenseRed,
-          content: Text('Satın alma işlemi tamamlanamadı. Lütfen tekrar deneyin.'),
+          content: Text(errorMsg),
         ),
       );
     }
   }
 
   Future<void> _restorePurchases() async {
-    setState(() => _isProcessing = true);
     final success = await _service.restorePurchases();
-    if (!mounted) return;
-    setState(() => _isProcessing = false);
-
-    if (success) {
-      widget.onSubscriptionUpdated?.call();
+    if (!success && mounted) {
+      final errorMsg = _service.lastError ??
+          'Satın alımları geri yükleme işlemi başlatılamadı.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: AppColors.expenseRed,
+          content: Text(errorMsg),
+        ),
+      );
+    } else if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           backgroundColor: AppColors.actionPrimary,
-          content: Text('Geçmiş satın alımlarınız başarıyla doğrulandı ve yüklendi.'),
+          content: Text(
+              'Satın alımları geri yükleme isteği gönderildi. Lütfen bekleyin...'),
         ),
       );
     }
@@ -119,7 +160,8 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
                         color: const Color(0xFFFEF3C7),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.workspace_premium_rounded, color: Color(0xFFD97706), size: 24),
+                      child: const Icon(Icons.workspace_premium_rounded,
+                          color: Color(0xFFD97706), size: 24),
                     ),
                     const SizedBox(width: 12),
                     Column(
@@ -127,18 +169,23 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
                       children: const [
                         Text(
                           'Paraİz Premium Paketleri',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary),
                         ),
                         Text(
                           'Sınırsız PDF Ekstre, Aile Bütçesi & Finansal Zeka',
-                          style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                          style: TextStyle(
+                              fontSize: 11, color: AppColors.textSecondary),
                         ),
                       ],
                     ),
                   ],
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded, size: 20, color: AppColors.textSecondary),
+                  icon: const Icon(Icons.close_rounded,
+                      size: 20, color: AppColors.textSecondary),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -151,15 +198,27 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
               final isAnnual = pkg.identifier.contains('annual') && !isFamily;
               final isCurrent = _service.currentTier == pkg.tier;
 
+              // Fiyatı Google Play mağazasından çek, yoksa varsayılanı kullan
+              final productDetails = _service.products[pkg.identifier];
+              final displayPrice = productDetails?.price ?? pkg.priceFormatted;
+
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 clipBehavior: Clip.antiAlias,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: isFamily ? const Color(0xFFF0FDF4) : (isAnnual ? const Color(0xFFEFF6FF) : const Color(0xFFF8FAFC)),
+                  color: isFamily
+                      ? const Color(0xFFF0FDF4)
+                      : (isAnnual
+                          ? const Color(0xFFEFF6FF)
+                          : const Color(0xFFF8FAFC)),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isFamily ? AppColors.incomeGreen : (isAnnual ? AppColors.actionPrimary : const Color(0xFFE2E8F0)),
+                    color: isFamily
+                        ? AppColors.incomeGreen
+                        : (isAnnual
+                            ? AppColors.actionPrimary
+                            : const Color(0xFFE2E8F0)),
                     width: isFamily || isAnnual ? 1.5 : 1,
                   ),
                 ),
@@ -173,7 +232,10 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
                           children: [
                             Text(
                               pkg.title,
-                              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                              style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textPrimary),
                             ),
                             if (isFamily) ...[
                               const SizedBox(width: 8),
@@ -195,11 +257,15 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
                           ],
                         ),
                         Text(
-                          pkg.priceFormatted,
+                          displayPrice,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w900,
-                            color: isFamily ? AppColors.incomeGreen : (isAnnual ? AppColors.actionPrimary : AppColors.textPrimary),
+                            color: isFamily
+                                ? AppColors.incomeGreen
+                                : (isAnnual
+                                    ? AppColors.actionPrimary
+                                    : AppColors.textPrimary),
                           ),
                         ),
                       ],
@@ -207,7 +273,10 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
                     const SizedBox(height: 6),
                     Text(
                       pkg.description,
-                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.3),
+                      style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                          height: 1.3),
                     ),
                     const SizedBox(height: 12),
                     if (isCurrent)
@@ -221,16 +290,21 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
                         ),
                         child: const Text(
                           'Mevcut Aktif Planınız ✓',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white),
+                          style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white),
                         ),
                       )
                     else
-                      // Video 4: Radar Dalgalı Doğrulama ve Güvenli Satın Alma Butonu
                       RadarCheckoutButton(
-                        label: isFamily ? 'Aile Paketine Geç (4 Kişi)' : 'Paketi Doğrula & Başlat',
-                        idleAmountText: pkg.priceFormatted,
+                        label: isFamily
+                            ? 'Aile Paketine Geç (4 Kişi)'
+                            : 'Paketi Doğrula & Başlat',
+                        idleAmountText: displayPrice,
                         verifyingAmountText: 'Store Doğrulanıyor...',
-                        onPressed: _isProcessing ? null : () => _selectPackage(pkg),
+                        onPressed:
+                            _isProcessing ? null : () => _selectPackage(pkg),
                         onVerificationComplete: () {},
                       ),
                   ],
@@ -244,10 +318,14 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
             Center(
               child: TextButton.icon(
                 onPressed: _isProcessing ? null : _restorePurchases,
-                icon: const Icon(Icons.restore_rounded, size: 16, color: AppColors.textSecondary),
+                icon: const Icon(Icons.restore_rounded,
+                    size: 16, color: AppColors.textSecondary),
                 label: const Text(
                   'Geçmiş Satın Alımları Geri Yükle',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary),
                 ),
               ),
             ),

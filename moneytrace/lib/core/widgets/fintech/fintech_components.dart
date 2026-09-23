@@ -195,7 +195,8 @@ class IzciInsightCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   child: const Padding(
                     padding: EdgeInsets.all(4),
-                    child: Icon(Icons.close_rounded, size: 16, color: Color(0xFFB45309)),
+                    child: Icon(Icons.close_rounded,
+                        size: 16, color: Color(0xFFB45309)),
                   ),
                 ),
             ],
@@ -219,14 +220,16 @@ class IzciInsightCard extends StatelessWidget {
                 style: TextButton.styleFrom(
                   backgroundColor: const Color(0xFFF59E0B),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppRadius.button),
                   ),
                 ),
                 child: Text(
                   actionLabel!,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                  style: const TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.w700),
                 ),
               ),
             ),
@@ -262,7 +265,8 @@ class CleanTransactionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveColor = iconColor ?? (isExpense ? AppColors.expenseRed : AppColors.incomeGreen);
+    final effectiveColor =
+        iconColor ?? (isExpense ? AppColors.expenseRed : AppColors.incomeGreen);
 
     return InkWell(
       onTap: onTap,
@@ -276,7 +280,7 @@ class CleanTransactionRow extends StatelessWidget {
               width: 42,
               height: 42,
               decoration: BoxDecoration(
-                color: effectiveColor.withOpacity(0.10),
+                color: effectiveColor.withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child: Icon(
@@ -308,11 +312,13 @@ class CleanTransactionRow extends StatelessWidget {
                       if (badgeText != null && badgeText!.isNotEmpty) ...[
                         const SizedBox(width: 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: const Color(0xFFEFF6FF),
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: const Color(0xFFBFDBFE), width: 0.8),
+                            border: Border.all(
+                                color: const Color(0xFFBFDBFE), width: 0.8),
                           ),
                           child: Text(
                             badgeText!,
@@ -347,7 +353,8 @@ class CleanTransactionRow extends StatelessWidget {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w800,
-                color: isExpense ? AppColors.expenseRed : AppColors.actionPrimary,
+                color:
+                    isExpense ? AppColors.expenseRed : AppColors.actionPrimary,
                 letterSpacing: -0.2,
               ),
             ),

@@ -51,7 +51,10 @@ class _RadarCheckoutButtonState extends State<RadarCheckoutButton>
   bool get _isEnabled =>
       widget.onPressed != null ||
       widget.onAction != null ||
-      (widget.onPressed == null && widget.onAction == null && widget.onVerificationComplete == null && widget.onSuccess == null);
+      (widget.onPressed == null &&
+          widget.onAction == null &&
+          widget.onVerificationComplete == null &&
+          widget.onSuccess == null);
 
   @override
   void initState() {
@@ -86,10 +89,18 @@ class _RadarCheckoutButtonState extends State<RadarCheckoutButton>
 
     // Simüle aşamalı doğrulama (Videodaki %11 -> %68 -> %96 hissi)
     await Future.delayed(const Duration(milliseconds: 350));
-    if (mounted) setState(() { _statusText = 'Güvenlik Protokolü...'; _progressPercent = 58; });
+    if (mounted)
+      setState(() {
+        _statusText = 'Güvenlik Protokolü...';
+        _progressPercent = 58;
+      });
 
     await Future.delayed(const Duration(milliseconds: 400));
-    if (mounted) setState(() { _statusText = 'Güvenli Bağlantı...'; _progressPercent = 94; });
+    if (mounted)
+      setState(() {
+        _statusText = 'Güvenli Bağlantı...';
+        _progressPercent = 94;
+      });
 
     if (widget.onPressed != null) {
       final res = (widget.onPressed as dynamic)();
@@ -149,7 +160,7 @@ class _RadarCheckoutButtonState extends State<RadarCheckoutButton>
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF8B5CF6).withOpacity(0.35),
+                color: const Color(0xFF8B5CF6).withValues(alpha: 0.35),
                 blurRadius: 16,
                 offset: const Offset(0, 6),
               ),
@@ -158,7 +169,8 @@ class _RadarCheckoutButtonState extends State<RadarCheckoutButton>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.lock_outline_rounded, color: Colors.white, size: 18),
+              const Icon(Icons.lock_outline_rounded,
+                  color: Colors.white, size: 18),
               const SizedBox(width: 8),
               Text(
                 widget.label,
@@ -174,7 +186,7 @@ class _RadarCheckoutButtonState extends State<RadarCheckoutButton>
                 Text(
                   '($displayAmount)',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.85),
+                    color: Colors.white.withValues(alpha: 0.85),
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
@@ -194,7 +206,7 @@ class _RadarCheckoutButtonState extends State<RadarCheckoutButton>
       decoration: BoxDecoration(
         color: const Color(0xFF0F172A),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.08)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -214,7 +226,8 @@ class _RadarCheckoutButtonState extends State<RadarCheckoutButton>
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: const Color(0xFF8B5CF6).withOpacity(1.0 - val),
+                        color: const Color(0xFF8B5CF6)
+                            .withValues(alpha: 1.0 - val),
                         width: 2.0,
                       ),
                     ),
@@ -230,7 +243,7 @@ class _RadarCheckoutButtonState extends State<RadarCheckoutButton>
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF8B5CF6).withOpacity(0.5),
+                          color: const Color(0xFF8B5CF6).withValues(alpha: 0.5),
                           blurRadius: 18,
                         ),
                       ],
@@ -275,7 +288,8 @@ class _RadarCheckoutButtonState extends State<RadarCheckoutButton>
       decoration: BoxDecoration(
         color: const Color(0xFF0F172A),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF10B981).withOpacity(0.4)),
+        border:
+            Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.4)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -284,7 +298,7 @@ class _RadarCheckoutButtonState extends State<RadarCheckoutButton>
             width: 58,
             height: 58,
             decoration: BoxDecoration(
-              color: const Color(0xFF10B981).withOpacity(0.15),
+              color: const Color(0xFF10B981).withValues(alpha: 0.15),
               shape: BoxShape.circle,
               border: Border.all(color: const Color(0xFF10B981), width: 2),
             ),

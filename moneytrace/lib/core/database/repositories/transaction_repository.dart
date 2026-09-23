@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:sqflite/sqflite.dart';
 import '../app_database.dart';
@@ -24,20 +25,31 @@ class TransactionRepository {
     return res.isNotEmpty;
   }
 
-  /// Parser çıktısı olan StatementDocumentResult nesnesini tek transaction içinde veritabanına kaydeder.
-  Future<void> saveStatementResult({
+  /// Gelir/gider analizlerine girmeyen işlem türleri: kart borcu ödemesi (harcama zaten kart ekstresinde
+  /// sayıldı) ve kişinin kendi hesapları arası aktarımı. Aksi halde aynı para iki kez sayılır.
+  static const String neutralKindsSql = "('CARDPAYMENT','OWNTRANSFER')";
+
+  /// Parser çıktısını tek veritabanı transaction'ı içinde kaydeder.
+  /// Aynı işlem (aynı hesap, tarih, tutar, açıklama) tekrar içe aktarılırsa atlanır.
+  Future<StatementSaveResult> saveStatementResult({
     required StatementDocumentResult result,
     required String fileSha256,
     String? fileName,
     String? targetWalletId,
   }) async {
     final db = await _dbProvider.database;
+    var inserted = 0;
+    var skipped = 0;
+    var insertedDebit = 0;
+    var insertedCredit = 0;
 
     await db.transaction((txn) async {
       final nowMs = DateTime.now().millisecondsSinceEpoch;
+      String day(DateTime d) => d.toIso8601String().split('T')[0];
 
       // 1. Hesap (Account) oluştur veya bul
-      final accountId = 'acc_${result.institution.toLowerCase().replaceAll(' ', '_')}_${result.accountIdentifier.replaceAll(' ', '')}';
+      final accountId =
+          'acc_${result.institution.toLowerCase().replaceAll(' ', '_')}_${result.accountIdentifier.replaceAll(' ', '')}';
       await txn.insert(
         'accounts',
         {
@@ -52,64 +64,110 @@ class TransactionRepository {
         conflictAlgorithm: ConflictAlgorithm.ignore,
       );
 
-      // 2. Ekstre (Statement) Kaydı
+      // 2. Ekstre kaydı + banka beyanları (ödeme düzeni)
       final statementId = 'stmt_$nowMs';
+      final summary = result.summary;
       await txn.insert('statements', {
         'id': statementId,
         'account_id': accountId,
         'file_sha256': fileSha256,
         'file_name': fileName ?? 'ekstre.pdf',
-        'period_start': result.periodStart.toIso8601String().split('T')[0],
-        'period_end': result.periodEnd.toIso8601String().split('T')[0],
+        'period_start': day(result.periodStart),
+        'period_end': day(result.periodEnd),
         'total_spend_cents': result.totalDebitCents,
         'total_income_cents': result.totalCreditCents,
         'total_tax_cents': result.totalTaxCents,
         'is_processed': 1,
+        'statement_date': summary.statementDate == null ? null : day(summary.statementDate!),
+        'due_date': summary.dueDate == null ? null : day(summary.dueDate!),
+        'statement_balance_cents': summary.statementBalanceCents,
+        'minimum_payment_cents': summary.minimumPaymentCents,
+        'is_reconciled': result.reconciliation.isBalanced ? 1 : 0,
         'created_at': nowMs,
       });
 
-      // 3. İşlem Satırları (Transactions), Taksitler ve Vergiler
-      int index = 0;
-      for (final record in result.records) {
-        index++;
-        final txId = 'tx_${nowMs}_$index';
-        final isDebit = record.type == ParsedTransactionType.debit;
-
-        await txn.insert('transactions', {
-          'id': txId,
-          'account_id': accountId,
+      for (final (i, planned) in summary.scheduledPayments.indexed) {
+        await txn.insert('scheduled_payments', {
+          'id': '${statementId}_plan_$i',
           'statement_id': statementId,
-          'transaction_date': record.date.toIso8601String().split('T')[0],
-          'transaction_type': isDebit ? 'DEBIT' : 'CREDIT',
-          'raw_description': record.rawDescription,
-          'clean_merchant': record.cleanMerchant.isNotEmpty ? record.cleanMerchant : record.rawDescription,
-          'category_id': record.categoryId,
-          'billing_amount_cents': record.billingAmountCents,
-          'billing_currency': record.billingCurrency,
-          'original_amount_cents': record.originalAmountCents,
-          'original_currency': record.originalCurrency,
-          'exchange_rate': record.exchangeRate,
-          'is_recurring': 0,
-          'is_tax_deductible': record.taxes.isNotEmpty ? 1 : 0,
+          'account_id': accountId,
+          'due_date': day(planned.date),
+          'description': planned.description,
+          'amount_cents': planned.amountCents,
           'created_at': nowMs,
         });
+      }
 
-        // Varsa taksit detayı
+      // 3. İşlemler (mükerrer korumalı), taksitler ve vergiler
+      final occurrences = <String, int>{};
+      for (final (index, record) in result.records.indexed) {
+        final isDebit = record.type == ParsedTransactionType.debit;
+        final baseKey = [
+          accountId,
+          day(record.date),
+          record.signedAmountCents,
+          record.rawDescription.toUpperCase().replaceAll(RegExp(r'\s+'), ' '),
+          record.installment?.currentInstallment ?? 0,
+        ].join('|');
+        // Aynı gün aynı tutarlı gerçek tekrarlar (ör. iki toplu taşıma geçişi) ayrı kayıt olarak kalsın
+        final occurrence = occurrences.update(baseKey, (n) => n + 1, ifAbsent: () => 0);
+        final fingerprint = sha1.convert(utf8.encode('$baseKey#$occurrence')).toString();
+
+        final txId = 'tx_${nowMs}_$index';
+        final rowId = await txn.insert(
+          'transactions',
+          {
+            'id': txId,
+            'account_id': accountId,
+            'statement_id': statementId,
+            'transaction_date': day(record.date),
+            'transaction_type': isDebit ? 'DEBIT' : 'CREDIT',
+            'raw_description': record.rawDescription,
+            'clean_merchant': record.cleanMerchant.isNotEmpty ? record.cleanMerchant : record.rawDescription,
+            'category_id': record.categoryId,
+            'billing_amount_cents': record.billingAmountCents,
+            'billing_currency': record.billingCurrency,
+            'original_amount_cents': record.originalAmountCents,
+            'original_currency': record.originalCurrency,
+            'exchange_rate': record.exchangeRate,
+            'is_recurring': 0,
+            'is_tax_deductible': record.taxes.isNotEmpty ? 1 : 0,
+            'tx_kind': record.kind.code,
+            'counterparty': record.counterparty,
+            'sector': record.sector,
+            'balance_after_cents': record.balanceAfterCents,
+            'fingerprint': fingerprint,
+            'created_at': nowMs,
+          },
+          conflictAlgorithm: ConflictAlgorithm.ignore,
+        );
+        if (rowId == 0) {
+          skipped++;
+          continue;
+        }
+        inserted++;
+        if (record.kind != TransactionKind.cardPayment && record.kind != TransactionKind.ownTransfer) {
+          if (isDebit) {
+            insertedDebit += record.billingAmountCents;
+          } else {
+            insertedCredit += record.billingAmountCents;
+          }
+        }
+
         if (record.installment != null) {
           final inst = record.installment!;
           await txn.insert('installments', {
-            'id': 'inst_${txId}',
+            'id': 'inst_$txId',
             'transaction_id': txId,
             'current_installment': inst.currentInstallment,
             'total_installment': inst.totalInstallment,
             'remaining_amount_cents': inst.remainingAmountCents,
             'monthly_amount_cents': inst.monthlyAmountCents,
-            'due_date': record.date.toIso8601String().split('T')[0],
+            'due_date': summary.dueDate == null ? day(record.date) : day(summary.dueDate!),
             'created_at': nowMs,
           });
         }
 
-        // Varsa vergi detayı (BSMV, KKDF, Stopaj, vb.)
         for (final tax in record.taxes) {
           await txn.insert('tax_deductions', {
             'id': 'tax_${txId}_${tax.taxType}',
@@ -117,30 +175,80 @@ class TransactionRepository {
             'statement_id': statementId,
             'tax_type': tax.taxType,
             'amount_cents': tax.amountCents,
-            'tax_date': record.date.toIso8601String().split('T')[0],
+            'tax_date': day(record.date),
             'created_at': nowMs,
           });
         }
       }
     });
 
-    if (targetWalletId != null) {
+    if (targetWalletId != null && inserted > 0) {
       try {
         await WalletRepository.instance.load();
         final wallet = WalletRepository.instance.wallets.firstWhere(
           (w) => w.id == targetWalletId,
           orElse: () => WalletRepository.instance.getConsolidatedWallet(),
         );
-        int netChange = 0;
-        if (wallet.type == WalletType.creditCard) {
-          // Kredi kartı için harcamalar (debit) borcu artırır, ödemeler (credit) borcu azaltır
-          netChange = result.totalDebitCents - result.totalCreditCents;
-        } else {
-          netChange = result.totalCreditCents - result.totalDebitCents;
-        }
+        // Kredi kartında harcama borcu artırır, ödeme/iade azaltır; vadesizde tersi
+        final netChange = wallet.type == WalletType.creditCard
+            ? insertedDebit - insertedCredit
+            : insertedCredit - insertedDebit;
         await WalletRepository.instance.updateBalance(targetWalletId, wallet.balanceCents + netChange);
       } catch (_) {}
     }
+
+    return StatementSaveResult(inserted: inserted, skippedDuplicates: skipped);
+  }
+
+  /// Kullanıcının kategori düzeltmelerinden öğrenilmiş kurallar (karşı taraf kalıbı → kategori).
+  Future<Map<String, String>> loadUserCategoryRules() async {
+    final db = await _dbProvider.database;
+    final rows = await db.query('merchant_rules', columns: ['raw_pattern', 'user_category_id']);
+    return {for (final r in rows) r['raw_pattern'] as String: r['user_category_id'] as String};
+  }
+
+  /// Kullanıcı bir işlemin kategorisini değiştirdiğinde: kuralı kaydeder ve aynı karşı taraftaki
+  /// geçmiş işlemleri de günceller. Sonraki ekstrelerde bu kural otomatik uygulanır.
+  Future<int> learnCategory({required String counterparty, required String categoryId}) async {
+    final pattern = counterparty.trim().toUpperCase();
+    if (pattern.length < 3) return 0;
+    final db = await _dbProvider.database;
+    await db.insert(
+      'merchant_rules',
+      {
+        'id': 'rule_${sha1.convert(utf8.encode(pattern)).toString().substring(0, 16)}',
+        'raw_pattern': pattern,
+        'user_category_id': categoryId,
+        'created_at': DateTime.now().millisecondsSinceEpoch,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+    return db.update(
+      'transactions',
+      {'category_id': categoryId},
+      where: 'UPPER(counterparty) = ? OR UPPER(clean_merchant) = ?',
+      whereArgs: [pattern, pattern],
+    );
+  }
+
+  /// Yaklaşan ödemeler: kart son ödeme tarihleri (dönem borcu + asgari) ve ekstrelerdeki planlı talimatlar.
+  Future<List<Map<String, dynamic>>> getUpcomingPayments({DateTime? from}) async {
+    final db = await _dbProvider.database;
+    final today = (from ?? DateTime.now()).toIso8601String().split('T')[0];
+    return db.rawQuery('''
+      SELECT s.due_date AS due_date,
+             a.institution_name || ' kart borcu' AS description,
+             s.statement_balance_cents AS amount_cents,
+             s.minimum_payment_cents AS minimum_cents,
+             'CARD_DUE' AS kind
+      FROM statements s JOIN accounts a ON a.id = s.account_id
+      WHERE s.due_date IS NOT NULL AND s.due_date >= ? AND COALESCE(s.statement_balance_cents, 0) > 0
+      UNION ALL
+      SELECT p.due_date, p.description, p.amount_cents, NULL, p.kind
+      FROM scheduled_payments p
+      WHERE p.due_date >= ?
+      ORDER BY due_date ASC
+    ''', [today, today]);
   }
 
   /// Manuel Hızlı Giriş (Quick Entry) kaydı ekler.
@@ -151,6 +259,7 @@ class TransactionRepository {
     required String categoryId,
     required DateTime date,
     String? note,
+    String txKind = 'OTHER',
   }) async {
     final db = await _dbProvider.database;
     final nowMs = DateTime.now().millisecondsSinceEpoch;
@@ -184,19 +293,22 @@ class TransactionRepository {
       'billing_currency': 'TRY',
       'is_recurring': 0,
       'is_tax_deductible': 0,
+      'tx_kind': txKind,
+      'counterparty': title,
       'created_at': nowMs,
     });
   }
 
   /// Döneme ait toplam gider, toplam gelir ve net farkı hesaplar
-  Future<Map<String, int>> getMonthlySummary({required String yearMonth}) async {
+  Future<Map<String, int>> getMonthlySummary(
+      {required String yearMonth}) async {
     final db = await _dbProvider.database;
     final res = await db.rawQuery('''
       SELECT 
         SUM(CASE WHEN transaction_type = 'DEBIT' THEN billing_amount_cents ELSE 0 END) as total_debit,
         SUM(CASE WHEN transaction_type = 'CREDIT' THEN billing_amount_cents ELSE 0 END) as total_credit
       FROM transactions
-      WHERE transaction_date LIKE ?
+      WHERE transaction_date LIKE ? AND tx_kind NOT IN $neutralKindsSql
     ''', ['$yearMonth%']);
 
     final debit = (res.first['total_debit'] as num?)?.toInt() ?? 0;
@@ -210,7 +322,8 @@ class TransactionRepository {
   }
 
   /// Son işlemleri getirir (opsiyonel olarak seçilen aya göre filtreler)
-  Future<List<Map<String, dynamic>>> getRecentTransactions({int limit = 30, String? yearMonth}) async {
+  Future<List<Map<String, dynamic>>> getRecentTransactions(
+      {int limit = 30, String? yearMonth}) async {
     final db = await _dbProvider.database;
     if (yearMonth != null && yearMonth.isNotEmpty) {
       return await db.rawQuery('''
@@ -259,7 +372,8 @@ class TransactionRepository {
   }
 
   /// Gelecek / Yaklaşan taksit ödemelerini getirir (kalan taksitler: current < total)
-  Future<List<Map<String, dynamic>>> getUpcomingInstallments({int limit = 10}) async {
+  Future<List<Map<String, dynamic>>> getUpcomingInstallments(
+      {int limit = 10}) async {
     final db = await _dbProvider.database;
     return await db.rawQuery('''
       SELECT 
@@ -281,12 +395,14 @@ class TransactionRepository {
   }
 
   /// Kategori bazlı gerçek harcama analizi ve yüzdelerini hesaplar
-  Future<List<Map<String, dynamic>>> getCategorySpendingAnalysis({String? yearMonth}) async {
+  Future<List<Map<String, dynamic>>> getCategorySpendingAnalysis(
+      {String? yearMonth}) async {
     final db = await _dbProvider.database;
     final whereClause = yearMonth != null && yearMonth.isNotEmpty
-        ? "WHERE t.transaction_type = 'DEBIT' AND t.transaction_date LIKE ?"
-        : "WHERE t.transaction_type = 'DEBIT'";
-    final whereArgs = yearMonth != null && yearMonth.isNotEmpty ? ['$yearMonth%'] : [];
+        ? "WHERE t.transaction_type = 'DEBIT' AND t.tx_kind NOT IN $neutralKindsSql AND t.transaction_date LIKE ?"
+        : "WHERE t.transaction_type = 'DEBIT' AND t.tx_kind NOT IN $neutralKindsSql";
+    final whereArgs =
+        yearMonth != null && yearMonth.isNotEmpty ? ['$yearMonth%'] : [];
 
     final rows = await db.rawQuery('''
       SELECT 
@@ -330,7 +446,7 @@ class TransactionRepository {
         strftime('%Y-%m', transaction_date) as year_month,
         SUM(billing_amount_cents) as total_cents
       FROM transactions
-      WHERE transaction_type = 'DEBIT'
+      WHERE transaction_type = 'DEBIT' AND tx_kind NOT IN $neutralKindsSql
       GROUP BY year_month
       ORDER BY year_month DESC
       LIMIT 6
@@ -345,7 +461,20 @@ class TransactionRepository {
       if (cents > maxCents) maxCents = cents;
     }
 
-    const monthShortNames = ['OCA', 'ŞUB', 'MAR', 'NİS', 'MAY', 'HAZ', 'TEM', 'AĞU', 'EYL', 'EKİ', 'KAS', 'ARA'];
+    const monthShortNames = [
+      'OCA',
+      'ŞUB',
+      'MAR',
+      'NİS',
+      'MAY',
+      'HAZ',
+      'TEM',
+      'AĞU',
+      'EYL',
+      'EKİ',
+      'KAS',
+      'ARA'
+    ];
 
     return reversed.map((r) {
       final ym = r['year_month'] as String? ?? '';
@@ -404,7 +533,8 @@ class TransactionRepository {
       FROM transactions
       WHERE is_tax_deductible = 1 AND transaction_type = 'DEBIT'
     ''');
-    final deductibleCents = ((deductibleRow.firstOrNull?['total_cents'] as num?)?.toInt() ?? 0);
+    final deductibleCents =
+        ((deductibleRow.firstOrNull?['total_cents'] as num?)?.toInt() ?? 0);
 
     return {
       'vat_cents': totalVatCents,
@@ -412,7 +542,10 @@ class TransactionRepository {
       'sgk_cents': totalSgkCents,
       'other_tax_cents': totalOtherTaxCents,
       'deductible_cents': deductibleCents,
-      'total_tax_cents': totalVatCents + totalIncomeTaxCents + totalSgkCents + totalOtherTaxCents,
+      'total_tax_cents': totalVatCents +
+          totalIncomeTaxCents +
+          totalSgkCents +
+          totalOtherTaxCents,
     };
   }
 
@@ -461,7 +594,8 @@ class TransactionRepository {
       final accounts = data['accounts'] as List<dynamic>? ?? [];
       for (final a in accounts) {
         if (a is Map<String, dynamic>) {
-          await txn.insert('accounts', a, conflictAlgorithm: ConflictAlgorithm.replace);
+          await txn.insert('accounts', a,
+              conflictAlgorithm: ConflictAlgorithm.replace);
         }
       }
 
@@ -469,7 +603,8 @@ class TransactionRepository {
       final statements = data['statements'] as List<dynamic>? ?? [];
       for (final s in statements) {
         if (s is Map<String, dynamic>) {
-          await txn.insert('statements', s, conflictAlgorithm: ConflictAlgorithm.replace);
+          await txn.insert('statements', s,
+              conflictAlgorithm: ConflictAlgorithm.replace);
         }
       }
 
@@ -487,7 +622,8 @@ class TransactionRepository {
             ..remove('tax_type')
             ..remove('tax_amount_cents');
 
-          await txn.insert('transactions', cleanTx, conflictAlgorithm: ConflictAlgorithm.replace);
+          await txn.insert('transactions', cleanTx,
+              conflictAlgorithm: ConflictAlgorithm.replace);
         }
       }
 
@@ -495,7 +631,8 @@ class TransactionRepository {
       final installments = data['installments'] as List<dynamic>? ?? [];
       for (final i in installments) {
         if (i is Map<String, dynamic>) {
-          await txn.insert('installments', i, conflictAlgorithm: ConflictAlgorithm.replace);
+          await txn.insert('installments', i,
+              conflictAlgorithm: ConflictAlgorithm.replace);
         }
       }
 
@@ -503,7 +640,8 @@ class TransactionRepository {
       final taxes = data['tax_deductions'] as List<dynamic>? ?? [];
       for (final tax in taxes) {
         if (tax is Map<String, dynamic>) {
-          await txn.insert('tax_deductions', tax, conflictAlgorithm: ConflictAlgorithm.replace);
+          await txn.insert('tax_deductions', tax,
+              conflictAlgorithm: ConflictAlgorithm.replace);
         }
       }
     });
@@ -526,4 +664,10 @@ class TransactionRepository {
     final db = await _dbProvider.database;
     return await db.query('accounts', orderBy: 'created_at DESC');
   }
+}
+
+class StatementSaveResult {
+  final int inserted;
+  final int skippedDuplicates;
+  const StatementSaveResult({required this.inserted, required this.skippedDuplicates});
 }

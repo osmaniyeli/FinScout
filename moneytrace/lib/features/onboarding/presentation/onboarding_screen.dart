@@ -11,7 +11,8 @@ import '../../../core/widgets/fintech/fintech_components.dart';
 class OnboardingScreen extends StatefulWidget {
   final VoidCallback onCompleted;
 
-  const OnboardingScreen({Key? key, required this.onCompleted}) : super(key: key);
+  const OnboardingScreen({Key? key, required this.onCompleted})
+      : super(key: key);
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -55,7 +56,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           backgroundColor: AppColors.expenseRed,
-          content: Text('Lütfen devam etmek için adınızı veya takma adınızı girin.'),
+          content:
+              Text('Lütfen devam etmek için adınızı veya takma adınızı girin.'),
         ),
       );
       return;
@@ -64,7 +66,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final budgetStr = _budgetController.text.replaceAll('.', '').replaceAll(',', '').trim();
+      final budgetStr =
+          _budgetController.text.replaceAll('.', '').replaceAll(',', '').trim();
       final budgetCents = (int.tryParse(budgetStr) ?? 0) * 100;
 
       final profile = UserProfile(
@@ -122,7 +125,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             backgroundColor: AppColors.expenseRed,
-            content: Text('Biyometrik doğrulama başarısız oldu. Lütfen PIN kodunuzu deneyin.'),
+            content: Text(
+                'Biyometrik doğrulama başarısız oldu. Lütfen PIN kodunuzu deneyin.'),
           ),
         );
       }
@@ -179,7 +183,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           backgroundColor: Color(0xFF0F172A),
-          content: Text('Cihazdaki yerel kasa inceleniyor... Lütfen PIN veya biyometrik ile doğrulayın.'),
+          content: Text(
+              'Cihazdaki yerel kasa inceleniyor... Lütfen PIN veya biyometrik ile doğrulayın.'),
         ),
       );
       _loginWithPin();
@@ -208,7 +213,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         borderRadius: BorderRadius.circular(18),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF10B981).withOpacity(0.24),
+                            color:
+                                const Color(0xFF10B981).withValues(alpha: 0.24),
                             blurRadius: 18,
                             offset: const Offset(0, 6),
                           ),
@@ -261,7 +267,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 },
                 // Mod 1: Kayıt Ol (Sign Up) -> Kapak Sağda
                 primaryHeroTitle: 'Zaten hesabın var mı?',
-                primaryHeroSubtitle: 'Mevcut cüzdanına ve profiline hemen giriş yap.',
+                primaryHeroSubtitle:
+                    'Mevcut cüzdanına ve profiline hemen giriş yap.',
                 primaryButtonText: 'GİRİŞ YAP',
                 primaryGradient: const LinearGradient(
                   begin: Alignment.topLeft,
@@ -274,25 +281,31 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   children: const [
                     Row(
                       children: [
-                        Icon(Icons.person_add_alt_1_rounded, color: Color(0xFF10B981), size: 16),
+                        Icon(Icons.person_add_alt_1_rounded,
+                            color: Color(0xFF10B981), size: 16),
                         SizedBox(width: 6),
                         Text(
                           'KAYIT OL',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF0F172A)),
                         ),
                       ],
                     ),
                     SizedBox(height: 6),
                     Text(
                       'Paraİz ile bütçeni kontrol altına al.',
-                      style: TextStyle(fontSize: 11, color: Color(0xFF64748B), height: 1.3),
+                      style: TextStyle(
+                          fontSize: 11, color: Color(0xFF64748B), height: 1.3),
                     ),
                   ],
                 ),
 
                 // Mod 2: Giriş Yap (Sign In) -> Kapak Solda
                 secondaryHeroTitle: 'Yeni misin?',
-                secondaryHeroSubtitle: 'Bütçeni akıllıca yönetmek için hemen profilini oluştur.',
+                secondaryHeroSubtitle:
+                    'Bütçeni akıllıca yönetmek için hemen profilini oluştur.',
                 secondaryButtonText: 'KAYIT OL',
                 secondaryGradient: const LinearGradient(
                   begin: Alignment.topLeft,
@@ -305,18 +318,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   children: const [
                     Row(
                       children: [
-                        Icon(Icons.lock_open_rounded, color: Color(0xFF2563EB), size: 16),
+                        Icon(Icons.lock_open_rounded,
+                            color: Color(0xFF2563EB), size: 16),
                         SizedBox(width: 6),
                         Text(
                           'GİRİŞ YAP',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF0F172A)),
                         ),
                       ],
                     ),
                     SizedBox(height: 6),
                     Text(
                       'Kayıtlı cüzdanına ve kartlarına dön.',
-                      style: TextStyle(fontSize: 11, color: Color(0xFF64748B), height: 1.3),
+                      style: TextStyle(
+                          fontSize: 11, color: Color(0xFF64748B), height: 1.3),
                     ),
                   ],
                 ),
@@ -327,7 +345,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               AnimatedCrossFade(
                 firstChild: _buildSignUpForm(),
                 secondChild: _buildSignInForm(),
-                crossFadeState: _isSignInMode ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                crossFadeState: _isSignInMode
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
                 duration: const Duration(milliseconds: 320),
               ),
             ],
@@ -360,7 +380,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         children: [
           const Text(
             'Hesap Bilgilerinizi Belirleyin',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+            style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary),
           ),
           const SizedBox(height: 4),
           const Text(
@@ -372,7 +395,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           // Ad Soyad
           const Text(
             'Adınız veya Kullanıcı Adınız *',
-            style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+            style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary),
           ),
           const SizedBox(height: 8),
           TextField(
@@ -380,11 +406,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             textCapitalization: TextCapitalization.words,
             decoration: InputDecoration(
               hintText: 'Örn: Ahmet Yılmaz',
-              hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13.5),
-              prefixIcon: const Icon(Icons.person_outline_rounded, color: AppColors.textSecondary, size: 20),
+              hintStyle:
+                  const TextStyle(color: Color(0xFF94A3B8), fontSize: 13.5),
+              prefixIcon: const Icon(Icons.person_outline_rounded,
+                  color: AppColors.textSecondary, size: 20),
               filled: true,
               fillColor: const Color(0xFFF8FAFC),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -395,7 +424,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Color(0xFF0052FF), width: 1.5),
+                borderSide:
+                    const BorderSide(color: Color(0xFF0052FF), width: 1.5),
               ),
             ),
           ),
@@ -404,7 +434,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           // Başlıca Banka / Hesap
           const Text(
             'Birincil Banka veya Hesap',
-            style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+            style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary),
           ),
           const SizedBox(height: 8),
           Container(
@@ -418,11 +451,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: DropdownButton<String>(
                 value: _selectedBank,
                 isExpanded: true,
-                icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
-                items: _banks.map((b) => DropdownMenuItem(
-                  value: b,
-                  child: Text(b, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600)),
-                )).toList(),
+                icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                    color: AppColors.textSecondary),
+                items: _banks
+                    .map((b) => DropdownMenuItem(
+                          value: b,
+                          child: Text(b,
+                              style: const TextStyle(
+                                  fontSize: 13.5, fontWeight: FontWeight.w600)),
+                        ))
+                    .toList(),
                 onChanged: (val) {
                   if (val != null) setState(() => _selectedBank = val);
                 },
@@ -434,7 +472,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           // Aylık Bütçe Hedefi (Opsiyonel)
           const Text(
             'Aylık Harcama Bütçesi Hedefi (TL)',
-            style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+            style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary),
           ),
           const SizedBox(height: 8),
           TextField(
@@ -442,11 +483,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
               hintText: 'Örn: 25000 (Opsiyonel)',
-              hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13.5),
-              prefixIcon: const Icon(Icons.savings_outlined, color: AppColors.textSecondary, size: 20),
+              hintStyle:
+                  const TextStyle(color: Color(0xFF94A3B8), fontSize: 13.5),
+              prefixIcon: const Icon(Icons.savings_outlined,
+                  color: AppColors.textSecondary, size: 20),
               filled: true,
               fillColor: const Color(0xFFF8FAFC),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -457,7 +501,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Color(0xFF0052FF), width: 1.5),
+                borderSide:
+                    const BorderSide(color: Color(0xFF0052FF), width: 1.5),
               ),
             ),
           ),
@@ -478,7 +523,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 Expanded(
                   child: Text(
                     'Verileriniz asla harici sunuculara iletilmez. Cihazınızda SQLite veritabanında şifrelenir.',
-                    style: TextStyle(fontSize: 11.5, color: Color(0xFF15803D), height: 1.3),
+                    style: TextStyle(
+                        fontSize: 11.5, color: Color(0xFF15803D), height: 1.3),
                   ),
                 ),
               ],
@@ -495,14 +541,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF0F172A),
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
                 elevation: 0,
               ),
               child: _isLoading
-                  ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                          color: Colors.white, strokeWidth: 2))
                   : Text(
                       AppStrings.get('start_app_btn'),
-                      style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800),
+                      style: const TextStyle(
+                          fontSize: 14.5, fontWeight: FontWeight.w800),
                     ),
             ),
           ),
@@ -516,7 +568,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   // ==========================================
   Widget _buildSignInForm() {
     final hasExistingProfile = UserProfileService.instance.hasProfile;
-    final existingName = UserProfileService.instance.profile?.name ?? 'Kayıtlı Kullanıcı';
+    final existingName =
+        UserProfileService.instance.profile?.name ?? 'Kayıtlı Kullanıcı';
 
     if (!hasExistingProfile) {
       return Container(
@@ -545,20 +598,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 border: Border.all(color: const Color(0xFFBFDBFE), width: 1.5),
               ),
               child: const Center(
-                child: Icon(Icons.info_outline_rounded, color: Color(0xFF2563EB), size: 26),
+                child: Icon(Icons.info_outline_rounded,
+                    color: Color(0xFF2563EB), size: 26),
               ),
             ),
             const SizedBox(height: 14),
             const Text(
               'Henüz Açılmış Bir Üyelik Bulunmuyor',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+              style: TextStyle(
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary),
             ),
             const SizedBox(height: 6),
             const Text(
               'Yüz tanıma, parmak izi ve şifreli giriş özellikleri yalnızca üyeliğinizi açtıktan sonra kullanılabilir. Lütfen önce profilinizi oluşturun.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+              style: TextStyle(
+                  fontSize: 12, color: AppColors.textSecondary, height: 1.4),
             ),
             const SizedBox(height: 20),
             SizedBox(
@@ -569,11 +627,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   setState(() => _isSignInMode = false);
                 },
                 icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
-                label: const Text('Üyeliğinizi Oluşturun (Kayıt Ol)', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
+                label: const Text('Üyeliğinizi Oluşturun (Kayıt Ol)',
+                    style:
+                        TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0F172A),
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
                   elevation: 0,
                 ),
               ),
@@ -611,7 +672,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   border: Border.all(color: const Color(0xFF10B981), width: 2),
                 ),
                 child: const Center(
-                  child: Icon(Icons.person_rounded, color: Color(0xFF0F172A), size: 24),
+                  child: Icon(Icons.person_rounded,
+                      color: Color(0xFF0F172A), size: 24),
                 ),
               ),
               const SizedBox(width: 12),
@@ -621,11 +683,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   children: [
                     const Text(
                       'Tekrar Hoş Geldiniz!',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary),
                     ),
                     Text(
                       existingName,
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF059669)),
+                      style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF059669)),
                     ),
                   ],
                 ),
@@ -636,7 +704,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
           const Text(
             'Hızlı Biyometrik veya PIN ile Giriş Yapın',
-            style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+            style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary),
           ),
           const SizedBox(height: 12),
 
@@ -653,7 +724,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
               child: Row(
                 children: const [
-                  Icon(Icons.face_retouching_natural, color: Color(0xFF059669), size: 24),
+                  Icon(Icons.face_retouching_natural,
+                      color: Color(0xFF059669), size: 24),
                   SizedBox(width: 14),
                   Expanded(
                     child: Column(
@@ -661,16 +733,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       children: [
                         Text(
                           'Yüz Tanıma ile Giriş (Face ID)',
-                          style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: Color(0xFF065F46)),
+                          style: TextStyle(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF065F46)),
                         ),
                         Text(
                           'Kameraya bakın, anında oturum açın',
-                          style: TextStyle(fontSize: 11, color: Color(0xFF047857)),
+                          style:
+                              TextStyle(fontSize: 11, color: Color(0xFF047857)),
                         ),
                       ],
                     ),
                   ),
-                  Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFF059669), size: 14),
+                  Icon(Icons.arrow_forward_ios_rounded,
+                      color: Color(0xFF059669), size: 14),
                 ],
               ),
             ),
@@ -690,7 +767,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
               child: Row(
                 children: const [
-                  Icon(Icons.fingerprint_rounded, color: Color(0xFF2563EB), size: 24),
+                  Icon(Icons.fingerprint_rounded,
+                      color: Color(0xFF2563EB), size: 24),
                   SizedBox(width: 14),
                   Expanded(
                     child: Column(
@@ -698,16 +776,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       children: [
                         Text(
                           'Parmak İzi ile Giriş (Touch ID)',
-                          style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: Color(0xFF1E40AF)),
+                          style: TextStyle(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1E40AF)),
                         ),
                         Text(
                           'Sensöre dokunun, güvenle kasanıza erişin',
-                          style: TextStyle(fontSize: 11, color: Color(0xFF1D4ED8)),
+                          style:
+                              TextStyle(fontSize: 11, color: Color(0xFF1D4ED8)),
                         ),
                       ],
                     ),
                   ),
-                  Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFF2563EB), size: 14),
+                  Icon(Icons.arrow_forward_ios_rounded,
+                      color: Color(0xFF2563EB), size: 14),
                 ],
               ),
             ),
@@ -735,16 +818,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       children: [
                         Text(
                           '4 Haneli PIN Kodu ile Giriş',
-                          style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: Color(0xFF0F172A)),
+                          style: TextStyle(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF0F172A)),
                         ),
                         Text(
                           'Şifrenizi tuşlayarak giriş yapın',
-                          style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                          style:
+                              TextStyle(fontSize: 11, color: Color(0xFF64748B)),
                         ),
                       ],
                     ),
                   ),
-                  Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFF64748B), size: 14),
+                  Icon(Icons.arrow_forward_ios_rounded,
+                      color: Color(0xFF64748B), size: 14),
                 ],
               ),
             ),
@@ -757,12 +845,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: _restoreFromBackup,
-                  icon: const Icon(Icons.settings_backup_restore_rounded, size: 18),
-                  label: const Text('Yedekten Yükle', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
+                  icon: const Icon(Icons.settings_backup_restore_rounded,
+                      size: 18),
+                  label: const Text('Yedekten Yükle',
+                      style: TextStyle(
+                          fontSize: 12.5, fontWeight: FontWeight.w700)),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFF0F172A),
                     side: const BorderSide(color: Color(0xFFE2E8F0)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
@@ -772,11 +864,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: ElevatedButton.icon(
                   onPressed: _ensureProfileAndProceed,
                   icon: const Icon(Icons.bolt_rounded, size: 18),
-                  label: const Text('Hızlı Giriş', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
+                  label: const Text('Hızlı Giriş',
+                      style: TextStyle(
+                          fontSize: 12.5, fontWeight: FontWeight.w700)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0F172A),
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     elevation: 0,
                   ),

@@ -1,6 +1,5 @@
 // lib/features/cashflow_projection/services/cashflow_projection_service.dart
 
-import 'package:sqflite/sqflite.dart';
 import '../../../core/database/app_database.dart';
 import '../models/cashflow_event.dart';
 
@@ -59,7 +58,8 @@ class CashflowProjectionService {
 
       // A) Maaş Günü Eklemesi (Sadece kullanıcı gerçek maaş/bütçe belirttiyse)
       if (netSalaryCents > 0) {
-        final salaryDate = DateTime(targetDate.year, targetDate.month, salaryDayOfMonth.clamp(1, 28));
+        final salaryDate = DateTime(
+            targetDate.year, targetDate.month, salaryDayOfMonth.clamp(1, 28));
         events.add(CashflowCalendarEvent(
           id: 'salary_${targetDate.year}_${targetDate.month}',
           title: 'Maaş Geliri Tahakkuku',
@@ -81,7 +81,8 @@ class CashflowProjectionService {
         // Kaçıncı taksitte olduğumuzu hesapla
         final projectedInstNumber = currentInst + i;
         if (projectedInstNumber <= totalInst) {
-          final instDate = DateTime(targetDate.year, targetDate.month, 20); // Ekstre kesim günü
+          final instDate = DateTime(
+              targetDate.year, targetDate.month, 20); // Ekstre kesim günü
           events.add(CashflowCalendarEvent(
             id: 'inst_${row['id']}_$i',
             title: merchant,
@@ -127,8 +128,18 @@ class CashflowProjectionService {
 
   String _formatMonthYear(DateTime date) {
     const months = [
-      'OCAK', 'ŞUBAT', 'MART', 'NİSAN', 'MAYIS', 'HAZİRAN',
-      'TEMMUZ', 'AĞUSTOS', 'EYLÜL', 'EKİM', 'KASIM', 'ARALIK'
+      'OCAK',
+      'ŞUBAT',
+      'MART',
+      'NİSAN',
+      'MAYIS',
+      'HAZİRAN',
+      'TEMMUZ',
+      'AĞUSTOS',
+      'EYLÜL',
+      'EKİM',
+      'KASIM',
+      'ARALIK'
     ];
     return '${months[date.month - 1]} ${date.year}';
   }

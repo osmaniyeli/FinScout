@@ -109,10 +109,10 @@ class _MorphingShareButtonState extends State<MorphingShareButton>
         decoration: BoxDecoration(
           color: const Color(0xFF0F172A),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.12)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.4),
+              color: Colors.black.withValues(alpha: 0.4),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -153,7 +153,7 @@ class _MorphingShareButtonState extends State<MorphingShareButton>
           decoration: BoxDecoration(
             color: const Color(0xFF1E293B),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.08)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
           ),
           clipBehavior: Clip.antiAlias,
           child: Stack(
@@ -192,10 +192,11 @@ class _MorphingShareButtonState extends State<MorphingShareButton>
       decoration: BoxDecoration(
         color: const Color(0xFF0C0E14),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF00D084).withOpacity(0.4)),
+        border:
+            Border.all(color: const Color(0xFF00D084).withValues(alpha: 0.4)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF00D084).withOpacity(0.2),
+            color: const Color(0xFF00D084).withValues(alpha: 0.2),
             blurRadius: 16,
           ),
         ],
@@ -210,12 +211,13 @@ class _MorphingShareButtonState extends State<MorphingShareButton>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFF00D084).withOpacity(0.15),
+                color: const Color(0xFF00D084).withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.check_circle_rounded, color: Color(0xFF00D084), size: 16),
+                  Icon(Icons.check_circle_rounded,
+                      color: Color(0xFF00D084), size: 16),
                   SizedBox(width: 5),
                   Text(
                     'İndirildi',
@@ -232,13 +234,17 @@ class _MorphingShareButtonState extends State<MorphingShareButton>
           const SizedBox(width: 10),
 
           // Paylaşım Kanalları (Video 2'deki gibi yayılan hap ikonlar)
-          _buildSharePill(Icons.chat_bubble_outline_rounded, 'WhatsApp', const Color(0xFF25D366)),
+          _buildSharePill(Icons.chat_bubble_outline_rounded, 'WhatsApp',
+              const Color(0xFF25D366)),
           const SizedBox(width: 6),
-          _buildSharePill(Icons.picture_as_pdf_rounded, 'PDF', const Color(0xFFEF4444)),
+          _buildSharePill(
+              Icons.picture_as_pdf_rounded, 'PDF', const Color(0xFFEF4444)),
           const SizedBox(width: 6),
-          _buildSharePill(Icons.table_chart_rounded, 'CSV', const Color(0xFF10B981)),
+          _buildSharePill(
+              Icons.table_chart_rounded, 'CSV', const Color(0xFF10B981)),
           const SizedBox(width: 6),
-          _buildSharePill(Icons.link_rounded, 'Kopyala', const Color(0xFF38BDF8)),
+          _buildSharePill(
+              Icons.link_rounded, 'Kopyala', const Color(0xFF38BDF8)),
         ],
       ),
     );
@@ -260,9 +266,9 @@ class _MorphingShareButtonState extends State<MorphingShareButton>
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.15),
+          color: color.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Icon(icon, color: color, size: 16),
       ),
