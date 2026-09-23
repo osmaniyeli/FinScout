@@ -92,7 +92,7 @@ Tarih: ${DateTime.now().day}.${DateTime.now().month}.${DateTime.now().year}
     required List<Map<String, dynamic>> taxes,
   }) {
     final payload = {
-      'app': 'ParaIz (MoneyTrace)',
+      'app': 'FinScout',
       'version': '1.0.0',
       'vault_format': 'zero_knowledge_v1',
       'created_at': DateTime.now().toIso8601String(),
@@ -154,8 +154,10 @@ Tarih: ${DateTime.now().day}.${DateTime.now().month}.${DateTime.now().year}
       throw const FormatException('Geçersiz yedek dosyası: JSON formatı doğrulanamadı.');
     }
 
-    if (decoded['app'] != 'ParaIz (MoneyTrace)' || !decoded.containsKey('data')) {
-      throw const FormatException('Bu dosya geçerli bir Paraİz yedekleme arşivi değildir.');
+    // 'ParaIz (MoneyTrace)': marka birleştirmesinden önce alınmış yedekler
+    const knownApps = {'FinScout', 'ParaIz (MoneyTrace)'};
+    if (!knownApps.contains(decoded['app']) || !decoded.containsKey('data')) {
+      throw const FormatException('Bu dosya geçerli bir FinScout yedekleme arşivi değildir.');
     }
 
     final data = decoded['data'];

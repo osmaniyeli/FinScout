@@ -1,8 +1,6 @@
 // lib/core/widgets/floating_capsule_nav_bar.dart
 
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 
 /// Shakuro Inspired & Video 5 Floating Capsule Bottom Navigation Bar.
 /// Yüzen kapsül (super-ellipse pill) formunda, neon aktif hap göstergeli,

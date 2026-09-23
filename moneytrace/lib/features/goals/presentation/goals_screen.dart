@@ -2,15 +2,12 @@
 
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/dynamic_island_capsule.dart';
-import '../../../core/widgets/daily_streak_modal.dart';
+import '../../../core/utils/currency_normalizer.dart';
+import '../../../core/utils/thousands_input_formatter.dart';
 import '../../../core/widgets/morphing_share_button.dart';
 import '../../../core/widgets/radar_checkout_button.dart';
 import '../../../core/widgets/morphing_segmented_bar.dart';
 import '../../../core/widgets/streak_confetti_burst.dart';
-import '../../../core/widgets/pulse_metric_badge.dart';
-import '../../../core/utils/currency_normalizer.dart';
-import '../../../core/config/remote_config_service.dart';
 import '../models/financial_goal.dart';
 import '../services/goal_calculator_service.dart';
 import '../repositories/goal_repository.dart';
@@ -122,7 +119,8 @@ class _GoalsScreenState extends State<GoalsScreen>
                           style: const TextStyle(
                               fontSize: 11, fontWeight: FontWeight.w700)),
                       backgroundColor: const Color(0xFFF1F5F9),
-                      onPressed: () => amountController.text = val.toString(),
+                      onPressed: () => amountController.text =
+                          ThousandsInputFormatter.format(val.toString()),
                     ),
                   );
                 }).toList(),
@@ -133,6 +131,7 @@ class _GoalsScreenState extends State<GoalsScreen>
               controller: amountController,
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: const [ThousandsInputFormatter()],
               decoration: InputDecoration(
                 prefixText: '₺ ',
                 labelText: 'Eklenecek Tutar',
@@ -157,20 +156,17 @@ class _GoalsScreenState extends State<GoalsScreen>
                   idleAmountText: '₺${amountController.text}',
                   verifyingAmountText: 'Kasa Güncelleniyor...',
                   onPressed: () async {
-                    final rawText = amountController.text
-                        .trim()
-                        .replaceAll('.', '')
-                        .replaceAll(',', '.');
-                    final parsedNum = double.tryParse(rawText);
-                    if (parsedNum == null || parsedNum <= 0) return;
+                    final int addCents = CurrencyNormalizer.toMinorUnits(
+                        amountController.text.trim());
+                    if (addCents <= 0) return false;
 
-                    final int addCents = (parsedNum * 100).round();
                     await _goalRepository.addContribution(
                       goalId: goal.id,
                       amountCents: addCents,
                       note: 'Manuel birikim katkısı',
                     );
                     await _loadGoals();
+                    return true;
                   },
                   onVerificationComplete: () {
                     Navigator.pop(ctx);
@@ -181,9 +177,8 @@ class _GoalsScreenState extends State<GoalsScreen>
                             Text('"${goal.title}" hedefine birikim aktarıldı!'),
                       ),
                     );
-                    // Video 1 Habit Streak & Başarı Kutlaması + Konfeti Efekti
+                    // Başarı kutlaması: konfeti
                     _confettiController.forward(from: 0.0);
-                    DailyStreakModal.show(context, currentStreak: 30);
                   },
                 ),
                 TextButton(
@@ -283,7 +278,7 @@ class _GoalsScreenState extends State<GoalsScreen>
                           style: TextStyle(
                               fontSize: 12, color: AppColors.textSecondary)),
                       Text(
-                        '₺${(goal.currentSavedCents / 100).toStringAsFixed(2)}',
+                        CurrencyNormalizer.formatCents(goal.currentSavedCents),
                         style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w800,
@@ -299,7 +294,7 @@ class _GoalsScreenState extends State<GoalsScreen>
                           style: TextStyle(
                               fontSize: 12, color: AppColors.textSecondary)),
                       Text(
-                        '₺${(goal.targetAmountCents / 100).toStringAsFixed(2)}',
+                        CurrencyNormalizer.formatCents(goal.targetAmountCents),
                         style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w800,
@@ -315,7 +310,7 @@ class _GoalsScreenState extends State<GoalsScreen>
                           style: TextStyle(
                               fontSize: 12, color: AppColors.textSecondary)),
                       Text(
-                        '₺${(goal.recommendedMonthlySavingsCents / 100).toStringAsFixed(2)} / ay',
+                        '${CurrencyNormalizer.formatCents(goal.recommendedMonthlySavingsCents)} / ay',
                         style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w800,

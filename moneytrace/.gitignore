@@ -86,3 +86,5 @@ app.*.map.json
 
 # Coverage
 coverage/
+# Widget Preview related
+.widget_preview/

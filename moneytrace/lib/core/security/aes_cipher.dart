@@ -5,7 +5,7 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 
-/// Paraİz Kriptografik Güvenlik Motoru:
+/// FinScout Kriptografik Güvenlik Motoru:
 /// NIST FIPS 197 Standardında AES-256-CBC, PBKDF2-HMAC-SHA256 ve Encrypt-then-MAC (HMAC-SHA256)
 class AesCipher {
   static const int _rounds = 14; // 256-bit key: 14 rounds

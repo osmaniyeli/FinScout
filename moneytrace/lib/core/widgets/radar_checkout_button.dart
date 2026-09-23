@@ -45,8 +45,7 @@ class _RadarCheckoutButtonState extends State<RadarCheckoutButton>
   _CheckoutPhase _phase = _CheckoutPhase.idle;
   late AnimationController _radarController;
   late AnimationController _progressController;
-  String _statusText = 'İşlem Doğrulanıyor...';
-  int _progressPercent = 11;
+  String _statusText = 'İşleniyor...';
 
   bool get _isEnabled =>
       widget.onPressed != null ||
@@ -77,56 +76,47 @@ class _RadarCheckoutButtonState extends State<RadarCheckoutButton>
     super.dispose();
   }
 
+  /// İşlemi çalıştırır. Başarı animasyonu yalnızca işlem gerçekten başarılıysa oynar:
+  /// `onPressed`/`onAction` hata fırlatırsa veya `false` döndürürse düğme sessizce başa döner.
   Future<void> _startCheckout() async {
     if (_phase != _CheckoutPhase.idle) return;
     if (!_isEnabled) return;
 
     setState(() {
       _phase = _CheckoutPhase.pulsing;
-      _statusText = widget.verifyingAmountText ?? 'İşlem Doğrulanıyor...';
-      _progressPercent = 15;
+      _statusText = widget.verifyingAmountText ?? 'İşleniyor...';
     });
 
-    // Simüle aşamalı doğrulama (Videodaki %11 -> %68 -> %96 hissi)
-    await Future.delayed(const Duration(milliseconds: 350));
-    if (mounted)
-      setState(() {
-        _statusText = 'Güvenlik Protokolü...';
-        _progressPercent = 58;
-      });
-
-    await Future.delayed(const Duration(milliseconds: 400));
-    if (mounted)
-      setState(() {
-        _statusText = 'Güvenli Bağlantı...';
-        _progressPercent = 94;
-      });
-
-    if (widget.onPressed != null) {
-      final res = (widget.onPressed as dynamic)();
-      if (res is Future) await res;
-    } else if (widget.onAction != null) {
-      await widget.onAction!();
-    } else {
-      await Future.delayed(const Duration(milliseconds: 400));
+    var succeeded = true;
+    try {
+      dynamic res;
+      if (widget.onPressed != null) {
+        res = (widget.onPressed as dynamic)();
+      } else if (widget.onAction != null) {
+        res = widget.onAction!();
+      }
+      if (res is Future) res = await res;
+      if (res == false) succeeded = false;
+    } catch (_) {
+      succeeded = false;
     }
 
-    if (mounted) {
-      setState(() {
-        _phase = _CheckoutPhase.verified;
-      });
-      widget.onSuccess?.call();
-      widget.onVerificationComplete?.call();
-
-      // 3 saniye sonra başa dön
-      Future.delayed(const Duration(milliseconds: 3000), () {
-        if (mounted) {
-          setState(() {
-            _phase = _CheckoutPhase.idle;
-          });
-        }
-      });
+    if (!mounted) return;
+    if (!succeeded) {
+      setState(() => _phase = _CheckoutPhase.idle);
+      return;
     }
+
+    setState(() => _phase = _CheckoutPhase.verified);
+    widget.onSuccess?.call();
+    widget.onVerificationComplete?.call();
+
+    // Onay rozetini kısa süre gösterip başa dön
+    Future.delayed(const Duration(milliseconds: 2000), () {
+      if (mounted) {
+        setState(() => _phase = _CheckoutPhase.idle);
+      }
+    });
   }
 
   @override
@@ -265,15 +255,6 @@ class _RadarCheckoutButtonState extends State<RadarCheckoutButton>
               color: Colors.white70,
               fontSize: 13,
               fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '%$_progressPercent',
-            style: const TextStyle(
-              color: Color(0xFF8B5CF6),
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
             ),
           ),
         ],

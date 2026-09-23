@@ -1,7 +1,7 @@
 // lib/core/parser/models/bank_mapping_template.dart
 
 /// Kullanıcı veya yönetici tarafından tanımlanan deterministik dekont & ekstre alan eşleme şablonu.
-/// Körü körüne regex tahmini yapmak yerine, belgedeki etiketleri doğrudan Paraİz şemasıyla eşleştirir.
+/// Körü körüne regex tahmini yapmak yerine, belgedeki etiketleri doğrudan FinScout şemasıyla eşleştirir.
 class BankMappingTemplate {
   final String id;
   final String bankName;

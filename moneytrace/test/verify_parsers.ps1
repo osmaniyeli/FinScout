@@ -633,30 +633,30 @@ Assert-Test -Name "Main Navigation Floating Capsule Integration" -Condition $has
 # 3. Dashboard Screen Micro-Interactions Integration
 $dashPath = Join-Path $PSScriptRoot "../lib/features/dashboard/presentation/dashboard_screen.dart"
 $dashText = if (Test-Path $dashPath) { [System.IO.File]::ReadAllText($dashPath) } else { "" }
-$hasDashInteractions = $dashText.Contains("DynamicIslandCapsule") -and `
-                       $dashText.Contains("DailyStreakModal") -and `
-                       $dashText.Contains("PulseMetricBadge") -and `
-                       $dashText.Contains("RollingNumberTicker")
-Assert-Test -Name "Dashboard Screen Unified Micro-Interactions" -Condition $hasDashInteractions -Details "Dashboard uses DynamicIslandCapsule, DailyStreakModal, PulseMetricBadge, and RollingNumberTicker"
+# v3.6.1 minimal tasarım kararı (GERI_BILDIRIM B6/B8/C2): ekranda sabit kapsül/bildirim, seri modalı ve NET FARK rozeti yok
+$hasDashInteractions = $dashText.Contains("RollingNumberTicker") -and `
+                       -not $dashText.Contains("DynamicIslandCapsule") -and `
+                       -not $dashText.Contains("DailyStreakModal") -and `
+                       -not $dashText.Contains("PulseMetricBadge")
+Assert-Test -Name "Dashboard Screen Minimal Design (no sticky banners)" -Condition $hasDashInteractions -Details "Dashboard keeps RollingNumberTicker; no DynamicIslandCapsule / DailyStreakModal / NET FARK badge"
 
 # 4. Analysis & Cashflow Morphing Segmented Bars & Shares
 $analysisPath = Join-Path $PSScriptRoot "../lib/features/analysis/presentation/analysis_screen.dart"
 $analysisText = if (Test-Path $analysisPath) { [System.IO.File]::ReadAllText($analysisPath) } else { "" }
 $hasAnalysisInteractions = $analysisText.Contains("MorphingSegmentedBar") -and `
-                           $analysisText.Contains("DynamicIslandCapsule") -and `
-                           $analysisText.Contains("PulseMetricBadge") -and `
-                           $analysisText.Contains("MorphingShareButton")
+                           $analysisText.Contains("MorphingShareButton") -and `
+                           -not $analysisText.Contains("DynamicIslandCapsule")
 
 $cashflowPath = Join-Path $PSScriptRoot "../lib/features/cashflow_projection/presentation/cashflow_screen.dart"
 $cashflowText = if (Test-Path $cashflowPath) { [System.IO.File]::ReadAllText($cashflowPath) } else { "" }
+# Cüzdan ekranı (GERI_BILDIRIM C3/B7): geriye dönük gerçek veri, projeksiyon ve "CANLI KASA" yok
 $hasCashflowInteractions = $cashflowText.Contains("MorphingSegmentedBar") -and `
-                           $cashflowText.Contains("DynamicIslandCapsule") -and `
-                           $cashflowText.Contains("PulseMetricBadge") -and `
-                           $cashflowText.Contains("RollingNumberTicker") -and `
-                           $cashflowText.Contains("RadarCheckoutButton")
+                           $cashflowText.Contains("WalletHistoryService") -and `
+                           -not $cashflowText.Contains("DynamicIslandCapsule") -and `
+                           -not $cashflowText.Contains("CashflowProjectionService")
 
 $isAnalyticScreensValid = $hasAnalysisInteractions -and $hasCashflowInteractions
-Assert-Test -Name "Analysis & Cashflow Screen Morphing Controls & Tickers" -Condition $isAnalyticScreensValid -Details "Verified spring-physics MorphingSegmentedBar, live PulseMetricBadge, tickers & share buttons"
+Assert-Test -Name "Analysis & Cashflow Screen Morphing Controls & Tickers" -Condition $isAnalyticScreensValid -Details "MorphingSegmentedBar on Analysis & Wallet, share on Analysis, Wallet bound to WalletHistoryService"
 
 # 5. Goals & Deposit Confetti Celebration
 $goalsPath = Join-Path $PSScriptRoot "../lib/features/goals/presentation/goals_screen.dart"
@@ -714,11 +714,25 @@ $goalsTextUtf8 = if (Test-Path $goalsPath) { [System.IO.File]::ReadAllText($goal
 
 $analysisHasRepo = $analysisTextUtf8.Contains("getCategorySpendingAnalysis") -and `
                    $analysisTextUtf8.Contains("getMonthlyTrendsAnalysis") -and `
-                   $analysisTextUtf8.Contains("getVatAndTaxSummary") -and `
+                   $analysisTextUtf8.Contains("TaxAnalysisService") -and `
                    $analysisTextUtf8.Contains("_buildEmptyState")
 $goalsHasCleanCheck = $goalsTextUtf8.Contains("isCleanDataMode") -and $goalsTextUtf8.Contains("Finansal Hedef Eklenmedi")
 $isDynamicDataCompliant = $analysisHasRepo -and $goalsHasCleanCheck
 Assert-Test -Name "Zero Fake Data & Dynamic SQLite Analysis Engine" -Condition $isDynamicDataCompliant -Details "Analysis & Goals modules dynamically bound to SQLite with authentic empty states"
+
+# Varlıklar & onboarding: örnek/uydurma değer yok (GERI_BILDIRIM C5/C6/D3/B9)
+$assetsPath = Join-Path $PSScriptRoot "../lib/features/assets_portfolio/presentation/assets_screen.dart"
+$assetsTextUtf8 = if (Test-Path $assetsPath) { [System.IO.File]::ReadAllText($assetsPath, [System.Text.Encoding]::UTF8) } else { "" }
+$onbPath = Join-Path $PSScriptRoot "../lib/features/onboarding/presentation/onboarding_screen.dart"
+$onbTextUtf8 = if (Test-Path $onbPath) { [System.IO.File]::ReadAllText($onbPath, [System.Text.Encoding]::UTF8) } else { "" }
+$assetsClean = $assetsTextUtf8.Contains("AssetsRepository") -and `
+               $assetsTextUtf8.Contains("getAccountsWithLatestStatement") -and `
+               $assetsTextUtf8.Contains("VehicleCatalog") -and `
+               -not $assetsTextUtf8.Contains("text: 'Renault'") -and `
+               -not $assetsTextUtf8.Contains("50.000,00") -and `
+               -not $assetsTextUtf8.Contains("Her ayın 15")
+$onbClean = -not $onbTextUtf8.Contains("Selim Kaya") -and -not $onbTextUtf8.Contains("1001") -and -not $onbTextUtf8.Contains("_budgetController")
+Assert-Test -Name "Assets & Onboarding Without Sample Data" -Condition ($assetsClean -and $onbClean) -Details "Persisted assets, statement-backed cards, catalog vehicles; onboarding creates no fake profile/account"
 
 # 2. Bilingual TR/EN Support in RemoteConfig, Settings & Newsletter
 $rcPath = Join-Path $PSScriptRoot "../lib/core/config/remote_config_service.dart"
@@ -780,8 +794,10 @@ Assert-Test -Name "Android ADB Backup Defense (allowBackup=false)" -Condition ($
 # 2. Android FLAG_SECURE Anti-Screen Scraping
 $mainActivityPath = Join-Path $PSScriptRoot "../android/app/src/main/kotlin/com/moneytrace/app/MainActivity.kt"
 $mainActText = if (Test-Path $mainActivityPath) { [System.IO.File]::ReadAllText($mainActivityPath) } else { "" }
-$hasFlagSecure = $mainActText.Contains("FLAG_SECURE")
-Assert-Test -Name "Anti-Screen Scraping & Task Switcher Defense (FLAG_SECURE)" -Condition $hasFlagSecure -Details "Enforces FLAG_SECURE to prevent screenshot leaks and OS preview cache"
+# v3.6.1: Ekran görüntüsü engeli (FLAG_SECURE) ürün kararıyla kaldırıldı; kullanıcı ekran görüntüsü alabilir.
+# Görev değiştirici önizlemesi Flutter gizlilik kalkanı ile korunur (bkz. TEST 20).
+$hasNoFlagSecure = -not $mainActText.Contains("FLAG_SECURE")
+Assert-Test -Name "Screenshots Allowed by Product Decision (no FLAG_SECURE)" -Condition $hasNoFlagSecure -Details "Screenshot blocking removed in v3.6.1 at user request"
 
 # 3. NIST FIPS 197 AES-256 Engine Presence & Structure
 $aesCipherPath = Join-Path $PSScriptRoot "../lib/core/security/aes_cipher.dart"
@@ -1030,8 +1046,9 @@ $mainDartPath = Join-Path $PSScriptRoot "../lib/main.dart"
 $mainDartText = if (Test-Path $mainDartPath) { [System.IO.File]::ReadAllText($mainDartPath, [System.Text.Encoding]::UTF8) } else { "" }
 $hasFlutterShield = $mainDartText.Contains("_isPrivacyShieldActive") -and $mainDartText.Contains("Icons.shield_rounded")
 
-$isScreenProtected = $hasFlagSecure -and $hasIosBlur -and $hasFlutterShield
-Assert-Test -Name "Comprehensive Multiplatform Screenshot & Recording Blocking" -Condition $isScreenProtected -Details "Enforces Android FLAG_SECURE hardware lock, iOS UIBlurEffect and Flutter privacy shield"
+# v3.6.1: FLAG_SECURE kaldırıldı (ekran görüntüsüne izin var); görev değiştirici önizlemesi gizlilik kalkanıyla korunur.
+$isScreenProtected = $hasIosBlur -and $hasFlutterShield
+Assert-Test -Name "Task Switcher Preview Privacy Shield (iOS blur + Flutter shield)" -Condition $isScreenProtected -Details "Recents preview hidden by iOS UIBlurEffect and Flutter privacy shield; screenshots allowed"
 
 # 2. Anti-Tapjacking & Invisible Overlay Touch Blocking
 $hasTapjackingBlock = $mainActText.Contains("filterTouchesWhenObscured = true")

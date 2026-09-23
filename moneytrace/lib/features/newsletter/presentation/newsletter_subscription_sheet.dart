@@ -54,7 +54,7 @@ class _NewsletterSubscriptionSheetState
     final String body = Uri.encodeComponent(
         'E-posta: $email\nDil: $langText\nHaftalık Karne: $weeklyText\nKritik Fiyat Bildirimleri: $goldText');
     final Uri mailUri =
-        Uri.parse('mailto:support@paraiz.app?subject=$subject&body=$body');
+        Uri.parse('mailto:pulcratechnology@gmail.com?subject=$subject&body=$body');
 
     try {
       final bool launched =
@@ -85,7 +85,7 @@ class _NewsletterSubscriptionSheetState
   void _showCopyFallback(
       String email, String lang, String weekly, String gold) {
     final content =
-        'Alıcı: support@paraiz.app\nKonu: Bülten Aboneliği\nE-posta: $email\nDil: $lang\nHaftalık Karne: $weekly\nFiyat Bildirimleri: $gold';
+        'Alıcı: pulcratechnology@gmail.com\nKonu: Bülten Aboneliği\nE-posta: $email\nDil: $lang\nHaftalık Karne: $weekly\nFiyat Bildirimleri: $gold';
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -99,7 +99,7 @@ class _NewsletterSubscriptionSheetState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'E-posta istemcisi otomatik başlatılamadı. Bültene abone olmak için aşağıdaki bilgileri kopyalayıp support@paraiz.app adresine gönderebilirsiniz:',
+              'E-posta istemcisi otomatik başlatılamadı. Bültene abone olmak için aşağıdaki bilgileri kopyalayıp pulcratechnology@gmail.com adresine gönderebilirsiniz:',
               style: TextStyle(fontSize: 12),
             ),
             const SizedBox(height: 10),

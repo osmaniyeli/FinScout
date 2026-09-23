@@ -2,8 +2,6 @@
 
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/utils/currency_normalizer.dart';
-import '../../../../core/widgets/morphing_share_button.dart';
 
 class TransactionDetailSheet extends StatelessWidget {
   final Map<String, dynamic> transaction;
@@ -164,22 +162,6 @@ class TransactionDetailSheet extends StatelessWidget {
           _buildDetailRow(Icons.security_rounded, 'Kayıt Türü',
               'Sıfır Bilgili Cihaz İçi Kasa (Zero-Knowledge)'),
 
-          const SizedBox(height: 16),
-
-          // Video 2: Morflayan Dekont Paylaşım Butonu (0% -> 100% -> Sosyal Butonlar)
-          MorphingShareButton(
-            fileName: '${title.replaceAll(" ", "_")}_dekont.pdf',
-            label: 'Dekontu İndir & Paylaş',
-            accentColor: color,
-            onDownloadComplete: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  backgroundColor: AppColors.incomeGreen,
-                  content: Text('$title dekontu hazırlandı ve paylaşıldı.'),
-                ),
-              );
-            },
-          ),
           const SizedBox(height: 16),
 
           // Aksiyon Butonları

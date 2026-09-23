@@ -664,6 +664,23 @@ class TransactionRepository {
     final db = await _dbProvider.database;
     return await db.query('accounts', orderBy: 'created_at DESC');
   }
+
+  /// Ekstrelerden gelen hesaplar + her birinin EN SON ekstresindeki banka beyanları
+  /// (dönem borcu, asgari, son ödeme, hesap kesim). Uydurma limit/borç yok; bilinmeyen alan null döner.
+  Future<List<Map<String, dynamic>>> getAccountsWithLatestStatement() async {
+    final db = await _dbProvider.database;
+    return db.rawQuery('''
+      SELECT a.id, a.institution_name, a.account_type, a.card_mask, a.card_holder,
+             s.statement_balance_cents, s.minimum_payment_cents, s.due_date, s.statement_date, s.period_end
+      FROM accounts a
+      LEFT JOIN statements s ON s.id = (
+        SELECT s2.id FROM statements s2 WHERE s2.account_id = a.id
+        ORDER BY COALESCE(s2.statement_date, s2.period_end) DESC, s2.created_at DESC LIMIT 1
+      )
+      WHERE a.account_type IN ('CREDIT_CARD', 'CHECKING')
+      ORDER BY a.created_at DESC
+    ''');
+  }
 }
 
 class StatementSaveResult {

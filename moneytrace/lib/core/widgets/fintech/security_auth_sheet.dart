@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
-import '../../theme/app_theme.dart';
 import '../../services/security_auth_service.dart';
 
 class SecurityAuthSheet extends StatefulWidget {
@@ -15,7 +14,7 @@ class SecurityAuthSheet extends StatefulWidget {
 
   const SecurityAuthSheet({
     Key? key,
-    this.title = 'Paraİz Güvenlik Doğrulaması',
+    this.title = 'FinScout Güvenlik Doğrulaması',
     this.subtitle =
         'Lütfen 4 haneli PIN kodunuzu girin veya biyometrik ile doğrulayın.',
     required this.onSuccess,
@@ -26,7 +25,7 @@ class SecurityAuthSheet extends StatefulWidget {
 
   static Future<bool?> show(
     BuildContext context, {
-    String title = 'Paraİz Güvenlik Doğrulaması',
+    String title = 'FinScout Güvenlik Doğrulaması',
     String subtitle =
         'Lütfen 4 haneli PIN kodunuzu girin veya biyometrik ile doğrulayın.',
     bool isSettingNewPin = false,
@@ -124,11 +123,8 @@ class _SecurityAuthSheetState extends State<SecurityAuthSheet> {
       _errorMessage = null;
     });
 
-    final success = type == BiometricAuthType.fingerprint
-        ? await SecurityAuthService.instance
-            .authenticateFingerprint(reason: 'Parmak izi ile giriş yapılıyor')
-        : await SecurityAuthService.instance
-            .authenticateFaceId(reason: 'Yüz tanıma ile giriş yapılıyor');
+    final success = await SecurityAuthService.instance
+        .authenticateFingerprint(reason: 'Parmak izi ile giriş yapılıyor');
 
     if (mounted) {
       if (success) {
@@ -282,13 +278,13 @@ class _SecurityAuthSheetState extends State<SecurityAuthSheet> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            // Sol: Yüz Tanıma / Parmak İzi Butonu (yalnızca izin verildiyse)
+            // Sol: Parmak İzi Butonu (yalnızca izin verildiyse)
             widget.allowBiometrics
                 ? _buildSpecialKey(
-                    icon: Icons.face_retouching_natural,
-                    label: 'Yüz / İz',
+                    icon: Icons.fingerprint_rounded,
+                    label: 'Parmak İzi',
                     onTap: () =>
-                        _triggerBiometricAuth(BiometricAuthType.faceId),
+                        _triggerBiometricAuth(BiometricAuthType.fingerprint),
                   )
                 : _buildSpecialKey(
                     icon: Icons.close_rounded,

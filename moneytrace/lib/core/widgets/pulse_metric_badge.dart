@@ -2,7 +2,6 @@
 
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 
 /// Video 4 Radar Pulse & Shakuro Glow estetiğini kopyalayan canlı nabız rozeti.
 /// Finansal hedeflerde, bakiye farklarında ve kritik uyarılarda genişleyen radar halkaları yayar.

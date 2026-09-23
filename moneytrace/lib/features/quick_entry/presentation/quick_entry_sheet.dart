@@ -4,9 +4,6 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/currency_normalizer.dart';
 import '../../../core/security/security_guard.dart';
 import '../../../core/widgets/radar_checkout_button.dart';
-import '../../../core/services/voice_expense_parser_service.dart';
-import 'voice_entry_dialog.dart';
-import '../../../core/widgets/fintech/fintech_components.dart';
 import '../../statement_upload/presentation/statement_upload_sheet.dart';
 
 enum EntryType { expense, income, savings }
@@ -195,43 +192,6 @@ class _QuickEntrySheetState extends State<QuickEntrySheet> {
     );
   }
 
-  /// Gerçek mikrofon (speech_to_text, tr_TR) ile sesli giriş; tanınan metin cihaz içinde ayrıştırılıp forma yazılır.
-  Future<void> _openVoiceEntryDialog() async {
-    final text = await VoiceEntryDialog.show(context);
-    if (text == null || text.trim().isEmpty || !mounted) return;
-    _applyVoiceInput(text.trim());
-  }
-
-  void _applyVoiceInput(String voiceText) {
-    final parsed =
-        VoiceExpenseParserService.instance.parseTurkishVoiceInput(voiceText);
-    setState(() {
-      _selectedType = parsed.entryType;
-      final validIds = _currentCategories.map((c) => c['id']).toSet();
-      if (validIds.contains(parsed.categoryId)) {
-        _selectedCategory = parsed.categoryId;
-      }
-      _titleController.text = parsed.title;
-      if (parsed.amountCents > 0) {
-        _amountController.text = (parsed.amountCents / 100)
-            .toStringAsFixed(2)
-            .replaceAll('.00', '')
-            .replaceAll('.', ',');
-      }
-      _selectedAccount = parsed.isCash ? 'Nakit (Elden)' : 'Kredi Kartı';
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: parsed.amountCents > 0
-            ? AppColors.incomeGreen
-            : AppColors.expenseRed,
-        content: Text(parsed.amountCents > 0
-            ? 'Anlaşıldı: "${parsed.title}" ${CurrencyNormalizer.formatCents(parsed.amountCents)} — kontrol edip kaydedin.'
-            : 'Tutar anlaşılamadı. Lütfen tutarı elle girin.'),
-      ),
-    );
-  }
-
   void _submit() {
     // 20 Maddelik Güvenlik Kuralı #10: Rate Limiting
     if (!SecurityGuard.instance
@@ -353,115 +313,8 @@ class _QuickEntrySheetState extends State<QuickEntrySheet> {
             ),
             const SizedBox(height: 16),
 
-            // Frontend Joe Inspired: Sliding Overlay Mode Card (Gider <-> Gelir Geçişi)
-            SlidingOverlayCard(
-              height: 105,
-              borderRadius: 18,
-              isSecondary: _selectedType == EntryType.income,
-              onToggle: (toIncome) {
-                setState(() {
-                  _selectedType =
-                      toIncome ? EntryType.income : EntryType.expense;
-                  final categories = _currentCategories;
-                  if (categories.isNotEmpty) {
-                    _selectedCategory = categories.first['id'] as String;
-                  }
-                });
-              },
-              primaryHeroTitle: 'Harcama Modu',
-              primaryHeroSubtitle: 'Gider işleyin, bakiye düşsün',
-              primaryButtonText: 'GELİRE GEÇ',
-              primaryGradient: const LinearGradient(
-                colors: [Color(0xFFE11D48), Color(0xFF9F1239)],
-              ),
-              primaryForm: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFF1F2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.arrow_outward_rounded,
-                        color: AppColors.expenseRed, size: 20),
-                  ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('GİDER ÇIKIŞI',
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.expenseRed)),
-                        Text('Kasa bakiyesini azaltır',
-                            style: TextStyle(
-                                fontSize: 10, color: AppColors.textSecondary)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              secondaryHeroTitle: 'Gelir Modu',
-              secondaryHeroSubtitle: 'Tahsilat işleyin, kasa artsın',
-              secondaryButtonText: 'GİDERE GEÇ',
-              secondaryGradient: const LinearGradient(
-                colors: [Color(0xFF059669), Color(0xFF064E3B)],
-              ),
-              secondaryForm: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFECFDF5),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.arrow_downward_rounded,
-                        color: AppColors.incomeGreen, size: 20),
-                  ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('GELİR GİRİŞİ',
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.incomeGreen)),
-                        Text('Kasa bakiyesini artırır',
-                            style: TextStyle(
-                                fontSize: 10, color: AppColors.textSecondary)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 14),
-
-            // Segment Tabs (Gider, Gelir, Birikim)
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Row(
-                children: [
-                  _buildTypeTab('Gider', EntryType.expense,
-                      Icons.arrow_outward_rounded, AppColors.expenseRed),
-                  _buildTypeTab('Gelir', EntryType.income,
-                      Icons.arrow_downward_rounded, AppColors.incomeGreen),
-                  _buildTypeTab('Birikim', EntryType.savings,
-                      Icons.savings_rounded, AppColors.goldPremium),
-                ],
-              ),
-            ),
+            // Gider / Gelir / Birikim: tek, alçak, kayan seçici
+            _buildModeSelector(),
             const SizedBox(height: 20),
 
             // Kart / Cüzdan Seçici
@@ -535,12 +388,6 @@ class _QuickEntrySheetState extends State<QuickEntrySheet> {
                           size: 20, color: AppColors.textSecondary),
                       onPressed: _openReceiptScanner,
                       tooltip: 'Fiş / Belge Tara',
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.mic_rounded,
-                          size: 20, color: AppColors.actionPrimary),
-                      onPressed: _openVoiceEntryDialog,
-                      tooltip: 'Sesle Hızlı Ekle',
                     ),
                   ],
                 ),
@@ -817,44 +664,75 @@ class _QuickEntrySheetState extends State<QuickEntrySheet> {
     );
   }
 
-  Widget _buildTypeTab(
-      String label, EntryType type, IconData icon, Color color) {
-    final isSelected = _selectedType == type;
-    return Expanded(
-      child: InkWell(
-        onTap: () {
-          setState(() {
-            _selectedType = type;
-            _selectedCategory = _currentCategories.first['id'] as String;
-          });
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF0F172A) : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 15,
-                color: isSelected ? Colors.white : AppColors.textSecondary,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: isSelected ? Colors.white : AppColors.textSecondary,
+  static const _modes = [
+    (EntryType.expense, 'Gider', Icons.arrow_outward_rounded, [Color(0xFFE11D48), Color(0xFF9F1239)]),
+    (EntryType.income, 'Gelir', Icons.arrow_downward_rounded, [Color(0xFF059669), Color(0xFF064E3B)]),
+    (EntryType.savings, 'Birikim', Icons.savings_rounded, [Color(0xFF2563EB), Color(0xFF1E40AF)]),
+  ];
+
+  void _selectMode(EntryType type) {
+    setState(() {
+      _selectedType = type;
+      _selectedCategory = _currentCategories.first['id'] as String;
+    });
+  }
+
+  /// Seçili modun renkli arka planı, seçime göre yatayda kayar (Gider kırmızı, Gelir yeşil, Birikim mavi).
+  Widget _buildModeSelector() {
+    final index = _modes.indexWhere((m) => m.$1 == _selectedType);
+    final selected = _modes[index];
+    return Container(
+      height: 48,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Stack(
+        children: [
+          AnimatedAlign(
+            duration: const Duration(milliseconds: 260),
+            curve: Curves.easeOutCubic,
+            alignment: Alignment(-1 + index.toDouble(), 0),
+            child: FractionallySizedBox(
+              widthFactor: 1 / _modes.length,
+              heightFactor: 1,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 260),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(colors: selected.$4),
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+          Row(
+            children: _modes.map((m) {
+              final isSelected = m.$1 == _selectedType;
+              return Expanded(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () => _selectMode(m.$1),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(m.$3, size: 16, color: isSelected ? Colors.white : AppColors.textSecondary),
+                      const SizedBox(width: 6),
+                      Text(
+                        m.$2,
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w800,
+                          color: isSelected ? Colors.white : AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
       ),
     );
   }

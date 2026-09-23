@@ -112,8 +112,8 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
         );
       case 'cashflow':
         return const FloatingCapsuleNavItem(
-          icon: Icons.timeline_rounded,
-          label: 'Nakit Akışı',
+          icon: Icons.account_balance_wallet_rounded,
+          label: 'Cüzdan',
         );
       case 'analysis':
         return const FloatingCapsuleNavItem(

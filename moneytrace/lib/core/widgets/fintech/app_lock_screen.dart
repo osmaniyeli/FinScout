@@ -1,7 +1,6 @@
 // lib/core/widgets/fintech/app_lock_screen.dart
 
 import 'package:flutter/material.dart';
-import '../../theme/app_colors.dart';
 import '../../theme/app_theme.dart';
 import '../../services/security_auth_service.dart';
 import '../../services/user_profile_service.dart';
@@ -52,9 +51,7 @@ class _AppLockScreenState extends State<AppLockScreen>
     final auth = SecurityAuthService.instance;
     if (auth.isLockedOut) return;
 
-    if (auth.isFaceIdEnabled) {
-      await _triggerBiometric(BiometricAuthType.faceId);
-    } else if (auth.isFingerprintEnabled) {
+    if (auth.isFingerprintEnabled) {
       await _triggerBiometric(BiometricAuthType.fingerprint);
     }
   }
@@ -66,11 +63,8 @@ class _AppLockScreenState extends State<AppLockScreen>
       _errorMessage = null;
     });
 
-    final success = type == BiometricAuthType.fingerprint
-        ? await SecurityAuthService.instance
-            .authenticateFingerprint(reason: 'Paraİz Kasa Kilidi - Parmak İzi')
-        : await SecurityAuthService.instance
-            .authenticateFaceId(reason: 'Paraİz Kasa Kilidi - Yüz Tanıma');
+    final success = await SecurityAuthService.instance
+        .authenticateFingerprint(reason: 'FinScout Kasa Kilidi - Parmak İzi');
 
     if (mounted) {
       if (success) {
@@ -134,7 +128,7 @@ class _AppLockScreenState extends State<AppLockScreen>
   Widget build(BuildContext context) {
     final userName = UserProfileService.instance.profile?.name ?? 'Kullanıcı';
     final auth = SecurityAuthService.instance;
-    final hasBiometrics = auth.isFaceIdEnabled || auth.isFingerprintEnabled;
+    final hasBiometrics = auth.isFingerprintEnabled;
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
@@ -184,7 +178,7 @@ class _AppLockScreenState extends State<AppLockScreen>
             ),
             const SizedBox(height: 6),
             const Text(
-              'Paraİz Kasa Kilidi Aktif',
+              'FinScout Kasa Kilidi Aktif',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
@@ -282,23 +276,6 @@ class _AppLockScreenState extends State<AppLockScreen>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    if (auth.isFaceIdEnabled)
-                      TextButton.icon(
-                        onPressed: _isVerifying
-                            ? null
-                            : () => _triggerBiometric(BiometricAuthType.faceId),
-                        icon: const Icon(Icons.face_rounded,
-                            color: Color(0xFF38BDF8), size: 18),
-                        label: const Text(
-                          'Yüz Tanıma ile Aç',
-                          style: TextStyle(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF38BDF8)),
-                        ),
-                      ),
-                    if (auth.isFaceIdEnabled && auth.isFingerprintEnabled)
-                      const SizedBox(width: 12),
                     if (auth.isFingerprintEnabled)
                       TextButton.icon(
                         onPressed: _isVerifying
@@ -340,13 +317,7 @@ class _AppLockScreenState extends State<AppLockScreen>
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               // Sol alt köşe: Biyometrik kısayolu veya boşluk
-              if (auth.isFaceIdEnabled)
-                _buildActionButton(
-                  icon: Icons.face_rounded,
-                  color: const Color(0xFF38BDF8),
-                  onTap: () => _triggerBiometric(BiometricAuthType.faceId),
-                )
-              else if (auth.isFingerprintEnabled)
+              if (auth.isFingerprintEnabled)
                 _buildActionButton(
                   icon: Icons.fingerprint_rounded,
                   color: const Color(0xFF34D399),

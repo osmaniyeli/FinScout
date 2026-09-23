@@ -10,10 +10,9 @@ import 'package:local_auth/local_auth.dart';
 import 'package:path_provider/path_provider.dart';
 import '../security/aes_cipher.dart';
 
+/// Uygulama yalnızca parmak izi (sistem BiometricPrompt) destekler; yüz tanıma v3.6.1'de kaldırıldı.
 enum BiometricAuthType {
-  faceId,       // Yüz Tanıma (Face ID)
-  fingerprint,  // Parmak İzi (Touch ID / Fingerprint)
-  both,         // Her ikisi de desteklenir
+  fingerprint,
 }
 
 /// Kasa kilidi: PIN + cihaz biyometrisi (Android BiometricPrompt / iOS LocalAuthentication).
@@ -30,7 +29,6 @@ class SecurityAuthService {
   final LocalAuthentication _localAuth = LocalAuthentication();
 
   bool _isInitialized = false;
-  bool _isFaceIdEnabled = false;
   bool _isFingerprintEnabled = false;
   bool _isPinEnabled = false;
   String? _hashedPin;
@@ -39,16 +37,14 @@ class SecurityAuthService {
   int _failedAttempts = 0;
   DateTime? _lockedUntil;
 
-  final ValueNotifier<bool> isFaceIdEnabledNotifier = ValueNotifier<bool>(false);
   final ValueNotifier<bool> isFingerprintEnabledNotifier = ValueNotifier<bool>(false);
   final ValueNotifier<bool> isPinEnabledNotifier = ValueNotifier<bool>(false);
   final ValueNotifier<bool> hasPinSetNotifier = ValueNotifier<bool>(false);
 
-  bool get isFaceIdEnabled => _isFaceIdEnabled;
   bool get isFingerprintEnabled => _isFingerprintEnabled;
   bool get isPinEnabled => _isPinEnabled && hasPinSet;
   bool get hasPinSet => _hashedPin != null && _hashedPin!.isNotEmpty;
-  bool get isAnySecurityActive => _isFaceIdEnabled || _isFingerprintEnabled || isPinEnabled;
+  bool get isAnySecurityActive => _isFingerprintEnabled || isPinEnabled;
 
   int get failedAttempts => _failedAttempts;
   bool get isLockedOut => _lockedUntil != null && DateTime.now().isBefore(_lockedUntil!);
@@ -72,8 +68,8 @@ class SecurityAuthService {
       }
 
       if (data != null) {
-        _isFaceIdEnabled = data['face_id_enabled'] ?? false;
-        _isFingerprintEnabled = data['fingerprint_enabled'] ?? false;
+        // Yüz tanıma kaldırıldı: onu açmış kullanıcılar kilitsiz kalmasın diye parmak izine devredilir
+        _isFingerprintEnabled = (data['fingerprint_enabled'] ?? false) || (data['face_id_enabled'] ?? false);
         _isPinEnabled = data['pin_enabled'] ?? false;
         _hashedPin = data['hashed_pin'];
         _salt = data['salt'];
@@ -106,7 +102,6 @@ class SecurityAuthService {
   }
 
   void _syncNotifiers() {
-    isFaceIdEnabledNotifier.value = _isFaceIdEnabled;
     isFingerprintEnabledNotifier.value = _isFingerprintEnabled;
     isPinEnabledNotifier.value = _isPinEnabled && hasPinSet;
     hasPinSetNotifier.value = hasPinSet;
@@ -115,7 +110,6 @@ class SecurityAuthService {
   Future<void> _persist() async {
     try {
       final data = {
-        'face_id_enabled': _isFaceIdEnabled,
         'fingerprint_enabled': _isFingerprintEnabled,
         'pin_enabled': _isPinEnabled,
         'hashed_pin': _hashedPin,
@@ -250,39 +244,20 @@ class SecurityAuthService {
       }
       final enrolled = await _localAuth.getAvailableBiometrics();
       if (enrolled.isEmpty) {
-        return 'Cihazınızda kayıtlı parmak izi veya yüz yok. Lütfen önce telefon ayarlarından ekleyin.';
-      }
-      if (type == BiometricAuthType.faceId &&
-          !enrolled.contains(BiometricType.face) &&
-          !enrolled.contains(BiometricType.strong) &&
-          !enrolled.contains(BiometricType.weak)) {
-        return 'Bu cihazda yüz tanıma desteklenmiyor.';
+        return 'Cihazınızda kayıtlı parmak izi yok. Lütfen önce telefon ayarlarından ekleyin.';
       }
     } catch (e) {
       return 'Biyometrik donanım kontrol edilemedi: $e';
     }
 
     final result = await _authenticate(
-      reason: type == BiometricAuthType.faceId
-          ? 'Yüz tanımayı etkinleştirmek için doğrulayın'
-          : 'Parmak izini etkinleştirmek için doğrulayın',
+      reason: 'Parmak izini etkinleştirmek için doğrulayın',
       biometricOnly: true,
     );
     if (result != null) return result;
 
-    if (type == BiometricAuthType.faceId) {
-      await setFaceIdEnabled(true);
-    } else {
-      await setFingerprintEnabled(true);
-    }
+    await setFingerprintEnabled(true);
     return null;
-  }
-
-  /// Yüz Tanıma (Face ID) Şalterini Aç/Kapat
-  Future<void> setFaceIdEnabled(bool enabled) async {
-    _isFaceIdEnabled = enabled;
-    isFaceIdEnabledNotifier.value = enabled;
-    await _persist();
   }
 
   /// Parmak İzi (Touch ID / Fingerprint) Şalterini Aç/Kapat
@@ -335,11 +310,6 @@ class SecurityAuthService {
     }
   }
 
-  /// Yüz tanıma doğrulama köprüsü
-  Future<bool> authenticateFaceId({required String reason}) async {
-    return await _authenticate(reason: reason) == null;
-  }
-
   /// Parmak izi doğrulama köprüsü
   Future<bool> authenticateFingerprint({required String reason}) async {
     return await _authenticate(reason: reason) == null;
@@ -355,7 +325,6 @@ class SecurityAuthService {
 
   /// "Tüm verileri sıfırla" akışı için kasa kilidini tamamen temizler
   Future<void> resetAll() async {
-    _isFaceIdEnabled = false;
     _isFingerprintEnabled = false;
     _isPinEnabled = false;
     _hashedPin = null;

@@ -1,6 +1,5 @@
-• Banka ekstresi ve bordro okuma motoru yenilendi; harcama ve kategoriler otomatik tespit ediliyor.
-• Cihaz içi Türkçe sesli harcama girişi eklendi.
-• Fatura, abonelik ve kart son ödeme günü bildirim hatırlatıcıları eklendi.
-• Parmak izi/yüz tanıma ve PIN güvenliği artırıldı.
-• Google Play abonelik geçişleri ve plan yönetimi iyileştirildi.
-• Hızlı giriş ve transfer analiz hataları düzeltildi.
+• Yeni Cüzdan ekranı: son aylarının gerçek gelir-gideri ve süren taksitlerin.
+• Vergi sekmesi: bordro kesintileri, BSMV/KKDF ve alışverişlerindeki tahmini KDV; bordro dökümü.
+• Varlıklar kalıcı; kart borcu ve son ödeme ekstreden, manuel kart otomatik eşleşir.
+• Araçlar listeden seçilir; 6 ayda bir değer güncelleme hatırlatması.
+• Altın fiyatları ve PDF yükleme düzeltildi; sadeleştirilmiş, bildirimsiz ana sayfa.

@@ -81,7 +81,9 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
     }
   }
 
-  Future<void> _selectPackage(SubscriptionPackage pkg) async {
+  /// Google Play ödeme ekranını açar. Premium ancak Google satın almayı onayladığında (purchaseStream) açılır;
+  /// bu yüzden düğme hiçbir durumda "başarılı" animasyonu oynatmaz (false döner).
+  Future<bool> _selectPackage(SubscriptionPackage pkg) async {
     final success = await _service.purchasePackage(pkg);
     if (!success && mounted) {
       final errorMsg = _service.lastError ??
@@ -93,6 +95,7 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
         ),
       );
     }
+    return false;
   }
 
   Future<void> _restorePurchases() async {
@@ -168,7 +171,7 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: const [
                         Text(
-                          'Paraİz Premium Paketleri',
+                          'FinScout Premium Paketleri',
                           style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
@@ -278,6 +281,16 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
                           color: AppColors.textSecondary,
                           height: 1.3),
                     ),
+                    if (_service.hasTrial(pkg.identifier) && !isCurrent) ...[
+                      const SizedBox(height: 6),
+                      const Text(
+                        'İlk 7 gün ücretsiz; deneme bitmeden iptal edersen ücret alınmaz.',
+                        style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF059669)),
+                      ),
+                    ],
                     const SizedBox(height: 12),
                     if (isCurrent)
                       Container(

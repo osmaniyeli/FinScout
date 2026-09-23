@@ -11,11 +11,15 @@ class CreditCardActionSheet extends StatefulWidget {
   final Function(Map<String, dynamic> updatedCard) onCardUpdated;
   final Function(int paidCents, String paymentAccount) onDebtPaid;
 
+  /// Ödemenin çıkacağı gerçek hesaplar (ekstresi yüklenmiş vadesiz hesaplar + nakit).
+  final List<String> sourceAccounts;
+
   const CreditCardActionSheet({
     Key? key,
     required this.card,
     required this.onCardUpdated,
     required this.onDebtPaid,
+    this.sourceAccounts = const ['Nakit Cüzdan'],
   }) : super(key: key);
 
   static Future<void> show(
@@ -23,6 +27,7 @@ class CreditCardActionSheet extends StatefulWidget {
     required Map<String, dynamic> card,
     required Function(Map<String, dynamic> updatedCard) onCardUpdated,
     required Function(int paidCents, String paymentAccount) onDebtPaid,
+    List<String> sourceAccounts = const ['Nakit Cüzdan'],
   }) {
     return showModalBottomSheet<void>(
       context: context,
@@ -32,6 +37,7 @@ class CreditCardActionSheet extends StatefulWidget {
         card: card,
         onCardUpdated: onCardUpdated,
         onDebtPaid: onDebtPaid,
+        sourceAccounts: sourceAccounts,
       ),
     );
   }
@@ -45,13 +51,8 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
 
   // Borç Öde Controller & Hesap
   late TextEditingController _paymentAmountController;
-  String _selectedSourceAccount = 'Nakit Cüzdan';
-  final List<String> _sourceAccounts = [
-    'Nakit Cüzdan',
-    'Garanti BBVA Ana Hesap',
-    'İş Bankası Vadesiz',
-    'Yapı Kredi Vadesiz',
-  ];
+  late String _selectedSourceAccount;
+  late final List<String> _sourceAccounts;
 
   // Limit & Kesim Controller
   late TextEditingController _limitController;
@@ -61,24 +62,28 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
   @override
   void initState() {
     super.initState();
-    final rawDebt = widget.card['debt']
-        .toString()
-        .replaceAll('₺', '')
-        .replaceAll(',00', '')
-        .replaceAll('.', '')
-        .trim();
-    final rawLimit = widget.card['limit']
-        .toString()
-        .replaceAll('₺', '')
-        .replaceAll(',00', '')
-        .replaceAll('.', '')
-        .trim();
+    _sourceAccounts = widget.sourceAccounts.isEmpty
+        ? const ['Nakit Cüzdan']
+        : widget.sourceAccounts;
+    _selectedSourceAccount = _sourceAccounts.first;
+    final rawDebt = _editable(widget.card['debt']);
+    final rawLimit = _editable(widget.card['limit']);
 
     _paymentAmountController = TextEditingController(text: rawDebt);
     _limitController = TextEditingController(text: rawLimit);
     _debtController = TextEditingController(text: rawDebt);
     _dayController = TextEditingController(
-        text: widget.card['statement_day']?.toString() ?? 'Her ayın 15\'i');
+        text: widget.card['statement_day']?.toString() ?? '');
+  }
+
+  /// "₺1.250,50" → "1250,50"; tutar yoksa ("—", "Ekstre bekleniyor") boş.
+  static String _editable(Object? formatted) {
+    final cents = CurrencyNormalizer.toMinorUnits(formatted?.toString() ?? '');
+    if (cents <= 0) return '';
+    final frac = cents % 100;
+    return frac == 0
+        ? '${cents ~/ 100}'
+        : '${cents ~/ 100},${frac.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -91,13 +96,8 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
   }
 
   void _selectQuickAmountRatio(double ratio) {
-    final rawDebtStr = widget.card['debt']
-        .toString()
-        .replaceAll('₺', '')
-        .replaceAll('.', '')
-        .replaceAll(',', '.')
-        .trim();
-    final debtNum = double.tryParse(rawDebtStr) ?? 0.0;
+    final debtNum =
+        CurrencyNormalizer.toMinorUnits(widget.card['debt'].toString()) / 100.0;
     final targetAmount = (debtNum * ratio).round();
 
     setState(() {
@@ -267,7 +267,7 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
                       width: 1, height: 28, color: const Color(0xFFE2E8F0)),
                   _buildSummaryItem(
                       'Kesim Günü',
-                      widget.card['statement_day']?.toString() ?? '15\'i',
+                      widget.card['statement_day']?.toString() ?? '—',
                       AppColors.actionPrimary),
                 ],
               ),

@@ -1,11 +1,11 @@
 // lib/features/onboarding/presentation/onboarding_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/localization/app_strings.dart';
 import '../../../core/services/user_profile_service.dart';
+import '../../../core/services/account_service.dart';
 import '../../../core/services/security_auth_service.dart';
-import '../../../core/database/app_database.dart';
 import '../../../core/widgets/fintech/fintech_components.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -20,22 +20,15 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final _nameController = TextEditingController();
-  final _budgetController = TextEditingController();
-  String _selectedBank = 'Garanti BBVA';
-  final String _selectedCurrency = 'TRY';
+  final _emailController = TextEditingController();
+  final _signInEmailController = TextEditingController();
+  final _codeController = TextEditingController();
   bool _isLoading = false;
   bool _isSignInMode = false;
 
-  final List<String> _banks = [
-    'Garanti BBVA',
-    'İş Bankası',
-    'Yapı Kredi',
-    'Enpara.com / QNB',
-    'Akbank',
-    'Ziraat Bankası',
-    'VakıfBank',
-    'Nakit Cüzdan',
-  ];
+  /// Kod gönderildiyse e-posta adresi; kod adımı gösterilir.
+  String? _codeSentTo;
+  bool _codeIsForSignup = false;
 
   @override
   void initState() {
@@ -46,64 +39,91 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _budgetController.dispose();
+    _emailController.dispose();
+    _signInEmailController.dispose();
+    _codeController.dispose();
     super.dispose();
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(backgroundColor: AppColors.expenseRed, content: Text(message)),
+    );
   }
 
   Future<void> _completeRegistration() async {
     final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
     if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: AppColors.expenseRed,
-          content:
-              Text('Lütfen devam etmek için adınızı veya takma adınızı girin.'),
-        ),
-      );
+      _showError('Lütfen adını ve soyadını gir.');
       return;
     }
+    if (!AccountService.isValidEmail(email)) {
+      _showError('Lütfen geçerli bir e-posta adresi gir.');
+      return;
+    }
+    await _sendCode(email, signup: true, fullName: name);
+  }
 
+  Future<void> _signInWithGoogle() async {
     setState(() => _isLoading = true);
-
     try {
-      final budgetStr =
-          _budgetController.text.replaceAll('.', '').replaceAll(',', '').trim();
-      final budgetCents = (int.tryParse(budgetStr) ?? 0) * 100;
-
-      final profile = UserProfile(
-        id: 'user_${DateTime.now().millisecondsSinceEpoch}',
-        name: name,
-        currency: _selectedCurrency,
-        monthlyBudgetCents: budgetCents,
-        joinedAt: DateTime.now(),
-      );
-      await UserProfileService.instance.saveProfile(profile);
-
-      final db = await AppDatabase.instance.database;
-      await db.insert('accounts', {
-        'id': 'acc_${DateTime.now().millisecondsSinceEpoch}',
-        'institution_name': _selectedBank,
-        'account_type': _selectedBank == 'Nakit Cüzdan' ? 'CASH' : 'BANK',
-        'account_name': '$_selectedBank Ana Hesap',
-        'card_mask': '**** **** **** 1001',
-        'card_holder': name,
-        'currency_code': _selectedCurrency,
-        'created_at': DateTime.now().millisecondsSinceEpoch,
-      });
-
-      if (mounted) {
+      final profile = await AccountService.instance.signInWithGoogle();
+      if (profile != null && mounted) {
         widget.onCompleted();
+        return;
       }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: AppColors.expenseRed,
-            content: Text('Hesap oluşturulurken hata: $e'),
-          ),
-        );
-      }
+    } on AccountException catch (e) {
+      _showError(e.message);
+    }
+    if (mounted) setState(() => _isLoading = false);
+  }
+
+  Future<void> _startEmailSignIn() async {
+    final email = _signInEmailController.text.trim();
+    if (!AccountService.isValidEmail(email)) {
+      _showError('Lütfen geçerli bir e-posta adresi gir.');
+      return;
+    }
+    await _sendCode(email, signup: false);
+  }
+
+  Future<void> _sendCode(String email,
+      {required bool signup, String? fullName}) async {
+    setState(() => _isLoading = true);
+    try {
+      await AccountService.instance
+          .sendCode(email, createUser: signup, fullName: fullName);
+      if (!mounted) return;
+      _codeController.clear();
+      setState(() {
+        _codeSentTo = email.toLowerCase();
+        _codeIsForSignup = signup;
+      });
+    } on AccountException catch (e) {
+      _showError(e.message);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _verifyCode() async {
+    final email = _codeSentTo;
+    final code = _codeController.text.trim();
+    if (email == null) return;
+    if (code.length < 6) {
+      _showError('E-postana gelen kodu eksiksiz gir.');
+      return;
+    }
+    setState(() => _isLoading = true);
+    try {
+      await AccountService.instance.verifyCode(email, code,
+          fullName: _codeIsForSignup ? _nameController.text.trim() : null);
+      if (mounted) widget.onCompleted();
+    } on AccountException catch (e) {
+      _showError(e.message);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -111,9 +131,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     setState(() => _isLoading = true);
 
     final success = await SecurityAuthService.instance.authenticateBiometric(
-      reason: type == BiometricAuthType.faceId
-          ? 'Paraİz Yüz Tanıma ile Giriş'
-          : 'Paraİz Parmak İzi ile Giriş',
+      reason: 'FinScout Parmak İzi ile Giriş',
       specificType: type,
     );
 
@@ -137,7 +155,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final verified = await SecurityAuthSheet.show(
       context,
       title: 'PIN Kodu ile Giriş',
-      subtitle: 'Paraİz kasanıza erişmek için 4 haneli PIN kodunuzu girin.',
+      subtitle: 'FinScout kasanıza erişmek için 4 haneli PIN kodunuzu girin.',
       isSettingNewPin: false,
     );
 
@@ -148,46 +166,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Future<void> _ensureProfileAndProceed() async {
     if (!UserProfileService.instance.hasProfile) {
-      final defaultProfile = UserProfile(
-        id: 'user_default',
-        name: 'Selim Kaya',
-        currency: 'TRY',
-        monthlyBudgetCents: 2500000,
-        joinedAt: DateTime.now(),
-      );
-      await UserProfileService.instance.saveProfile(defaultProfile);
-
-      final db = await AppDatabase.instance.database;
-      await db.insert('accounts', {
-        'id': 'acc_default_garanti',
-        'institution_name': 'Garanti BBVA',
-        'account_type': 'BANK',
-        'account_name': 'Garanti BBVA Ana Hesap',
-        'card_mask': '**** **** **** 1001',
-        'card_holder': 'Selim Kaya',
-        'currency_code': 'TRY',
-        'created_at': DateTime.now().millisecondsSinceEpoch,
-      });
+      if (mounted) setState(() => _isSignInMode = false);
+      return;
     }
-
     if (mounted) {
       widget.onCompleted();
-    }
-  }
-
-  Future<void> _restoreFromBackup() async {
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 300));
-    if (mounted) {
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: Color(0xFF0F172A),
-          content: Text(
-              'Cihazdaki yerel kasa inceleniyor... Lütfen PIN veya biyometrik ile doğrulayın.'),
-        ),
-      );
-      _loginWithPin();
     }
   }
 
@@ -233,7 +216,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                     const SizedBox(height: 12),
                     const Text(
-                      'Paraİz',
+                      'FinScout',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w900,
@@ -295,7 +278,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                     SizedBox(height: 6),
                     Text(
-                      'Paraİz ile bütçeni kontrol altına al.',
+                      'FinScout ile bütçeni kontrol altına al.',
                       style: TextStyle(
                           fontSize: 11, color: Color(0xFF64748B), height: 1.3),
                     ),
@@ -341,15 +324,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Dinamik Form Alanı (Kayıt Ol vs Giriş Yap)
-              AnimatedCrossFade(
-                firstChild: _buildSignUpForm(),
-                secondChild: _buildSignInForm(),
-                crossFadeState: _isSignInMode
-                    ? CrossFadeState.showSecond
-                    : CrossFadeState.showFirst,
-                duration: const Duration(milliseconds: 320),
-              ),
+              // Dinamik Form Alanı (Kayıt Ol vs Giriş Yap), kod gönderildiyse doğrulama
+              if (_codeSentTo != null)
+                _buildCodeStep()
+              else
+                AnimatedCrossFade(
+                  firstChild: _buildSignUpForm(),
+                  secondChild: _buildSignInForm(),
+                  crossFadeState: _isSignInMode
+                      ? CrossFadeState.showSecond
+                      : CrossFadeState.showFirst,
+                  duration: const Duration(milliseconds: 320),
+                ),
             ],
           ),
         ),
@@ -387,10 +373,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           const SizedBox(height: 4),
           const Text(
-            'Tek bir hesapla tüm banka ve nakit cüzdanlarınızı yönetin.',
+            'Ekstrelerini yükledikçe bankaların ve kartların otomatik tanınır.',
             style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
+          _googleButton(),
+          _orDivider(),
 
           // Ad Soyad
           const Text(
@@ -429,82 +417,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
 
-          // Başlıca Banka / Hesap
           const Text(
-            'Birincil Banka veya Hesap',
+            'E-posta Adresin *',
             style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textPrimary),
           ),
           const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _selectedBank,
-                isExpanded: true,
-                icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                    color: AppColors.textSecondary),
-                items: _banks
-                    .map((b) => DropdownMenuItem(
-                          value: b,
-                          child: Text(b,
-                              style: const TextStyle(
-                                  fontSize: 13.5, fontWeight: FontWeight.w600)),
-                        ))
-                    .toList(),
-                onChanged: (val) {
-                  if (val != null) setState(() => _selectedBank = val);
-                },
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Aylık Bütçe Hedefi (Opsiyonel)
-          const Text(
-            'Aylık Harcama Bütçesi Hedefi (TL)',
-            style: TextStyle(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary),
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _budgetController,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              hintText: 'Örn: 25000 (Opsiyonel)',
-              hintStyle:
-                  const TextStyle(color: Color(0xFF94A3B8), fontSize: 13.5),
-              prefixIcon: const Icon(Icons.savings_outlined,
-                  color: AppColors.textSecondary, size: 20),
-              filled: true,
-              fillColor: const Color(0xFFF8FAFC),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide:
-                    const BorderSide(color: Color(0xFF0052FF), width: 1.5),
-              ),
-            ),
+          _inputField(
+            controller: _emailController,
+            hint: 'ornek@eposta.com',
+            icon: Icons.mail_outline_rounded,
+            keyboardType: TextInputType.emailAddress,
           ),
           const SizedBox(height: 16),
 
@@ -522,7 +449,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Verileriniz asla harici sunuculara iletilmez. Cihazınızda SQLite veritabanında şifrelenir.',
+                    'Şifre yok: e-postana gelen kodla giriş yaparsın. Harcama verilerin bu cihazda kalır; hesabında yalnızca adın ve e-postan tutulur.',
                     style: TextStyle(
                         fontSize: 11.5, color: Color(0xFF15803D), height: 1.3),
                   ),
@@ -551,9 +478,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       height: 22,
                       child: CircularProgressIndicator(
                           color: Colors.white, strokeWidth: 2))
-                  : Text(
-                      AppStrings.get('start_app_btn'),
-                      style: const TextStyle(
+                  : const Text(
+                      'Doğrulama Kodu Gönder',
+                      style: TextStyle(
                           fontSize: 14.5, fontWeight: FontWeight.w800),
                     ),
             ),
@@ -598,13 +525,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 border: Border.all(color: const Color(0xFFBFDBFE), width: 1.5),
               ),
               child: const Center(
-                child: Icon(Icons.info_outline_rounded,
+                child: Icon(Icons.mark_email_read_outlined,
                     color: Color(0xFF2563EB), size: 26),
               ),
             ),
             const SizedBox(height: 14),
             const Text(
-              'Henüz Açılmış Bir Üyelik Bulunmuyor',
+              'E-posta ile Giriş',
               textAlign: TextAlign.center,
               style: TextStyle(
                   fontSize: 15.5,
@@ -613,21 +540,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
             const SizedBox(height: 6),
             const Text(
-              'Yüz tanıma, parmak izi ve şifreli giriş özellikleri yalnızca üyeliğinizi açtıktan sonra kullanılabilir. Lütfen önce profilinizi oluşturun.',
+              'Hesabının e-postasını gir; giriş kodunu gönderelim.',
               textAlign: TextAlign.center,
               style: TextStyle(
                   fontSize: 12, color: AppColors.textSecondary, height: 1.4),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
+            _googleButton(),
+            _orDivider(),
+            _inputField(
+              controller: _signInEmailController,
+              hint: 'ornek@eposta.com',
+              icon: Icons.mail_outline_rounded,
+              keyboardType: TextInputType.emailAddress,
+            ),
+            const SizedBox(height: 14),
             SizedBox(
               width: double.infinity,
               height: 48,
               child: ElevatedButton.icon(
-                onPressed: () {
-                  setState(() => _isSignInMode = false);
-                },
-                icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
-                label: const Text('Üyeliğinizi Oluşturun (Kayıt Ol)',
+                onPressed: _isLoading ? null : _startEmailSignIn,
+                icon: const Icon(Icons.send_rounded, size: 18),
+                label: const Text('Giriş Kodu Gönder',
                     style:
                         TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
                 style: ElevatedButton.styleFrom(
@@ -638,6 +572,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   elevation: 0,
                 ),
               ),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => setState(() => _isSignInMode = false),
+              child: const Text('Hesabın yok mu? Kayıt ol',
+                  style:
+                      TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
             ),
           ],
         ),
@@ -710,49 +651,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 color: AppColors.textPrimary),
           ),
           const SizedBox(height: 12),
-
-          // 1. Yüz Tanıma ile Giriş (Face ID)
-          InkWell(
-            onTap: () => _loginWithBiometrics(BiometricAuthType.faceId),
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: const Color(0xFFECFDF5),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFA7F3D0)),
-              ),
-              child: Row(
-                children: const [
-                  Icon(Icons.face_retouching_natural,
-                      color: Color(0xFF059669), size: 24),
-                  SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Yüz Tanıma ile Giriş (Face ID)',
-                          style: TextStyle(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF065F46)),
-                        ),
-                        Text(
-                          'Kameraya bakın, anında oturum açın',
-                          style:
-                              TextStyle(fontSize: 11, color: Color(0xFF047857)),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(Icons.arrow_forward_ios_rounded,
-                      color: Color(0xFF059669), size: 14),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
 
           // 2. Parmak İzi ile Giriş (Touch ID / Fingerprint)
           InkWell(
@@ -839,43 +737,204 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           const SizedBox(height: 18),
 
-          // Yedek Dosyasından Geri Yükle & Hızlı Başla
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _restoreFromBackup,
-                  icon: const Icon(Icons.settings_backup_restore_rounded,
-                      size: 18),
-                  label: const Text('Yedekten Yükle',
-                      style: TextStyle(
-                          fontSize: 12.5, fontWeight: FontWeight.w700)),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF0F172A),
-                    side: const BorderSide(color: Color(0xFFE2E8F0)),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
+          // Kilit kapalıysa doğrudan devam; açıksa yalnızca parmak izi / PIN ile
+          if (!SecurityAuthService.instance.isAnySecurityActive)
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _ensureProfileAndProceed,
+                icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+                label: const Text('Devam Et',
+                    style:
+                        TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0F172A),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  elevation: 0,
                 ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: _ensureProfileAndProceed,
-                  icon: const Icon(Icons.bolt_rounded, size: 18),
-                  label: const Text('Hızlı Giriş',
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _googleButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: OutlinedButton(
+        onPressed: _isLoading ? null : _signInWithGoogle,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.textPrimary,
+          side: const BorderSide(color: Color(0xFFCBD5E1)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('G',
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF4285F4))),
+            SizedBox(width: 10),
+            Text('Google ile Devam Et',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _orDivider() {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 14),
+      child: Row(
+        children: [
+          Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 10),
+            child: Text('veya e-posta ile',
+                style:
+                    TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+          ),
+          Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+        ],
+      ),
+    );
+  }
+
+  Widget _inputField({
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    TextInputType? keyboardType,
+  }) {
+    return TextField(
+      controller: controller,
+      keyboardType: keyboardType,
+      autocorrect: false,
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13.5),
+        prefixIcon: Icon(icon, color: AppColors.textSecondary, size: 20),
+        filled: true,
+        fillColor: const Color(0xFFF8FAFC),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFF0052FF), width: 1.5),
+        ),
+      ),
+    );
+  }
+
+  // ==========================================
+  // 3. E-POSTA KODU DOĞRULAMA
+  // ==========================================
+  Widget _buildCodeStep() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'E-postanı Kontrol Et',
+            style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '$_codeSentTo adresine gönderilen kodu gir. Gelen kutunda yoksa spam klasörüne bak.',
+            style: const TextStyle(
+                fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _codeController,
+            keyboardType: TextInputType.number,
+            autofocus: true,
+            maxLength: 8,
+            textAlign: TextAlign.center,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            onSubmitted: (_) => _verifyCode(),
+            style: const TextStyle(
+                fontSize: 24, fontWeight: FontWeight.w800, letterSpacing: 8),
+            decoration: InputDecoration(
+              counterText: '',
+              hintText: '••••••••',
+              filled: true,
+              fillColor: const Color(0xFFF8FAFC),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton(
+              onPressed: _isLoading ? null : _verifyCode,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0F172A),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+                elevation: 0,
+              ),
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                          color: Colors.white, strokeWidth: 2))
+                  : const Text('Doğrula ve Devam Et',
                       style: TextStyle(
-                          fontSize: 12.5, fontWeight: FontWeight.w700)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0F172A),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    elevation: 0,
-                  ),
-                ),
+                          fontSize: 14.5, fontWeight: FontWeight.w800)),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                onPressed: _isLoading
+                    ? null
+                    : () => setState(() => _codeSentTo = null),
+                child: const Text('E-postayı değiştir'),
+              ),
+              TextButton(
+                onPressed: _isLoading
+                    ? null
+                    : () => _sendCode(_codeSentTo!,
+                        signup: _codeIsForSignup,
+                        fullName: _codeIsForSignup
+                            ? _nameController.text.trim()
+                            : null),
+                child: const Text('Kodu tekrar gönder'),
               ),
             ],
           ),

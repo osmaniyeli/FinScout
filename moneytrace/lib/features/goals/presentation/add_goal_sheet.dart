@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/thousands_input_formatter.dart';
 import '../../../core/utils/currency_normalizer.dart';
 import '../../../core/widgets/radar_checkout_button.dart';
 import '../models/financial_goal.dart';
@@ -292,6 +293,7 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
                   child: TextField(
                     controller: _targetAmountController,
                     keyboardType: TextInputType.number,
+                    inputFormatters: const [ThousandsInputFormatter()],
                     style: const TextStyle(
                         fontSize: 16, fontWeight: FontWeight.w800),
                     decoration: InputDecoration(
@@ -316,6 +318,7 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
                   child: TextField(
                     controller: _initialSavedController,
                     keyboardType: TextInputType.number,
+                    inputFormatters: const [ThousandsInputFormatter()],
                     style: const TextStyle(
                         fontSize: 16, fontWeight: FontWeight.w800),
                     decoration: InputDecoration(
@@ -749,11 +752,11 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
         break;
       case GoalCategory.vehicle:
         text =
-            '$_selectedVehicleBrand $_selectedVehicleModel direksiyonuna geçip kontağı çevirdiğin ilk anı ve yeni araç kokusunu hayal et. Gaza basmaya devam! 🚗';
+            'Yeni aracının direksiyonuna geçip kontağı çevirdiğin o ilk anı hayal et. Her birikim seni ona biraz daha yaklaştırıyor! 🚗';
         break;
       case GoalCategory.motorcycle:
         text =
-            '$_selectedMotoBrand $_selectedMotoModel ile trafiğe takılmadan rüzgarı hissedeceğin o ilk rota çok yakın! Birikim depon hızla doluyor. 🏍️';
+            'Rüzgarı hissedeceğin o ilk rota çok yakın! Birikim depon her ay biraz daha doluyor. 🏍️';
         break;
       case GoalCategory.boat:
         text =

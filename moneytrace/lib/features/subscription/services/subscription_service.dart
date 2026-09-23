@@ -14,7 +14,7 @@ enum SubscriptionTier {
 
 class SubscriptionPackage {
   final String
-      identifier; // 'paraiz_individual_monthly', 'paraiz_individual_annual', 'paraiz_family_annual_4p'
+      identifier; // 'finscout_individual_monthly', 'finscout_individual_annual', 'finscout_family_annual_4p'
   final String title;
   final String description;
   final String priceFormatted;
@@ -36,10 +36,10 @@ class SubscriptionService {
   SubscriptionService._internal();
 
   // Google Play Store Ürün Tanımları
-  static const String individualMonthlySku = 'paraiz_individual_monthly';
-  static const String individualAnnualSku = 'paraiz_individual_annual';
+  static const String individualMonthlySku = 'finscout_individual_monthly';
+  static const String individualAnnualSku = 'finscout_individual_annual';
   static const String familyAnnualSku =
-      'paraiz_family_annual_4p'; // Aile Paketi (4 Kişi)
+      'finscout_family_annual_4p'; // Aile Paketi (4 Kişi)
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   StreamSubscription<List<PurchaseDetails>>? _subscription;
@@ -66,22 +66,25 @@ class SubscriptionService {
   final ValueNotifier<bool> isPurchasingNotifier = ValueNotifier<bool>(false);
   final Map<String, ProductDetails> products = {};
 
+  /// Kullanıcının uygun olduğu ücretsiz deneme teklifleri (ör. yıllık planda 7 gün).
+  /// Play yalnızca uygun kullanıcıya döndürür; fiyat gösterimi yine ana plandan yapılır.
+  final Map<String, ProductDetails> trialOffers = {};
+  bool hasTrial(String sku) => trialOffers.containsKey(sku);
+
   final List<SubscriptionPackage> availablePackages = const [
     SubscriptionPackage(
       identifier: individualMonthlySku,
       title: 'Bireysel Aylık Premium',
-      description:
-          'Sınırsız PDF Ekstre Ayrıştırma, 12 Aylık Nakit Akışı, Akıllı İzci Tavsiyeleri',
-      priceFormatted: '₺89,99 / Ay',
+      description: 'Ayda 3 belge: kart ekstresi, hesap ekstresi ve bordro',
+      priceFormatted: '₺79,99 / Ay',
       tier: SubscriptionTier.individualPremium,
       maxFamilyMembers: 1,
     ),
     SubscriptionPackage(
       identifier: individualAnnualSku,
       title: 'Bireysel Yıllık Premium',
-      description:
-          '2 Ay Ücretsiz! Yıllık kesintisiz finansal zeka ve vergi analizi',
-      priceFormatted: '₺899,99 / Yıl',
+      description: 'Ayda 5 belge; aylık plana göre %37 daha uygun',
+      priceFormatted: '₺599,99 / Yıl',
       tier: SubscriptionTier.individualPremium,
       maxFamilyMembers: 1,
     ),
@@ -90,7 +93,7 @@ class SubscriptionService {
       title: 'Aile Boyu Üyelik Paketi',
       description:
           '4 Kişiye Kadar! Eşiniz ve çocuklarınızla ortak bütçe, ek kart eşleme ve aile hedefleri',
-      priceFormatted: '₺1.399,99 / Yıl',
+      priceFormatted: '₺899,99 / Yıl',
       tier: SubscriptionTier.familyPremium,
       maxFamilyMembers: 4,
     ),
@@ -157,7 +160,9 @@ class SubscriptionService {
 
       // Android'de her abonelik teklifi (ana plan, deneme, indirim) ayrı ProductDetails olarak gelir.
       // Fiyat ve satın alma için ana plan (offerId == null) seçilir; ana plan yoksa ilk teklif kullanılır.
+      trialOffers.clear();
       for (final prod in response.productDetails) {
+        if (_hasFreeTrialPhase(prod)) trialOffers[prod.id] = prod;
         final existing = products[prod.id];
         if (existing == null || (!_isBasePlan(existing) && _isBasePlan(prod))) {
           products[prod.id] = prod;
@@ -185,7 +190,8 @@ class SubscriptionService {
         await loadProducts();
       }
 
-      final ProductDetails? productDetails = products[package.identifier];
+      final ProductDetails? productDetails =
+          trialOffers[package.identifier] ?? products[package.identifier];
       if (productDetails == null) {
         lastError = 'Ürün mağazada bulunamadı';
         isPurchasingNotifier.value = false;
@@ -257,6 +263,16 @@ class SubscriptionService {
       _restoreCompleter = null;
       isPurchasingNotifier.value = false;
     }
+  }
+
+  static bool _hasFreeTrialPhase(ProductDetails details) {
+    if (details is! GooglePlayProductDetails) return false;
+    final index = details.subscriptionIndex;
+    final offers = details.productDetails.subscriptionOfferDetails;
+    if (index == null || offers == null || index >= offers.length) return false;
+    final offer = offers[index];
+    return offer.offerId != null &&
+        offer.pricingPhases.any((ph) => ph.priceAmountMicros == 0);
   }
 
   static bool _isBasePlan(ProductDetails details) {

@@ -1,7 +1,6 @@
 package com.moneytrace.app
 
 import android.os.Bundle
-import android.view.WindowManager
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -12,12 +11,8 @@ class MainActivity: FlutterFragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // 1. Güvenlik Sertleştirmesi: Ekran görüntüsü ve task switcher sızıntı engeli
-        window.setFlags(
-            WindowManager.LayoutParams.FLAG_SECURE,
-            WindowManager.LayoutParams.FLAG_SECURE
-        )
-        // 2. Anti-Tapjacking / Overlay Kalkanı: Bankacılık truva atlarının şeffaf katmanla dokunma çalmasını engelle
+        // Ekran görüntüsü serbest (v3.6.1 ürün kararı); görev değiştirici önizlemesini Flutter gizlilik kalkanı gizler.
+        // Anti-Tapjacking / Overlay Kalkanı: Bankacılık truva atlarının şeffaf katmanla dokunma çalmasını engelle
         window.decorView.filterTouchesWhenObscured = true
     }
 

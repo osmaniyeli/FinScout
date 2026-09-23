@@ -196,7 +196,6 @@ class RemoteConfigService extends ChangeNotifier {
   RemoteConfigService._internal();
 
   String _currentDeviceCountry = 'TR';
-  String _marketDataSource = 'TCMB';
   String? _broadcastAlert;
 
   ThemeConfig _themeConfig = const ThemeConfig();
@@ -235,7 +234,6 @@ class RemoteConfigService extends ChangeNotifier {
   ];
 
   String get currentDeviceCountry => _currentDeviceCountry;
-  String get marketDataSource => _marketDataSource;
   String? get broadcastAlert => _broadcastAlert;
 
   ThemeConfig get themeConfig => _themeConfig;
@@ -256,10 +254,6 @@ class RemoteConfigService extends ChangeNotifier {
     notifyListeners();
   }
 
-  set marketDataSource(String source) {
-    _marketDataSource = source;
-    notifyListeners();
-  }
 
   void setAppLanguage(String lang) {
     _appLanguage = lang.toLowerCase() == 'en' ? 'en' : 'tr';

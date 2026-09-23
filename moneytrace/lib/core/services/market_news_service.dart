@@ -64,12 +64,7 @@ class MarketNewsService {
       return _cachedNews;
     }
 
-    // Ağ kapalıysa veya çekilemediyse güvenli çevrimdışı önbellek veya varsayılan haberleri dön
-    if (_cachedNews.isEmpty) {
-      _cachedNews = _getFallbackOfflineNews();
-      _lastFetchTime = now;
-    }
-
+    // Ağ yoksa yalnızca daha önce gerçekten çekilmiş haberler gösterilir; uydurma haber yoktur (liste boş olabilir)
     return _cachedNews;
   }
 
@@ -84,7 +79,7 @@ class MarketNewsService {
 
     try {
       final request = await client.getUrl(Uri.parse(url));
-      request.headers.set('User-Agent', 'Mozilla/5.0 (compatible; ParaIzApp/1.0; +https://paraiz.app)');
+      request.headers.set('User-Agent', 'Mozilla/5.0 (compatible; FinScoutApp/1.0)');
       request.headers.set('Accept', 'application/rss+xml, application/xml, text/xml, */*');
 
       final response = await request.close();
@@ -230,39 +225,5 @@ class MarketNewsService {
     } catch (_) {}
 
     return DateTime.tryParse(pubDate) ?? DateTime.now();
-  }
-
-  /// İnternet bağlantısı olmadığında uygulamanın asla boş kalmaması için zengin yedek haberler
-  List<MarketNewsItem> _getFallbackOfflineNews() {
-    final now = DateTime.now();
-    return [
-      MarketNewsItem(
-        id: 'fallback_1',
-        title: 'TCMB Faiz Kararı Öncesi Piyasalarda Temkinli Seyir',
-        summary: 'Merkez Bankası Para Politikası Kurulu toplantısı öncesinde BIST 100 endeksi ve döviz kurlarında yatay fiyatlama izleniyor.',
-        link: 'https://www.bloomberght.com',
-        sourceName: 'Bloomberg HT',
-        category: 'Piyasa',
-        publishedAt: now.subtract(const Duration(minutes: 18)),
-      ),
-      MarketNewsItem(
-        id: 'fallback_2',
-        title: 'Kapalıçarşı’da Altın Fiyatları Yeni Haftaya Rekorla Başladı',
-        summary: 'Gram altın Kapalıçarşı serbest piyasada 3.045 TL seviyesini test ederken küresel ons altın yükseliş trendini sürdürüyor.',
-        link: 'https://www.dunya.com',
-        sourceName: 'Dünya Gazetesi',
-        category: 'Emtia',
-        publishedAt: now.subtract(const Duration(hours: 1, minutes: 25)),
-      ),
-      MarketNewsItem(
-        id: 'fallback_3',
-        title: 'Borsa İstanbul’da Bankacılık Endeksi Ön Planda',
-        summary: 'Yabancı yatırımcı girişlerinin etkisiyle bankacılık hisselerinde hacim artışı yaşanıyor.',
-        link: 'https://www.bloomberght.com',
-        sourceName: 'Bloomberg HT',
-        category: 'Borsa',
-        publishedAt: now.subtract(const Duration(hours: 3)),
-      ),
-    ];
   }
 }

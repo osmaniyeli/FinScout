@@ -5,20 +5,14 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/currency_normalizer.dart';
 import '../../../core/database/repositories/transaction_repository.dart';
-import '../../../core/widgets/dynamic_island_capsule.dart';
-import '../../../core/widgets/daily_streak_modal.dart'; // DailyStreakModal reference
-import '../../../core/widgets/pulse_metric_badge.dart';
 import '../../../core/widgets/rolling_number_ticker.dart';
-import '../../../core/widgets/in_app_notification_sheet.dart';
 import '../../../core/widgets/fintech/fintech_components.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/services/user_profile_service.dart';
 import '../../profile/presentation/profile_screen.dart';
 import '../../notifications/presentation/notifications_sheet.dart';
-import '../../quick_entry/presentation/quick_entry_sheet.dart';
 import '../../family_budget/presentation/family_budget_sheet.dart';
 import '../../statement_upload/presentation/statement_upload_sheet.dart';
-import '../../settings/presentation/settings_screen.dart';
 import '../../../core/config/remote_config_service.dart';
 import '../../subscription/presentation/subscription_plans_sheet.dart';
 import '../../subscription/services/subscription_service.dart';
@@ -90,7 +84,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<Map<String, dynamic>> _recentTransactions = [];
   List<Map<String, dynamic>> _upcomingInstallments = [];
   bool _isLoading = false;
-  bool _showTopInsightCapsule = false;
 
   @override
   void initState() {
@@ -163,6 +156,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _upcomingInstallments = upcoming;
           _isLoading = false;
         });
+        _postScoutNote(_recentTransactions.isNotEmpty);
       }
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
@@ -307,52 +301,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 0. Kalıcı Kapatılabilir Nüans Kapsülü (Point 3 & Point 5)
-                if (!UserProfileService.instance
-                    .isNuanceDismissed('dashboard_energy_insight')) ...[
-                  Stack(
-                    children: [
-                      DynamicIslandCapsule(
-                        title: 'Akıllı Tasarruf: Finansal Bütçe Analizi',
-                        message:
-                            'Bu ayki harcamalarınız gelirinize oranla dengeli seviyede seyrediyor. Elektrikli araç veya toplu taşıma alternatifleriyle yakıt giderinizi %40 azaltabilirsiniz.',
-                        comparisonHighlight:
-                            'İpucu: Düzenli harcama girişleri sayesinde finansal serinizi koruyorsunuz!',
-                        onDismissed: () async {
-                          await UserProfileService.instance.dismissNuance(
-                            'dashboard_energy_insight',
-                            title: 'Akıllı Tasarruf: Finansal Bütçe Analizi',
-                            message:
-                                'Elektrikli araç veya toplu taşıma alternatifleriyle yakıt giderinizi %40 azaltabilirsiniz.',
-                          );
-                          if (mounted) setState(() {});
-                        },
-                        onActionTap: () =>
-                            DailyStreakModal.show(context, currentStreak: 30),
-                      ),
-                      Positioned(
-                        top: 6,
-                        right: 6,
-                        child: IconButton(
-                          icon: const Icon(Icons.close_rounded,
-                              size: 18, color: Colors.white70),
-                          tooltip: 'Gizle ve Bildirimlere Taşı',
-                          onPressed: () async {
-                            await UserProfileService.instance.dismissNuance(
-                              'dashboard_energy_insight',
-                              title: 'Akıllı Tasarruf: Finansal Bütçe Analizi',
-                              message:
-                                  'Elektrikli araç veya toplu taşıma alternatifleriyle yakıt giderinizi %40 azaltabilirsiniz.',
-                            );
-                            if (mounted) setState(() {});
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                ],
-
                 // 1. Üst Karşılama, Profil Barı, Kompakt PDF Yükleme ve Bildirimler
                 _buildTopBar(),
                 const SizedBox(height: 14),
@@ -365,9 +313,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 _buildSummaryCards(),
                 const SizedBox(height: 14),
 
-                // 4. "İzci" Zeka Bilgi Kartı (Sıcak Amber FinTech Dili)
-                _buildScoutPersonaCard(),
-                const SizedBox(height: 20),
+                const SizedBox(height: 6),
 
                 // Yaklaşan Taksitler & Borçlar Bloğu
                 if (_upcomingInstallments.isNotEmpty) ...[
@@ -821,41 +767,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          // Canlı Radar Net Fark Rozeti
-          Center(
-            child: PulseMetricBadge(
-              label: 'NET FARK: ',
-              value: (isPositive ? '+' : '') +
-                  CurrencyNormalizer.formatCents(_netDifferenceCents),
-              icon: isPositive
-                  ? Icons.trending_up_rounded
-                  : Icons.trending_down_rounded,
-              pulseColor:
-                  isPositive ? AppColors.incomeGreen : AppColors.expenseRed,
-              baseColor: const Color(0xFF0F172A),
-              onTap: () {
-                widget.onOpenAnalytics?.call();
-              },
-            ),
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildScoutPersonaCard() {
-    final hasData = _recentTransactions.isNotEmpty;
-    return IzciInsightCard(
-      title: "İZCİ'DEN BİR NOT",
-      message: hasData
-          ? 'İşlemleriniz kategorilerine göre sınıflandırıldı. Harcama trendlerinizi Analiz sekmesinden detaylı inceleyebilirsiniz.'
-          : 'Banka ekstrenizi veya maaş bordronuzu sağ üstteki butondan yükleyerek harcama dağılımınızı anında görebilirsiniz.',
-      actionLabel: hasData ? 'Analizi Gör' : 'Belge Yükle',
-      onActionTap: hasData
-          ? () => widget.onOpenAnalytics?.call()
-          : () => _showDocumentTypeSelector(),
-    );
+  /// İzci notu ekranda sabit durmaz; gerçek duruma göre bir kez bildirim olarak düşer.
+  Future<void> _postScoutNote(bool hasData) async {
+    final now = DateTime.now();
+    if (hasData) {
+      await UserProfileService.instance.addNotification(
+        id: 'scout_analysis_${now.year}_${now.month}',
+        title: "İzci'den bir not",
+        message:
+            'İşlemleriniz kategorilerine göre sınıflandırıldı. Harcama dağılımınızı Analiz sekmesinde inceleyebilirsiniz.',
+      );
+    } else {
+      await UserProfileService.instance.addNotification(
+        id: 'scout_first_upload',
+        title: "İzci'den bir not",
+        message:
+            'Kredi kartı ekstrenizi, hesap ekstrenizi veya maaş bordronuzu yükleyerek harcama dağılımınızı görebilirsiniz.',
+      );
+    }
   }
 
   Widget _buildTransactionRow(Map<String, dynamic> tx) {

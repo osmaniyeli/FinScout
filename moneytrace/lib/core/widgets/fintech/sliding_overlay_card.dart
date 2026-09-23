@@ -1,7 +1,6 @@
 // lib/core/widgets/fintech/sliding_overlay_card.dart
 
 import 'package:flutter/material.dart';
-import '../../theme/app_colors.dart';
 import '../../theme/app_theme.dart';
 
 /// Frontend Joe (@frontendjoe) Pure CSS Sliding Overlay mimarisinden esinlenilmiş,

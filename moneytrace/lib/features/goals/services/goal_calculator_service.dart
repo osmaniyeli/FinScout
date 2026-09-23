@@ -1,5 +1,6 @@
 // lib/features/goals/services/goal_calculator_service.dart
 
+import '../../../core/utils/currency_normalizer.dart';
 import '../models/financial_goal.dart';
 
 class GoalsSummary {
@@ -115,10 +116,9 @@ class GoalCalculatorService {
     final remainingMonths = target.monthsRemaining > 0 ? target.monthsRemaining : 1;
     final remainingCents = target.targetAmountCents - target.currentSavedCents;
     final monthlyNeededCents = (remainingCents / remainingMonths).round();
-    final monthlyNeededTL = (monthlyNeededCents / 100).toStringAsFixed(0);
 
     adviceList.add(
-      '🎯 "${target.title}" hedefinize $remainingMonths ayda ulaşmak için ayda en az ₺$monthlyNeededTL düzenli birikim yapmanız gerekiyor.',
+      '🎯 "${target.title}" hedefinize $remainingMonths ayda ulaşmak için ayda en az ${CurrencyNormalizer.formatCents(monthlyNeededCents)} düzenli birikim yapmanız gerekiyor.',
     );
 
     // 2. Geçmiş harcama kategorilerinden kısma potansiyeli analizi

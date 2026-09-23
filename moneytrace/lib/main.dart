@@ -7,6 +7,7 @@ import 'core/theme/app_theme.dart';
 import 'core/localization/app_strings.dart';
 import 'core/services/user_profile_service.dart';
 import 'core/services/security_auth_service.dart';
+import 'core/services/account_service.dart';
 import 'core/parser/enrichment/category_engine.dart';
 import 'core/services/notification_service.dart';
 import 'features/subscription/services/subscription_service.dart';
@@ -20,10 +21,12 @@ void main() async {
   await RemoteConfigService.instance.loadFromAsset();
   await UserProfileService.instance.load();
   await SecurityAuthService.instance.initialize();
+  // Hesap (Supabase Auth): oturum cihazdan yüklenir, ağ beklemez
+  await AccountService.instance.initialize();
   // PDF motoru (PDFium) — ekstreler tamamen cihaz üzerinde okunur
   pdfrxFlutterInitialize();
   await _loadMerchantDictionary();
-  runApp(const MoneyTraceApp());
+  runApp(const FinScoutApp());
   // Açılışı bekletmeden: kart son ödeme ve ekstre talimatı hatırlatıcılarını güncelle
   unawaited(syncPaymentReminders());
   // Google Play Billing: satın alma akışını dinle, kayıtlı yetkiyi mağazayla doğrula
@@ -50,14 +53,14 @@ Future<void> _loadMerchantDictionary() async {
   } catch (_) {}
 }
 
-class MoneyTraceApp extends StatefulWidget {
-  const MoneyTraceApp({Key? key}) : super(key: key);
+class FinScoutApp extends StatefulWidget {
+  const FinScoutApp({Key? key}) : super(key: key);
 
   @override
-  State<MoneyTraceApp> createState() => _MoneyTraceAppState();
+  State<FinScoutApp> createState() => _FinScoutAppState();
 }
 
-class _MoneyTraceAppState extends State<MoneyTraceApp> with WidgetsBindingObserver {
+class _FinScoutAppState extends State<FinScoutApp> with WidgetsBindingObserver {
   bool _isUnlocked = false;
   bool _isPrivacyShieldActive = false;
   DateTime? _pausedTime;
@@ -116,7 +119,7 @@ class _MoneyTraceAppState extends State<MoneyTraceApp> with WidgetsBindingObserv
             final hasProfile = profile != null && profile.name.trim().isNotEmpty;
 
             return MaterialApp(
-              title: 'Paraİz - Harcama Zekası',
+              title: 'FinScout - Harcama Zekası',
               debugShowCheckedModeBanner: false,
               theme: AppTheme.lightTheme,
               home: _buildHome(hasProfile),
@@ -166,7 +169,7 @@ class _MoneyTraceAppState extends State<MoneyTraceApp> with WidgetsBindingObserv
                     Icon(Icons.shield_rounded, color: Color(0xFF10B981), size: 48),
                     SizedBox(height: 12),
                     Text(
-                      'Paraİz Güvenlik Kalkanı',
+                      'FinScout Güvenlik Kalkanı',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 16,

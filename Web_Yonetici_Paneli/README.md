@@ -1,6 +1,6 @@
-# Paraİz Merkezi Yönetim Portalı (Web Konsolu)
+# FinScout Merkezi Yönetim Portalı (Web Konsolu)
 
-Bu portal, mobil uygulamanın (`Paraİz`) güvenliğini riske atmamak adına **mobil kod tabanından tamamen ayrıştırılmış bağımsız bir web arayüzüdür.**
+Bu portal, mobil uygulamanın (`FinScout`) güvenliğini riske atmamak adına **mobil kod tabanından tamamen ayrıştırılmış bağımsız bir web arayüzüdür.**
 
 ---
 

@@ -1,7 +1,6 @@
 // lib/core/widgets/dynamic_island_capsule.dart
 
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 
 /// Shakuro "Inspired" & iOS Dynamic Island Yüzen Kapsül Bildirimi
 ///

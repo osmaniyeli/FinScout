@@ -27,9 +27,6 @@
 -keepattributes Signature
 -keepattributes *Annotation*
 
-# Sesli giriş (speech_to_text)
--keep class com.csdcorp.speech_to_text.** { *; }
-
 # Güvenli depolama (flutter_secure_storage)
 -keep class com.it_nomads.fluttersecurestorage.** { *; }
 

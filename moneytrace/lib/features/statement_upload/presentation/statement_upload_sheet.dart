@@ -10,12 +10,12 @@ import '../../../core/parser/services/statement_orchestrator.dart';
 import '../../../core/parser/models/parsed_models.dart';
 import '../../../core/database/repositories/transaction_repository.dart';
 import '../../../core/security/security_guard.dart';
-import '../../../core/widgets/interactive_file_upload_button.dart';
 import '../../../core/services/user_profile_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../wallets/presentation/wallet_selection_sheet.dart';
 import 'statement_smart_wizard.dart';
 import 'custom_field_mapping_sheet.dart';
+import '../../subscription/presentation/subscription_plans_sheet.dart';
 
 class StatementUploadSheet extends StatefulWidget {
   final VoidCallback? onImportSuccess;
@@ -57,6 +57,7 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
 
   bool _isProcessing = false;
   String? _errorMessage;
+  bool _errorIsQuota = false;
   String? _selectedFileName;
   String? _fileHash;
   StatementDocumentResult? _parsedResult;
@@ -71,6 +72,7 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
   Future<void> _pickAndProcessPdf() async {
     setState(() {
       _errorMessage = null;
+      _errorIsQuota = false;
       _parsedResult = null;
     });
 
@@ -80,6 +82,7 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
     if (!quota.canUpload) {
       setState(() {
         _errorMessage = quota.reason;
+        _errorIsQuota = true;
       });
       return;
     }
@@ -482,12 +485,20 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
                     width: double.infinity,
                     child: OutlinedButton.icon(
                       onPressed: () {
-                        CustomFieldMappingSheet.show(context);
+                        if (_errorIsQuota) {
+                          SubscriptionPlansSheet.show(context);
+                        } else {
+                          CustomFieldMappingSheet.show(context);
+                        }
                       },
-                      icon: const Icon(Icons.tune_rounded,
-                          size: 16, color: Color(0xFF0F172A)),
-                      label: const Text(
-                          'Bu Banka İçin Alan Eşleştirmesi (Mapping) Tanımla',
+                      icon: Icon(
+                          _errorIsQuota ? Icons.workspace_premium_rounded : Icons.tune_rounded,
+                          size: 16,
+                          color: const Color(0xFF0F172A)),
+                      label: Text(
+                          _errorIsQuota
+                              ? 'Planları Gör'
+                              : 'Bu Banka İçin Alan Eşleştirmesi (Mapping) Tanımla',
                           style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
@@ -560,59 +571,46 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
     );
   }
 
+  /// Tek dosya seçici: dokununca sistem dosya seçicisi açılır (Android'in seçicisi ek izin istemez).
   Widget _buildUploadPlaceholder() {
-    return Column(
-      children: [
-        // Video 3: Morflayan Dosya Yükleme Butonu (Idle -> % Progress -> Checkmark)
-        InteractiveFileUploadButton(
-          fileName: _selectedFileName ?? 'Banka_Ekstre_veya_Bordro.pdf',
-          uploadLabel: 'PDF Belgesi Seç & Tara',
-          successLabel: 'Ayrıştırma Başarılı',
-          onUploadAction: _pickAndProcessPdf,
-        ),
-        const SizedBox(height: 16),
-        InkWell(
-          onTap: _pickAndProcessPdf,
+    return InkWell(
+      onTap: _pickAndProcessPdf,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
           borderRadius: BorderRadius.circular(20),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                  color: const Color(0xFFCBD5E1), style: BorderStyle.solid),
-            ),
-            child: Column(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEFF6FF),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: const Icon(Icons.upload_file_rounded,
-                      size: 26, color: AppColors.actionPrimary),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'Veya Dokunarak Dosya Seçin',
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Enpara, Yapı Kredi veya Kurumsal Bordro PDF\'i',
-                  style: TextStyle(fontSize: 12, color: AppColors.textMuted),
-                ),
-              ],
-            ),
-          ),
+          border: Border.all(color: const Color(0xFFCBD5E1)),
         ),
-      ],
+        child: const Column(
+          children: [
+            SizedBox(
+              width: 48,
+              height: 48,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Color(0xFFEFF6FF),
+                  borderRadius: BorderRadius.all(Radius.circular(14)),
+                ),
+                child: Icon(Icons.upload_file_rounded, size: 26, color: AppColors.actionPrimary),
+              ),
+            ),
+            SizedBox(height: 10),
+            Text(
+              'PDF Seç',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+            ),
+            SizedBox(height: 4),
+            Text(
+              'Kredi kartı ekstresi, hesap ekstresi veya maaş bordrosu',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

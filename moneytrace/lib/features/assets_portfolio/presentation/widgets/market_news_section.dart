@@ -112,6 +112,17 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
                     strokeWidth: 2, color: AppColors.actionPrimary),
               ),
             )
+          else if (_news.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: Text(
+                  'Şu an haberlere ulaşılamıyor. İnternet bağlantınızı kontrol edin.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                ),
+              ),
+            )
           else
             ListView.separated(
               shrinkWrap: true,

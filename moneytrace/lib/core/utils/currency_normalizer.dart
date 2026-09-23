@@ -4,6 +4,7 @@ class CurrencyNormalizer {
   /// '1.637,38 TL', '1,155.00', '+18.237,58' formatlarını kuruş (cents) tamsayısına çevirir.
   static int toMinorUnits(String rawAmount) {
     String clean = rawAmount
+        .replaceAll('₺', '')
         .replaceAll('TL', '')
         .replaceAll('TRY', '')
         .replaceAll('USD', '')
@@ -48,7 +49,8 @@ class CurrencyNormalizer {
 
   /// Kuruş değerini biçimlendirilmiş para birimi dizgisine çevirir.
   /// Örnek: 125050 -> "₺1.250,50"
-  static String formatCents(int cents, {String currency = 'TRY', bool showSign = false}) {
+  static String formatCents(int cents,
+      {String currency = 'TRY', bool showSign = false}) {
     final bool isNegative = cents < 0;
     final int absCents = cents.abs();
     final int whole = absCents ~/ 100;

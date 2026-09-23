@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/config/remote_config_service.dart';
 import '../../../core/services/data_export_service.dart';
+import '../../../core/services/account_service.dart';
 import '../../../core/services/user_profile_service.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/database/repositories/transaction_repository.dart';
@@ -34,14 +35,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final TransactionRepository _repository = TransactionRepository();
   final DataExportService _exportService = DataExportService.instance;
 
-  late String _selectedDataSource;
   late String _selectedLanguage;
   bool _isExporting = false;
 
   @override
   void initState() {
     super.initState();
-    _selectedDataSource = _remoteConfig.marketDataSource;
     _selectedLanguage = AppStrings.currentLocale.value;
   }
 
@@ -61,21 +60,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ? 'Language changed to English'
               : 'Uygulama dili Türkçe olarak güncellendi',
         ),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  void _changeDataSource(String source) {
-    setState(() {
-      _selectedDataSource = source;
-      _remoteConfig.marketDataSource = source;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: AppColors.incomeGreen,
-        content: Text('Piyasa Veri Kaynağı Güncellendi: $source'),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -302,40 +286,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 24),
 
-            // 2. VERİ KAYNAĞI SEÇİCİ
-            const Text(
-              'PİYASA VERİ KAYNAĞI SEÇİMİ',
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textSecondary,
-                  letterSpacing: 0.5),
-            ),
-            const SizedBox(height: 10),
-
-            _buildSourceOptionTile(
-              sourceKey: 'TCMB',
-              title: 'TCMB (Türkiye Cumhuriyet Merkez Bankası)',
-              subtitle:
-                  'Resmi kurlar, resmi gösterge fiyatları ve merkez bankası XML verisi.',
-              badge: 'Resmi',
-              badgeColor: const Color(0xFFDCFCE7),
-              badgeTextColor: const Color(0xFF166534),
-            ),
-            const SizedBox(height: 8),
-
-            _buildSourceOptionTile(
-              sourceKey: 'KAPALICARSI',
-              title: 'Kapalıçarşı & Serbest Piyasa',
-              subtitle:
-                  'Fiziki altın alış-satış makasları ve anlık döviz bürosu fiyatları.',
-              badge: 'Önerilen',
-              badgeColor: const Color(0xFFEFF6FF),
-              badgeTextColor: AppColors.actionPrimary,
-            ),
-            const SizedBox(height: 24),
-
-            // 3. GÜVENLİK & BİYOMETRİK KORUMA (Face ID, Fingerprint, PIN)
+            // 2. GÜVENLİK & BİYOMETRİK KORUMA (Face ID, Fingerprint, PIN)
             const Text(
               'GİZLİLİK & BİYOMETRİK GÜVENLİK',
               style: TextStyle(
@@ -392,87 +343,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             const SizedBox(height: 12),
-
-            // 1. Yüz Tanıma (Face ID) Switch Tile
-            ValueListenableBuilder<bool>(
-              valueListenable:
-                  SecurityAuthService.instance.isFaceIdEnabledNotifier,
-              builder: (context, isFaceEnabled, _) {
-                return Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFECFDF5),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: const Icon(Icons.face_retouching_natural,
-                            color: Color(0xFF059669), size: 22),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text(
-                              'Yüz Tanıma ile Giriş (Face ID)',
-                              style: TextStyle(
-                                  fontSize: 13.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.textPrimary),
-                            ),
-                            SizedBox(height: 2),
-                            Text(
-                              'Kamera ve biyometrik sensör ile anında ve güvenle giriş yapın.',
-                              style: TextStyle(
-                                  fontSize: 11, color: AppColors.textSecondary),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Switch.adaptive(
-                        value: isFaceEnabled,
-                        activeColor: const Color(0xFF10B981),
-                        onChanged: (val) async {
-                          final error = val
-                              ? await SecurityAuthService.instance
-                                  .enableBiometric(BiometricAuthType.faceId)
-                              : null;
-                          if (!val)
-                            await SecurityAuthService.instance
-                                .setFaceIdEnabled(false);
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                backgroundColor: error != null
-                                    ? AppColors.expenseRed
-                                    : (val
-                                        ? const Color(0xFF059669)
-                                        : const Color(0xFF0F172A)),
-                                content: Text(error ??
-                                    (val
-                                        ? 'Yüz Tanıma (Face ID) aktif edildi.'
-                                        : 'Yüz Tanıma devre dışı bırakıldı.')),
-                                duration: const Duration(seconds: 2),
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 10),
 
             // 2. Parmak İzi (Touch ID / Fingerprint) Switch Tile
             ValueListenableBuilder<bool>(
@@ -739,7 +609,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(height: 12),
                   // Video 2: Morflayan CSV İndirme & Paylaşma Butonu
                   MorphingShareButton(
-                    fileName: 'ParaIz_Harcama_Raporu.csv',
+                    fileName: 'FinScout_Harcama_Raporu.csv',
                     label: 'Excel / CSV Raporunu İndir & Paylaş',
                     accentColor: const Color(0xFF10B981),
                     onDownloadComplete: _exportToCsv,
@@ -841,7 +711,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     color: AppColors.textPrimary)),
                             SizedBox(height: 2),
                             Text(
-                                'Daha önce aldığınız bir Paraİz yedek dosyasını geri yükleyin.',
+                                'Daha önce aldığınız bir FinScout yedek dosyasını geri yükleyin.',
                                 style: TextStyle(
                                     fontSize: 11,
                                     color: AppColors.textSecondary,
@@ -864,32 +734,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             const SizedBox(height: 24),
-
-            // 5. UZAKTAN MODÜL DURUMU BİLGİSİ
-            const Text(
-              'SİSTEM SAĞLIĞI & MODÜLLER',
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textSecondary,
-                  letterSpacing: 0.5),
-            ),
-            const SizedBox(height: 10),
-
-            _buildModuleStatusRow('Deterministik PDF Motoru',
-                _remoteConfig.isModuleActive('statement_upload')),
-            _buildModuleStatusRow('Nakit Akışı & Projeksiyon',
-                _remoteConfig.isModuleActive('cashflow_projection')),
-            _buildModuleStatusRow('Piyasa & Altın Veri Akışı',
-                _remoteConfig.isModuleActive('market_rates')),
-            _buildModuleStatusRow('Hedefler Modülü',
-                _remoteConfig.isModuleActive('goals_module')),
-            _buildModuleStatusRow('Aile Bütçesi Senkronizasyonu',
-                _remoteConfig.isModuleActive('family_budget')),
-            _buildModuleStatusRow('Piyasa Haberleri & Gündem',
-                _remoteConfig.isModuleActive('market_news')),
-
-            const SizedBox(height: 28),
 
             // 6. TEHLİKELİ BÖLGE: TÜM VERİLERİMİ SIFIRLA VE SİL
             const Text(
@@ -1068,120 +912,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSourceOptionTile({
-    required String sourceKey,
-    required String title,
-    required String subtitle,
-    required String badge,
-    required Color badgeColor,
-    required Color badgeTextColor,
-  }) {
-    final isSelected = _selectedDataSource == sourceKey;
-
-    return InkWell(
-      onTap: () => _changeDataSource(sourceKey),
-      borderRadius: BorderRadius.circular(18),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color:
-                isSelected ? AppColors.actionPrimary : const Color(0xFFE2E8F0),
-            width: isSelected ? 2 : 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Radio<String>(
-              value: sourceKey,
-              groupValue: _selectedDataSource,
-              activeColor: AppColors.actionPrimary,
-              onChanged: (val) {
-                if (val != null) _changeDataSource(val);
-              },
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          title,
-                          style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.textPrimary),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: badgeColor,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          badge,
-                          style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              color: badgeTextColor),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                        fontSize: 11,
-                        color: AppColors.textSecondary,
-                        height: 1.3),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildModuleStatusRow(String name, bool isActive) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(name,
-              style: const TextStyle(
-                  fontSize: 13,
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w700)),
-          PulseMetricBadge(
-            label: isActive ? 'CANLI' : 'BAKIM',
-            value: isActive ? 'AKTİF' : 'KAPALI',
-            pulseColor: isActive ? AppColors.incomeGreen : AppColors.expenseRed,
-            isPositive: isActive,
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildActionCard({
     required IconData icon,
     required Color iconColor,
@@ -1257,7 +987,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       final csvContent = _exportService.exportToCsv(txList);
       final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/ParaIz_Harcama_Raporu.csv');
+      final file = File('${tempDir.path}/FinScout_Harcama_Raporu.csv');
       await file.writeAsString(csvContent);
 
       if (!mounted) return;
@@ -1265,7 +995,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       await Share.shareXFiles(
         [XFile(file.path, mimeType: 'text/csv')],
-        text: 'Paraİz Harcama ve İşlem Raporu (Excel / CSV)',
+        text: 'FinScout Harcama ve İşlem Raporu (Excel / CSV)',
       );
     } catch (e) {
       if (mounted) {
@@ -1368,7 +1098,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Navigator.pop(ctx);
                     await Share.shareXFiles(
                       [XFile(filePath, mimeType: 'text/csv')],
-                      text: 'Paraİz Harcama ve İşlem Raporu (Excel / CSV)',
+                      text: 'FinScout Harcama ve İşlem Raporu (Excel / CSV)',
                     );
                   },
                   icon: const Icon(Icons.share_rounded, size: 18),
@@ -1507,8 +1237,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       final tempDir = await getTemporaryDirectory();
       final fileName = isEncrypted
-          ? 'ParaIz_Sistem_Yedegi.vault'
-          : 'ParaIz_Sistem_Yedegi.json';
+          ? 'FinScout_Sistem_Yedegi.vault'
+          : 'FinScout_Sistem_Yedegi.json';
       final file = File('${tempDir.path}/$fileName');
       await file.writeAsString(content);
 
@@ -1522,8 +1252,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   isEncrypted ? 'application/octet-stream' : 'application/json')
         ],
         text: isEncrypted
-            ? 'Paraİz AES-256 Şifreli Kasa Yedeği (.vault)'
-            : 'Paraİz Sistem Yedeği (JSON)',
+            ? 'FinScout AES-256 Şifreli Kasa Yedeği (.vault)'
+            : 'FinScout Sistem Yedeği (JSON)',
       );
     } catch (e) {
       if (mounted) {
@@ -1553,7 +1283,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
         content: const Text(
-          'Bu işlem telefonunuzdaki tüm hesapları, yüklenmiş PDF ekstrelerini, harcama kayıtlarını, hedefleri ve kişisel bilgilerinizi kalıcı olarak sıfırlayacaktır.\n\nBu işlem geri alınamaz. Devam etmek istiyor musunuz?',
+          'Bu işlem FinScout hesabını (ad, e-posta ve sunucudaki tüm kayıtlar) ve telefonundaki tüm hesapları, ekstreleri, harcama kayıtlarını, hedefleri ve kişisel bilgilerini kalıcı olarak siler.\n\nBu işlem geri alınamaz. Devam etmek istiyor musun?',
           style: TextStyle(fontSize: 13, height: 1.4),
         ),
         actions: [
@@ -1565,6 +1295,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(ctx);
+              // Önce sunucudaki hesap: başarısızsa cihaz verisi korunur, kullanıcı tekrar dener
+              try {
+                await AccountService.instance.deleteAccount();
+              } on AccountException catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      backgroundColor: AppColors.expenseRed,
+                      content: Text(e.message)));
+                }
+                return;
+              }
               await _repository.clearAllUserData();
               await UserProfileService.instance.resetAllUserData();
               await SecurityAuthService.instance.resetAll();

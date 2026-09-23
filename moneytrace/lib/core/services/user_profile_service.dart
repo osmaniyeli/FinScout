@@ -1,5 +1,6 @@
 // lib/core/services/user_profile_service.dart
 
+import 'account_service.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -42,22 +43,24 @@ class UserProfile {
   });
 
   Map<String, dynamic> toMap() => {
-    'id': id,
-    'name': name,
-    'email': email,
-    'currency': currency,
-    'monthlyBudgetCents': monthlyBudgetCents,
-    'joinedAt': joinedAt.toIso8601String(),
-  };
+        'id': id,
+        'name': name,
+        'email': email,
+        'currency': currency,
+        'monthlyBudgetCents': monthlyBudgetCents,
+        'joinedAt': joinedAt.toIso8601String(),
+      };
 
   factory UserProfile.fromMap(Map<String, dynamic> map) => UserProfile(
-    id: map['id'] ?? 'default_user',
-    name: map['name'] ?? '',
-    email: map['email'] ?? '',
-    currency: map['currency'] ?? 'TRY',
-    monthlyBudgetCents: map['monthlyBudgetCents'] ?? 0,
-    joinedAt: map['joinedAt'] != null ? DateTime.parse(map['joinedAt']) : DateTime.now(),
-  );
+        id: map['id'] ?? 'default_user',
+        name: map['name'] ?? '',
+        email: map['email'] ?? '',
+        currency: map['currency'] ?? 'TRY',
+        monthlyBudgetCents: map['monthlyBudgetCents'] ?? 0,
+        joinedAt: map['joinedAt'] != null
+            ? DateTime.parse(map['joinedAt'])
+            : DateTime.now(),
+      );
 }
 
 class InAppNotificationItem {
@@ -78,22 +81,24 @@ class InAppNotificationItem {
   });
 
   Map<String, dynamic> toMap() => {
-    'id': id,
-    'title': title,
-    'message': message,
-    'date': date.toIso8601String(),
-    'isRead': isRead,
-    'isDismissed': isDismissed,
-  };
+        'id': id,
+        'title': title,
+        'message': message,
+        'date': date.toIso8601String(),
+        'isRead': isRead,
+        'isDismissed': isDismissed,
+      };
 
-  factory InAppNotificationItem.fromMap(Map<String, dynamic> map) => InAppNotificationItem(
-    id: map['id'] ?? '',
-    title: map['title'] ?? '',
-    message: map['message'] ?? '',
-    date: map['date'] != null ? DateTime.parse(map['date']) : DateTime.now(),
-    isRead: map['isRead'] ?? false,
-    isDismissed: map['isDismissed'] ?? false,
-  );
+  factory InAppNotificationItem.fromMap(Map<String, dynamic> map) =>
+      InAppNotificationItem(
+        id: map['id'] ?? '',
+        title: map['title'] ?? '',
+        message: map['message'] ?? '',
+        date:
+            map['date'] != null ? DateTime.parse(map['date']) : DateTime.now(),
+        isRead: map['isRead'] ?? false,
+        isDismissed: map['isDismissed'] ?? false,
+      );
 }
 
 class UserProfileService {
@@ -106,13 +111,16 @@ class UserProfileService {
   final Map<String, Map<String, int>> _monthlyUploads = {};
   bool _isLoaded = false;
 
-  final ValueNotifier<UserProfile?> profileNotifier = ValueNotifier<UserProfile?>(null);
-  final ValueNotifier<List<InAppNotificationItem>> notificationsNotifier = ValueNotifier([]);
+  final ValueNotifier<UserProfile?> profileNotifier =
+      ValueNotifier<UserProfile?>(null);
+  final ValueNotifier<List<InAppNotificationItem>> notificationsNotifier =
+      ValueNotifier([]);
 
   UserProfile? get profile => _profile;
   bool get hasProfile => _profile != null && _profile!.name.trim().isNotEmpty;
 
-  List<InAppNotificationItem> get allNotifications => List.unmodifiable(_notifications);
+  List<InAppNotificationItem> get allNotifications =>
+      List.unmodifiable(_notifications);
 
   DocumentQuotaResult checkUploadQuota({required String documentTypeHint}) {
     final now = DateTime.now();
@@ -130,7 +138,8 @@ class UserProfileService {
       if (totalMonthUsed >= 1) {
         return DocumentQuotaResult(
           canUpload: false,
-          reason: 'Ücretsiz deneme kotanız (ayda 1 ekstre) dolmuştur. Kesintisiz yükleme için Premium plana geçebilirsiniz.',
+          reason:
+              'Ücretsiz deneme kotanız (ayda 1 ekstre) dolmuştur. Kesintisiz yükleme için Premium plana geçebilirsiniz.',
           usedThisMonth: totalMonthUsed,
           maxThisMonth: 1,
           planName: 'Ücretsiz Başlangıç',
@@ -150,7 +159,8 @@ class UserProfileService {
       if (totalMonthUsed >= maxLimit) {
         return DocumentQuotaResult(
           canUpload: false,
-          reason: 'Aile Paketi aylık yükleme kotanız ($maxLimit belge) dolmuştur.',
+          reason:
+              'Aile Paketi aylık yükleme kotanız ($maxLimit belge) dolmuştur.',
           usedThisMonth: totalMonthUsed,
           maxThisMonth: maxLimit,
           planName: 'Aile Paketi',
@@ -158,7 +168,8 @@ class UserProfileService {
       }
       return DocumentQuotaResult(
         canUpload: true,
-        reason: 'Aile Paketi kapsamında bu ay ${maxLimit - totalMonthUsed} belge yükleme hakkınız var.',
+        reason:
+            'Aile Paketi kapsamında bu ay ${maxLimit - totalMonthUsed} belge yükleme hakkınız var.',
         usedThisMonth: totalMonthUsed,
         maxThisMonth: maxLimit,
         planName: 'Aile Paketi',
@@ -180,7 +191,8 @@ class UserProfileService {
       }
       return DocumentQuotaResult(
         canUpload: true,
-        reason: 'Bireysel Yıllık planınızda bu ay ${maxLimit - totalMonthUsed} belge yükleme hakkınız var.',
+        reason:
+            'Bireysel Yıllık planınızda bu ay ${maxLimit - totalMonthUsed} belge yükleme hakkınız var.',
         usedThisMonth: totalMonthUsed,
         maxThisMonth: maxLimit,
         planName: 'Bireysel Yıllık Premium',
@@ -191,7 +203,8 @@ class UserProfileService {
         final typeName = _getDocTypeName(normalizedType);
         return DocumentQuotaResult(
           canUpload: false,
-          reason: 'Bireysel Aylık paketinizde bu ay 1 adet $typeName hakkınız dolmuştur. (Aylık kota: 1 bordro, 1 hesap ekstresi, 1 kredi kartı)',
+          reason:
+              'Bireysel Aylık paketinizde bu ay 1 adet $typeName hakkınız dolmuştur. (Aylık kota: 1 bordro, 1 hesap ekstresi, 1 kredi kartı)',
           usedThisMonth: totalMonthUsed,
           maxThisMonth: 3,
           planName: 'Bireysel Aylık Premium',
@@ -208,7 +221,8 @@ class UserProfileService {
       }
       return DocumentQuotaResult(
         canUpload: true,
-        reason: 'Bireysel Aylık planınızda bu ay ${3 - totalMonthUsed} belge hakkınız var.',
+        reason:
+            'Bireysel Aylık planınızda bu ay ${3 - totalMonthUsed} belge hakkınız var.',
         usedThisMonth: totalMonthUsed,
         maxThisMonth: 3,
         planName: 'Bireysel Aylık Premium',
@@ -252,14 +266,15 @@ class UserProfileService {
       if (await file.exists()) {
         final content = await file.readAsString();
         final data = jsonDecode(content) as Map<String, dynamic>;
-        
+
         if (data['profile'] != null) {
           _profile = UserProfile.fromMap(data['profile']);
           profileNotifier.value = _profile;
         }
 
         if (data['dismissed_nuances'] != null) {
-          _dismissedNuanceIds.addAll((data['dismissed_nuances'] as List).cast<String>());
+          _dismissedNuanceIds
+              .addAll((data['dismissed_nuances'] as List).cast<String>());
         }
 
         if (data['notifications'] != null) {
@@ -279,7 +294,8 @@ class UserProfileService {
           final uploadsMap = data['monthly_uploads'] as Map<String, dynamic>;
           uploadsMap.forEach((mKey, v) {
             if (v is Map) {
-              _monthlyUploads[mKey] = v.map((k, val) => MapEntry(k.toString(), (val as num).toInt()));
+              _monthlyUploads[mKey] = v.map(
+                  (k, val) => MapEntry(k.toString(), (val as num).toInt()));
             }
           });
         }
@@ -306,9 +322,10 @@ class UserProfileService {
     return _dismissedNuanceIds.contains(nuanceId);
   }
 
-  Future<void> dismissNuance(String nuanceId, {String? title, String? message}) async {
+  Future<void> dismissNuance(String nuanceId,
+      {String? title, String? message}) async {
     _dismissedNuanceIds.add(nuanceId);
-    
+
     // Bildirimler listesine arşiv olarak ekle
     if (title != null && message != null) {
       final existingIndex = _notifications.indexWhere((n) => n.id == nuanceId);
@@ -328,7 +345,7 @@ class UserProfileService {
       }
       notificationsNotifier.value = List.from(_notifications);
     }
-    
+
     await _persist();
   }
 
@@ -389,7 +406,8 @@ class UserProfileService {
       await addNotification(
         id: 'salary_reminder_$monthKey',
         title: 'Maaş Günü Hatırlatması',
-        message: 'Bugün beklenen maaş / hakediş gününüz. Hesabınızı kontrol ederek güncel bakiyenizi teyit edebilirsiniz.',
+        message:
+            'Bugün beklenen maaş / hakediş gününüz. Hesabınızı kontrol ederek güncel bakiyenizi teyit edebilirsiniz.',
       );
     }
 
@@ -398,7 +416,8 @@ class UserProfileService {
       await addNotification(
         id: 'statement_cutoff_${monthKey}_${now.day}',
         title: 'Kart Ekstresi & Ödeme Hatırlatması',
-        message: 'Kredi kartı hesap özetiniz oluşturuldu. Son ödeme tarihini kaçırmamak için borç ödemenizi kontrol edin.',
+        message:
+            'Kredi kartı hesap özetiniz oluşturuldu. Son ödeme tarihini kaçırmamak için borç ödemenizi kontrol edin.',
       );
     }
   }
@@ -411,15 +430,18 @@ class UserProfileService {
   }) async {
     if (targetPrice <= 0 || currentPrice < targetPrice) return;
     final now = DateTime.now();
-    final alertId = 'target_${assetId}_${targetPrice.toInt()}_${now.year}_${now.month}';
+    final alertId =
+        'target_${assetId}_${targetPrice.toInt()}_${now.year}_${now.month}';
     await addNotification(
       id: alertId,
       title: '🎯 Hedef Fiyata Ulaşıldı: $assetName',
-      message: '$assetName hedeflediğiniz ₺${targetPrice.toStringAsFixed(2)} seviyesine ulaştı (Güncel: ₺${currentPrice.toStringAsFixed(2)}). Portföyünüzü değerlendirebilirsiniz.',
+      message:
+          '$assetName hedeflediğiniz ₺${targetPrice.toStringAsFixed(2)} seviyesine ulaştı (Güncel: ₺${currentPrice.toStringAsFixed(2)}). Portföyünüzü değerlendirebilirsiniz.',
     );
   }
 
   Future<void> logOut() async {
+    await AccountService.instance.signOut();
     _profile = null;
     profileNotifier.value = null;
     await _persist();
@@ -442,7 +464,8 @@ class UserProfileService {
       debugPrint('Veritabanı sıfırlama hatası: $e');
     }
 
-    // 2. Yerel profili ve ayarları sıfırla
+    // 2. Hesap oturumunu kapat, yerel profili ve ayarları sıfırla
+    await AccountService.instance.signOut();
     _profile = null;
     _dismissedNuanceIds.clear();
     _notifications.clear();

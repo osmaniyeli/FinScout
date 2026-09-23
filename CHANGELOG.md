@@ -1,8 +1,34 @@
 # Değişiklik Günlüğü (Changelog)
 
-Paraİz (MoneyTrace) projesindeki tüm önemli değişiklikler, yeni özellikler, güvenlik sertleştirmeleri ve hata düzeltmeleri bu dosyada belgelenmektedir.
+FinScout projesindeki (eski adlarıyla Paraİz / MoneyTrace) tüm önemli değişiklikler, yeni özellikler, güvenlik sertleştirmeleri ve hata düzeltmeleri bu dosyada belgelenmektedir.
 
 Format, [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) standardına dayanmaktadır ve bu proje [Semantic Versioning](https://semver.org/lang/tr/) (SemVer) kurallarına uyar.
+
+---
+
+## [3.6.1] - Yayınlanmadı
+
+Test kullanıcısı geri bildirimleri (Surumler/GERI_BILDIRIM_v3.6.0.md) uygulandı. İlke: ekranda görünen her şey gerçek veriyle çalışır, örnek/uydurma değer gösterilmez.
+
+### 🐞 Düzeltmeler
+- PDF seçici açılmıyordu: ücretsiz plan kotası doluyken artık net mesaj ve "Planları Gör" çıkıyor; ekstre ekranında tek dosya seçici kaldı.
+- Premium tek tıkla alınmış görünüyordu: ödeme butonu yalnızca Google Play onayından sonra başarı gösteriyor.
+- Gram/çeyrek altın fiyatları yanlıştı: güncel serbest piyasa verisi; bağlantı yoksa son gerçek değer ve saati, hiç yoksa "—".
+- Kart borcu tutarları "₺" içeren metinden 0 okunuyordu (CurrencyNormalizer).
+
+### 🧹 Kaldırılanlar
+- Yüz tanıma (yalnızca parmak izi + PIN), sesli giriş ve mikrofon izni, ekran görüntüsü engeli.
+- TCMB veri kaynağı seçimi ve sahte yedek haberler; "Sistem sağlığı" bölümü; dekont indirme.
+- Ana sayfadaki sabit kapsül/banner'lar, seri modalı ve NET FARK rozeti; İzci notu Bildirimler'e taşındı.
+- Onboarding'de banka ve bütçe seçimi; kayıtta oluşturulan örnek hesap ve PIN girişindeki örnek profil.
+
+### ✨ Yenilikler
+- **Cüzdan** (eski Kasa projeksiyonu): son 3/6/12 ayın gerçek gelir-gideri, süren taksitler, kategori değişimine dayalı İzci notu.
+- **Vergi** sekmesi: bordrodan kesilen gelir vergisi/damga/SGK/işsizlik, ekstrelerdeki BSMV/KKDF/MTV ve kategori oranlarıyla tahmini KDV.
+- **Bordro dökümü**: brüt → kesintiler → net, oranlarıyla.
+- **Varlıklar**: altın/döviz/nakit, konut, araç ve kartlar cihazda kalıcı; kart borcu ve son ödeme tarihi son ekstreden; manuel kart (banka + limit) aynı bankanın ekstresi gelince otomatik eşleşir.
+- **Araçlar**: marka/model listeden, km alanı, 6 ayda bir "değer ve km güncelle" hatırlatması.
+- Hızlı girişte Birikim modu; hedef tutarlarında binlik ayraç; motivasyon cümlelerinde marka/model yok.
 
 ---
 

@@ -20,11 +20,11 @@ class AppStrings {
 
   static final Map<String, Map<String, String>> _localizedValues = {
     'tr': {
-      'app_name': 'Paraİz',
+      'app_name': 'FinScout',
       'tagline': 'Harcama Zekası ve Deterministik Finans Motoru',
       // Nav
       'nav_home': 'Ana Sayfa',
-      'nav_cashflow': 'Nakit Akışı',
+      'nav_cashflow': 'Cüzdan',
       'nav_analysis': 'Analiz',
       'nav_goals': 'Hedefler',
       'nav_assets': 'Varlıklar',
@@ -73,7 +73,6 @@ class AppStrings {
       // Settings
       'settings_title': 'Ayarlar',
       'language_option': 'Dil Seçeneği',
-      'market_data_source': 'Piyasa Veri Kaynağı',
       'data_management': 'Veri Yönetimi',
       'export_excel': 'Excel Olarak Dışa Aktar (.csv)',
       'export_backup': 'Sistem Yedeği Al (.json)',
@@ -86,7 +85,7 @@ class AppStrings {
       'cancel': 'İptal',
       'save': 'Kaydet',
       // Onboarding
-      'onboarding_welcome_title': 'Paraİz\'e Hoş Geldiniz',
+      'onboarding_welcome_title': 'FinScout\'a Hoş Geldiniz',
       'onboarding_welcome_subtitle': 'Hesaplar arasında gezinmekten sıkılmadın mı?\nTek bir uygulama ile tüm hesaplarını takip et, borçlarını, maaşını ve ek gelirlerini tek hesapta yönet.',
       'marketing_motto': 'Hesaplar arasında gezinmekten sıkılmadın mı? Tek bir uygulama ile tüm hesaplarını takip et, borçlarını, maaşını ve ek gelirlerini tek hesapta takip et.',
       'enter_your_name': 'Adınız ve Soyadınız',
@@ -94,11 +93,11 @@ class AppStrings {
       'start_app_btn': 'Hesabımı Oluştur & Başla',
     },
     'en': {
-      'app_name': 'Paraİz',
+      'app_name': 'FinScout',
       'tagline': 'Expense Intelligence & Deterministic Finance Engine',
       // Nav
       'nav_home': 'Home',
-      'nav_cashflow': 'Cash Flow',
+      'nav_cashflow': 'Wallet',
       'nav_analysis': 'Analytics',
       'nav_goals': 'Goals',
       'nav_assets': 'Assets',
@@ -147,7 +146,6 @@ class AppStrings {
       // Settings
       'settings_title': 'Settings',
       'language_option': 'Language',
-      'market_data_source': 'Market Data Source',
       'data_management': 'Data Management',
       'export_excel': 'Export as Excel (.csv)',
       'export_backup': 'Backup System (.json)',
@@ -160,7 +158,7 @@ class AppStrings {
       'cancel': 'Cancel',
       'save': 'Save',
       // Onboarding
-      'onboarding_welcome_title': 'Welcome to Paraİz',
+      'onboarding_welcome_title': 'Welcome to FinScout',
       'onboarding_welcome_subtitle': 'Tired of switching between bank apps?\nTrack all your cards, debts, salary, and extra income in one place.',
       'marketing_motto': 'Tired of switching between bank apps? Track all your accounts, debts, salary, and extra income in a single app.',
       'enter_your_name': 'Your Full Name',

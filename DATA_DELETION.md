@@ -1,62 +1,61 @@
-# Paraİz (MoneyTrace) - Hesap ve Veri Silme Politikası (Account & Data Deletion Policy)
+# FinScout - Hesap ve Veri Silme Politikası (Account & Data Deletion Policy)
 
-**Son Güncelleme / Last Updated:** 22 Eylül 2026  
-**Uygulama Adı / App Name:** Paraİz (MoneyTrace)  
+**Son Güncelleme / Last Updated:** 23 Eylül 2026  
+**Uygulama Adı / App Name:** FinScout  
 **Geliştirici / Developer:** osmaniyeli  
 
 ---
 
 ## Türkçe
 
-### 1. Sıfır Bilgi ve Yerel Mimari Bilgilendirmesi
-Paraİz (MoneyTrace), **Zero-Knowledge (Sıfır Bilgi)** mimarisiyle çalışır. Uygulamamız kullanıcıların kişisel veya finansal verilerini harici bir bulut sunucusunda saklamaz. Tüm verileriniz (hesaplar, işlemler, ekstreler, bütçeler ve kategoriler) **yalnızca kendi cihazınızdaki şifrelenmiş yerel SQLite veritabanında** depolanır.
+### 1. Hangi veriler nerede tutulur?
+- **Hesap bilgileri (sunucuda):** Adın ve e-posta adresin, giriş yapabilmen için FinScout hesabında tutulur. Hesap altyapısı Supabase üzerindedir ve veriler Avrupa Birliği'nde (Frankfurt) saklanır.
+- **Finansal veriler (yalnızca cihazında):** Ekstreler, harcamalar, kartlar, bordrolar, hedefler ve varlıklar yalnızca telefonundaki uygulama veritabanında durur; sunucuya gönderilmez.
 
-### 2. Uygulama İçinden Veri ve Hesap Silme Adımları
-Kullanıcılar tüm verilerini ve yerel profil hesaplarını diledikleri zaman kalıcı olarak silebilirler:
-1. **Paraİz** uygulamasını açın.
-2. Sağ alt köşedeki menüden veya çekmeceden **Ayarlar (Settings)** sekmesine gidin.
-3. **Güvenlik ve Veri Yönetimi** bölümüne kaydırın.
-4. **"Tüm Verilerimi ve Hesabımı Kalıcı Olarak Sil"** (veya **"Veritabanını Sıfırla"**) butonuna dokunun.
-5. Açılan onay iletişim kutusunda silme işlemini onaylayın.
-6. Bu işlem sonucunda:
-   - Tüm harcama, gelir ve bütçe hareketleri,
-   - Tanımlı tüm hesap ve kart bilgileri,
-   - Şifrelenmiş yerel veri tabanı tabloları ve önbellek,
-   - Biyometrik ve PIN kimlik doğrulama anahtarları  
-   **geri döndürülemez biçimde derhal ve kalıcı olarak yok edilir.**
+### 2. Uygulama içinden hesabı ve verileri silme
+1. **FinScout** uygulamasını aç.
+2. **Ayarlar** ekranına git ve en alta kaydır.
+3. **"Tüm Verilerimi Sıfırla ve Hesabı Sil"** butonuna dokun ve onayla.
 
-### 3. Uygulamayı Kaldırarak Silme
-Cihazınızda hiçbir uzak sunucu eşitlemesi bulunmadığından, Paraİz uygulamasını cihazınızdan kaldırmanız durumunda tüm yerel veriler işletim sistemi tarafından anında ve kalıcı olarak temizlenir.
+Bu işlem:
+- FinScout hesabını ve sunucudaki tüm kayıtlarını (ad, e-posta, cihaz ve yedek kayıtları) **kalıcı olarak siler**,
+- ardından telefonundaki tüm harcama, ekstre, kart, hedef ve profil verilerini ve PIN / parmak izi ayarlarını siler.
 
-### 4. Uzaktan Talep veya Destek
-Hesap veya veri silme süreçleriyle ilgili herhangi bir sorunuz ya da manuel destek talebiniz için:
-- **E-posta:** support@paraiz.app
-- **GitHub Issue:** [https://github.com/osmaniyeli/Moneytrace/issues](https://github.com/osmaniyeli/Moneytrace/issues)
+İşlem geri alınamaz. İnternet bağlantısı yoksa hesap silinemez; bu durumda cihazdaki veriler de silinmez ve işlemi tekrar deneyebilirsin.
+
+### 3. Uygulamayı kaldırmak
+Uygulamayı kaldırmak telefondaki verileri siler, ancak **sunucudaki FinScout hesabını silmez.** Hesabını da silmek için önce 2. adımı uygula ya da aşağıdaki adrese yaz.
+
+### 4. Uygulamaya erişemiyorsan: e-posta ile silme talebi
+Hesabının kayıtlı olduğu e-posta adresinden **pulcratechnology@gmail.com** adresine "Hesap silme talebi" konulu bir e-posta gönder. Hesabın ve sunucudaki tüm kayıtların en geç **30 gün** içinde silinir ve sana e-postayla bilgi verilir.
+
+- **Destek:** pulcratechnology@gmail.com
+- **GitHub:** [https://github.com/osmaniyeli/FinScout/issues](https://github.com/osmaniyeli/FinScout/issues)
 
 ---
 
 ## English
 
-### 1. Zero-Knowledge & Local-Only Architecture
-Paraİz (MoneyTrace) is built on a strict **Zero-Knowledge Architecture**. We do not store, synchronize, or transmit your personal or financial records to any remote server or third-party cloud database. All your data resides exclusively within an encrypted SQLite database on your local device.
+### 1. What is stored where?
+- **Account details (server):** Your name and email address are kept in your FinScout account so you can sign in. The account backend runs on Supabase, with data stored in the European Union (Frankfurt).
+- **Financial data (device only):** Statements, expenses, cards, payslips, goals and assets stay only in the app database on your phone and are never sent to a server.
 
-### 2. How to Delete Your Account and Data Within the App
-You can permanently delete your local account and all associated financial data at any time:
-1. Open the **Paraİz (MoneyTrace)** app.
-2. Navigate to **Settings** from the bottom bar or drawer.
-3. Scroll down to the **Security & Data Management** section.
-4. Tap on **"Delete All Data & Account Permanently"** (or **"Reset Database"**).
-5. Confirm the action in the prompt.
-6. The app will immediately and irreversibly erase:
-   - All income, expense, and budget transactions,
-   - All configured bank and card profiles,
-   - The encrypted SQLite database file and local caches,
-   - Biometric and PIN authentication keys.
+### 2. Delete your account and data in the app
+1. Open the **FinScout** app.
+2. Go to **Settings** and scroll to the bottom.
+3. Tap **"Tüm Verilerimi Sıfırla ve Hesabı Sil"** (Reset all data and delete account) and confirm.
 
-### 3. Deletion via App Uninstallation
-Because no data is hosted on external servers, uninstalling the Paraİz app from your Android device immediately purges 100% of your data.
+This:
+- **permanently deletes** your FinScout account and all of its server records (name, email, device and backup records),
+- then deletes all expenses, statements, cards, goals and profile data on your phone, along with your PIN and fingerprint settings.
 
-### 4. Contact & Manual Deletion Requests
-For any inquiries regarding data deletion or privacy practices, you may reach out directly:
-- **Email:** support@paraiz.app
-- **GitHub Repository:** [https://github.com/osmaniyeli/Moneytrace](https://github.com/osmaniyeli/Moneytrace)
+This cannot be undone. Without an internet connection the account cannot be deleted; in that case the data on your phone is kept and you can try again.
+
+### 3. Uninstalling the app
+Uninstalling removes the data on your phone but **does not delete your FinScout account on the server.** To delete the account as well, follow step 2 first or email us.
+
+### 4. Can't access the app? Request deletion by email
+Send an email with the subject "Account deletion request" to **pulcratechnology@gmail.com** from the address registered to your account. Your account and all server records will be deleted within **30 days**, and we will confirm by email.
+
+- **Support:** pulcratechnology@gmail.com
+- **GitHub:** [https://github.com/osmaniyeli/FinScout/issues](https://github.com/osmaniyeli/FinScout/issues)

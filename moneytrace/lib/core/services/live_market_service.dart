@@ -3,9 +3,10 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
 
 class MarketTicker {
-  final String symbol; // USD, EUR, ALTIN_GR, CEYREK, BTC
+  final String symbol; // USD, EUR, ALTIN_GR, CEYREK
   final String name; // ABD Doları, Euro, Gram Altın, Çeyrek Altın
   final double buyingPrice;
   final double sellingPrice;
@@ -22,132 +23,125 @@ class MarketTicker {
   });
 
   String get formattedPrice {
-    if (symbol == 'BTC') {
-      return '₺${sellingPrice.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}';
-    }
-    return '₺${sellingPrice.toStringAsFixed(2).replaceAll('.', ',')}';
+    final fixed = sellingPrice.toStringAsFixed(2).split('.');
+    final whole = fixed[0].replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.');
+    return '₺$whole,${fixed[1]}';
   }
+
+  Map<String, dynamic> toMap() => {
+        'symbol': symbol,
+        'name': name,
+        'buying': buyingPrice,
+        'selling': sellingPrice,
+        'change': changeRate,
+        'updated': lastUpdated.toIso8601String(),
+      };
+
+  static MarketTicker fromMap(Map<String, dynamic> m) => MarketTicker(
+        symbol: m['symbol'] as String,
+        name: m['name'] as String,
+        buyingPrice: (m['buying'] as num).toDouble(),
+        sellingPrice: (m['selling'] as num).toDouble(),
+        changeRate: (m['change'] as num).toDouble(),
+        lastUpdated: DateTime.parse(m['updated'] as String),
+      );
 }
 
+/// Herkese açık serbest piyasa kurları (finans.truncgil.com). Kullanıcı verisi gönderilmez.
+///
+/// Sahte / sabit fiyat yoktur: son başarılı gerçek değerler zaman damgasıyla cihaza yazılır;
+/// ağ yoksa onlar gösterilir, hiç veri yoksa ilgili sembol haritada bulunmaz (ekran "—" gösterir).
 class LiveMarketService {
   static final LiveMarketService instance = LiveMarketService._internal();
   LiveMarketService._internal();
 
-  // Son başarılı önbellek (Offline koruması)
-  final Map<String, MarketTicker> _cachedTickers = {
-    'USD': MarketTicker(
-      symbol: 'USD',
-      name: 'Amerikan Doları',
-      buyingPrice: 34.20,
-      sellingPrice: 34.28,
-      changeRate: 0.15,
-      lastUpdated: DateTime.now(),
-    ),
-    'EUR': MarketTicker(
-      symbol: 'EUR',
-      name: 'Euro',
-      buyingPrice: 37.15,
-      sellingPrice: 37.26,
-      changeRate: -0.08,
-      lastUpdated: DateTime.now(),
-    ),
-    'ALTIN_GR': MarketTicker(
-      symbol: 'ALTIN_GR',
-      name: 'Gram Altın (Kapalıçarşı)',
-      buyingPrice: 3020.0,
-      sellingPrice: 3045.50,
-      changeRate: 0.42,
-      lastUpdated: DateTime.now(),
-    ),
-    'CEYREK': MarketTicker(
-      symbol: 'CEYREK',
-      name: 'Çeyrek Altın',
-      buyingPrice: 4950.0,
-      sellingPrice: 5010.0,
-      changeRate: 0.38,
-      lastUpdated: DateTime.now(),
-    ),
+  static final Uri _endpoint = Uri.parse('https://finans.truncgil.com/v4/today.json');
+
+  /// Uygulamadaki sembol → API anahtarı ve görünen ad
+  static const Map<String, (String, String)> _symbols = {
+    'USD': ('USD', 'Amerikan Doları'),
+    'EUR': ('EUR', 'Euro'),
+    'ALTIN_GR': ('GRA', 'Gram Altın'),
+    'CEYREK': ('CEYREKALTIN', 'Çeyrek Altın'),
   };
 
-  /// Canlı kur çekimi: Serbest Piyasa & TCMB açık veri uç noktası (Dart stdlib HttpClient ile sıfır bağımlılık)
-  Future<Map<String, MarketTicker>> fetchLiveRates() async {
-    final client = HttpClient();
-    client.connectionTimeout = const Duration(seconds: 4);
+  final Map<String, MarketTicker> _tickers = {};
+  bool _cacheLoaded = false;
 
+  Future<File> _cacheFile() async {
+    final dir = await getApplicationDocumentsDirectory();
+    return File('${dir.path}/paraiz_market_cache.json');
+  }
+
+  Future<void> _loadCache() async {
+    if (_cacheLoaded) return;
+    _cacheLoaded = true;
     try {
-      final request = await client.getUrl(Uri.parse('https://finans.truncgil.com/v4/today.json'));
-      final response = await request.close();
-
-      if (response.statusCode == 200) {
-        final responseBody = await response.transform(utf8.decoder).join();
-        final Map<String, dynamic> data = jsonDecode(responseBody);
-        final now = DateTime.now();
-
-        // USD
-        if (data.containsKey('USD')) {
-          final usd = data['USD'];
-          _cachedTickers['USD'] = MarketTicker(
-            symbol: 'USD',
-            name: 'Amerikan Doları',
-            buyingPrice: _parseDouble(usd['Buying']),
-            sellingPrice: _parseDouble(usd['Selling']),
-            changeRate: _parseDouble(usd['ChangeRate']),
-            lastUpdated: now,
-          );
-        }
-
-        // EUR
-        if (data.containsKey('EUR')) {
-          final eur = data['EUR'];
-          _cachedTickers['EUR'] = MarketTicker(
-            symbol: 'EUR',
-            name: 'Euro',
-            buyingPrice: _parseDouble(eur['Buying']),
-            sellingPrice: _parseDouble(eur['Selling']),
-            changeRate: _parseDouble(eur['ChangeRate']),
-            lastUpdated: now,
-          );
-        }
-
-        // Gram Altın
-        if (data.containsKey('gram-altin')) {
-          final gr = data['gram-altin'];
-          _cachedTickers['ALTIN_GR'] = MarketTicker(
-            symbol: 'ALTIN_GR',
-            name: 'Gram Altın',
-            buyingPrice: _parseDouble(gr['Buying']),
-            sellingPrice: _parseDouble(gr['Selling']),
-            changeRate: _parseDouble(gr['ChangeRate']),
-            lastUpdated: now,
-          );
-        }
-
-        // Çeyrek Altın
-        if (data.containsKey('ceyrek-altin')) {
-          final cy = data['ceyrek-altin'];
-          _cachedTickers['CEYREK'] = MarketTicker(
-            symbol: 'CEYREK',
-            name: 'Çeyrek Altın',
-            buyingPrice: _parseDouble(cy['Buying']),
-            sellingPrice: _parseDouble(cy['Selling']),
-            changeRate: _parseDouble(cy['ChangeRate']),
-            lastUpdated: now,
-          );
-        }
+      final file = await _cacheFile();
+      if (!await file.exists()) return;
+      final list = jsonDecode(await file.readAsString()) as List<dynamic>;
+      for (final item in list) {
+        final t = MarketTicker.fromMap(Map<String, dynamic>.from(item as Map));
+        _tickers[t.symbol] = t;
       }
     } catch (e) {
-      debugPrint('Canlı kur çekilemedi, yerel önbellek kullanılıyor: $e');
+      debugPrint('Kur önbelleği okunamadı: $e');
+    }
+  }
+
+  Future<void> _saveCache() async {
+    try {
+      final file = await _cacheFile();
+      await file.writeAsString(jsonEncode(_tickers.values.map((t) => t.toMap()).toList()));
+    } catch (_) {}
+  }
+
+  /// Güncel kurları çeker; başarısız olursa son bilinen gerçek değerleri döndürür.
+  Future<Map<String, MarketTicker>> fetchLiveRates() async {
+    await _loadCache();
+    final client = HttpClient()..connectionTimeout = const Duration(seconds: 6);
+
+    try {
+      final request = await client.getUrl(_endpoint);
+      final response = await request.close();
+      if (response.statusCode == 200) {
+        final body = await response.transform(utf8.decoder).join();
+        final data = jsonDecode(body) as Map<String, dynamic>;
+        final now = DateTime.now();
+        var updated = false;
+
+        for (final entry in _symbols.entries) {
+          final raw = data[entry.value.$1];
+          if (raw is! Map) continue;
+          final selling = _parseDouble(raw['Selling']);
+          if (selling <= 0) continue;
+          _tickers[entry.key] = MarketTicker(
+            symbol: entry.key,
+            name: entry.value.$2,
+            buyingPrice: _parseDouble(raw['Buying']),
+            sellingPrice: selling,
+            changeRate: _parseDouble(raw['Change'] ?? raw['ChangeRate']),
+            lastUpdated: now,
+          );
+          updated = true;
+        }
+        if (updated) await _saveCache();
+      }
+    } catch (e) {
+      debugPrint('Canlı kur çekilemedi, son bilinen değerler kullanılıyor: $e');
     } finally {
       client.close();
     }
 
-    return _cachedTickers;
+    return Map.unmodifiable(_tickers);
   }
 
   double _parseDouble(dynamic val) {
     if (val == null) return 0.0;
     if (val is num) return val.toDouble();
-    final str = val.toString().replaceAll('%', '').replaceAll(',', '.').trim();
+    var str = val.toString().replaceAll('%', '').trim();
+    // "1.234,56" (TR) ya da "1234.56"
+    if (str.contains(',')) str = str.replaceAll('.', '').replaceAll(',', '.');
     return double.tryParse(str) ?? 0.0;
   }
 }

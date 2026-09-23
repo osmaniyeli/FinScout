@@ -10,9 +10,8 @@ import '../../../core/widgets/morphing_segmented_bar.dart';
 import '../../../core/widgets/pulse_metric_badge.dart';
 import '../../../core/widgets/fintech/fintech_components.dart';
 import '../../../core/database/repositories/transaction_repository.dart';
-import '../../../core/config/remote_config_service.dart';
 import '../../statement_upload/presentation/statement_upload_sheet.dart';
-// DynamicIslandCapsule: Nüanslar sadece Dashboard ekranında tutuldu, diğer ekranlardan kaldırıldı (Geri Bildirim 5)
+import '../../tax_analytics/services/tax_analysis_service.dart';
 
 class AnalysisScreen extends StatefulWidget {
   const AnalysisScreen({Key? key}) : super(key: key);
@@ -23,12 +22,12 @@ class AnalysisScreen extends StatefulWidget {
 
 class _AnalysisScreenState extends State<AnalysisScreen> {
   final TransactionRepository _repository = TransactionRepository();
-  int _selectedTabIndex = 0; // 0: Dağılım, 1: Aylık, 2: KDV
+  int _selectedTabIndex = 0; // 0: Dağılım, 1: Aylık, 2: Vergi
   bool _isLoading = false;
 
   List<Map<String, dynamic>> _categoryShares = [];
   List<Map<String, dynamic>> _monthlyTrends = [];
-  Map<String, dynamic> _vatSummary = {};
+  TaxAnalysis? _tax;
   int _grandTotalCents = 0;
 
   @override
@@ -53,7 +52,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     try {
       final rawCategories = await _repository.getCategorySpendingAnalysis();
       final trends = await _repository.getMonthlyTrendsAnalysis();
-      final vat = await _repository.getVatAndTaxSummary();
+      final tax = await TaxAnalysisService().load();
 
       int total = 0;
       final parsedCats = rawCategories.map((c) {
@@ -72,7 +71,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
         setState(() {
           _categoryShares = parsedCats;
           _monthlyTrends = trends;
-          _vatSummary = vat;
+          _tax = tax;
           _grandTotalCents = total;
           _isLoading = false;
         });
@@ -112,7 +111,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
         children: [
           // Video & Shakuro Micro-Interaction: Morflayan Kayan Segment Bar
           MorphingSegmentedBar(
-            segments: const ['Dağılım', 'Aylık Trend', 'KDV & Fatura'],
+            segments: const ['Dağılım', 'Aylık Trend', 'Vergi'],
             selectedIndex: _selectedTabIndex,
             onSelected: (index) {
               setState(() => _selectedTabIndex = index);
@@ -548,7 +547,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
   Future<void> _shareTaxAndExpenseReport() async {
     try {
       final buffer = StringBuffer();
-      buffer.writeln('PARAIZ (MONEYTRACE) HARCAMA VE KDV ANALİZ RAPORU');
+      buffer.writeln('FINSCOUT HARCAMA VE KDV ANALİZ RAPORU');
       buffer.writeln('Tarih: ${DateTime.now().toLocal()}');
       buffer.writeln('--------------------------------------------------');
       buffer.writeln(
@@ -560,21 +559,21 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
             '- ${cat['name']}: ${cat['amount']} (%${cat['percentage']})');
       }
       buffer.writeln('');
-      buffer.writeln('KDV VE VERGİ DETAYI:');
-      final vat = (_vatSummary['vat_cents'] as int? ?? 0);
-      final oiv = (_vatSummary['communication_tax_cents'] as int? ?? 0);
-      final bsmv = (_vatSummary['banking_insurance_tax_cents'] as int? ?? 0);
-      buffer.writeln(
-          '- KDV (Katma Değer Vergisi): ${CurrencyNormalizer.formatCents(vat)}');
-      buffer.writeln(
-          '- ÖİV (Özel İletişim Vergisi): ${CurrencyNormalizer.formatCents(oiv)}');
-      buffer.writeln(
-          '- BSMV (Banka/Sigorta Vergisi): ${CurrencyNormalizer.formatCents(bsmv)}');
-      buffer.writeln(
-          'Toplam Vergi Yükü: ${CurrencyNormalizer.formatCents(vat + oiv + bsmv)}');
+      final tax = _tax;
+      if (tax != null && !tax.isEmpty) {
+        buffer.writeln('ÖDENEN VERGİLER (son 12 ay):');
+        for (final e in {...tax.payrollTaxes, ...tax.bankTaxes}.entries) {
+          buffer.writeln(
+              '- ${e.key}: ${CurrencyNormalizer.formatCents(e.value)}');
+        }
+        buffer.writeln(
+            '- Alışverişlerdeki tahmini KDV: ${CurrencyNormalizer.formatCents(tax.vatTotal)}');
+        buffer.writeln(
+            'Toplam: ${CurrencyNormalizer.formatCents(tax.grandTotal)} (KDV kategori oranlarıyla tahminidir)');
+      }
       buffer.writeln('--------------------------------------------------');
       buffer.writeln(
-          '%100 Sıfır-Bilgi & Cihaz İçi Kriptolu • Paraİz Harcama Zekası');
+          '%100 Sıfır-Bilgi & Cihaz İçi Kriptolu • FinScout Harcama Zekası');
 
       final tempDir = await getTemporaryDirectory();
       final file =
@@ -583,7 +582,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
 
       await Share.shareXFiles(
         [XFile(file.path, mimeType: 'text/plain')],
-        text: 'Paraİz Harcama Dağılımı ve KDV Analiz Raporu',
+        text: 'FinScout Harcama Dağılımı ve KDV Analiz Raporu',
       );
     } catch (e) {
       if (mounted) {
@@ -768,233 +767,279 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-
-    final int vatCents = (_vatSummary['vat_cents'] as int?) ?? 0;
-    final int deductibleCents = (_vatSummary['deductible_cents'] as int?) ?? 0;
-    final int incomeTaxCents = (_vatSummary['income_tax_cents'] as int?) ?? 0;
-    final int sgkCents = (_vatSummary['sgk_cents'] as int?) ?? 0;
-    final int totalTaxCents = (_vatSummary['total_tax_cents'] as int?) ?? 0;
-
-    if (totalTaxCents == 0 && deductibleCents == 0 && vatCents == 0) {
+    final tax = _tax;
+    if (tax == null || tax.isEmpty) {
       return _buildEmptyState(
         icon: Icons.receipt_long_rounded,
-        title: 'KDV & Fatura Verisi Bulunmuyor',
+        title: 'Vergi Verisi Bulunmuyor',
         message:
-            'İçe aktarılan ekstrelerdeki KDV iadeleri ve vergiden düşülebilir harcama kalemleri burada otomatik olarak derlenir.',
+            'Maaş bordronu ve kart/hesap ekstrelerini yükledikçe ödediğin gelir vergisi, SGK, BSMV, KKDF ve alışverişlerindeki tahmini KDV burada türüne göre ayrışır.',
       );
     }
+
+    final byRate = tax.vatByRate.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+    final rateColors = <double, Color>{
+      0.01: Color(0xFF10B981),
+      0.08: Color(0xFF14B8A6),
+      0.10: Color(0xFF3B82F6),
+      0.20: Color(0xFF8B5CF6),
+    };
+    String pct(double r) => '%${(r * 100).round()}';
 
     return SingleChildScrollView(
       padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 84),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Devreden / Toplam KDV Kartı
           FinanceCard(
             padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'TOPLAM / DEVREDEN KDV',
-                      style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textSecondary,
-                          letterSpacing: 0.5),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFECFDF5),
-                        borderRadius: BorderRadius.circular(AppRadius.pill),
-                      ),
-                      child: const Text(
-                        'Vergi Analitiği',
-                        style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.incomeGreen),
-                      ),
-                    ),
-                  ],
+                const Text(
+                  'SON 12 AYDA ÖDEDİĞİN VERGİLER',
+                  style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textSecondary,
+                      letterSpacing: 0.5),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  CurrencyNormalizer.formatCents(vatCents),
+                  CurrencyNormalizer.formatCents(tax.grandTotal),
                   style: const TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.w900,
-                    color: AppColors.incomeGreen,
+                    color: AppColors.textPrimary,
                     letterSpacing: -0.5,
                   ),
                 ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Banka kayıtlarından hesaplanan toplam KDV tutarı',
-                  style:
-                      TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                ),
-                const SizedBox(height: 10),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.info_outline_rounded,
-                          size: 14, color: AppColors.textSecondary),
-                      SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          '* Sektör ve harcama kategorilerine göre tahmini KDV oranları (%1, %10, %20) esas alınarak hesaplanmıştır.',
-                          style: TextStyle(
-                              fontSize: 11,
-                              fontStyle: FontStyle.italic,
-                              color: AppColors.textSecondary),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                const SizedBox(height: 14),
+                _buildVatRow('Bordro kesintileri',
+                    CurrencyNormalizer.formatCents(tax.payrollTotal)),
+                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                _buildVatRow('Banka vergileri (BSMV, KKDF, MTV…)',
+                    CurrencyNormalizer.formatCents(tax.bankTotal)),
+                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                _buildVatRow('Alışverişlerde tahmini KDV',
+                    '~${CurrencyNormalizer.formatCents(tax.vatTotal)}'),
               ],
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 20),
+          if (tax.payrollTaxes.isNotEmpty) ...[
+            _sectionTitle('Bordrodan Kesilenler'),
+            FinanceCard(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Column(
+                children: [
+                  for (final e in tax.payrollTaxes.entries)
+                    _buildVatRow(
+                        e.key, CurrencyNormalizer.formatCents(e.value)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+          ],
+          if (tax.bankTaxes.isNotEmpty) ...[
+            _sectionTitle('Ekstrelerdeki Vergiler'),
+            FinanceCard(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Column(
+                children: [
+                  for (final e in tax.bankTaxes.entries)
+                    _buildVatRow(
+                        e.key, CurrencyNormalizer.formatCents(e.value)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+          ],
+          if (tax.vat.isNotEmpty) ...[
+            _sectionTitle('Alışverişlerdeki Tahmini KDV'),
+            FinanceCard(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final e in byRate) ...[
+                    _buildVatRateItem(
+                        e.key == 0.08 ? '~%8' : '${pct(e.key)} KDV',
+                        '${CurrencyNormalizer.formatCents(e.value.$1)} harcama',
+                        e.value.$2,
+                        rateColors[e.key] ?? const Color(0xFF64748B)),
+                    const Divider(height: 16, color: Color(0xFFF1F5F9)),
+                  ],
+                  for (final v in tax.vat)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 5),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(v.categoryName,
+                                style: const TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textPrimary)),
+                          ),
+                          Text('${v.approximate ? '~' : ''}${pct(v.rate)}  ',
+                              style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary)),
+                          Text(CurrencyNormalizer.formatCents(v.vatCents),
+                              style: const TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textPrimary)),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Fişteki KDV değil; harcama kategorisine göre yürürlükteki oranla hesaplanan tahmindir. '
+                    '"~" karma oranlı kategoriler (ör. market: gıda %1–10, temizlik %20). Akaryakıt ÖTV\'si ve iletişimdeki ÖİV dahil değildir.',
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontStyle: FontStyle.italic,
+                        color: AppColors.textSecondary,
+                        height: 1.4),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+          ],
+          if (tax.payslips.isNotEmpty) ...[
+            _sectionTitle('Bordro Dökümü'),
+            for (final p in tax.payslips) _buildPayslipCard(p),
+          ],
+        ],
+      ),
+    );
+  }
 
-          // Vergiden Düşülebilir Harcama & Kesintiler
+  Widget _sectionTitle(String text) => Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Text(text,
+            style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary)),
+      );
+
+  static const _monthNames = [
+    'Ocak',
+    'Şubat',
+    'Mart',
+    'Nisan',
+    'Mayıs',
+    'Haziran',
+    'Temmuz',
+    'Ağustos',
+    'Eylül',
+    'Ekim',
+    'Kasım',
+    'Aralık'
+  ];
+
+  /// Brüt → kesintiler → net; dağılım çubuğu ile.
+  Widget _buildPayslipCard(PayslipBreakdown p) {
+    final gross = p.grossCents ??
+        (p.netCents + p.legalDeductionsCents + p.otherDeductionsCents);
+    final parts = <(String, int, Color)>[
+      ('Net ele geçen', p.netCents, AppColors.incomeGreen),
+      for (final (i, d) in p.deductions.indexed)
+        (
+          d.$1,
+          d.$2,
+          const [
+            Color(0xFFEF4444),
+            Color(0xFFF59E0B),
+            Color(0xFF3B82F6),
+            Color(0xFF8B5CF6)
+          ][i % 4]
+        ),
+      if (p.otherDeductionsCents > 0)
+        (
+          'Diğer kesintiler (BES, avans vb.)',
+          p.otherDeductionsCents,
+          const Color(0xFF94A3B8)
+        ),
+    ];
+
+    return FinanceCard(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Row(
             children: [
               Expanded(
-                child: FinanceCard(
-                  padding: const EdgeInsets.all(14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Vergi Matrahı Düşümü',
-                        style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        CurrencyNormalizer.formatCents(deductibleCents),
-                        style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.incomeGreen),
-                      ),
-                    ],
-                  ),
-                ),
+                child: Text(
+                    '${_monthNames[p.date.month - 1]} ${p.date.year} • ${p.employer}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary)),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: FinanceCard(
-                  padding: const EdgeInsets.all(14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Toplam Vergi & Kesinti',
-                        style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        CurrencyNormalizer.formatCents(totalTaxCents),
-                        style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.expenseRed),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              Text('Brüt ${CurrencyNormalizer.formatCents(gross)}',
+                  style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textSecondary)),
             ],
           ),
-          const SizedBox(height: 20),
-
-          // Vergi Detay Kalemleri
-          const Text(
-            'Vergi & Kesinti Dökümü',
-            style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary),
-          ),
           const SizedBox(height: 10),
-
-          FinanceCard(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Column(
-              children: [
-                _buildVatRow('KDV (Katma Değer Vergisi)',
-                    CurrencyNormalizer.formatCents(vatCents)),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                _buildVatRow('Gelir Vergisi Tevkifatı',
-                    CurrencyNormalizer.formatCents(incomeTaxCents)),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                _buildVatRow('SGK & Diğer Yasal Kesintiler',
-                    CurrencyNormalizer.formatCents(sgkCents)),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                _buildVatRow('Vergiden Düşülebilir Harcamalar',
-                    CurrencyNormalizer.formatCents(deductibleCents)),
-              ],
+          if (gross > 0)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: SizedBox(
+                height: 10,
+                child: Row(
+                  children: [
+                    for (final part in parts)
+                      if (part.$2 > 0)
+                        Expanded(
+                          flex: (part.$2 * 1000 ~/ gross).clamp(1, 1000),
+                          child: Container(color: part.$3),
+                        ),
+                  ],
+                ),
+              ),
             ),
-          ),
-          const SizedBox(height: 18),
-
-          // KDV Oran Bazlı Dağılım Tablosu (%1, %10, %20)
-          const Text(
-            'KDV Oran Bazlı Dağılımı (%1, %10, %20)',
-            style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary),
-          ),
-          const SizedBox(height: 10),
-
-          FinanceCard(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                _buildVatRateItem('%1 KDV', 'Temel Gıda & Tarım',
-                    (vatCents * 0.15).round(), const Color(0xFF10B981)),
-                const Divider(height: 16, color: Color(0xFFF1F5F9)),
-                _buildVatRateItem('%10 KDV', 'Yeme-İçme, Hizmet & Tekstil',
-                    (vatCents * 0.35).round(), const Color(0xFF3B82F6)),
-                const Divider(height: 16, color: Color(0xFFF1F5F9)),
-                _buildVatRateItem(
-                    '%20 KDV',
-                    'Genel Tüketim, Akaryakıt & Teknoloji',
-                    (vatCents -
-                        (vatCents * 0.15).round() -
-                        (vatCents * 0.35).round()),
-                    const Color(0xFF8B5CF6)),
-              ],
+          const SizedBox(height: 8),
+          for (final part in parts)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 3),
+              child: Row(
+                children: [
+                  Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                          color: part.$3, shape: BoxShape.circle)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(part.$1,
+                        style: const TextStyle(
+                            fontSize: 12, color: AppColors.textSecondary)),
+                  ),
+                  if (gross > 0)
+                    Text('%${(part.$2 * 100 / gross).toStringAsFixed(1)}  ',
+                        style: const TextStyle(
+                            fontSize: 11, color: AppColors.textMuted)),
+                  Text(CurrencyNormalizer.formatCents(part.$2),
+                      style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary)),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 18),
-
-          // Vergi İndirimi & Gider Tasarrufu İpucu
-          IzciInsightCard(
-            title: "VERGİ MATRAHI AVANTAJI",
-            message:
-                'Beyannameli çalışan veya serbest meslek sahibiyseniz, tespit edilen ${CurrencyNormalizer.formatCents(deductibleCents)} tutarındaki gider kalemleri yıllık gelir vergisi matrahınızdan doğrudan düşülebilir.',
-          ),
         ],
       ),
     );
