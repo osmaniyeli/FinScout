@@ -6,6 +6,37 @@ Format, [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) standardına da
 
 ---
 
+## [3.6.0] - 2026-09-23 · versionCode 4
+
+### 🏦 Ekstre okuma motoru (yeniden yazıldı)
+- PDF motoru Syncfusion'dan PDFium'a (pdfrx) taşındı; metin koordinatlarıyla satır/sütun olarak okunuyor.
+- Yapı Kredi kredi kartı, Enpara vadesiz hesap, Garanti Paracard ve maaş bordrosu için sütun tabanlı parser'lar; bilinmeyen bankalar için genel tablo okuyucu.
+- İşlem türü (harcama, iade, kart ödemesi, faiz, vergi, havale, kendi hesabı, fatura, kredi), karşı taraf ve sektör/kategori çıkarımı; 993 işyerilik sözlük.
+- Bankanın beyan ettiği toplamlarla ve bakiye zinciriyle mutabakat; şifreli PDF desteği; mükerrer işlem koruması.
+- Son ödeme tarihi, dönem borcu, asgari tutar ve planlı talimatların okunması.
+
+### 🔐 Güvenlik
+- Parmak izi / yüz tanıma gerçek Android BiometricPrompt ile (önceden her denemede açılıyordu).
+- PIN PBKDF2 ile hash'lenip Android Keystore'da tutuluyor; PIN yokken her 4 haneyi kabul eden açık kapatıldı.
+
+### 💳 Abonelik (Google Play Billing)
+- Mağaza erişilemezken verilen bedava premium kaldırıldı; iptal edilen / süresi dolan abonelik premium'u kapatıyor.
+- Ana plan teklifi seçimi ve plan değişikliğinde çift ödemeyi önleyen geçiş akışı.
+
+### ✨ Özellikler
+- Gerçek sesli harcama girişi (yalnızca cihaz içi Türkçe tanıma, sözlü sayılar).
+- Fatura, abonelik ve kart son ödeme hatırlatıcıları (yerel bildirim).
+- Aile üyeleri kalıcı; yedekten dosya seçerek geri yükleme; bülten gerçek e-posta ile.
+
+### 🐞 Düzeltmeler
+- Hızlı girişte 12 kategori veritabanında yoktu; bu kategorilerdeki kayıtlar sessizce kaydedilmiyordu (DB v3).
+- Kart borcu ödemesi, kendi hesaplar arası aktarım ve birikim girişleri artık gelir/gider analizine girmiyor (çift sayım).
+
+### 🔧 Altyapı
+- minSdk 24, AGP 8.11.1, Kotlin 2.3.20, NDK 28.2; kullanılmayan CAMERA izni kaldırıldı; mikrofon ve bildirim izinleri eklendi.
+
+---
+
 ## [3.5.2] - 2026-09-22
 
 ### 🛡️ Güvenlik & Kalite Kapısı (Quality Gate)

@@ -5,6 +5,10 @@ Bu belge, Paraİz projesinde her yeni sürüm (release), Google Play Console yü
 ---
 
 ## 🛑 KURAL 1: Google Play Sürüm Kodu (VersionCode) Asla Tekrar Edilemez!
+
+> **Sürüm defteri:** Play'e yüklenen her kod `Surumler/SURUM_DEFTERI.md` içinde tutulur. Paketler `tools/surum_derle.ps1` ile derlenir
+> (`-Yayin` ile imzalı AAB); betik, sürüm kodu defterdeki en yüksek Play kodundan büyük değilse yayın derlemesini durdurur.
+
 Google Play Console, daha önce yüklenmiş veya yayında olan bir sürüm kodunun (`versionCode`) tekrar yüklenmesine **kesinlikle izin vermez**.
 - **Kontrol Dosyası 1**: `moneytrace/pubspec.yaml`
   - `version: 3.5.X+Y` $\rightarrow$ Her yeni Play Store dağıtımında `+Y` (versionCode) en az 1 artırılmalıdır.
