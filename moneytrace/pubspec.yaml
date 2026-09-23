@@ -1,7 +1,7 @@
 name: moneytrace
 description: "Paraİz (MoneyTrace) - Deterministik Veri Motoru & Harcama Zekası Platformu"
 publish_to: 'none'
-version: 3.5.2+3
+version: 3.6.0+4
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -22,7 +22,6 @@ dependencies:
   path: ^1.9.0
 
   # PDF Okuma & Güvenlik
-  syncfusion_flutter_pdf: ^26.1.42
   file_picker: ^8.0.5
   crypto: ^3.0.3
   encrypt: ^5.0.3
@@ -35,6 +34,15 @@ dependencies:
   # Google Play Billing & Widget
   in_app_purchase: ^3.2.0
   home_widget: ^0.6.0
+  local_auth: ^3.0.2
+  flutter_secure_storage: ^10.3.4
+  speech_to_text: ^7.5.0
+  flutter_local_notifications: ^22.3.1
+  timezone: ^0.11.1
+  flutter_timezone: ^5.1.0
+  pdfrx: ^2.4.8
+  pdfrx_engine: ^0.4.7
+  in_app_purchase_android: 0.5.3
 
 dev_dependencies:
   flutter_test:

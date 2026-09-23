@@ -38,3 +38,9 @@ scratch/
 # External Design Kit Reference (Figma exports)
 iBank - Banking & E-Money Management App _ FinPay _ Digital _ Finance Mobile Banking App Ui Kit (Community)/
 
+
+# Gizli anahtarlar (Gemini API vb.)
+.env
+
+# Flutter iOS geçici dosyaları
+moneytrace/ios/Flutter/ephemeral/

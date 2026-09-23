@@ -17,6 +17,22 @@
 # Path Provider preservation
 -keep class io.flutter.plugins.pathprovider.** { *; }
 
+# Biyometrik kilit (local_auth / androidx.biometric)
+-keep class io.flutter.plugins.localauth.** { *; }
+-keep class androidx.biometric.** { *; }
+
+# Zamanlanmış bildirimler (flutter_local_notifications, Gson ile serileştirir)
+-keep class com.dexterous.** { *; }
+-keep class com.google.gson.** { *; }
+-keepattributes Signature
+-keepattributes *Annotation*
+
+# Sesli giriş (speech_to_text)
+-keep class com.csdcorp.speech_to_text.** { *; }
+
+# Güvenli depolama (flutter_secure_storage)
+-keep class com.it_nomads.fluttersecurestorage.** { *; }
+
 # Don't warn on missing references in third party libraries
 -dontwarn io.flutter.**
 -dontwarn com.tekartik.sqflite.**

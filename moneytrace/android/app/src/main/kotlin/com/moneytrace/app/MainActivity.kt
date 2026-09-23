@@ -1,15 +1,13 @@
 package com.moneytrace.app
 
-import android.app.KeyguardManager
-import android.content.Context
 import android.os.Bundle
 import android.view.WindowManager
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
-class MainActivity: FlutterActivity() {
-    private val BIOMETRIC_CHANNEL = "com.moneytrace.app/biometrics"
+// local_auth (BiometricPrompt) FragmentActivity gerektirir
+class MainActivity: FlutterFragmentActivity() {
     private val INTEGRITY_CHANNEL = "com.moneytrace.app/integrity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,23 +48,6 @@ class MainActivity: FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-
-        // Biyometrik Kanal
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, BIOMETRIC_CHANNEL).setMethodCallHandler { call, result ->
-            when (call.method) {
-                "canCheckBiometrics" -> {
-                    val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
-                    val isSecure = keyguardManager?.isDeviceSecure ?: false
-                    result.success(isSecure)
-                }
-                "authenticate" -> {
-                    val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
-                    val isSecure = keyguardManager?.isDeviceSecure ?: false
-                    result.success(isSecure)
-                }
-                else -> result.notImplemented()
-            }
-        }
 
         // Bütünlük ve Anti-Malware / Root Kanalı (< 1 ms çalışma süresi)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, INTEGRITY_CHANNEL).setMethodCallHandler { call, result ->
