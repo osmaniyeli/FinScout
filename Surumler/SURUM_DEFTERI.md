@@ -12,6 +12,16 @@ Her Play yüklemesinde kod, aşağıdaki tabloda **"Play'e yüklendi"** olan en 
 - `tools/surum_derle.ps1`, pubspec kodu defterdeki en yüksek Play kodundan büyük değilse **yayın (AAB) derlemesini durdurur**.
 - Play'e yükleme yaptıktan sonra ilgili satırın **Durum** sütununu `Play'e yüklendi (<kanal>)` olarak güncelle.
 
+## Otomatik yükleme (GitHub Actions → Dahili test)
+
+`main`'e her push'ta CI, AAB'yi yükleme anahtarıyla imzalar ve Play **Dahili test** kanalına yükler.
+- Kod otomatik: **`1000 + GitHub çalışma numarası`** (ör. çalışma #20 → kod 1020). Her derlemede kendiliğinden artar.
+- Sürüm adı `pubspec.yaml`'dan gelir (`3.6.0`); `+KOD` kısmı yalnızca yerel/elle derlemeler içindir.
+- Elle yüklenen sürümler 999'un altında kalır; otomatik kodlarla çakışmaz.
+- Kapalı test / üretime geçiş: Play Console'da dahili test sürümünü **"Sürümü tanıt" (Promote)** ile ilerlet — yeniden yükleme yok.
+- Koşul: GitHub secret'ları `KEYSTORE_BASE64`, `KEY_ALIAS`, `KEY_PASSWORD`, `STORE_PASSWORD`, `PLAY_SERVICE_ACCOUNT_JSON`.
+  `PLAY_SERVICE_ACCOUNT_JSON` yoksa yükleme adımı atlanır, paketler yine Artifacts'ta olur.
+
 ## Play Console geçmişi
 
 | Sürüm | Kod | Tarih | Durum | Not |

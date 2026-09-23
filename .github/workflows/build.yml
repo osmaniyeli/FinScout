@@ -5,10 +5,17 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+# Aynı anda iki derleme Play'e yarışarak yükleme yapmasın
+concurrency:
+  group: play-release
+  cancel-in-progress: false
+
 jobs:
   build:
     name: Build Android Release Packages
     runs-on: ubuntu-latest
+    env:
+      HAS_PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON != '' }}
 
     steps:
       - name: Checkout Repository
@@ -38,7 +45,21 @@ jobs:
           flutter clean
           flutter pub get
 
+      # Sürüm kodu: Play her yüklemede daha büyük kod ister. İnsan hatasını önlemek için
+      # CI çalışma numarasından türetilir (1000 + run_number): her derlemede kendiliğinden artar,
+      # elle yüklenen sürümlerden (≤ 999) her zaman büyüktür. Sürüm adı pubspec.yaml'dan gelir.
+      - name: Compute Version
+        id: ver
+        working-directory: moneytrace
+        run: |
+          NAME=$(grep -E '^version:' pubspec.yaml | sed -E 's/version:\s*([0-9.]+)\+.*/\1/')
+          CODE=$((1000 + ${{ github.run_number }}))
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+          echo "Sürüm: $NAME (versionCode $CODE)"
+
       - name: Configure Keystore & Signing
+        id: signing
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
@@ -54,21 +75,24 @@ jobs:
           keyAlias=$KEY_ALIAS
           storeFile=upload-keystore.jks
           EOF
-            echo "Keystore and key.properties configured successfully."
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Yükleme anahtarı secret'ı yok; paketler debug imzalı olacak ve Play'e yüklenmeyecek."
+            echo "signed=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build Release APK
         working-directory: moneytrace
-        run: flutter build apk --release --android-skip-build-dependency-validation
+        run: flutter build apk --release --android-skip-build-dependency-validation --build-name=${{ steps.ver.outputs.name }} --build-number=${{ steps.ver.outputs.code }}
 
       - name: Build Release App Bundle (AAB)
         working-directory: moneytrace
-        run: flutter build appbundle --release --android-skip-build-dependency-validation
+        run: flutter build appbundle --release --android-skip-build-dependency-validation --build-name=${{ steps.ver.outputs.name }} --build-number=${{ steps.ver.outputs.code }}
 
       - name: Upload Release APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ParaIz-Release-APK
+          name: ParaIz-v${{ steps.ver.outputs.name }}-kod${{ steps.ver.outputs.code }}-APK
           path: moneytrace/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 14
@@ -76,7 +100,21 @@ jobs:
       - name: Upload Release AAB Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ParaIz-Release-AAB
+          name: ParaIz-v${{ steps.ver.outputs.name }}-kod${{ steps.ver.outputs.code }}-AAB
           path: moneytrace/build/app/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 14
+
+      # Play Console → Dahili test kanalı. Yalnızca yükleme anahtarıyla imzalıysa ve servis hesabı
+      # secret'ı tanımlıysa çalışır. Üretime / kapalı teste geçiş Play Console'dan elle onaylanır.
+      - name: Upload to Google Play (Internal testing)
+        if: steps.signing.outputs.signed == 'true' && env.HAS_PLAY_JSON == 'true'
+        uses: r0adkll/upload-google-play@v1.1.5
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.moneytrace.app
+          releaseFiles: moneytrace/build/app/outputs/bundle/release/app-release.aab
+          releaseName: ${{ steps.ver.outputs.name }} (${{ steps.ver.outputs.code }})
+          track: internal
+          status: completed
+          whatsNewDirectory: distribution/whatsnew

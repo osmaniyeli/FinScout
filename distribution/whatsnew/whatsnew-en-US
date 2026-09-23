@@ -1,0 +1,6 @@
+• Rebuilt bank statement parser with automatic transaction and category detection.
+• Added offline on-device voice expense entry (Turkish).
+• Added notification reminders for bills, subscriptions, and card due dates.
+• Enhanced fingerprint/face unlock and PIN security.
+• Improved Google Play subscription management and transitions.
+• Fixed quick entry saving issues and duplicate transfer counting in analytics.
