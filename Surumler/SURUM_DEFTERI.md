@@ -27,8 +27,9 @@ Her Play yüklemesinde kod, aşağıdaki tabloda **"Play'e yüklendi"** olan en 
 | Sürüm | Kod | Tarih | Durum | Not |
 |---|---|---|---|---|
 | 3.5.1 | 2 | 2026-09-21 | Play'e yüklendi (Dahili test) | commit 88fe63a — Play Console ile doğrulandı |
-| 3.5.2 | 3 | 2026-09-23 | Play'e yüklendi (Kapalı test - Alpha) | commit cb9049e — Play Console ile doğrulandı, en yüksek kod |
-| 3.6.0 | 4 | — | Sıradaki yükleme | PDFium ekstre motoru, gerçek biyometri, Play Billing, sesli giriş, hatırlatıcılar |
+| 3.5.2 | 3 | 2026-09-23 | Play'e yüklendi (Kapalı test - Alpha) | commit cb9049e — Play Console ile doğrulandı |
+| 3.6.0 | 4 | 2026-09-23 | Play'e yüklendi (Kapalı test - Alpha) | PDFium ekstre motoru, gerçek biyometri, Play Billing — Play API ile doğrulandı |
+| 3.6.1 | 1021 | 2026-09-23 | Play'e yüklendi (Dahili test) | CI çalışma #21, commit 9b43b04 — FinScout adı, hesap (e-posta kodu / Google), hesap silme, abonelikler — Play API ile doğrulandı, **en yüksek kod** |
 
 > Play Console'da bu tablodan daha yüksek bir kod görürsen (ör. elle yüklenmiş bir sürüm), satır ekle ve pubspec kodunu ondan büyük yap.
 

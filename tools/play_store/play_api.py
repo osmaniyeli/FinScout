@@ -108,6 +108,26 @@ def _copy_missing_images(p, edit, src, dst):
         print(f'görseller {src} -> {dst}: {t}')
 
 
+def push_icon(langs=('tr-TR', 'en-US')):
+    """assets/icon_512.png'yi mağaza ikonu yapar (eskisini siler)."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    data = open(os.path.join(here, 'assets', 'icon_512.png'), 'rb').read()
+    p = Play()
+    edit = p.edit_open()
+    try:
+        for lang in langs:
+            p.s.delete(f'{BASE}/edits/{edit}/listings/{lang}/icon', timeout=60)
+            r = p.s.post(f'{UPLOAD}/edits/{edit}/listings/{lang}/icon?uploadType=media',
+                         data=data, headers={'Content-Type': 'image/png'}, timeout=120)
+            if r.status_code >= 400:
+                raise RuntimeError(f'{lang} ikon: {r.status_code} {r.text[:300]}')
+            print('ikon yüklendi', lang)
+        print('COMMIT OK', p.call('POST', f'/edits/{edit}:commit').get('id'))
+    except Exception:
+        p.edit_delete(edit)
+        raise
+
+
 def push_listing(default_language='tr-TR'):
     """listing.json'daki metinleri yükler ve varsayılan dili ayarlar (tek edit, commit)."""
     here = os.path.dirname(os.path.abspath(__file__))
@@ -228,6 +248,8 @@ if __name__ == '__main__':
         inspect()
     elif cmd == 'listing':
         push_listing()
+    elif cmd == 'icon':
+        push_icon()
     elif cmd == 'subscriptions':
         create_subscriptions()
     else:

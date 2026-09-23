@@ -1,3 +1,4 @@
+import 'dart:ui' show Color;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
@@ -27,7 +28,7 @@ class NotificationService {
     }
 
     const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@drawable/ic_stat_finscout');
     const settings = InitializationSettings(android: androidSettings);
 
     await _plugin.initialize(settings: settings);
@@ -80,6 +81,8 @@ class NotificationService {
           'Fatura, abonelik ve kredi kartı son ödeme hatırlatıcıları',
       importance: Importance.high,
       priority: Priority.high,
+      icon: 'ic_stat_finscout',
+      color: Color(0xFF10B981),
     );
 
     const notificationDetails = NotificationDetails(android: androidDetails);
