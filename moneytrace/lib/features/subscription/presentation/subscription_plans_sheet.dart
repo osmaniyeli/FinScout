@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/radar_checkout_button.dart';
+import '../../../core/config/app_links.dart';
 import '../../../core/widgets/pulse_metric_badge.dart';
 import '../services/subscription_service.dart';
 
@@ -102,7 +102,7 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
     final success = await _service.restorePurchases();
     if (!success && mounted) {
       final errorMsg = _service.lastError ??
-          'Satın alımları geri yükleme işlemi başlatılamadı.';
+          'Bu Google hesabında ve FinScout hesabında etkin bir abonelik bulunamadı.';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: AppColors.expenseRed,
@@ -114,7 +114,7 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
         const SnackBar(
           backgroundColor: AppColors.actionPrimary,
           content: Text(
-              'Satın alımları geri yükleme isteği gönderildi. Lütfen bekleyin...'),
+              'Aboneliğin sunucuda doğrulandı ve etkin.'),
         ),
       );
     }
@@ -178,7 +178,7 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
                               color: AppColors.textPrimary),
                         ),
                         Text(
-                          'Sınırsız PDF Ekstre, Aile Bütçesi & Finansal Zeka',
+                          'Aylık belge kotası artar, reklam yok, veriler telefonunda',
                           style: TextStyle(
                               fontSize: 11, color: AppColors.textSecondary),
                         ),
@@ -199,7 +199,8 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
             ..._service.availablePackages.map((pkg) {
               final isFamily = pkg.tier == SubscriptionTier.familyPremium;
               final isAnnual = pkg.identifier.contains('annual') && !isFamily;
-              final isCurrent = _service.currentTier == pkg.tier;
+              // Yalnız kullanıcının KENDİ doğrulanmış aboneliği "mevcut plan" sayılır (aile üyeliği değil)
+              final isCurrent = _service.ownProductId == pkg.identifier;
 
               // Fiyatı Google Play mağazasından çek, yoksa varsayılanı kullan
               final productDetails = _service.products[pkg.identifier];
@@ -252,7 +253,7 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
                               const SizedBox(width: 8),
                               const PulseMetricBadge(
                                 label: 'AVANTAJ',
-                                value: '2 AY HEDİYE',
+                                value: '%37 TASARRUF',
                                 pulseColor: AppColors.actionPrimary,
                                 isPositive: true,
                               ),
@@ -310,15 +311,21 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
                         ),
                       )
                     else
-                      RadarCheckoutButton(
-                        label: isFamily
-                            ? 'Aile Paketine Geç (4 Kişi)'
-                            : 'Paketi Doğrula & Başlat',
-                        idleAmountText: displayPrice,
-                        verifyingAmountText: 'Store Doğrulanıyor...',
-                        onPressed:
-                            _isProcessing ? null : () => _selectPackage(pkg),
-                        onVerificationComplete: () {},
+                      SizedBox(
+                        width: double.infinity,
+                        height: 44,
+                        child: FilledButton(
+                          onPressed:
+                              _isProcessing ? null : () => _selectPackage(pkg),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: AppColors.actionPrimary,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: Text('$displayPrice ile başlat',
+                              style: const TextStyle(
+                                  fontSize: 13, fontWeight: FontWeight.w700)),
+                        ),
                       ),
                   ],
                 ),
@@ -341,6 +348,31 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
                       color: AppColors.textSecondary),
                 ),
               ),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+              child: Text(
+                'Abonelik, iptal edilmedikçe dönem sonunda aynı fiyattan otomatik yenilenir. '
+                'İptal ve ödeme yöntemi Google Play üzerinden yönetilir; iptal, dönem sonuna kadar geçerli olur.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 11, height: 1.4, color: AppColors.textSecondary),
+              ),
+            ),
+            Wrap(
+              alignment: WrapAlignment.center,
+              children: [
+                TextButton(
+                  onPressed: () => AppLinks.open(AppLinks.manageSubscriptions()),
+                  child: const Text('Aboneliği yönet / iptal et',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                ),
+                TextButton(
+                  onPressed: () => AppLinks.open(AppLinks.privacyPolicy),
+                  child: const Text('Gizlilik politikası',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                ),
+              ],
             ),
           ],
         ),

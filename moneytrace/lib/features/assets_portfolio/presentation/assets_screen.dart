@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../../core/config/remote_config_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/currency_normalizer.dart';
 import '../../../core/services/live_market_service.dart';
 import '../../../core/database/repositories/transaction_repository.dart';
-import '../../../core/widgets/morphing_share_button.dart';
 import '../../../core/widgets/fintech/fintech_components.dart';
 import '../../../core/services/user_profile_service.dart';
 import '../../../core/services/notification_service.dart';
+import '../../../core/services/data_changes.dart';
 import '../../../core/utils/thousands_input_formatter.dart';
 import '../data/vehicle_catalog.dart';
 import '../repositories/assets_repository.dart';
@@ -32,87 +31,85 @@ class _AssetsScreenState extends State<AssetsScreen> {
   bool _isLoadingRates = false;
   Map<String, MarketTicker> _marketTickers = {};
 
-  // Portföy Varlıkları (Temiz Başlangıç)
+  // Portföy Varlıkları (kullanıcı elle girer)
   double _gramGoldQuantity = 0.0;
   double _gramGoldCostPrice = 0.0; // Alış Maliyeti ₺/gr
-  double _gramGoldTargetPrice = 0.0; // Hedef Fiyat ₺/gr
 
   int _ceyrekGoldQuantity = 0;
   double _ceyrekGoldCostPrice = 0.0; // Alış Maliyeti ₺/adet
-  double _ceyrekGoldTargetPrice = 0.0; // Hedef Fiyat ₺/adet
 
   double _usdQuantity = 0.0;
   double _usdCostPrice = 0.0; // Alış Kuru ₺/$
-  double _usdTargetPrice = 0.0; // Hedef Kur ₺/$
 
   int _cashTryCents = 0;
 
-  // Araç & Konut Varlıkları (Temiz Başlangıç)
+  // Araç Varlıkları
   List<Map<String, dynamic>> _userVehicles = [];
-  String _selectedHousingType = 'Kiracı (Standart Daire)';
 
   final AssetsRepository _assets = AssetsRepository.instance;
   List<Map<String, dynamic>> _linkedCards = [];
-  List<String> _paymentSourceAccounts = const ['Nakit Cüzdan'];
+  List<PaymentSource> _paymentSources = const [
+    PaymentSource(accountId: null, label: 'Nakit Cüzdan')
+  ];
 
-  static const List<String> _bankNames = [
-    'Akbank',
-    'Albaraka Türk',
-    'Burgan Bank',
-    'CEPTETEB',
-    'DenizBank',
-    'Enpara',
-    'Fibabanka',
-    'Garanti BBVA',
-    'Halkbank',
-    'HSBC',
-    'ING',
-    'İş Bankası',
-    'Kuveyt Türk',
-    'Odeabank',
-    'QNB',
-    'Şekerbank',
-    'TEB',
-    'Türkiye Finans',
-    'VakıfBank',
-    'Vakıf Katılım',
-    'Yapı Kredi',
-    'Ziraat Bankası',
-    'Ziraat Katılım',
+  /// İlk faz: yalnız Yapı Kredi ekstresi okunuyor. Diğer bankalar listede "Yakında" olarak görünür
+  /// ama seçilemez; desteklenmeyen bir bankanın kartı "ekstre bekleniyor" durumunda asılı kalmasın.
+  static const String _supportedBank = 'Yapı Kredi';
+  static const List<String> _comingSoonBanks = [
+    'Akbank', 'Enpara', 'Garanti BBVA', 'Halkbank', 'İş Bankası', 'QNB', 'VakıfBank', 'Ziraat Bankası',
   ];
 
   @override
   void initState() {
     super.initState();
+    _assets.revision.addListener(_onAssetsChanged);
+    DataChanges.revision.addListener(_onDataChanged);
     _loadPersistedAssets();
     _fetchMarketRates();
   }
 
-  /// Elle girilen varlıkları (altın/döviz/nakit, konut, araçlar) cihazdan geri yükler.
-  Future<void> _loadPersistedAssets() async {
-    await _assets.load();
+  @override
+  void dispose() {
+    _assets.revision.removeListener(_onAssetsChanged);
+    DataChanges.revision.removeListener(_onDataChanged);
+    super.dispose();
+  }
+
+  /// Varlık dosyası değişti (kayıt, silme, sıfırlama / hesap silme): ekranı dosyadan yeniden kur.
+  void _onAssetsChanged() {
     if (!mounted) return;
+    _applyHoldingsFromRepo();
+    _loadCardsFromDb();
+  }
+
+  /// Ekstre yükleme, manuel kayıt, silme, sıfırlama: kart ve hesap bilgilerini yeniden oku.
+  void _onDataChanged() {
+    if (!mounted) return;
+    _loadCardsFromDb();
+  }
+
+  void _applyHoldingsFromRepo() {
     final gram = _assets.holding('gram_altin');
     final ceyrek = _assets.holding('ceyrek_altin');
     final usd = _assets.holding('usd');
     final cash = _assets.holding('nakit_tl');
-    final housing = _assets.housingType;
     setState(() {
       _gramGoldQuantity = gram['quantity']!;
       _gramGoldCostPrice = gram['cost']!;
-      _gramGoldTargetPrice = gram['target']!;
       _ceyrekGoldQuantity = ceyrek['quantity']!.toInt();
       _ceyrekGoldCostPrice = ceyrek['cost']!;
-      _ceyrekGoldTargetPrice = ceyrek['target']!;
       _usdQuantity = usd['quantity']!;
       _usdCostPrice = usd['cost']!;
-      _usdTargetPrice = usd['target']!;
       _cashTryCents = (cash['quantity']! * 100).round();
-      if (RemoteConfigService.instance.housingTypes.contains(housing)) {
-        _selectedHousingType = housing;
-      }
       _userVehicles = _assets.vehicles;
     });
+  }
+
+  /// Elle girilen varlıkları (altın/döviz/nakit, araçlar) cihazdan geri yükler.
+  Future<void> _loadPersistedAssets() async {
+    await _assets.load();
+    if (!mounted) return;
+    _applyHoldingsFromRepo();
     await _loadCardsFromDb();
     await _syncVehicleReminders();
   }
@@ -168,8 +165,6 @@ class _AssetsScreenState extends State<AssetsScreen> {
       final accounts = await _repository.getAccountsWithLatestStatement();
       final manual = _assets.manualCards;
       final used = <String>{};
-      final ownerName =
-          '${UserProfileService.instance.profile?.name ?? "Ben"} (Asıl Kart)';
       final cards = <Map<String, dynamic>>[];
 
       for (final a in accounts) {
@@ -187,28 +182,37 @@ class _AssetsScreenState extends State<AssetsScreen> {
           }
         }
         final balance = (a['statement_balance_cents'] as num?)?.toInt();
+        final minimum = (a['minimum_payment_cents'] as num?)?.toInt();
         final due = _formatIsoDate(a['due_date'] as String?);
+        final cut = _formatIsoDate(
+            (a['statement_date'] as String?) ?? (a['period_end'] as String?));
         final limitCents = (match?['limit_cents'] as num?)?.toInt();
         final mask = (a['card_mask'] as String?) ?? '';
         final holder = (a['card_holder'] as String?) ?? '';
         cards.add({
+          'account_id': a['id'],
           'name': bank,
           'bank': bank,
           'mask': mask.isNotEmpty
               ? mask
               : (isCredit ? 'Kredi Kartı' : 'Vadesiz Hesap'),
+          'limit_cents': limitCents,
           'limit': isCredit
               ? (limitCents != null
                   ? CurrencyNormalizer.formatCents(limitCents)
                   : 'Limit girilmedi')
               : 'Vadesiz Hesap',
+          'debt_cents': balance,
           'debt':
               balance != null ? CurrencyNormalizer.formatCents(balance) : '—',
           'statement_day': due != null
               ? 'Son ödeme $due'
               : (isCredit ? 'Son ödeme —' : 'Hesap ekstresi'),
-          'holder': holder.isNotEmpty ? holder : ownerName,
-          'is_supplementary': false,
+          // Ekstrede bankanın yazdığı değerler (tahmin yok)
+          'due': due ?? '—',
+          'cut': cut ?? '—',
+          'minimum_cents': minimum,
+          'holder': holder,
           'color': isCredit ? const Color(0xFF7C3AED) : const Color(0xFF10B981),
           'type': isCredit ? 'CREDIT_CARD' : 'CHECKING',
           'manual_id': match?['id'],
@@ -216,33 +220,44 @@ class _AssetsScreenState extends State<AssetsScreen> {
       }
 
       for (final m in manual.where((m) => !used.contains(m['id']))) {
+        final limitCents = (m['limit_cents'] as num?)?.toInt() ?? 0;
         cards.add({
+          'account_id': null,
           'name': m['bank'],
           'bank': m['bank'],
           'mask': 'Ekstre bekleniyor',
-          'limit': CurrencyNormalizer.formatCents(
-              (m['limit_cents'] as num?)?.toInt() ?? 0),
+          'limit_cents': limitCents,
+          'limit': CurrencyNormalizer.formatCents(limitCents),
+          'debt_cents': null,
           'debt': '—',
           'statement_day': 'İlk ekstre yüklenince eşleşir',
-          'holder': ownerName,
-          'is_supplementary': false,
+          'due': '—',
+          'cut': '—',
+          'minimum_cents': null,
+          'holder': '',
           'color': const Color(0xFF0D9488),
           'type': 'CREDIT_CARD',
           'manual_id': m['id'],
         });
       }
 
-      final sources = <String>{
-        'Nakit Cüzdan',
-        ...accounts
-            .where((a) => a['account_type'] == 'CHECKING')
-            .map((a) => '${a['institution_name']} Vadesiz'),
-      }.toList();
+      // Ödeme kaynağı: nakit cüzdan + ekstresi yüklenmiş gerçek vadesiz hesaplar
+      final sources = <PaymentSource>[
+        const PaymentSource(accountId: null, label: 'Nakit Cüzdan'),
+        for (final a in accounts.where((a) => a['account_type'] == 'CHECKING'))
+          PaymentSource(
+            accountId: a['id'] as String,
+            label: [
+              '${a['institution_name'] ?? 'Banka'} vadesiz',
+              if (((a['card_mask'] as String?) ?? '').isNotEmpty) a['card_mask'],
+            ].join(' • '),
+          ),
+      ];
 
       if (mounted) {
         setState(() {
           _linkedCards = cards;
-          _paymentSourceAccounts = sources;
+          _paymentSources = sources;
         });
       }
     } catch (e) {
@@ -250,9 +265,48 @@ class _AssetsScreenState extends State<AssetsScreen> {
     }
   }
 
+  /// Kart ödemesini kayda geçirir (nötr CARDPAYMENT). Hata fırlatılır; ödeme sayfası kullanıcıya gösterir.
+  Future<void> _recordCardPayment(Map<String, dynamic> card, int paidCents,
+      PaymentSource source, DateTime date) async {
+    final bank = (card['bank'] ?? card['name']).toString();
+    await _repository.saveManualTransaction(
+      title: '$bank kart ödemesi',
+      amountCents: paidCents,
+      isExpense: true,
+      categoryId: 'cat_card_payment',
+      date: date,
+      note: '$bank kart ödemesi (${source.label})',
+      txKind: 'CARDPAYMENT',
+      accountId: source.accountId,
+    );
+  }
+
+  Widget _detailRow(String label, String value, {Color? color}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 13, color: AppColors.textSecondary)),
+          Text(value,
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: color ?? AppColors.textPrimary)),
+        ],
+      ),
+    );
+  }
+
   void _showCardDetail(Map<String, dynamic> card) {
+    final isCredit = card['type'] == 'CREDIT_CARD';
+    final minimum = (card['minimum_cents'] as num?)?.toInt();
+    final holder = (card['holder'] as String?) ?? '';
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
         decoration: const BoxDecoration(
@@ -260,218 +314,249 @@ class _AssetsScreenState extends State<AssetsScreen> {
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
         padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 44,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE2E8F0),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 44,
+                  height: 4,
                   decoration: BoxDecoration(
-                    color: (card['color'] as Color).withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(14),
+                    color: const Color(0xFFE2E8F0),
+                    borderRadius: BorderRadius.circular(2),
                   ),
-                  child: Icon(Icons.credit_card_rounded,
-                      color: card['color'] as Color, size: 24),
                 ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      card['name'] as String,
-                      style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textPrimary),
-                    ),
-                    Text(
-                      '${card['mask']} • ${card['holder']}',
-                      style: const TextStyle(
-                          fontSize: 12, color: AppColors.textSecondary),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
               ),
-              child: Column(
+              const SizedBox(height: 16),
+              Row(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Toplam Limit:',
-                          style: TextStyle(
-                              fontSize: 13, color: AppColors.textSecondary)),
-                      Text(card['limit'] as String,
-                          style: const TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.w800)),
-                    ],
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: (card['color'] as Color).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Icon(Icons.credit_card_rounded,
+                        color: card['color'] as Color, size: 24),
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Dönem Borcu / Bakiye:',
-                          style: TextStyle(
-                              fontSize: 13, color: AppColors.textSecondary)),
-                      Text(card['debt'] as String,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          card['name'] as String,
                           style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.expenseRed)),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Hesap Kesim / Yenilenme:',
-                          style: TextStyle(
-                              fontSize: 13, color: AppColors.textSecondary)),
-                      Text(card['statement_day'] as String,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary),
+                        ),
+                        Text(
+                          holder.isNotEmpty
+                              ? '${card['mask']} • $holder'
+                              : '${card['mask']}',
                           style: const TextStyle(
-                              fontSize: 13, fontWeight: FontWeight.w700)),
-                    ],
+                              fontSize: 12, color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 18),
-            // Kart Limiti & Borç Öde Butonu (Frontend Joe Sliding Card)
-            if (card['type'] == 'CREDIT_CARD')
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    CreditCardActionSheet.show(
-                      context,
-                      card: card,
-                      sourceAccounts: _paymentSourceAccounts,
-                      onCardUpdated: (updated) async {
-                        // Limit kullanıcıya ait bilgi → manuel karta yazılır; borç ve son ödeme ekstreden gelir.
-                        final limitCents = CurrencyNormalizer.toMinorUnits(
-                            updated['limit'].toString());
-                        if (limitCents > 0) {
-                          await _assets.upsertManualCard({
-                            'id': card['manual_id'] ??
-                                'mc_${DateTime.now().millisecondsSinceEpoch}',
-                            'bank': card['bank'] ?? card['name'],
-                            'limit_cents': limitCents,
-                          });
-                        }
-                        await _loadCardsFromDb();
-                      },
-                      onDebtPaid: (paidCents, account) async {
-                        setState(() {
-                          // Kasa borç durumu arayüzde güncellendi
-                        });
-                        try {
-                          await _repository.saveManualTransaction(
-                            title: '${card['name']} Kart Borcu Ödemesi',
-                            amountCents: paidCents,
-                            isExpense: true,
-                            categoryId: 'borc_odeme',
-                            date: DateTime.now(),
-                            note: 'Kart borcu ödemesi - hesap: $account',
-                            txKind: 'CARDPAYMENT',
-                          );
-                        } catch (e) {
-                          debugPrint('Borç ödeme işlem kaydı hatası: $e');
-                        }
-                      },
-                    );
-                  },
-                  icon: const Icon(Icons.swap_horiz_rounded, size: 20),
-                  label: const Text('Borç Öde & Kart Ayarları',
-                      style: TextStyle(fontWeight: FontWeight.w800)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0F172A),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 13),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
-                    elevation: 0,
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Column(
+                  children: isCredit
+                      ? [
+                          _detailRow('Kart limiti', card['limit'] as String),
+                          _detailRow('Dönem borcu', card['debt'] as String,
+                              color: AppColors.expenseRed),
+                          _detailRow(
+                              'Asgari ödeme',
+                              minimum != null
+                                  ? CurrencyNormalizer.formatCents(minimum)
+                                  : '—'),
+                          _detailRow(
+                              'Hesap kesim tarihi', card['cut'] as String),
+                          _detailRow('Son ödeme tarihi', card['due'] as String,
+                              color: AppColors.actionPrimary),
+                        ]
+                      : [
+                          _detailRow(
+                              'Dönem sonu bakiyesi', card['debt'] as String,
+                              color: AppColors.incomeGreen),
+                          _detailRow('Ekstre tarihi', card['cut'] as String),
+                        ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                isCredit
+                    ? 'Borç, asgari tutar ve tarihler son yüklenen ekstreden okunur. Limiti sen girersin.'
+                    : 'Bakiye son yüklenen hesap ekstresinden okunur.',
+                style: const TextStyle(
+                    fontSize: 11, color: AppColors.textSecondary, height: 1.4),
+              ),
+              const SizedBox(height: 16),
+              if (isCredit) ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      CreditCardActionSheet.show(
+                        context,
+                        card: card,
+                        sourceAccounts: _paymentSources,
+                        onPaymentRecorded: (paidCents, source, date) =>
+                            _recordCardPayment(card, paidCents, source, date),
+                      );
+                    },
+                    icon: const Icon(Icons.receipt_long_rounded, size: 20),
+                    label: const Text('Ödemeyi kaydet'),
                   ),
                 ),
-              ),
-            const SizedBox(height: 8),
-            // Kart Sahibi Değiştir Butonu
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  _showReassignHolderDialog(card);
-                },
-                icon: const Icon(Icons.people_outline_rounded,
-                    size: 18, color: AppColors.actionPrimary),
-                label: const Text('Kart Sahibini / Aile Üyesini Değiştir',
-                    style: TextStyle(
-                        color: AppColors.actionPrimary,
-                        fontWeight: FontWeight.w700)),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Color(0xFFBAE6FD)),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _showEditLimitDialog(card);
+                    },
+                    icon: const Icon(Icons.edit_rounded, size: 18),
+                    label: const Text('Limiti düzenle'),
+                  ),
                 ),
-              ),
-            ),
-            if (card['manual_id'] != null) ...[
+              ],
+              if (card['manual_id'] != null) ...[
+                const SizedBox(height: 4),
+                Center(
+                  child: TextButton.icon(
+                    onPressed: () async {
+                      Navigator.pop(ctx);
+                      try {
+                        await _assets
+                            .deleteManualCard(card['manual_id'] as String);
+                      } catch (_) {
+                        _showError('Kart bilgisi silinemedi.');
+                      }
+                      await _loadCardsFromDb();
+                    },
+                    icon: const Icon(Icons.delete_outline_rounded,
+                        size: 18, color: AppColors.expenseRed),
+                    label: const Text('Girdiğin limit bilgisini sil',
+                        style: TextStyle(
+                            color: AppColors.expenseRed,
+                            fontWeight: FontWeight.w700)),
+                  ),
+                ),
+              ],
               const SizedBox(height: 4),
-              Center(
-                child: TextButton.icon(
-                  onPressed: () async {
-                    Navigator.pop(ctx);
-                    await _assets.deleteManualCard(card['manual_id'] as String);
-                    await _loadCardsFromDb();
-                  },
-                  icon: const Icon(Icons.delete_outline_rounded,
-                      size: 18, color: AppColors.expenseRed),
-                  label: const Text('Manuel kart bilgisini sil',
-                      style: TextStyle(
-                          color: AppColors.expenseRed,
-                          fontWeight: FontWeight.w700)),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Kapat'),
                 ),
               ),
             ],
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(ctx),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0F172A),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
-                  elevation: 0,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        backgroundColor: AppColors.expenseRed, content: Text(message)));
+  }
+
+  /// Yalnız limit düzenlenir; borç, kesim ve son ödeme ekstreden gelir (salt okunur).
+  void _showEditLimitDialog(Map<String, dynamic> card) {
+    final current = (card['limit_cents'] as num?)?.toInt() ?? 0;
+    final limitController = TextEditingController(
+        text: current > 0 ? _centsToInput(current) : '');
+    String? error;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text('${card['name']} limiti',
+              style:
+                  const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: limitController,
+                  autofocus: true,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: const [ThousandsInputFormatter()],
+                  decoration: InputDecoration(
+                    labelText: 'Kart limiti (₺)',
+                    errorText: error,
+                  ),
                 ),
-                child: const Text('Kapat',
-                    style: TextStyle(fontWeight: FontWeight.w700)),
-              ),
+                const SizedBox(height: 14),
+                const Text('Ekstreden (değiştirilemez)',
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textSecondary)),
+                const SizedBox(height: 4),
+                _detailRow('Dönem borcu', card['debt'] as String),
+                _detailRow('Hesap kesim tarihi', card['cut'] as String),
+                _detailRow('Son ödeme tarihi', card['due'] as String),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('İptal')),
+            FilledButton(
+              onPressed: () async {
+                final limitCents =
+                    CurrencyNormalizer.toMinorUnits(limitController.text);
+                if (limitCents <= 0) {
+                  setDialogState(() => error = 'Limit tutarını gir.');
+                  return;
+                }
+                try {
+                  await _assets.upsertManualCard({
+                    'id': card['manual_id'] ??
+                        'mc_${DateTime.now().millisecondsSinceEpoch}',
+                    'bank': card['bank'] ?? card['name'],
+                    'limit_cents': limitCents,
+                  });
+                } catch (_) {
+                  setDialogState(() => error = 'Limit kaydedilemedi.');
+                  return;
+                }
+                if (ctx.mounted) Navigator.pop(ctx);
+                await _loadCardsFromDb();
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    backgroundColor: AppColors.incomeGreen,
+                    content: Text(
+                        '${card['name']} limiti kaydedildi: ${CurrencyNormalizer.formatCents(limitCents)}.')));
+              },
+              child: const Text('Kaydet'),
             ),
           ],
         ),
@@ -479,51 +564,16 @@ class _AssetsScreenState extends State<AssetsScreen> {
     );
   }
 
-  void _showReassignHolderDialog(Map<String, dynamic> card) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Kart Sahibini Ata',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            '${UserProfileService.instance.profile?.name ?? "Ben"} (Asıl Kart)',
-            'Eş (Ek Kart)',
-            'Çocuk 1 (Harçlık Kartı)',
-            'Çocuk 2 (Öğrenci Kartı)'
-          ].map((h) {
-            return ListTile(
-              title: Text(h,
-                  style: const TextStyle(
-                      fontSize: 13, fontWeight: FontWeight.w600)),
-              onTap: () {
-                setState(() {
-                  card['holder'] = h;
-                  card['is_supplementary'] =
-                      h.contains('Ek') || h.contains('Kartı');
-                });
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: AppColors.incomeGreen,
-                    content: Text(
-                        '${card['name']} kartı "$h" kullanıcısına atandı.'),
-                  ),
-                );
-              },
-            );
-          }).toList(),
-        ),
-      ),
-    );
+  /// Kuruşu giriş kutusu biçimine çevirir: 125050 → "1.250,50"
+  static String _centsToInput(int cents) {
+    final whole = ThousandsInputFormatter.format('${cents ~/ 100}');
+    final frac = cents % 100;
+    return frac == 0 ? whole : '$whole,${frac.toString().padLeft(2, '0')}';
   }
 
   void _showAddCardDialog() {
     final limitController = TextEditingController();
-    final otherBankController = TextEditingController();
-    String? selectedBank;
+    String? selectedBank = _supportedBank;
 
     showDialog(
       context: context,
@@ -542,19 +592,19 @@ class _AssetsScreenState extends State<AssetsScreen> {
                   initialValue: selectedBank,
                   isExpanded: true,
                   decoration: const InputDecoration(labelText: 'Banka'),
-                  items: [..._bankNames, 'Diğer']
-                      .map((b) => DropdownMenuItem(value: b, child: Text(b)))
-                      .toList(),
+                  items: [
+                    const DropdownMenuItem(
+                        value: _supportedBank, child: Text(_supportedBank)),
+                    for (final b in _comingSoonBanks)
+                      DropdownMenuItem(
+                        value: b,
+                        enabled: false,
+                        child: Text('$b · Yakında',
+                            style: const TextStyle(color: AppColors.textSecondary)),
+                      ),
+                  ],
                   onChanged: (v) => setModalState(() => selectedBank = v),
                 ),
-                if (selectedBank == 'Diğer') ...[
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: otherBankController,
-                    textCapitalization: TextCapitalization.words,
-                    decoration: const InputDecoration(labelText: 'Banka adı'),
-                  ),
-                ],
                 const SizedBox(height: 8),
                 TextField(
                   controller: limitController,
@@ -581,9 +631,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
                 child: const Text('İptal')),
             ElevatedButton(
               onPressed: () async {
-                final bank = selectedBank == 'Diğer'
-                    ? otherBankController.text.trim()
-                    : (selectedBank ?? '');
+                final bank = selectedBank ?? '';
                 final limitCents =
                     CurrencyNormalizer.toMinorUnits(limitController.text);
                 if (bank.isEmpty || limitCents <= 0) {
@@ -592,11 +640,16 @@ class _AssetsScreenState extends State<AssetsScreen> {
                   return;
                 }
                 Navigator.pop(ctx);
-                await _assets.upsertManualCard({
-                  'id': 'mc_${DateTime.now().millisecondsSinceEpoch}',
-                  'bank': bank,
-                  'limit_cents': limitCents,
-                });
+                try {
+                  await _assets.upsertManualCard({
+                    'id': 'mc_${DateTime.now().millisecondsSinceEpoch}',
+                    'bank': bank,
+                    'limit_cents': limitCents,
+                  });
+                } catch (_) {
+                  _showError('Kart kaydedilemedi, tekrar dene.');
+                  return;
+                }
                 await _loadCardsFromDb();
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -649,14 +702,14 @@ class _AssetsScreenState extends State<AssetsScreen> {
             ),
             const SizedBox(height: 6),
             const Text(
-              'Gram, adet, alış maliyeti ve hedef fiyat bilgilerinizi güncelleyin.',
+              'Miktarı ve istersen alış maliyetini gir.',
               style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 16),
             ListTile(
               leading: const Icon(Icons.monetization_on_rounded,
                   color: Color(0xFFF59E0B)),
-              title: const Text('Gram Altın (gr, Maliyet, Hedef)',
+              title: const Text('Gram Altın',
                   style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
               trailing: const Icon(Icons.chevron_right_rounded),
               onTap: () {
@@ -668,7 +721,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
             ListTile(
               leading:
                   const Icon(Icons.circle_rounded, color: Color(0xFFEAB308)),
-              title: const Text('Çeyrek Altın (Adet, Maliyet, Hedef)',
+              title: const Text('Çeyrek Altın',
                   style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
               trailing: const Icon(Icons.chevron_right_rounded),
               onTap: () {
@@ -680,7 +733,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
             ListTile(
               leading: const Icon(Icons.attach_money_rounded,
                   color: Color(0xFF10B981)),
-              title: const Text('Amerikan Doları / Döviz',
+              title: const Text('Amerikan Doları (USD)',
                   style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
               trailing: const Icon(Icons.chevron_right_rounded),
               onTap: () {
@@ -710,164 +763,105 @@ class _AssetsScreenState extends State<AssetsScreen> {
     String title = '';
     String qtyLabel = 'Miktar';
     String costLabel = 'Alış Birim Maliyeti (₺)';
-    String targetLabel = 'Hedef Fiyat (₺)';
-    bool showTarget = true;
+    bool showCost = true;
 
     final qtyController = TextEditingController();
     final costController = TextEditingController();
-    final targetController = TextEditingController();
+
+    // Kayıtlı değeri Türkçe biçimle doldurur: 1250.5 → "1.250,50"
+    String input(double v) => v > 0 ? _centsToInput((v * 100).round()) : '';
 
     if (key == 'gram_altin') {
-      title = 'Gram Altın Düzenle';
-      qtyLabel = 'Gram Miktarı (gr)';
-      costLabel = 'Alış Fiyatı (₺/gr)';
-      targetLabel = 'Hedef Satış Fiyatı (₺/gr)';
-      if (_gramGoldQuantity > 0)
-        qtyController.text = _gramGoldQuantity.toString();
-      if (_gramGoldCostPrice > 0)
-        costController.text = _gramGoldCostPrice.toString();
-      if (_gramGoldTargetPrice > 0)
-        targetController.text = _gramGoldTargetPrice.toString();
+      title = 'Gram Altın';
+      qtyLabel = 'Gram miktarı (gr)';
+      costLabel = 'Alış fiyatı (₺/gr, isteğe bağlı)';
+      qtyController.text = input(_gramGoldQuantity);
+      costController.text = input(_gramGoldCostPrice);
     } else if (key == 'ceyrek_altin') {
-      title = 'Çeyrek Altın Düzenle';
+      title = 'Çeyrek Altın';
       qtyLabel = 'Adet';
-      costLabel = 'Alış Fiyatı (₺/adet)';
-      targetLabel = 'Hedef Satış Fiyatı (₺/adet)';
-      if (_ceyrekGoldQuantity > 0)
-        qtyController.text = _ceyrekGoldQuantity.toString();
-      if (_ceyrekGoldCostPrice > 0)
-        costController.text = _ceyrekGoldCostPrice.toString();
-      if (_ceyrekGoldTargetPrice > 0)
-        targetController.text = _ceyrekGoldTargetPrice.toString();
+      costLabel = 'Alış fiyatı (₺/adet, isteğe bağlı)';
+      qtyController.text = input(_ceyrekGoldQuantity.toDouble());
+      costController.text = input(_ceyrekGoldCostPrice);
     } else if (key == 'usd') {
-      title = 'Amerikan Doları Düzenle';
-      qtyLabel = 'Miktar (USD \$)';
-      costLabel = 'Alış Kuru (₺/\$)';
-      targetLabel = 'Hedef Kur (₺/\$)';
-      if (_usdQuantity > 0) qtyController.text = _usdQuantity.toString();
-      if (_usdCostPrice > 0) costController.text = _usdCostPrice.toString();
-      if (_usdTargetPrice > 0)
-        targetController.text = _usdTargetPrice.toString();
+      title = 'Amerikan Doları';
+      qtyLabel = 'Miktar (USD)';
+      costLabel = 'Alış kuru (₺, isteğe bağlı)';
+      qtyController.text = input(_usdQuantity);
+      costController.text = input(_usdCostPrice);
     } else {
-      title = 'TL Nakit Cüzdan Düzenle';
-      qtyLabel = 'Nakit Bakiye (₺)';
-      showTarget = false;
-      if (_cashTryCents > 0)
-        qtyController.text = (_cashTryCents / 100.0).toStringAsFixed(0);
+      title = 'TL Nakit';
+      qtyLabel = 'Nakit bakiye (₺)';
+      showCost = false;
+      qtyController.text = _cashTryCents > 0 ? _centsToInput(_cashTryCents) : '';
     }
 
+    String? error;
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(title,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: qtyController,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                decoration: InputDecoration(labelText: qtyLabel),
-              ),
-              if (showTarget) ...[
-                const SizedBox(height: 10),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(title,
+              style:
+                  const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
                 TextField(
-                  controller: costController,
+                  controller: qtyController,
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
-                  decoration: InputDecoration(labelText: costLabel),
+                  inputFormatters: const [ThousandsInputFormatter()],
+                  decoration:
+                      InputDecoration(labelText: qtyLabel, errorText: error),
                 ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: targetController,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  decoration: InputDecoration(
-                    labelText: targetLabel,
-                    helperText: 'Hedefe ulaşınca bildirim gönderilir',
+                if (showCost) ...[
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: costController,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: const [ThousandsInputFormatter()],
+                    decoration: InputDecoration(labelText: costLabel),
                   ),
-                ),
+                ],
               ],
-            ],
+            ),
           ),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx), child: const Text('İptal')),
-          ElevatedButton(
-            onPressed: () {
-              final qty = double.tryParse(
-                      qtyController.text.replaceAll(',', '.').trim()) ??
-                  0.0;
-              final cost = double.tryParse(
-                      costController.text.replaceAll(',', '.').trim()) ??
-                  0.0;
-              final target = double.tryParse(
-                      targetController.text.replaceAll(',', '.').trim()) ??
-                  0.0;
-
-              setState(() {
-                if (key == 'gram_altin') {
-                  _gramGoldQuantity = qty;
-                  _gramGoldCostPrice = cost;
-                  _gramGoldTargetPrice = target;
-                  final currentPrice =
-                      _marketTickers['ALTIN_GR']?.sellingPrice ?? 0.0;
-                  UserProfileService.instance.checkAssetTargetAlert(
-                    assetId: 'gram_altin',
-                    assetName: 'Gram Altın',
-                    currentPrice: currentPrice,
-                    targetPrice: target,
-                  );
-                } else if (key == 'ceyrek_altin') {
-                  _ceyrekGoldQuantity = qty.toInt();
-                  _ceyrekGoldCostPrice = cost;
-                  _ceyrekGoldTargetPrice = target;
-                  final currentPrice =
-                      _marketTickers['CEYREK']?.sellingPrice ?? 0.0;
-                  UserProfileService.instance.checkAssetTargetAlert(
-                    assetId: 'ceyrek_altin',
-                    assetName: 'Çeyrek Altın',
-                    currentPrice: currentPrice,
-                    targetPrice: target,
-                  );
-                } else if (key == 'usd') {
-                  _usdQuantity = qty;
-                  _usdCostPrice = cost;
-                  _usdTargetPrice = target;
-                  final currentPrice =
-                      _marketTickers['USD']?.sellingPrice ?? 0.0;
-                  UserProfileService.instance.checkAssetTargetAlert(
-                    assetId: 'usd',
-                    assetName: 'USD / Dolar',
-                    currentPrice: currentPrice,
-                    targetPrice: target,
-                  );
-                } else {
-                  _cashTryCents = (qty * 100).round();
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('İptal')),
+            FilledButton(
+              onPressed: () async {
+                // Türkçe sayı biçimi: "10.000" on bin, "1.250,50" bin iki yüz elli virgül elli
+                double num(TextEditingController c) =>
+                    CurrencyNormalizer.toMinorUnits(c.text) / 100.0;
+                final qty = num(qtyController);
+                final cost = showCost ? num(costController) : 0.0;
+                try {
+                  // Ekran, AssetsRepository.revision üzerinden kendini yeniler.
+                  await _assets.setHolding(key, quantity: qty, cost: cost);
+                } catch (_) {
+                  setDialogState(() => error = 'Kaydedilemedi, tekrar dene.');
+                  return;
                 }
-              });
-              _assets.setHolding(key,
-                  quantity: qty, cost: cost, target: target);
-
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  backgroundColor: AppColors.incomeGreen,
-                  content: Text('$title bilgileri başarıyla güncellendi.'),
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.actionPrimary),
-            child: const Text('Kaydet',
-                style: TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.w700)),
-          ),
-        ],
+                if (ctx.mounted) Navigator.pop(ctx);
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: AppColors.incomeGreen,
+                    content: Text('$title kaydedildi.'),
+                  ),
+                );
+              },
+              child: const Text('Kaydet'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -883,12 +877,29 @@ class _AssetsScreenState extends State<AssetsScreen> {
     }
   }
 
+  /// Aşağı çekince: kurlar + kart/hesap bilgileri.
+  Future<void> _refreshAll() async {
+    await Future.wait([_fetchMarketRates(), _loadCardsFromDb()]);
+  }
+
+  /// Varlığı değerlemek için kullanılan fiyat: piyasanın alış fiyatı (bozdurursan eline geçen).
+  /// Alış fiyatı yoksa satış fiyatı; hiç kur yoksa 0 (ekranda "—").
+  double _valuationPrice(String symbol) {
+    final t = _marketTickers[symbol];
+    if (t == null) return 0.0;
+    return t.buyingPrice > 0 ? t.buyingPrice : t.sellingPrice;
+  }
+
+  String _formatDateTime(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year} '
+      '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+
   @override
   Widget build(BuildContext context) {
-    // Canlı Değer Hesaplama
-    final gramGoldPrice = _marketTickers['ALTIN_GR']?.sellingPrice ?? 0.0;
-    final ceyrekGoldPrice = _marketTickers['CEYREK']?.sellingPrice ?? 0.0;
-    final usdPrice = _marketTickers['USD']?.sellingPrice ?? 0.0;
+    // Değerleme: piyasanın alış fiyatı (kur yoksa 0 → "—")
+    final gramGoldPrice = _valuationPrice('ALTIN_GR');
+    final ceyrekGoldPrice = _valuationPrice('CEYREK');
+    final usdPrice = _valuationPrice('USD');
 
     final int gramGoldTotalCents =
         (gramGoldPrice * _gramGoldQuantity * 100).round();
@@ -898,37 +909,46 @@ class _AssetsScreenState extends State<AssetsScreen> {
 
     final int vehicleTotalCents = _userVehicles.fold(
         0, (sum, v) => sum + ((v['value_cents'] as num?)?.toInt() ?? 0));
-    final int totalWealthCents = gramGoldTotalCents +
+    final int savingsTotalCents = gramGoldTotalCents +
         ceyrekGoldTotalCents +
         usdTotalCents +
-        _cashTryCents +
-        vehicleTotalCents;
+        _cashTryCents;
+    final int totalWealthCents = savingsTotalCents + vehicleTotalCents;
 
-    // Kâr / Zarar hesapları
-    final int gramGoldCostCents =
+    // Miktarı girilmiş ama kuru alınamamış varlık varsa toplamda eksik kalır; kullanıcıya söylenir.
+    final bool missingRate = (_gramGoldQuantity > 0 && gramGoldPrice <= 0) ||
+        (_ceyrekGoldQuantity > 0 && ceyrekGoldPrice <= 0) ||
+        (_usdQuantity > 0 && usdPrice <= 0);
+
+    // Kâr / Zarar hesapları (yalnız alış maliyeti girildiyse ve kur varsa)
+    final int gramGoldProfitCents = gramGoldTotalCents -
         (_gramGoldCostPrice * _gramGoldQuantity * 100).round();
-    final int gramGoldProfitCents = gramGoldTotalCents - gramGoldCostCents;
-
-    final int ceyrekGoldCostCents =
+    final int ceyrekGoldProfitCents = ceyrekGoldTotalCents -
         (_ceyrekGoldCostPrice * _ceyrekGoldQuantity * 100).round();
-    final int ceyrekGoldProfitCents =
-        ceyrekGoldTotalCents - ceyrekGoldCostCents;
+    final int usdProfitCents =
+        usdTotalCents - (_usdCostPrice * _usdQuantity * 100).round();
 
-    final int usdCostCents = (_usdCostPrice * _usdQuantity * 100).round();
-    final int usdProfitCents = usdTotalCents - usdCostCents;
+    String qtyText(double v) => _centsToInput((v * 100).round());
+    String priceText(double p) =>
+        p > 0 ? CurrencyNormalizer.formatCents((p * 100).round()) : '—';
+    String? profitText(double cost, double price, double qty, int profit) =>
+        cost > 0 && price > 0 && qty > 0
+            ? '${profit >= 0 ? "+" : ""}${CurrencyNormalizer.formatCents(profit)}'
+            : null;
 
     final List<Map<String, dynamic>> assets = [
       {
         'key': 'gram_altin',
-        'title': 'Gram Altın (Kapalıçarşı)',
-        'amount': '${_gramGoldQuantity.toStringAsFixed(1)} gr',
+        'title': 'Gram Altın',
+        'amount': '${qtyText(_gramGoldQuantity)} gr',
         'cost': _gramGoldCostPrice > 0
-            ? 'Maliyet: ₺${_gramGoldCostPrice.toStringAsFixed(1)} • Hedef: ₺${_gramGoldTargetPrice > 0 ? _gramGoldTargetPrice.toStringAsFixed(0) : "-"}'
-            : 'Canlı: ₺${gramGoldPrice.toStringAsFixed(2)}/gr',
-        'current_value': CurrencyNormalizer.formatCents(gramGoldTotalCents),
-        'profit_text': _gramGoldCostPrice > 0
-            ? '${gramGoldProfitCents >= 0 ? "+" : ""}${CurrencyNormalizer.formatCents(gramGoldProfitCents)}'
-            : null,
+            ? 'Maliyet: ${priceText(_gramGoldCostPrice)}/gr'
+            : 'Alış kuru: ${priceText(gramGoldPrice)}/gr',
+        'current_value': gramGoldPrice > 0 || _gramGoldQuantity == 0
+            ? CurrencyNormalizer.formatCents(gramGoldTotalCents)
+            : '—',
+        'profit_text': profitText(_gramGoldCostPrice, gramGoldPrice,
+            _gramGoldQuantity, gramGoldProfitCents),
         'is_profit': gramGoldProfitCents >= 0,
         'icon': Icons.monetization_on_rounded,
         'color': const Color(0xFFF59E0B),
@@ -936,14 +956,15 @@ class _AssetsScreenState extends State<AssetsScreen> {
       {
         'key': 'ceyrek_altin',
         'title': 'Çeyrek Altın',
-        'amount': '$_ceyrekGoldQuantity Adet',
+        'amount': '$_ceyrekGoldQuantity adet',
         'cost': _ceyrekGoldCostPrice > 0
-            ? 'Maliyet: ₺${_ceyrekGoldCostPrice.toStringAsFixed(0)} • Hedef: ₺${_ceyrekGoldTargetPrice > 0 ? _ceyrekGoldTargetPrice.toStringAsFixed(0) : "-"}'
-            : 'Canlı: ₺${ceyrekGoldPrice.toStringAsFixed(0)}/adet',
-        'current_value': CurrencyNormalizer.formatCents(ceyrekGoldTotalCents),
-        'profit_text': _ceyrekGoldCostPrice > 0
-            ? '${ceyrekGoldProfitCents >= 0 ? "+" : ""}${CurrencyNormalizer.formatCents(ceyrekGoldProfitCents)}'
-            : null,
+            ? 'Maliyet: ${priceText(_ceyrekGoldCostPrice)}/adet'
+            : 'Alış kuru: ${priceText(ceyrekGoldPrice)}/adet',
+        'current_value': ceyrekGoldPrice > 0 || _ceyrekGoldQuantity == 0
+            ? CurrencyNormalizer.formatCents(ceyrekGoldTotalCents)
+            : '—',
+        'profit_text': profitText(_ceyrekGoldCostPrice, ceyrekGoldPrice,
+            _ceyrekGoldQuantity.toDouble(), ceyrekGoldProfitCents),
         'is_profit': ceyrekGoldProfitCents >= 0,
         'icon': Icons.circle_rounded,
         'color': const Color(0xFFEAB308),
@@ -951,23 +972,24 @@ class _AssetsScreenState extends State<AssetsScreen> {
       {
         'key': 'usd',
         'title': 'Amerikan Doları (USD)',
-        'amount': '\$${_usdQuantity.toStringAsFixed(0)}',
+        'amount': '${qtyText(_usdQuantity)} USD',
         'cost': _usdCostPrice > 0
-            ? 'Maliyet: ₺${_usdCostPrice.toStringAsFixed(2)} • Hedef: ₺${_usdTargetPrice > 0 ? _usdTargetPrice.toStringAsFixed(2) : "-"}'
-            : 'Canlı: ₺${usdPrice.toStringAsFixed(2)}/\$',
-        'current_value': CurrencyNormalizer.formatCents(usdTotalCents),
-        'profit_text': _usdCostPrice > 0
-            ? '${usdProfitCents >= 0 ? "+" : ""}${CurrencyNormalizer.formatCents(usdProfitCents)}'
-            : null,
+            ? 'Maliyet: ${priceText(_usdCostPrice)}'
+            : 'Alış kuru: ${priceText(usdPrice)}',
+        'current_value': usdPrice > 0 || _usdQuantity == 0
+            ? CurrencyNormalizer.formatCents(usdTotalCents)
+            : '—',
+        'profit_text': profitText(
+            _usdCostPrice, usdPrice, _usdQuantity, usdProfitCents),
         'is_profit': usdProfitCents >= 0,
         'icon': Icons.attach_money_rounded,
         'color': const Color(0xFF10B981),
       },
       {
         'key': 'nakit_tl',
-        'title': 'TL Nakit Cüzdan',
+        'title': 'TL Nakit',
         'amount': 'Nakit',
-        'cost': 'Vadesiz TL',
+        'cost': 'Elle girilen bakiye',
         'current_value': CurrencyNormalizer.formatCents(_cashTryCents),
         'profit_text': null,
         'is_profit': true,
@@ -976,11 +998,16 @@ class _AssetsScreenState extends State<AssetsScreen> {
       },
     ];
 
+    // Kurun kaynağı ve kaynaktaki güncellenme zamanı
+    final rateTimes = _marketTickers.values.map((t) => t.lastUpdated).toList()
+      ..sort();
+    final DateTime? ratesUpdatedAt = rateTimes.isEmpty ? null : rateTimes.last;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text(
-          'Varlıklarım & Portföy',
+          'Varlıklarım',
           style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w800,
@@ -998,13 +1025,13 @@ class _AssetsScreenState extends State<AssetsScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.refresh_rounded,
                     color: AppColors.actionPrimary),
-            onPressed: _fetchMarketRates,
-            tooltip: 'Kurları Güncelle',
+            onPressed: _isLoadingRates ? null : _refreshAll,
+            tooltip: 'Yenile',
           ),
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: _fetchMarketRates,
+        onRefresh: _refreshAll,
         color: AppColors.actionPrimary,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -1012,7 +1039,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Segment Kontrolcü: [Birikim] | [Araç & Mülk] | [Kartlar]
+              // Segment Kontrolcü: [Birikim] | [Araçlar] | [Kartlar]
               Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
@@ -1022,7 +1049,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
                 child: Row(
                   children: [
                     _buildTabItem('Birikim', 0),
-                    _buildTabItem('Araç & Mülk', 1),
+                    _buildTabItem('Araçlar', 1),
                     _buildTabItem('Kartlar', 2),
                   ],
                 ),
@@ -1030,40 +1057,19 @@ class _AssetsScreenState extends State<AssetsScreen> {
               const SizedBox(height: 16),
 
               if (_selectedTab == 0) ...[
-                // Toplam Portföy Büyüklüğü Kartı
+                // Toplam Portföy Değeri
                 FinanceCard(
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'TOPLAM PORTFÖY DEĞERİ',
-                            style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textSecondary,
-                                letterSpacing: 0.5),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEFF6FF),
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.pill),
-                            ),
-                            child: const Text(
-                              'Canlı Değerleme',
-                              style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.actionPrimary),
-                            ),
-                          ),
-                        ],
+                      const Text(
+                        'TOPLAM VARLIK DEĞERİ',
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textSecondary,
+                            letterSpacing: 0.5),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -1074,39 +1080,35 @@ class _AssetsScreenState extends State<AssetsScreen> {
                             color: AppColors.textPrimary,
                             letterSpacing: -0.5),
                       ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          _buildMiniBadge('3 Varlık Kalemi'),
-                          const SizedBox(width: 8),
-                          _buildMiniBadge('Anlık Kur Takibi'),
-                        ],
-                      ),
+                      const SizedBox(height: 10),
+                      _detailRow('Birikim (altın, döviz, nakit)',
+                          CurrencyNormalizer.formatCents(savingsTotalCents)),
+                      if (vehicleTotalCents > 0)
+                        _detailRow('Araçlar (girdiğin değer)',
+                            CurrencyNormalizer.formatCents(vehicleTotalCents)),
+                      if (missingRate) ...[
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Kur alınamadı; kuru olmayan varlıklar toplama eklenmedi.',
+                          style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.expenseRed),
+                        ),
+                      ],
                     ],
                   ),
                 ),
                 const SizedBox(height: 16),
 
-                // Canlı Kur ve Emtia Bandı (serbest piyasa)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    Text(
-                      'CANLI PİYASA KURLARI',
-                      style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textSecondary,
-                          letterSpacing: 0.5),
-                    ),
-                    Text(
-                      'Kapalıçarşı & Serbest',
-                      style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textMuted),
-                    ),
-                  ],
+                // Kur ve emtia bandı (serbest piyasa, satış fiyatı)
+                const Text(
+                  'PİYASA KURLARI (SATIŞ)',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textSecondary,
+                      letterSpacing: 0.5),
                 ),
                 const SizedBox(height: 8),
 
@@ -1114,24 +1116,25 @@ class _AssetsScreenState extends State<AssetsScreen> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      _buildTickerChip(
-                          'USD/TRY',
-                          _marketTickers['USD']?.formattedPrice ?? '—',
-                          _marketTickers['USD']?.changeRate ?? 0),
-                      _buildTickerChip(
-                          'EUR/TRY',
-                          _marketTickers['EUR']?.formattedPrice ?? '—',
-                          _marketTickers['EUR']?.changeRate ?? 0),
-                      _buildTickerChip(
-                          'Gram Altın',
-                          _marketTickers['ALTIN_GR']?.formattedPrice ?? '—',
-                          _marketTickers['ALTIN_GR']?.changeRate ?? 0),
-                      _buildTickerChip(
-                          'Çeyrek Altın',
-                          _marketTickers['CEYREK']?.formattedPrice ?? '—',
-                          _marketTickers['CEYREK']?.changeRate ?? 0),
+                      _buildTickerChip('USD/TRY', _marketTickers['USD']),
+                      _buildTickerChip('EUR/TRY', _marketTickers['EUR']),
+                      _buildTickerChip('Gram Altın', _marketTickers['ALTIN_GR']),
+                      _buildTickerChip('Çeyrek Altın', _marketTickers['CEYREK']),
                     ],
                   ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  ratesUpdatedAt != null
+                      ? 'Kaynak: Truncgil Finans (serbest piyasa) • Güncelleme: ${_formatDateTime(ratesUpdatedAt)}'
+                      : 'Kaynak: Truncgil Finans (serbest piyasa) • Kur alınamadı',
+                  style: const TextStyle(
+                      fontSize: 11, color: AppColors.textMuted, height: 1.4),
+                ),
+                const Text(
+                  'Varlık değeri piyasanın alış fiyatıyla hesaplanır. Bilgi amaçlıdır, yatırım tavsiyesi değildir.',
+                  style: TextStyle(
+                      fontSize: 11, color: AppColors.textMuted, height: 1.4),
                 ),
                 const SizedBox(height: 20),
 
@@ -1140,7 +1143,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      'Varlık Portföyüm',
+                      'Birikimlerim',
                       style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
@@ -1150,7 +1153,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
                       onPressed: () => _showSelectAssetToEditDialog(),
                       icon: const Icon(Icons.edit_rounded,
                           size: 16, color: AppColors.actionPrimary),
-                      label: const Text('Varlıkları Düzenle',
+                      label: const Text('Düzenle',
                           style: TextStyle(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w700,
@@ -1252,25 +1255,9 @@ class _AssetsScreenState extends State<AssetsScreen> {
                 ),
                 const SizedBox(height: 16),
                 const MarketNewsSection(),
-                const SizedBox(height: 16),
 
-                // Video 2: Morflayan Varlık Portföyü Paylaşım Butonu
-                MorphingShareButton(
-                  fileName: 'varlik_ve_portfoy_raporu.pdf',
-                  label: 'Varlık Portföyünü İndir & Paylaş',
-                  accentColor: AppColors.actionPrimary,
-                  onDownloadComplete: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        backgroundColor: AppColors.incomeGreen,
-                        content: Text(
-                            'Varlık ve portföy özeti raporu hazırlandı ve paylaşıldı.'),
-                      ),
-                    );
-                  },
-                ),
               ] else if (_selectedTab == 1) ...[
-                _buildVehiclesAndPropertyView(),
+                _buildVehiclesView(),
               ] else ...[
                 _buildLinkedCardsView(),
               ],
@@ -1282,80 +1269,13 @@ class _AssetsScreenState extends State<AssetsScreen> {
     );
   }
 
-  Widget _buildVehiclesAndPropertyView() {
+  Widget _buildVehiclesView() {
     final int vehicleTotalCents = _userVehicles.fold(
         0, (sum, v) => sum + ((v['value_cents'] as num?)?.toInt() ?? 0));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Konut & Ev Tipi Kartı
-        FinanceCard(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(Icons.home_work_rounded,
-                          color: AppColors.actionPrimary, size: 20),
-                      SizedBox(width: 8),
-                      Text('Konut / Ev Durumu',
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.textPrimary)),
-                    ],
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEFF6FF),
-                      borderRadius: BorderRadius.circular(AppRadius.pill),
-                    ),
-                    child: Text(_selectedHousingType,
-                        style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.actionPrimary)),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedHousingType,
-                decoration: InputDecoration(
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
-                  filled: true,
-                  fillColor: const Color(0xFFF8FAFC),
-                ),
-                items: RemoteConfigService.instance.housingTypes
-                    .map((h) => DropdownMenuItem(
-                        value: h,
-                        child: Text(h,
-                            style: const TextStyle(
-                                fontSize: 13, fontWeight: FontWeight.w600))))
-                    .toList(),
-                onChanged: (val) {
-                  if (val != null) {
-                    setState(() => _selectedHousingType = val);
-                    _assets.setHousingType(val);
-                  }
-                },
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-
         // Araç Varlıkları Başlık & Manuel Araç Ekle Butonu
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1416,7 +1336,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
                           color: AppColors.textPrimary)),
                   const SizedBox(height: 4),
                   const Text(
-                      'Aracınızı ekleyerek kasko, yakıt ve bakım giderlerini takip edebilirsiniz.',
+                      'Aracını ve güncel piyasa değerini girersen değer, toplam varlıkta ayrı satır olarak görünür.',
                       style: TextStyle(
                           fontSize: 11, color: AppColors.textSecondary),
                       textAlign: TextAlign.center),
@@ -1721,10 +1641,14 @@ class _AssetsScreenState extends State<AssetsScreen> {
                 onPressed: () async {
                   Navigator.pop(ctx);
                   final id = existing['id'] as String;
-                  await _assets.deleteVehicle(id);
+                  try {
+                    await _assets.deleteVehicle(id);
+                  } catch (_) {
+                    _showError('Araç silinemedi, tekrar dene.');
+                    return;
+                  }
                   await NotificationService.instance
                       .cancel(NotificationService.stableId('vehicle|$id'));
-                  if (mounted) setState(() => _userVehicles = _assets.vehicles);
                 },
                 child: const Text('Sil',
                     style: TextStyle(color: AppColors.expenseRed)),
@@ -1768,11 +1692,15 @@ class _AssetsScreenState extends State<AssetsScreen> {
                   'updated_at': DateTime.now().toIso8601String(),
                 };
                 Navigator.pop(ctx);
-                await _assets.upsertVehicle(vehicle);
+                try {
+                  await _assets.upsertVehicle(vehicle);
+                } catch (_) {
+                  _showError('Araç kaydedilemedi, tekrar dene.');
+                  return;
+                }
                 await NotificationService.instance.requestPermission();
                 await _scheduleVehicleReminder(vehicle);
                 if (!mounted) return;
-                setState(() => _userVehicles = _assets.vehicles);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     backgroundColor: AppColors.incomeGreen,
@@ -1965,17 +1893,11 @@ class _AssetsScreenState extends State<AssetsScreen> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const Text('Cihaz İçi Kriptolu • Sıfır-Bilgi',
+                    const Text('Veriler yalnız bu telefonda',
                         style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
                             color: AppColors.textSecondary)),
-                    const Spacer(),
-                    const Text('Güvenli',
-                        style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.incomeGreen)),
                   ],
                 ),
               ),
@@ -2041,27 +1963,17 @@ class _AssetsScreenState extends State<AssetsScreen> {
                                         fontSize: 14,
                                         fontWeight: FontWeight.w800,
                                         color: AppColors.textPrimary)),
-                                if (card['is_supplementary'] == true) ...[
-                                  const SizedBox(width: 6),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFEFF6FF),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: const Text('Ek Kart',
-                                        style: TextStyle(
-                                            fontSize: 9,
-                                            fontWeight: FontWeight.w800,
-                                            color: AppColors.actionPrimary)),
-                                  ),
-                                ],
                               ],
                             ),
                             const SizedBox(height: 3),
                             Text(
-                                '${card['mask']} • ${card['holder']} • ${card['statement_day']}',
+                                [
+                                  card['mask'],
+                                  if (((card['holder'] as String?) ?? '')
+                                      .isNotEmpty)
+                                    card['holder'],
+                                  card['statement_day'],
+                                ].join(' • '),
                                 style: const TextStyle(
                                     fontSize: 11,
                                     color: AppColors.textSecondary)),
@@ -2098,8 +2010,10 @@ class _AssetsScreenState extends State<AssetsScreen> {
     );
   }
 
-  Widget _buildTickerChip(String title, String value, double changeRate) {
-    final isPositive = changeRate >= 0;
+  /// Kur kutucuğu. Değişim yüzdesi kaynaktan (Truncgil "Change") gelir; kur yoksa gösterilmez.
+  Widget _buildTickerChip(String title, MarketTicker? ticker) {
+    final changeRate = ticker?.changeRate;
+    final isPositive = (changeRate ?? 0) >= 0;
     return Container(
       margin: const EdgeInsets.only(right: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -2119,32 +2033,34 @@ class _AssetsScreenState extends State<AssetsScreen> {
                       fontWeight: FontWeight.w700,
                       color: AppColors.textSecondary)),
               const SizedBox(height: 2),
-              Text(value,
+              Text(ticker?.formattedPrice ?? '—',
                   style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w900,
                       color: AppColors.textPrimary)),
             ],
           ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: isPositive
-                  ? const Color(0xFFDCFCE7)
-                  : const Color(0xFFFEE2E2),
-              borderRadius: BorderRadius.circular(6),
+          if (changeRate != null) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: isPositive
+                    ? const Color(0xFFDCFCE7)
+                    : const Color(0xFFFEE2E2),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                '${isPositive ? "+" : ""}%${changeRate.toStringAsFixed(2).replaceAll('.', ',')}',
+                style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: isPositive
+                        ? const Color(0xFF166534)
+                        : const Color(0xFF991B1B)),
+              ),
             ),
-            child: Text(
-              '${isPositive ? "+" : ""}${changeRate.toStringAsFixed(2)}%',
-              style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                  color: isPositive
-                      ? const Color(0xFF166534)
-                      : const Color(0xFF991B1B)),
-            ),
-          ),
+          ],
         ],
       ),
     );
@@ -2184,24 +2100,6 @@ class _AssetsScreenState extends State<AssetsScreen> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildMiniBadge(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textSecondary),
       ),
     );
   }

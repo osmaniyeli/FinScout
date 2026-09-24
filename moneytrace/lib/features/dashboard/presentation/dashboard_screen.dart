@@ -9,9 +9,9 @@ import '../../../core/widgets/rolling_number_ticker.dart';
 import '../../../core/widgets/fintech/fintech_components.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/services/user_profile_service.dart';
+import '../../../core/services/data_changes.dart';
 import '../../profile/presentation/profile_screen.dart';
 import '../../notifications/presentation/notifications_sheet.dart';
-import '../../family_budget/presentation/family_budget_sheet.dart';
 import '../../statement_upload/presentation/statement_upload_sheet.dart';
 import '../../../core/config/remote_config_service.dart';
 import '../../subscription/presentation/subscription_plans_sheet.dart';
@@ -91,11 +91,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final now = DateTime.now();
     _selectedMonth = '${now.year}-${now.month.toString().padLeft(2, '0')}';
     _monthDisplayName = '${now.year} ${_monthNames[now.month - 1]}';
-    UserProfileService.instance.checkScheduledReminders();
+    DataChanges.revision.addListener(_loadDashboardData);
     _loadDashboardData();
   }
 
+  @override
+  void dispose() {
+    DataChanges.revision.removeListener(_loadDashboardData);
+    super.dispose();
+  }
+
   Future<void> _loadDashboardData() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
     try {
       final summary =
@@ -135,6 +142,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               }
 
               return {
+                'id': tx['id'],
                 'title': tx['clean_merchant'] ?? 'İşlem',
                 'subtitle':
                     '${tx['category_name'] ?? "Genel"} • ${tx['transaction_date']}',
@@ -147,6 +155,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 'color': color,
                 'isExpense': isExpense,
                 'badgeText': badgeText,
+                // İşlem detayında kategori değiştirme için
+                'category_id': tx['category_id'],
+                'category_name': tx['category_name'],
+                'counterparty': tx['counterparty'] ?? tx['clean_merchant'],
+                'transaction_date': tx['transaction_date'],
               };
             }).toList();
           } else {
@@ -214,17 +227,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
               subtitle: AppStrings.get('doc_payslip_desc'),
               hint: 'PAYSLIP',
             ),
+            // Yapı Kredi vadesiz okuyucusu gerçek örnek dökümle yazılana kadar seçilemez
             _buildDocTypeOption(
               icon: Icons.account_balance_rounded,
               title: AppStrings.get('doc_bank_statement'),
               subtitle: AppStrings.get('doc_bank_statement_desc'),
               hint: 'CHECKING',
+              enabled: false,
             ),
             _buildDocTypeOption(
-              icon: Icons.receipt_long_rounded,
-              title: AppStrings.get('doc_invoice'),
-              subtitle: AppStrings.get('doc_invoice_desc'),
-              hint: 'INVOICE',
+              icon: Icons.more_horiz_rounded,
+              title: AppStrings.get('doc_other_banks'),
+              subtitle: AppStrings.get('doc_other_banks_desc'),
+              hint: '',
+              enabled: false,
             ),
           ],
         ),
@@ -237,8 +253,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required String title,
     required String subtitle,
     required String hint,
+    bool enabled = true,
   }) {
     return ListTile(
+      enabled: enabled,
       contentPadding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
       leading: Container(
         padding: const EdgeInsets.all(10),
@@ -264,26 +282,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         );
       },
-    );
-  }
-
-  void _openFamilyBudget() {
-    if (!RemoteConfigService.instance.isModuleActive('family_budget')) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: AppColors.installment,
-          content: Text(RemoteConfigService.instance
-              .getMaintenanceMessage('family_budget')),
-        ),
-      );
-      return;
-    }
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => const FamilyBudgetSheet(),
     );
   }
 
@@ -806,17 +804,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
         TransactionDetailSheet.show(
           context,
           transaction: tx,
-          onDelete: () {
-            setState(() {
-              _recentTransactions.remove(tx);
-            });
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                backgroundColor: AppColors.textPrimary,
-                content: Text('${tx['title']} kaydı silindi.'),
-              ),
-            );
-          },
+          repository: _repository,
+          onDelete: tx['id'] == null
+              ? null
+              : () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  final ok = await _repository.deleteTransaction(tx['id'] as String);
+                  messenger.showSnackBar(
+                    SnackBar(
+                      backgroundColor: AppColors.textPrimary,
+                      content: Text(ok
+                          ? '${tx['title']} kaydı silindi.'
+                          : 'Kayıt silinemedi. Tekrar dene.'),
+                    ),
+                  );
+                },
         );
       },
     );

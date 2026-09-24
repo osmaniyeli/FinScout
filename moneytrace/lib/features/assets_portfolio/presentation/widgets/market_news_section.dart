@@ -6,7 +6,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/models/market_news_item.dart';
 import '../../../../core/services/market_news_service.dart';
 import '../../../../core/widgets/remote_feature_gate.dart';
-import '../../../../core/widgets/pulse_metric_badge.dart';
 
 class MarketNewsSection extends StatefulWidget {
   const MarketNewsSection({Key? key}) : super(key: key);
@@ -40,6 +39,10 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
     }
   }
 
+  static String _formatTime(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year} '
+      '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+
   @override
   Widget build(BuildContext context) {
     return RemoteFeatureGate(
@@ -47,18 +50,20 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Başlık ve Video Micro-Interaction: Canlılık Radarı İndikatörü
+          // Başlık + yenile
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const PulseMetricBadge(
-                label: 'CANLI AKIŞ',
-                value: 'PİYASA GÜNDEMİ',
-                pulseColor: Color(0xFF10B981),
-                isPositive: true,
+              const Text(
+                'PİYASA HABERLERİ',
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textSecondary,
+                    letterSpacing: 0.5),
               ),
               InkWell(
-                onTap: () => _loadNews(forceRefresh: true),
+                onTap: _isLoading ? null : () => _loadNews(forceRefresh: true),
                 borderRadius: BorderRadius.circular(8),
                 child: Padding(
                   padding:
@@ -89,9 +94,11 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
             ],
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Kaynak: Bloomberg HT & Dünya Gazetesi (Resmi RSS)',
-            style: TextStyle(
+          Text(
+            _newsService.lastFetchTime != null
+                ? 'Kaynak: Bloomberg HT ve Dünya Gazetesi RSS • Güncelleme: ${_formatTime(_newsService.lastFetchTime!)}'
+                : 'Kaynak: Bloomberg HT ve Dünya Gazetesi RSS',
+            style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
                 color: AppColors.textMuted),
@@ -338,12 +345,12 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.verified_user_rounded,
-                        size: 16, color: Color(0xFF10B981)),
+                    const Icon(Icons.info_outline_rounded,
+                        size: 16, color: Color(0xFF64748B)),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Kaynak: ${item.sourceName} resmi açık RSS akışı. Tüm telif ve yayın hakları kaynağa aittir.',
+                        'Kaynak: ${item.sourceName} RSS akışı. Tüm telif ve yayın hakları kaynağa aittir.',
                         style: const TextStyle(
                             fontSize: 11, color: Color(0xFF64748B)),
                       ),

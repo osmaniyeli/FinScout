@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/services/user_profile_service.dart';
 import '../../../core/services/account_service.dart';
 import '../../../core/services/security_auth_service.dart';
 import '../../../core/widgets/fintech/fintech_components.dart';
@@ -74,10 +73,51 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         widget.onCompleted();
         return;
       }
+      final code = AccountService.instance.lastGoogleCancelCode;
+      if (profile == null && code != null) {
+        _showError(
+            'Google girişi tamamlanmadı ($code). Hesabı seçtiğin halde bu mesajı görüyorsan e-posta koduyla devam edebilirsin.');
+      }
+    } on DifferentAccountDataException {
+      await _resolveAccountSwitch();
     } on AccountException catch (e) {
       _showError(e.message);
     }
     if (mounted) setState(() => _isLoading = false);
+  }
+
+  /// Telefonda başka bir hesaba ait veri var: cihazda aynı anda tek hesap kullanılır.
+  Future<void> _resolveAccountSwitch() async {
+    if (!mounted) return;
+    final ok = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Bu telefonda başka bir hesabın verisi var'),
+        content: const Text(
+            'FinScout bir telefonda aynı anda tek hesapla kullanılır. Devam edersen önceki hesabın bu telefondaki '
+            'ekstre, işlem, hedef ve varlık kayıtları silinir. Önceki hesabın kendisi silinmez; o hesapla tekrar '
+            'girersen ekstrelerini yeniden yükleyebilirsin.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Vazgeç')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Verileri sil ve devam et',
+                style: TextStyle(color: AppColors.expenseRed)),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) {
+      try {
+        await AccountService.instance.confirmAccountSwitch();
+        if (mounted) widget.onCompleted();
+      } on AccountException catch (e) {
+        _showError(e.message);
+      }
+    } else {
+      await AccountService.instance.cancelAccountSwitch();
+    }
   }
 
   Future<void> _startEmailSignIn() async {
@@ -121,56 +161,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       await AccountService.instance.verifyCode(email, code,
           fullName: _codeIsForSignup ? _nameController.text.trim() : null);
       if (mounted) widget.onCompleted();
+    } on DifferentAccountDataException {
+      await _resolveAccountSwitch();
+      if (mounted) setState(() => _isLoading = false);
     } on AccountException catch (e) {
       _showError(e.message);
       if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _loginWithBiometrics(BiometricAuthType type) async {
-    setState(() => _isLoading = true);
-
-    final success = await SecurityAuthService.instance.authenticateBiometric(
-      reason: 'FinScout Parmak İzi ile Giriş',
-      specificType: type,
-    );
-
-    if (mounted) {
-      setState(() => _isLoading = false);
-      if (success) {
-        await _ensureProfileAndProceed();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            backgroundColor: AppColors.expenseRed,
-            content: Text(
-                'Biyometrik doğrulama başarısız oldu. Lütfen PIN kodunuzu deneyin.'),
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _loginWithPin() async {
-    final verified = await SecurityAuthSheet.show(
-      context,
-      title: 'PIN Kodu ile Giriş',
-      subtitle: 'FinScout kasanıza erişmek için 4 haneli PIN kodunuzu girin.',
-      isSettingNewPin: false,
-    );
-
-    if (verified == true && mounted) {
-      await _ensureProfileAndProceed();
-    }
-  }
-
-  Future<void> _ensureProfileAndProceed() async {
-    if (!UserProfileService.instance.hasProfile) {
-      if (mounted) setState(() => _isSignInMode = false);
-      return;
-    }
-    if (mounted) {
-      widget.onCompleted();
     }
   }
 
@@ -226,7 +222,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                     const SizedBox(height: 4),
                     const Text(
-                      'Harcama Zekası ve Biyometrik Güvenlik',
+                      'Ekstreni yükle, masraflarını kalem kalem gör',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -494,11 +490,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   // 2. GİRİŞ YAP FORMU (Sign In / Biometrics / PIN)
   // ==========================================
   Widget _buildSignInForm() {
-    final hasExistingProfile = UserProfileService.instance.hasProfile;
-    final existingName =
-        UserProfileService.instance.profile?.name ?? 'Kayıtlı Kullanıcı';
-
-    if (!hasExistingProfile) {
       return Container(
         padding: const EdgeInsets.all(22),
         decoration: BoxDecoration(
@@ -583,183 +574,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ],
         ),
       );
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 16,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF10B981), width: 2),
-                ),
-                child: const Center(
-                  child: Icon(Icons.person_rounded,
-                      color: Color(0xFF0F172A), size: 24),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Tekrar Hoş Geldiniz!',
-                      style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textPrimary),
-                    ),
-                    Text(
-                      existingName,
-                      style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF059669)),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-
-          const Text(
-            'Hızlı Biyometrik veya PIN ile Giriş Yapın',
-            style: TextStyle(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary),
-          ),
-          const SizedBox(height: 12),
-
-          // 2. Parmak İzi ile Giriş (Touch ID / Fingerprint)
-          InkWell(
-            onTap: () => _loginWithBiometrics(BiometricAuthType.fingerprint),
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEFF6FF),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFBFDBFE)),
-              ),
-              child: Row(
-                children: const [
-                  Icon(Icons.fingerprint_rounded,
-                      color: Color(0xFF2563EB), size: 24),
-                  SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Parmak İzi ile Giriş (Touch ID)',
-                          style: TextStyle(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1E40AF)),
-                        ),
-                        Text(
-                          'Sensöre dokunun, güvenle kasanıza erişin',
-                          style:
-                              TextStyle(fontSize: 11, color: Color(0xFF1D4ED8)),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(Icons.arrow_forward_ios_rounded,
-                      color: Color(0xFF2563EB), size: 14),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-
-          // 3. PIN Kodu ile Giriş
-          InkWell(
-            onTap: _loginWithPin,
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Row(
-                children: const [
-                  Icon(Icons.pin_rounded, color: Color(0xFF0F172A), size: 24),
-                  SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '4 Haneli PIN Kodu ile Giriş',
-                          style: TextStyle(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF0F172A)),
-                        ),
-                        Text(
-                          'Şifrenizi tuşlayarak giriş yapın',
-                          style:
-                              TextStyle(fontSize: 11, color: Color(0xFF64748B)),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(Icons.arrow_forward_ios_rounded,
-                      color: Color(0xFF64748B), size: 14),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 18),
-
-          // Kilit kapalıysa doğrudan devam; açıksa yalnızca parmak izi / PIN ile
-          if (!SecurityAuthService.instance.isAnySecurityActive)
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _ensureProfileAndProceed,
-                icon: const Icon(Icons.arrow_forward_rounded, size: 18),
-                label: const Text('Devam Et',
-                    style:
-                        TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0F172A),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  elevation: 0,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
   }
 
   Widget _googleButton() {
@@ -774,19 +588,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('G',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF4285F4))),
-            SizedBox(width: 10),
-            Text('Google ile Devam Et',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-          ],
-        ),
+        child: _isLoading
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(strokeWidth: 2.4))
+            : const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('G',
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF4285F4))),
+                  SizedBox(width: 10),
+                  Text('Google ile Devam Et',
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                ],
+              ),
       ),
     );
   }

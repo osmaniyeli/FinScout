@@ -74,7 +74,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(AppStrings.get('logout_btn')),
-        content: const Text('Hesabınızdan çıkış yapmak istediğinize emin misiniz? Verileriniz cihazınızda güvende kalacaktır.'),
+        content: const Text('Hesabından çıkış yapılsın mı? Ekstre ve işlemlerin bu telefonda kalır.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -93,39 +93,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Text(AppStrings.get('logout_btn'), style: const TextStyle(color: Colors.white)),
           ),
         ],
-      ),
-    );
-  }
-
-  void _showSwitchAccountDialog() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(AppStrings.get('switch_account_btn'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 12),
-            ListTile(
-              leading: const CircleAvatar(backgroundColor: Color(0xFF0F172A), child: Icon(Icons.person, color: Colors.white)),
-              title: Text(_profileService.profile?.name ?? 'Aktif Hesap', style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: const Text('Mevcut Profil (Aktif)'),
-              trailing: const Icon(Icons.check_circle_rounded, color: AppColors.incomeGreen),
-            ),
-            const Divider(),
-            ListTile(
-              leading: const CircleAvatar(backgroundColor: Color(0xFFE2E8F0), child: Icon(Icons.add, color: AppColors.textPrimary)),
-              title: const Text('Yeni Profil / Hesap Ekle', style: TextStyle(fontWeight: FontWeight.w600)),
-              onTap: () {
-                Navigator.pop(ctx);
-                _showLogoutDialog();
-              },
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -266,7 +233,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 24),
 
-            // 3. EN ALT ALAN: Uygulama Ayarları, Hesap Değiştir, Çıkış Yap (Kullanıcı İsteği)
+            // 3. EN ALT ALAN: Uygulama Ayarları, Çıkış Yap
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -282,7 +249,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: const Icon(Icons.settings_outlined, color: AppColors.textPrimary, size: 20),
                     ),
                     title: Text(AppStrings.get('app_settings_btn'), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                    subtitle: const Text('Dil, piyasa verileri, yedekleme ve sistem ayarları', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                    subtitle: const Text('Güvenlik, yedekleme, abonelik ve gizlilik',style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                     trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
                     onTap: () {
                       Navigator.push(
@@ -291,17 +258,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       );
                     },
                   ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(10)),
-                      child: const Icon(Icons.switch_account_outlined, color: AppColors.textPrimary, size: 20),
-                    ),
-                    title: Text(AppStrings.get('switch_account_btn'), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                    trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
-                    onTap: _showSwitchAccountDialog,
-                  ),
+
                   const Divider(height: 1),
                   ListTile(
                     leading: Container(

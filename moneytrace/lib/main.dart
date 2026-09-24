@@ -119,10 +119,17 @@ class _FinScoutAppState extends State<FinScoutApp> with WidgetsBindingObserver {
             final hasProfile = profile != null && profile.name.trim().isNotEmpty;
 
             return MaterialApp(
-              title: 'FinScout - Harcama Zekası',
+              title: 'FinScout',
               debugShowCheckedModeBanner: false,
               theme: AppTheme.lightTheme,
-              home: _buildHome(hasProfile),
+              home: hasProfile
+                  ? const MainNavigationScaffold()
+                  : OnboardingScreen(
+                      onCompleted: () => setState(() => _isUnlocked = true),
+                    ),
+              // Kilit ve gizlilik kalkanı Navigator'ın ÜSTÜNDE: açık alt sayfa, diyalog ya da
+              // itilmiş ekran da örtülür.
+              builder: (context, child) => _wrapWithGuards(child!, hasProfile),
             );
           },
         );
@@ -130,31 +137,22 @@ class _FinScoutAppState extends State<FinScoutApp> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildHome(bool hasProfile) {
-    if (!hasProfile) {
-      return OnboardingScreen(
-        onCompleted: () {
-          setState(() {
-            _isUnlocked = true;
-          });
-        },
-      );
-    }
-
-    final isSecurityActive = SecurityAuthService.instance.isAnySecurityActive;
-    final shouldLock = isSecurityActive && !_isUnlocked;
+  Widget _wrapWithGuards(Widget child, bool hasProfile) {
+    final shouldLock =
+        hasProfile && SecurityAuthService.instance.isAnySecurityActive && !_isUnlocked;
 
     return Stack(
       children: [
-        const MainNavigationScaffold(),
+        child,
         if (shouldLock)
           Positioned.fill(
-            child: AppLockScreen(
-              onUnlocked: () {
-                setState(() {
-                  _isUnlocked = true;
-                });
-              },
+            // Kilit ekranının kendi Navigator'ı olsun (diyalog/overlay gerektiren bileşenler için)
+            child: Navigator(
+              onGenerateRoute: (_) => MaterialPageRoute(
+                builder: (_) => AppLockScreen(
+                  onUnlocked: () => setState(() => _isUnlocked = true),
+                ),
+              ),
             ),
           ),
         // Çift Katmanlı Ekran Gizlilik Kalkanı (Ekran Görüntüsü ve Önizleme Koruması)

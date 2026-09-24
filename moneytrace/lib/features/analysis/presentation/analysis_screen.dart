@@ -5,13 +5,17 @@ import 'package:path_provider/path_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/currency_normalizer.dart';
-import '../../../core/widgets/morphing_share_button.dart';
 import '../../../core/widgets/morphing_segmented_bar.dart';
 import '../../../core/widgets/pulse_metric_badge.dart';
 import '../../../core/widgets/fintech/fintech_components.dart';
 import '../../../core/database/repositories/transaction_repository.dart';
+import '../../../core/services/data_changes.dart';
 import '../../statement_upload/presentation/statement_upload_sheet.dart';
 import '../../tax_analytics/services/tax_analysis_service.dart';
+import '../../fees/services/fee_report_service.dart';
+import '../../fees/presentation/fee_period.dart';
+import '../../fees/presentation/fee_report_text.dart';
+import '../../fees/presentation/fees_view.dart';
 
 class AnalysisScreen extends StatefulWidget {
   const AnalysisScreen({Key? key}) : super(key: key);
@@ -22,18 +26,31 @@ class AnalysisScreen extends StatefulWidget {
 
 class _AnalysisScreenState extends State<AnalysisScreen> {
   final TransactionRepository _repository = TransactionRepository();
-  int _selectedTabIndex = 0; // 0: Dağılım, 1: Aylık, 2: Vergi
+  int _selectedTabIndex = 0; // 0: Dağılım, 1: Aylık, 2: Masraflar
   bool _isLoading = false;
 
   List<Map<String, dynamic>> _categoryShares = [];
   List<Map<String, dynamic>> _monthlyTrends = [];
-  TaxAnalysis? _tax;
   int _grandTotalCents = 0;
+
+  // Masraflar: seçili dönem, masraf raporu ve ayrı tutulan tahmini KDV
+  FeePeriod _feePeriod = FeePeriod.thisMonth();
+  FeeReport? _fees;
+  TaxAnalysis? _vat;
+  bool _feesLoading = false;
+  int _feesRequest = 0; // hızlı dönem değişiminde eski yanıt yenisini ezmesin
 
   @override
   void initState() {
     super.initState();
+    DataChanges.revision.addListener(_loadAnalysisData);
     _loadAnalysisData();
+  }
+
+  @override
+  void dispose() {
+    DataChanges.revision.removeListener(_loadAnalysisData);
+    super.dispose();
   }
 
   Color _parseHexColor(String hex) {
@@ -48,11 +65,12 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
   }
 
   Future<void> _loadAnalysisData() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
     try {
       final rawCategories = await _repository.getCategorySpendingAnalysis();
       final trends = await _repository.getMonthlyTrendsAnalysis();
-      final tax = await TaxAnalysisService().load();
+      _loadFees();
 
       int total = 0;
       final parsedCats = rawCategories.map((c) {
@@ -71,13 +89,37 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
         setState(() {
           _categoryShares = parsedCats;
           _monthlyTrends = trends;
-          _tax = tax;
           _grandTotalCents = total;
           _isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _loadFees() async {
+    if (!mounted) return;
+    final request = ++_feesRequest;
+    final period = _feePeriod;
+    setState(() => _feesLoading = true);
+    try {
+      final fees = await FeeReportService()
+          .load(year: period.year, month: period.month);
+      final vat =
+          await TaxAnalysisService().load(from: period.from, to: period.to);
+      if (!mounted || request != _feesRequest) return;
+      setState(() {
+        _fees = fees;
+        _vat = vat;
+        _feesLoading = false;
+      });
+    } catch (e) {
+      if (!mounted || request != _feesRequest) return;
+      setState(() => _feesLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Masraflar yüklenemedi: $e')),
+      );
     }
   }
 
@@ -111,7 +153,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
         children: [
           // Video & Shakuro Micro-Interaction: Morflayan Kayan Segment Bar
           MorphingSegmentedBar(
-            segments: const ['Dağılım', 'Aylık Trend', 'Vergi'],
+            segments: const ['Dağılım', 'Aylık Trend', 'Masraflar'],
             selectedIndex: _selectedTabIndex,
             onSelected: (index) {
               setState(() => _selectedTabIndex = index);
@@ -124,7 +166,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                 ? _buildDistributionTab()
                 : (_selectedTabIndex == 1
                     ? _buildMonthlyTrendsTab()
-                    : _buildVatTab()),
+                    : _buildFeesTab()),
           ),
         ],
       ),
@@ -214,23 +256,6 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                 ],
               ),
             ),
-            // Video 2: Kategori Detay Raporunu Morflayarak Paylaş
-            MorphingShareButton(
-              fileName:
-                  '${(cat['name'] as String).toLowerCase()}_kategori_analizi.pdf',
-              label: '${cat['name']} Raporunu İndir & Paylaş',
-              accentColor: cat['color'] as Color,
-              onDownloadComplete: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: AppColors.incomeGreen,
-                    content: Text(
-                        '${cat['name']} harcama analizi raporu paylaşıldı.'),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 14),
 
             SizedBox(
               width: double.infinity,
@@ -531,13 +556,19 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
           ),
           const SizedBox(height: 18),
 
-          // Video 2: Morflayan Harcama Dağılımı ve KDV Raporu Paylaşım Butonu
-          MorphingShareButton(
-            fileName: 'aylik_harcama_ve_kdv_analiz_raporu.txt',
-            label: 'Tüm Harcama & KDV Raporunu İndir & Paylaş',
-            accentColor: AppColors.actionPrimary,
-            onDownloadComplete: _shareTaxAndExpenseReport,
-            onShareChannel: (channel) => _shareTaxAndExpenseReport(),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _shareTaxAndExpenseReport,
+              icon: const Icon(Icons.ios_share_rounded, size: 18),
+              label: const Text('Raporu paylaş',
+                  style: TextStyle(fontWeight: FontWeight.w600)),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
           ),
         ],
       ),
@@ -547,7 +578,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
   Future<void> _shareTaxAndExpenseReport() async {
     try {
       final buffer = StringBuffer();
-      buffer.writeln('FINSCOUT HARCAMA VE KDV ANALİZ RAPORU');
+      buffer.writeln('FINSCOUT HARCAMA, MASRAF VE TAHMİNİ KDV RAPORU');
       buffer.writeln('Tarih: ${DateTime.now().toLocal()}');
       buffer.writeln('--------------------------------------------------');
       buffer.writeln(
@@ -559,30 +590,24 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
             '- ${cat['name']}: ${cat['amount']} (%${cat['percentage']})');
       }
       buffer.writeln('');
-      final tax = _tax;
-      if (tax != null && !tax.isEmpty) {
-        buffer.writeln('ÖDENEN VERGİLER (son 12 ay):');
-        for (final e in {...tax.payrollTaxes, ...tax.bankTaxes}.entries) {
-          buffer.writeln(
-              '- ${e.key}: ${CurrencyNormalizer.formatCents(e.value)}');
-        }
-        buffer.writeln(
-            '- Alışverişlerdeki tahmini KDV: ${CurrencyNormalizer.formatCents(tax.vatTotal)}');
-        buffer.writeln(
-            'Toplam: ${CurrencyNormalizer.formatCents(tax.grandTotal)} (KDV kategori oranlarıyla tahminidir)');
+      // Masraflar: seçili dönemin gerçek toplamları; KDV ayrı ve "tahmini" etiketli
+      final fees = _fees;
+      if (fees != null) {
+        writeFeeReportSection(buffer,
+            period: _feePeriod, report: fees, vat: _vat);
       }
       buffer.writeln('--------------------------------------------------');
       buffer.writeln(
-          '%100 Sıfır-Bilgi & Cihaz İçi Kriptolu • FinScout Harcama Zekası');
+          'FinScout • Bu rapor telefonunda, ekstrelerinden hazırlandı');
 
       final tempDir = await getTemporaryDirectory();
       final file =
-          File('${tempDir.path}/aylik_harcama_ve_kdv_analiz_raporu.txt');
+          File('${tempDir.path}/harcama_ve_masraf_raporu.txt');
       await file.writeAsString(buffer.toString());
 
       await Share.shareXFiles(
         [XFile(file.path, mimeType: 'text/plain')],
-        text: 'FinScout Harcama Dağılımı ve KDV Analiz Raporu',
+        text: 'FinScout Harcama ve Masraf Raporu',
       );
     } catch (e) {
       if (mounted) {
@@ -763,343 +788,23 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     );
   }
 
-  Widget _buildVatTab() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    final tax = _tax;
-    if (tax == null || tax.isEmpty) {
-      return _buildEmptyState(
-        icon: Icons.receipt_long_rounded,
-        title: 'Vergi Verisi Bulunmuyor',
-        message:
-            'Maaş bordronu ve kart/hesap ekstrelerini yükledikçe ödediğin gelir vergisi, SGK, BSMV, KKDF ve alışverişlerindeki tahmini KDV burada türüne göre ayrışır.',
-      );
-    }
-
-    final byRate = tax.vatByRate.entries.toList()
-      ..sort((a, b) => a.key.compareTo(b.key));
-    final rateColors = <double, Color>{
-      0.01: Color(0xFF10B981),
-      0.08: Color(0xFF14B8A6),
-      0.10: Color(0xFF3B82F6),
-      0.20: Color(0xFF8B5CF6),
-    };
-    String pct(double r) => '%${(r * 100).round()}';
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 84),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          FinanceCard(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'SON 12 AYDA ÖDEDİĞİN VERGİLER',
-                  style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textSecondary,
-                      letterSpacing: 0.5),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  CurrencyNormalizer.formatCents(tax.grandTotal),
-                  style: const TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.textPrimary,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                _buildVatRow('Bordro kesintileri',
-                    CurrencyNormalizer.formatCents(tax.payrollTotal)),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                _buildVatRow('Banka vergileri (BSMV, KKDF, MTV…)',
-                    CurrencyNormalizer.formatCents(tax.bankTotal)),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                _buildVatRow('Alışverişlerde tahmini KDV',
-                    '~${CurrencyNormalizer.formatCents(tax.vatTotal)}'),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          if (tax.payrollTaxes.isNotEmpty) ...[
-            _sectionTitle('Bordrodan Kesilenler'),
-            FinanceCard(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: Column(
-                children: [
-                  for (final e in tax.payrollTaxes.entries)
-                    _buildVatRow(
-                        e.key, CurrencyNormalizer.formatCents(e.value)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 18),
-          ],
-          if (tax.bankTaxes.isNotEmpty) ...[
-            _sectionTitle('Ekstrelerdeki Vergiler'),
-            FinanceCard(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: Column(
-                children: [
-                  for (final e in tax.bankTaxes.entries)
-                    _buildVatRow(
-                        e.key, CurrencyNormalizer.formatCents(e.value)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 18),
-          ],
-          if (tax.vat.isNotEmpty) ...[
-            _sectionTitle('Alışverişlerdeki Tahmini KDV'),
-            FinanceCard(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  for (final e in byRate) ...[
-                    _buildVatRateItem(
-                        e.key == 0.08 ? '~%8' : '${pct(e.key)} KDV',
-                        '${CurrencyNormalizer.formatCents(e.value.$1)} harcama',
-                        e.value.$2,
-                        rateColors[e.key] ?? const Color(0xFF64748B)),
-                    const Divider(height: 16, color: Color(0xFFF1F5F9)),
-                  ],
-                  for (final v in tax.vat)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 5),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(v.categoryName,
-                                style: const TextStyle(
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.textPrimary)),
-                          ),
-                          Text('${v.approximate ? '~' : ''}${pct(v.rate)}  ',
-                              style: const TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.textSecondary)),
-                          Text(CurrencyNormalizer.formatCents(v.vatCents),
-                              style: const TextStyle(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.textPrimary)),
-                        ],
-                      ),
-                    ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Fişteki KDV değil; harcama kategorisine göre yürürlükteki oranla hesaplanan tahmindir. '
-                    '"~" karma oranlı kategoriler (ör. market: gıda %1–10, temizlik %20). Akaryakıt ÖTV\'si ve iletişimdeki ÖİV dahil değildir.',
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontStyle: FontStyle.italic,
-                        color: AppColors.textSecondary,
-                        height: 1.4),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 18),
-          ],
-          if (tax.payslips.isNotEmpty) ...[
-            _sectionTitle('Bordro Dökümü'),
-            for (final p in tax.payslips) _buildPayslipCard(p),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _sectionTitle(String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: Text(text,
-            style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary)),
-      );
-
-  static const _monthNames = [
-    'Ocak',
-    'Şubat',
-    'Mart',
-    'Nisan',
-    'Mayıs',
-    'Haziran',
-    'Temmuz',
-    'Ağustos',
-    'Eylül',
-    'Ekim',
-    'Kasım',
-    'Aralık'
-  ];
-
-  /// Brüt → kesintiler → net; dağılım çubuğu ile.
-  Widget _buildPayslipCard(PayslipBreakdown p) {
-    final gross = p.grossCents ??
-        (p.netCents + p.legalDeductionsCents + p.otherDeductionsCents);
-    final parts = <(String, int, Color)>[
-      ('Net ele geçen', p.netCents, AppColors.incomeGreen),
-      for (final (i, d) in p.deductions.indexed)
-        (
-          d.$1,
-          d.$2,
-          const [
-            Color(0xFFEF4444),
-            Color(0xFFF59E0B),
-            Color(0xFF3B82F6),
-            Color(0xFF8B5CF6)
-          ][i % 4]
-        ),
-      if (p.otherDeductionsCents > 0)
-        (
-          'Diğer kesintiler (BES, avans vb.)',
-          p.otherDeductionsCents,
-          const Color(0xFF94A3B8)
-        ),
-    ];
-
-    return FinanceCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                    '${_monthNames[p.date.month - 1]} ${p.date.year} • ${p.employer}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textPrimary)),
-              ),
-              Text('Brüt ${CurrencyNormalizer.formatCents(gross)}',
-                  style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textSecondary)),
-            ],
-          ),
-          const SizedBox(height: 10),
-          if (gross > 0)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: SizedBox(
-                height: 10,
-                child: Row(
-                  children: [
-                    for (final part in parts)
-                      if (part.$2 > 0)
-                        Expanded(
-                          flex: (part.$2 * 1000 ~/ gross).clamp(1, 1000),
-                          child: Container(color: part.$3),
-                        ),
-                  ],
-                ),
-              ),
-            ),
-          const SizedBox(height: 8),
-          for (final part in parts)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 3),
-              child: Row(
-                children: [
-                  Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                          color: part.$3, shape: BoxShape.circle)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(part.$1,
-                        style: const TextStyle(
-                            fontSize: 12, color: AppColors.textSecondary)),
-                  ),
-                  if (gross > 0)
-                    Text('%${(part.$2 * 100 / gross).toStringAsFixed(1)}  ',
-                        style: const TextStyle(
-                            fontSize: 11, color: AppColors.textMuted)),
-                  Text(CurrencyNormalizer.formatCents(part.$2),
-                      style: const TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textPrimary)),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildVatRateItem(
-      String rateBadge, String description, int cents, Color color) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            rateBadge,
-            style: TextStyle(
-                fontSize: 11, fontWeight: FontWeight.w900, color: color),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            description,
-            style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w500),
-          ),
-        ),
-        Text(
-          CurrencyNormalizer.formatCents(cents),
-          style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textPrimary),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildVatRow(String title, String amount) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(title,
-              style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary)),
-          Text(amount,
-              style: const TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary)),
-        ],
-      ),
+  Widget _buildFeesTab() {
+    return FeesView(
+      period: _feePeriod,
+      report: _fees,
+      vat: _vat,
+      isLoading: _feesLoading,
+      onPeriodChanged: (p) {
+        if (p == _feePeriod) return;
+        setState(() {
+          _feePeriod = p;
+          _fees = null; // eski dönemin verisi yeni dönem etiketiyle görünmesin
+          _vat = null;
+        });
+        _loadFees();
+      },
+      onUploadStatement: _openStatementUpload,
+      onShare: _shareTaxAndExpenseReport,
     );
   }
 }

@@ -4,6 +4,7 @@
 // Gerçek ekstrelerle uçtan uca test için bkz. test/pdf_corpus_probe_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:moneytrace/core/parser/enrichment/transaction_classifier.dart';
 import 'package:moneytrace/core/parser/layout/statement_layout.dart';
 import 'package:moneytrace/core/parser/models/parsed_models.dart';
 import 'package:moneytrace/core/parser/parsers/yapikredi_card_parser.dart';
@@ -17,7 +18,50 @@ List<RawTextFragment> _row(double y, List<(double, String)> cells) => [
         RawTextFragment(page: 1, left: x, right: x + text.length * 4.5, top: y + 4, bottom: y - 4, text: text),
     ];
 
+ParsedRecord _rec(String desc, {bool credit = false}) => ParsedRecord(
+      cardOrAccountMask: '',
+      date: DateTime(2026, 9, 1),
+      type: credit ? ParsedTransactionType.credit : ParsedTransactionType.debit,
+      rawDescription: desc,
+      billingAmountCents: 1000,
+    );
+
 void main() {
+  group('TransactionClassifier', () {
+    TransactionKind kind(String d, {bool credit = false, bool card = false}) =>
+        TransactionClassifier.classify(_rec(d, credit: credit), isCardStatement: card);
+
+    test('Vadesizdeki transfer ücretleri masraftır, transfer değil', () {
+      expect(kind('FAST ÜCRETİ'), TransactionKind.interestFee);
+      expect(kind('EFT MASRAFI 12345'), TransactionKind.interestFee);
+      expect(kind('HAVALE MASRAFI'), TransactionKind.interestFee);
+      expect(kind('KMH FAİZİ'), TransactionKind.interestFee);
+      expect(kind('HESAP İŞLETİM ÜCRETİ'), TransactionKind.interestFee);
+    });
+
+    test('Stopaj vergidir', () {
+      expect(kind('VADELİ HESAP STOPAJ'), TransactionKind.tax);
+    });
+
+    test('Anahtar kelime başından eşleşir: BREAKFAST transfer değildir', () {
+      expect(kind('BREAKFAST CLUB ISTANBUL'), TransactionKind.purchase);
+      expect(kind('FAST GİDEN AHMET'), TransactionKind.transferOut);
+      expect(kind('EFT GELEN', credit: true), TransactionKind.transferIn);
+    });
+
+    test('Vadesizden yapılan kart borcu ödemesi nötrdür (çift gider sayılmaz)', () {
+      expect(kind('KREDİ KARTI ÖDEMESİ 5400'), TransactionKind.cardPayment);
+      expect(kind('KART BORCU ÖDEME'), TransactionKind.cardPayment);
+      // Kart ekstresinde aynı metin alacak satırıdır
+      expect(kind('KREDİ KARTI ÖDEMESİ', credit: true, card: true), TransactionKind.cardPayment);
+    });
+
+    test('Kart aidatı ücret, iade iadedir', () {
+      expect(kind('KART AİDATI', card: true), TransactionKind.interestFee);
+      expect(kind('İADE MIGROS', credit: true, card: true), TransactionKind.refund);
+    });
+  });
+
   group('TrStatementText', () {
     test('Türkçe tarih biçimleri', () {
       expect(TrStatementText.parseDate('31 Ocak 2026'), DateTime(2026, 1, 31));
@@ -116,6 +160,43 @@ void main() {
         isCardStatement: true,
       );
       expect(report.isBalanced, isTrue);
+    });
+
+    test('Kart: özet alanları kendi içinde tutmazsa yakalanır', () {
+      final ok = StatementReconciler.check(
+        records: [rec(8000), rec(5000, credit: true, kind: TransactionKind.cardPayment)],
+        summary: const StatementSummary(
+            previousBalanceCents: 5000, periodDebitsCents: 8000, periodCreditsCents: 5000, statementBalanceCents: 8000),
+        isCardStatement: true,
+      );
+      expect(ok.isBalanced, isTrue);
+      // Dönem borcu yerine asgari tutar okunmuş gibi
+      final bad = StatementReconciler.check(
+        records: [rec(8000), rec(5000, credit: true, kind: TransactionKind.cardPayment)],
+        summary: const StatementSummary(
+            previousBalanceCents: 5000, periodDebitsCents: 8000, periodCreditsCents: 5000, statementBalanceCents: 1600),
+        isCardStatement: true,
+      );
+      expect(bad.isBalanced, isFalse);
+    });
+
+    test('Bordro: brüt − yasal − özel = net ve kalemler yasal toplamı verir', () {
+      ParsedRecord payslip(int net, List<int> taxes) => ParsedRecord(
+            cardOrAccountMask: 'BORDRO',
+            date: DateTime(2026, 6, 30),
+            type: ParsedTransactionType.credit,
+            rawDescription: 'Net maaş',
+            billingAmountCents: net,
+            kind: TransactionKind.salary,
+            taxes: [for (final t in taxes) ParsedTaxData(taxType: 'X$t', amountCents: t)],
+          );
+      const summary = StatementSummary(
+          payslipGrossCents: 100000, payslipLegalDeductionsCents: 30000, payslipOtherDeductionsCents: 10000);
+      expect(StatementReconciler.check(records: [payslip(60000, [20000, 10000])], summary: summary, isCardStatement: false).isBalanced,
+          isTrue);
+      // Bir kesinti kalemi okunamamış (ör. SGK)
+      expect(StatementReconciler.check(records: [payslip(60000, [10000])], summary: summary, isCardStatement: false).isBalanced,
+          isFalse);
     });
 
     test('Vadesiz: bakiye zinciri kopunca hangi satır olduğu raporlanır', () {

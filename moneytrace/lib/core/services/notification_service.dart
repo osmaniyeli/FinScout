@@ -102,6 +102,12 @@ class NotificationService {
     await _plugin.cancel(id: id);
   }
 
+  /// Veriler silindiğinde kurulu tüm hatırlatmaları kaldırır.
+  Future<void> cancelAll() async {
+    await initialize();
+    await _plugin.cancelAll();
+  }
+
   static int stableId(String key) {
     var hash = 0x811c9dc5;
     for (var i = 0; i < key.length; i++) {
@@ -123,8 +129,13 @@ class NotificationService {
         final amountCents = (item['amount_cents'] as num?)?.toInt() ?? 0;
         final minimumCents = (item['minimum_cents'] as num?)?.toInt();
 
-        final reminderDate =
+        // Normalde son ödemeden 2 gün önce; o an geçtiyse (vadeye 2 günden az kaldıysa)
+        // son ödeme günü sabahı hatırlat.
+        var reminderDate =
             DateTime(dueDate.year, dueDate.month, dueDate.day - 2, 10, 0);
+        if (reminderDate.isBefore(DateTime.now())) {
+          reminderDate = DateTime(dueDate.year, dueDate.month, dueDate.day, 9, 0);
+        }
         final id = stableId('pay|$dueDateStr|$description');
 
         final dayStr = dueDate.day.toString().padLeft(2, '0');

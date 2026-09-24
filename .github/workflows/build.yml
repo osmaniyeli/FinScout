@@ -83,24 +83,32 @@ jobs:
 
       - name: Build Release APK
         working-directory: moneytrace
-        run: flutter build apk --release --android-skip-build-dependency-validation --build-name=${{ steps.ver.outputs.name }} --build-number=${{ steps.ver.outputs.code }}
+        run: flutter build apk --release --obfuscate --split-debug-info=build/symbols --android-skip-build-dependency-validation --build-name=${{ steps.ver.outputs.name }} --build-number=${{ steps.ver.outputs.code }}
 
       - name: Build Release App Bundle (AAB)
         working-directory: moneytrace
-        run: flutter build appbundle --release --android-skip-build-dependency-validation --build-name=${{ steps.ver.outputs.name }} --build-number=${{ steps.ver.outputs.code }}
+        run: flutter build appbundle --release --obfuscate --split-debug-info=build/symbols --android-skip-build-dependency-validation --build-name=${{ steps.ver.outputs.name }} --build-number=${{ steps.ver.outputs.code }}
 
       - name: Upload Release APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ParaIz-v${{ steps.ver.outputs.name }}-kod${{ steps.ver.outputs.code }}-APK
+          name: FinScout-v${{ steps.ver.outputs.name }}-kod${{ steps.ver.outputs.code }}-APK
           path: moneytrace/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 14
 
+      # Paket boyutu: Dart sembolleri pakete girmez (--split-debug-info); çökme raporlarını çözmek için saklanır
+      - name: Upload Debug Symbols
+        uses: actions/upload-artifact@v4
+        with:
+          name: FinScout-v${{ steps.ver.outputs.name }}-kod${{ steps.ver.outputs.code }}-symbols
+          path: moneytrace/build/symbols
+          retention-days: 90
+
       - name: Upload Release AAB Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ParaIz-v${{ steps.ver.outputs.name }}-kod${{ steps.ver.outputs.code }}-AAB
+          name: FinScout-v${{ steps.ver.outputs.name }}-kod${{ steps.ver.outputs.code }}-AAB
           path: moneytrace/build/app/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 14

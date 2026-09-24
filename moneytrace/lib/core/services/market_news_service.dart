@@ -11,6 +11,9 @@ class MarketNewsService {
   DateTime? _lastFetchTime;
   List<MarketNewsItem> _cachedNews = [];
 
+  /// Haberlerin kaynaktan en son başarıyla çekildiği an (hiç çekilmediyse null).
+  DateTime? get lastFetchTime => _lastFetchTime;
+
   // 15 Dakikalık önbellek süresi
   static const Duration cacheDuration = Duration(minutes: 15);
 
@@ -220,6 +223,18 @@ class MarketNewsService {
           minute = int.tryParse(timeParts[1]) ?? 0;
         }
 
+        // Saat dilimi: "+0300" / "GMT" → UTC'ye çevirip cihaz saatine getir
+        final zone = parts.length >= 6 ? parts[5] : '';
+        final m = RegExp(r'^([+-])(\d{2})(\d{2})$').firstMatch(zone);
+        if (m != null || zone == 'GMT' || zone == 'UT' || zone == 'Z') {
+          var utc = DateTime.utc(year, month, day, hour, minute);
+          if (m != null) {
+            final offset = Duration(
+                hours: int.parse(m.group(2)!), minutes: int.parse(m.group(3)!));
+            utc = m.group(1) == '+' ? utc.subtract(offset) : utc.add(offset);
+          }
+          return utc.toLocal();
+        }
         return DateTime(year, month, day, hour, minute);
       }
     } catch (_) {}

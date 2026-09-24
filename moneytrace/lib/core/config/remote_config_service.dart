@@ -289,11 +289,9 @@ class RemoteConfigService extends ChangeNotifier {
     'assets_portfolio': const RegionalModuleConfig(isGloballyEnabled: true),
     'market_rates': const RegionalModuleConfig(isGloballyEnabled: true),
     'quick_entry': const RegionalModuleConfig(isGloballyEnabled: true),
-    'family_budget': const RegionalModuleConfig(isGloballyEnabled: true),
-    'tax_analytics': const RegionalModuleConfig(isGloballyEnabled: true),
+'tax_analytics': const RegionalModuleConfig(isGloballyEnabled: true),
     'scout_ai_coach': const RegionalModuleConfig(isGloballyEnabled: true),
-    'newsletter_subscription': const RegionalModuleConfig(isGloballyEnabled: true),
-    'market_news': const RegionalModuleConfig(isGloballyEnabled: true),
+'market_news': const RegionalModuleConfig(isGloballyEnabled: true),
   };
 
   Map<String, RegionalModuleConfig> get allConfigs =>

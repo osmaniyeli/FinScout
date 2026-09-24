@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 
+/// Kategori adları veritabanında `category_type` olarak saklanır; sıralama/ad değişirse eski kayıtlar bozulur.
 enum GoalCategory {
   vehicle,
   house,
@@ -23,21 +24,21 @@ extension GoalCategoryExtension on GoalCategory {
   String get displayName {
     switch (this) {
       case GoalCategory.vehicle:
-        return 'Araç Alımı';
+        return 'Araç';
       case GoalCategory.house:
-        return 'Ev Alma / Peşinat';
+        return 'Ev / Peşinat';
       case GoalCategory.motorcycle:
-        return 'Motorsiklet';
+        return 'Motosiklet';
       case GoalCategory.boat:
-        return 'Tekne Alımı';
+        return 'Tekne';
       case GoalCategory.gift:
-        return 'Özel Hediye';
+        return 'Hediye';
       case GoalCategory.travel:
-        return 'Tatil & Seyahat';
+        return 'Tatil / Seyahat';
       case GoalCategory.electronics:
-        return 'Elektronik & Teknoloji';
+        return 'Elektronik';
       case GoalCategory.other:
-        return 'Diğer Birikim';
+        return 'Diğer';
     }
   }
 
@@ -65,22 +66,30 @@ extension GoalCategoryExtension on GoalCategory {
   Color get themeColor {
     switch (this) {
       case GoalCategory.vehicle:
-        return const Color(0xFF0052FF); // Elektrik Mavisi
+        return const Color(0xFF0052FF);
       case GoalCategory.house:
-        return const Color(0xFFFF8A00); // Sıcak Turuncu
+        return const Color(0xFFFF8A00);
       case GoalCategory.motorcycle:
-        return const Color(0xFF00D084); // Canlı Zümrüt Yeşil
+        return const Color(0xFF00D084);
       case GoalCategory.boat:
-        return const Color(0xFF0284C7); // Deniz Mavisi
+        return const Color(0xFF0284C7);
       case GoalCategory.gift:
-        return const Color(0xFFFF2D55); // Canlı Kızıl Kırmızı
+        return const Color(0xFFFF2D55);
       case GoalCategory.travel:
-        return const Color(0xFF8B5CF6); // Mor
+        return const Color(0xFF8B5CF6);
       case GoalCategory.electronics:
-        return const Color(0xFF6366F1); // İndigo
+        return const Color(0xFF6366F1);
       case GoalCategory.other:
-        return const Color(0xFF4E5D78); // Arduvaz
+        return const Color(0xFF4E5D78);
     }
+  }
+
+  /// Veritabanındaki `category_type` değerinden kategori; bilinmeyen değer "Diğer" olur.
+  static GoalCategory fromDb(String? value) {
+    for (final c in GoalCategory.values) {
+      if (c.name == value) return c;
+    }
+    return GoalCategory.other;
   }
 }
 
@@ -96,11 +105,6 @@ class FinancialGoal {
   final GoalStatus status;
   final DateTime createdAt;
 
-  // Dinamik Özelleştirilmiş Alanlar
-  final String? subType; // Ev tipi (2+1 Daire, Müstakil Villa vb.)
-  final String? brandModel; // Fiat Egea, Honda PCX 125 vb.
-  final String? motivationalQuote; // Kişiselleştirilmiş motivasyon metni
-
   const FinancialGoal({
     required this.id,
     required this.title,
@@ -112,9 +116,6 @@ class FinancialGoal {
     this.monthlyPlanCents,
     this.status = GoalStatus.active,
     required this.createdAt,
-    this.subType,
-    this.brandModel,
-    this.motivationalQuote,
   });
 
   /// Para birimi kodu
@@ -133,45 +134,38 @@ class FinancialGoal {
     return diff > 0 ? diff : 0;
   }
 
-  /// Hedefe kalan ay sayısı
-  int get monthsRemaining {
+  /// Hedef tarihi bugünden önce mi?
+  bool get isOverdue {
     final now = DateTime.now();
-    int months = (targetDate.year - now.year) * 12 + (targetDate.month - now.month);
+    final today = DateTime(now.year, now.month, now.day);
+    return targetDate.isBefore(today);
+  }
+
+  /// Hedef tarihine kalan takvim ayı sayısı (tarih geçmişse 0, bu ay içindeyse 1).
+  int get monthsRemaining {
+    if (isOverdue) return 0;
+    final now = DateTime.now();
+    final months =
+        (targetDate.year - now.year) * 12 + (targetDate.month - now.month);
     return months > 0 ? months : 1;
   }
 
-  /// Hedefe zamanında ulaşmak için gereken aylık tasarruf tutarı (kuruş)
+  /// Hedef tarihine yetişmek için ayda gereken tutar (kuruş): kalan tutar / kalan ay.
+  /// Tarih geçmişse kalan tutarın tamamı döner.
   int get recommendedMonthlySavingsCents {
     if (remainingAmountCents <= 0) return 0;
     final months = monthsRemaining;
+    if (months <= 0) return remainingAmountCents;
     return (remainingAmountCents / months).round();
   }
 
   bool get isCompleted => currentSavedCents >= targetAmountCents;
 
-  /// Kategori ve duruma göre dinamik motivasyon metni üretir
-  String get dynamicMotivation {
-    if (motivationalQuote != null && motivationalQuote!.isNotEmpty) {
-      return motivationalQuote!;
-    }
-    switch (category) {
-      case GoalCategory.house:
-        return 'Kendi kapını anahtarınla açtığın o ilk günün huzuru paha biçilemez. Her ay biriktirdiğin her kuruş, o evin temeline konan sağlam bir tuğla! 🏠';
-      case GoalCategory.vehicle:
-        return 'Yeni araç kokusu ve ilk yolculuğun heyecanı... Finansal hedefine adım adım yaklaşıyorsun! 🚗';
-      case GoalCategory.motorcycle:
-        return 'Trafiğe takılmadan, rüzgarı yüzünde hissettiğin o ilk rotayı hayal et! Birikim depon hızla doluyor. 🏍️';
-      case GoalCategory.boat:
-        return 'Mavi sularda kendi rotanı çizeceğin, gün batımını denizden izleyeceğin günler çok yakın! ⛵';
-      case GoalCategory.gift:
-        return 'Sevdiklerinin yüzündeki o samimi tebessüm, bu birikimin en büyük getirisi olacak. 🎁';
-      case GoalCategory.travel:
-        return 'Yeni kültürler, unutulmaz anılar ve pasaportuna vurulacak o yeni mühür seni bekliyor! ✈️';
-      case GoalCategory.electronics:
-        return 'Hayatını kolaylaştıracak o yeni teknolojiye kavuşmana çok az kaldı! 💻';
-      case GoalCategory.other:
-        return 'Bugün biriktirdiğin her kuruş, yarının finansal özgürlüğünün güvencesidir! 💎';
-    }
+  /// Kart ve detayda gösterilen süre etiketi
+  String get timeLabel {
+    if (isCompleted) return 'Tamamlandı';
+    if (isOverdue) return 'Tarihi geçti';
+    return '$monthsRemaining ay kaldı';
   }
 
   FinancialGoal copyWith({
@@ -185,9 +179,6 @@ class FinancialGoal {
     int? monthlyPlanCents,
     GoalStatus? status,
     DateTime? createdAt,
-    String? subType,
-    String? brandModel,
-    String? motivationalQuote,
   }) {
     return FinancialGoal(
       id: id ?? this.id,
@@ -200,9 +191,6 @@ class FinancialGoal {
       monthlyPlanCents: monthlyPlanCents ?? this.monthlyPlanCents,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
-      subType: subType ?? this.subType,
-      brandModel: brandModel ?? this.brandModel,
-      motivationalQuote: motivationalQuote ?? this.motivationalQuote,
     );
   }
 
@@ -220,4 +208,21 @@ class FinancialGoal {
       'created_at': createdAt.millisecondsSinceEpoch,
     };
   }
+}
+
+/// Bir hedefe yapılan tek birikim katkısı (`goal_contributions` satırı).
+class GoalContribution {
+  final String id;
+  final String goalId;
+  final int amountCents;
+  final DateTime date;
+  final String? note;
+
+  const GoalContribution({
+    required this.id,
+    required this.goalId,
+    required this.amountCents,
+    required this.date,
+    this.note,
+  });
 }

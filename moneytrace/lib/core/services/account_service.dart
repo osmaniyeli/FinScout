@@ -50,6 +50,14 @@ class AccountService {
       _ready ? Supabase.instance.client.auth.currentUser : null;
   bool get isSignedIn => currentUser != null;
 
+  /// Oturum açıkken sunucu çağrıları (RPC / Edge Function) için istemci; aksi halde null.
+  SupabaseClient? get signedInClient =>
+      isSignedIn ? Supabase.instance.client : null;
+
+  /// Giriş / çıkış / oturum yenileme olayları (servis başlatılamadıysa null).
+  Stream<AuthState>? get authChanges =>
+      _ready ? Supabase.instance.client.auth.onAuthStateChange : null;
+
   static final _emailRe = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]{2,}$');
   static bool isValidEmail(String email) => _emailRe.hasMatch(email.trim());
 
@@ -95,8 +103,13 @@ class AccountService {
         fallbackEmail: email.trim().toLowerCase(), name: fullName);
   }
 
+  /// Son Google girişi iptal/kesinti kodu (tanı için ekranda gösterilir). Android Credential Manager
+  /// yapılandırma hatalarını (imza SHA-1'i ile OAuth istemcisi uyuşmazlığı) da "canceled" olarak bildirebilir.
+  String? lastGoogleCancelCode;
+
   /// Google hesabıyla giriş/kayıt (tek adım, kod yok). İptal edilirse null döner.
   Future<UserProfile?> signInWithGoogle() async {
+    lastGoogleCancelCode = null;
     final client = _client;
     final GoogleSignInAccount account;
     try {
@@ -109,13 +122,14 @@ class AccountService {
       account =
           await google.authenticate(scopeHint: const ['email', 'profile']);
     } on GoogleSignInException catch (e) {
+      debugPrint('Google girişi: ${e.code} ${e.description}');
       if (e.code == GoogleSignInExceptionCode.canceled ||
           e.code == GoogleSignInExceptionCode.interrupted) {
+        lastGoogleCancelCode = e.code.name;
         return null;
       }
-      debugPrint('Google girişi hatası: ${e.code} ${e.description}');
-      throw const AccountException(
-          'Google ile giriş yapılamadı. Bu cihazda bir Google hesabı olduğundan emin ol.');
+      throw AccountException(
+          'Google ile giriş yapılamadı (${e.code.name}). Bu cihazda bir Google hesabı olduğundan emin ol.');
     }
 
     final idToken = account.authentication.idToken;
@@ -129,7 +143,10 @@ class AccountService {
         idToken: idToken,
       );
     } on AuthException catch (e) {
-      throw AccountException(_mapAuthError(e, createUser: true));
+      // Kod akışının "kod hatalı" mesajı burada yanıltıcı olur; Google'a özgü mesaj ver.
+      debugPrint('Google idToken reddedildi: ${e.code} ${e.message}');
+      throw AccountException(
+          'Google girişi sunucuda doğrulanamadı (${e.code ?? e.statusCode ?? 'bilinmiyor'}). E-posta koduyla giriş yapabilirsin.');
     } catch (_) {
       throw const AccountException(
           'Giriş tamamlanamadı. İnternet bağlantını kontrol edip tekrar dene.');
@@ -142,8 +159,34 @@ class AccountService {
         fallbackEmail: account.email, name: account.displayName);
   }
 
+  /// Farklı hesapla girişte bekleyen profil bilgisi (kullanıcı veriyi silmeyi onaylarsa kullanılır)
+  String? _pendingEmail;
+  String? _pendingName;
+
+  /// Kullanıcı "önceki hesabın verisini sil ve devam et" dedi: yerel veriyi sil, girişi tamamla.
+  Future<UserProfile> confirmAccountSwitch() async {
+    final user = _client.auth.currentUser;
+    if (user == null) {
+      throw const AccountException('Oturum bulunamadı. Tekrar giriş yap.');
+    }
+    await UserProfileService.instance.wipeLocalData();
+    return _saveLocalProfile(user, fallbackEmail: _pendingEmail ?? '', name: _pendingName);
+  }
+
+  /// Kullanıcı vazgeçti: yeni oturumu kapat, telefondaki veri önceki hesapta kalır.
+  Future<void> cancelAccountSwitch() => signOut();
+
   Future<UserProfile> _saveLocalProfile(User user,
       {required String fallbackEmail, String? name}) async {
+    // Cihazda aynı anda tek hesap: telefondaki veri başka bir hesaba aitse önce sor
+    final owner = await UserProfileService.instance.localDataOwnerId();
+    if (owner != null &&
+        owner != user.id &&
+        await UserProfileService.instance.hasLocalFinancialData()) {
+      _pendingEmail = fallbackEmail;
+      _pendingName = name;
+      throw const DifferentAccountDataException();
+    }
     var displayName = name?.trim() ?? '';
     if (displayName.isEmpty) displayName = await _remoteDisplayName(user) ?? '';
     if (displayName.isEmpty) {
@@ -159,6 +202,7 @@ class AccountService {
       joinedAt: existing?.joinedAt ?? DateTime.now(),
     );
     await UserProfileService.instance.saveProfile(profile);
+    await UserProfileService.instance.setLocalDataOwner(user.id);
     return profile;
   }
 
@@ -230,4 +274,9 @@ class AccountService {
     }
     return 'İşlem tamamlanamadı: ${e.message}';
   }
+}
+
+/// Telefondaki finansal veri başka bir FinScout hesabına ait; kullanıcıya sorulmalı.
+class DifferentAccountDataException implements Exception {
+  const DifferentAccountDataException();
 }

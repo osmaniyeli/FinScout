@@ -64,6 +64,39 @@ class StatementReconciler {
       }
     }
 
+    // 3. Bordro: brüt − yasal kesintiler − özel kesintiler = net ödenen; yasal kesintiler = okunan vergi/primler
+    final gross = summary.payslipGrossCents;
+    final legal = summary.payslipLegalDeductionsCents;
+    if (gross != null && legal != null && records.length == 1) {
+      checks++;
+      final net = records.first.billingAmountCents;
+      final other = summary.payslipOtherDeductionsCents ?? 0;
+      if (gross - legal - other != net) {
+        issues.add('Bordro tutmuyor: brüt ${_fmt(gross)} − yasal ${_fmt(legal)} − özel ${_fmt(other)} ≠ net ${_fmt(net)}');
+      }
+      final itemized = records.first.taxes.fold<int>(0, (s, t) => s + t.amountCents);
+      if (itemized != legal) {
+        issues.add('Yasal kesinti kalemleri toplamı (${_fmt(itemized)}) bordrodaki toplamla (${_fmt(legal)}) tutmuyor');
+      }
+    }
+
+    // 4. Kart: bankanın kendi özet alanları birbiriyle tutarlı mı?
+    //    önceki dönem borcu + dönem içi harcamalar − dönem içi ödemeler = dönem borcu
+    //    Özet alanlarından biri yanlış okunursa (ör. asgari tutar dönem borcu sanılırsa) burada yakalanır.
+    if (isCardStatement &&
+        summary.previousBalanceCents != null &&
+        summary.periodDebitsCents != null &&
+        summary.periodCreditsCents != null &&
+        summary.statementBalanceCents != null) {
+      checks++;
+      final expected =
+          summary.previousBalanceCents! + summary.periodDebitsCents! - summary.periodCreditsCents!;
+      if (expected != summary.statementBalanceCents) {
+        issues.add('Ekstre özeti kendi içinde tutmuyor: önceki borç + harcama − ödeme = ${_fmt(expected)}, '
+            'dönem borcu ${_fmt(summary.statementBalanceCents!)}');
+      }
+    }
+
     if (checks == 0) return ReconciliationReport.notVerifiable;
     return ReconciliationReport(isVerifiable: true, isBalanced: issues.isEmpty, issues: issues);
   }

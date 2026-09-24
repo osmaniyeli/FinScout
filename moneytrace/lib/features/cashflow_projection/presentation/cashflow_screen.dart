@@ -5,11 +5,11 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/currency_normalizer.dart';
 import '../../../core/widgets/fintech/fintech_components.dart';
 import '../../../core/widgets/morphing_segmented_bar.dart';
-import '../../wallets/repositories/wallet_repository.dart';
+import '../../../core/services/data_changes.dart';
 import '../services/wallet_history_service.dart';
 
 /// Cüzdan: geriye dönük, yalnızca gerçekleşmiş veriler (kayıtlı işlemler, ekstrelerdeki taksitler,
-/// cüzdan bakiyeleri). Tahmin, varsayılan maaş günü veya örnek veri yoktur.
+/// son ekstrelerde bankanın yazdığı bakiye ve borçlar). Tahmin veya örnek veri yoktur.
 class CashflowScreen extends StatefulWidget {
   const CashflowScreen({Key? key}) : super(key: key);
 
@@ -28,24 +28,28 @@ class _CashflowScreenState extends State<CashflowScreen> {
   int _rangeIndex = 1;
   bool _isLoading = true;
   WalletHistory? _history;
-  int _walletBalanceCents = 0;
 
   @override
   void initState() {
     super.initState();
+    DataChanges.revision.addListener(_load);
     _load();
   }
 
+  @override
+  void dispose() {
+    DataChanges.revision.removeListener(_load);
+    super.dispose();
+  }
+
   Future<void> _load() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
     try {
       final history = await _service.load(months: _ranges[_rangeIndex]);
-      await WalletRepository.instance.load();
-      final balance = WalletRepository.instance.getConsolidatedWallet().balanceCents;
       if (mounted) {
         setState(() {
           _history = history;
-          _walletBalanceCents = balance;
           _isLoading = false;
         });
       }
@@ -124,11 +128,34 @@ class _CashflowScreenState extends State<CashflowScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Cüzdan bakiyesi',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textSecondary)),
+          Row(
+            children: [
+              Expanded(
+                child: _stat(
+                  'Hesap bakiyesi',
+                  history.accountBalanceCents == null ? '—' : _money(history.accountBalanceCents!),
+                  AppColors.textPrimary,
+                ),
+              ),
+              Expanded(
+                child: _stat(
+                  'Kart borcu',
+                  history.cardDebtCents == null
+                      ? '—'
+                      : _money((history.cardDebtCents! - history.cardPaymentsSinceStatementCents)
+                          .clamp(0, history.cardDebtCents!)),
+                  AppColors.expenseRed,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 6),
-          Text(_money(_walletBalanceCents),
-              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+          Text(
+            history.accountBalanceCents == null && history.cardDebtCents == null
+                ? 'Bakiye ve borç, yüklediğin son ekstreden okunur.'
+                : 'Son ekstrelere göre${history.cardPaymentsSinceStatementCents > 0 ? '; kart borcundan sonradan kaydedilen ${_money(history.cardPaymentsSinceStatementCents)} ödeme düşüldü' : ''}.',
+            style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+          ),
           const SizedBox(height: 14),
           const Divider(height: 1, color: Color(0xFFF1F5F9)),
           const SizedBox(height: 12),

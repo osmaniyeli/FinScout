@@ -22,18 +22,52 @@ class GenericPayslipParser implements LayoutStatementParser {
     return hasNet && hasDeductions && hasGross;
   }
 
+  /// Etiket hücresi bazen önceki sütunun sayısıyla birleşir ("178,50 SSK Kesintisi"). Önce tam eşleşme,
+  /// yoksa "sayı + etiket" biçimindeki hücrede etiketin hemen sağındaki tutar okunur.
+  static int? _looseAmount(StatementLayout layout, List<String> labels) {
+    final exact = TrStatementText.labelAmount(layout, labels);
+    if (exact != null) return exact;
+    final wanted = labels.map(TrStatementText.fold).toList();
+    final amountRe = RegExp(r'^[+-]?\s?\d{1,3}(?:\.\d{3})*,\d{2}-?$');
+    for (final row in layout.rows) {
+      for (var i = 0; i < row.cells.length - 1; i++) {
+        final cell = TrStatementText.fold(row.cells[i].text);
+        if (!wanted.any((w) => cell.endsWith(' $w') && RegExp(r'^[\d.,]+ ').hasMatch(cell))) continue;
+        final next = row.cells[i + 1].text.trim();
+        if (amountRe.hasMatch(next)) return TrStatementText.amountCents(next.replaceAll('-', ''));
+      }
+    }
+    return null;
+  }
+
   @override
   ParserOutput parse(StatementLayout layout) {
-    int? amount(List<String> labels) => TrStatementText.labelAmount(layout, labels);
+    int? amount(List<String> labels) => _looseAmount(layout, labels);
 
     final net = amount(['Toplam Net Ödenen', 'Net Ödenen', 'Net Ücret', 'Net Ödenen+AGİ Toplamı', 'Ele Geçen']);
     if (net == null || net <= 0) return ParserOutput.empty;
 
     final gross = amount(['Toplam Brüt', 'Brüt Ücret', 'Toplam Kazanç']);
     final incomeTax = amount(['Gelir Ver.Kesinti', 'Gelir Vergisi', 'Gelir Vergisi Kesintisi']);
-    final stampTax = amount(['Damga Ver.Kesinti', 'Damga Vergisi']);
-    final sgk = amount(['SSK Kesintisi', 'SGK İşçi Payı', 'SGK Kesintisi']);
-    final unemployment = amount(['İşsizlik Primi', 'İşsizlik Sig. İşçi Payı']);
+    var stampTax = amount(['Damga Ver.Kesinti', 'Damga Vergisi']);
+    // Toplu sözleşme (TİS) fark ödemesinden kesilen primler "Yasal Kesinti" toplamının dışında basılır
+    final tisSgk = amount(['TİS SSK İşçi']);
+    final tisUnemployment = amount(['TİS İşsizlik İşçi']);
+    final baseSgk = amount(['SSK Kesintisi', 'SGK İşçi Payı', 'SGK Kesintisi']);
+    final baseUnemployment = amount(['İşsizlik Primi', 'İşsizlik Sig. İşçi Payı']);
+    final sgk = baseSgk == null ? null : baseSgk + (tisSgk ?? 0);
+    final unemployment = baseUnemployment == null ? null : baseUnemployment + (tisUnemployment ?? 0);
+    final legalTotal = amount(['Yasal Kesinti', 'Yasal Kesintiler Toplamı', 'Toplam Yasal Kesinti']);
+    final otherTotal = amount(['Özel Kesinti', 'Özel Kesintiler Toplamı', 'Diğer Kesintiler'])?.abs();
+
+    // Bazı bordrolarda damga vergisi kesintisi etiketsiz/yanlış etiketli basılır. Yasal kesinti toplamı
+    // biliniyorsa damga = yasal toplam − (SGK + işsizlik + gelir vergisi). Makul değilse (brütün %1'inden
+    // büyük) kullanılmaz; yanlış bir vergi göstermektense eksik göstermek tercih edilir.
+    if (stampTax == null && legalTotal != null && baseSgk != null && incomeTax != null) {
+      final derived = legalTotal - baseSgk - (baseUnemployment ?? 0) - incomeTax;
+      final cap = (gross ?? net) ~/ 100;
+      if (derived > 0 && derived <= cap) stampTax = derived;
+    }
 
     final period = _period(layout) ?? DateTime.now();
     // Maaş dönem sonunda yatar; gün bilgisi yoksa ayın son günü kabul edilir
@@ -65,7 +99,14 @@ class GenericPayslipParser implements LayoutStatementParser {
         ),
       ],
       accountIdentifier: 'Bordro',
-      summary: StatementSummary(statementDate: payDate),
+      summary: StatementSummary(
+        statementDate: payDate,
+        payslipGrossCents: gross,
+        // TİS primleri de yasal kesintidir; toplamı kalemlerle aynı kapsama getir
+        payslipLegalDeductionsCents:
+            legalTotal == null ? null : legalTotal + (tisSgk ?? 0) + (tisUnemployment ?? 0),
+        payslipOtherDeductionsCents: otherTotal,
+      ),
     );
   }
 

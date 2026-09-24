@@ -107,7 +107,10 @@ class LiveMarketService {
       if (response.statusCode == 200) {
         final body = await response.transform(utf8.decoder).join();
         final data = jsonDecode(body) as Map<String, dynamic>;
-        final now = DateTime.now();
+        // Kaynağın kendi güncellenme zamanı ("2026-09-24 09:37:01", İstanbul saati); yoksa çekme anı
+        final now = DateTime.tryParse(
+                (data['Update_Date'] ?? '').toString().replaceFirst(' ', 'T')) ??
+            DateTime.now();
         var updated = false;
 
         for (final entry in _symbols.entries) {

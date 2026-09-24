@@ -30,41 +30,8 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => QuickEntrySheet(
-        onSave: (entry) async {
-          final type = entry['type'] as String;
-          // Birikim (altın, döviz, BES...) gelir değil, paranın varlığa aktarımıdır: analizlere girmez
-          final isSavings = type == 'savings';
-          final isExpense = type == 'expense' || isSavings;
-          try {
-            await _transactionRepository.saveManualTransaction(
-              txKind: isSavings ? 'OWNTRANSFER' : (isExpense ? 'PURCHASE' : 'OTHER'),
-              title: entry['title'] as String,
-              amountCents: entry['amount_cents'] as int,
-              isExpense: isExpense,
-              categoryId: entry['category_id'] as String,
-              date: DateTime.parse(entry['date'] as String),
-            );
-          } catch (e) {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(backgroundColor: AppColors.expenseRed, content: Text('İşlem kaydedilemedi: $e')),
-              );
-            }
-            return;
-          }
-
-          if (mounted) {
-            setState(() {});
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                backgroundColor: AppColors.dynamicIncome,
-                content: Text('İşlem kaydedildi: ${entry['title']}'),
-              ),
-            );
-          }
-        },
-      ),
+      // Kayıt, doğrulama ve sonuç mesajı sayfanın içinde (saveManualTransaction → DataChanges.notify).
+      builder: (ctx) => QuickEntrySheet(repository: _transactionRepository),
     );
   }
 

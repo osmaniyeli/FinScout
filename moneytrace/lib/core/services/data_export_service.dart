@@ -1,6 +1,7 @@
 // lib/core/services/data_export_service.dart
 
 import 'dart:convert';
+import '../database/repositories/transaction_repository.dart';
 import '../security/aes_cipher.dart';
 import '../utils/currency_normalizer.dart';
 
@@ -90,6 +91,7 @@ Tarih: ${DateTime.now().day}.${DateTime.now().month}.${DateTime.now().year}
     required List<Map<String, dynamic>> transactions,
     required List<Map<String, dynamic>> installments,
     required List<Map<String, dynamic>> taxes,
+    Map<String, List<Map<String, dynamic>>> extras = const {},
   }) {
     final payload = {
       'app': 'FinScout',
@@ -109,6 +111,7 @@ Tarih: ${DateTime.now().day}.${DateTime.now().month}.${DateTime.now().year}
         'transactions': transactions,
         'installments': installments,
         'tax_deductions': taxes,
+        ...extras,
       },
     };
 
@@ -122,6 +125,7 @@ Tarih: ${DateTime.now().day}.${DateTime.now().month}.${DateTime.now().year}
     required List<Map<String, dynamic>> transactions,
     required List<Map<String, dynamic>> installments,
     required List<Map<String, dynamic>> taxes,
+    Map<String, List<Map<String, dynamic>>> extras = const {},
     required String password,
   }) {
     if (password.length < 6) {
@@ -133,6 +137,7 @@ Tarih: ${DateTime.now().day}.${DateTime.now().month}.${DateTime.now().year}
       transactions: transactions,
       installments: installments,
       taxes: taxes,
+      extras: extras,
     );
     return AesCipher.encryptVaultPayload(plainText: rawJson, password: password);
   }
@@ -171,6 +176,9 @@ Tarih: ${DateTime.now().day}.${DateTime.now().month}.${DateTime.now().year}
       'transactions': (data['transactions'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [],
       'installments': (data['installments'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [],
       'tax_deductions': (data['tax_deductions'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [],
+      // Eski yedeklerde bulunmayabilir; yoksa geri yüklemede mevcut kayıtlara dokunulmaz
+      for (final t in TransactionRepositoryBackup.extraTables)
+        if (data[t] is List) t: (data[t] as List<dynamic>).cast<Map<String, dynamic>>(),
     };
   }
 }

@@ -6,6 +6,9 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import '../database/app_database.dart';
+import '../database/repositories/transaction_repository.dart';
+import 'notification_service.dart';
+import '../../features/assets_portfolio/repositories/assets_repository.dart';
 import '../localization/app_strings.dart';
 import '../../features/subscription/services/subscription_service.dart';
 
@@ -16,12 +19,16 @@ class DocumentQuotaResult {
   final int maxThisMonth;
   final String planName;
 
+  /// Sunucuya ulaşılamadığı için karar verilemedi (kota dolu değil; bağlantı sorunu)
+  final bool isNetworkError;
+
   const DocumentQuotaResult({
     required this.canUpload,
     required this.reason,
     required this.usedThisMonth,
     required this.maxThisMonth,
     required this.planName,
+    this.isNetworkError = false,
   });
 }
 
@@ -125,7 +132,11 @@ class UserProfileService {
   DocumentQuotaResult checkUploadQuota({required String documentTypeHint}) {
     final now = DateTime.now();
     final monthKey = '${now.year}-${now.month.toString().padLeft(2, '0')}';
-    final monthData = _monthlyUploads[monthKey] ?? {};
+    // Sunucudaki sayaç esas; yoksa (çevrimdışı) cihazdaki son bilinen değer. Kesin kontrol consumeUpload'da.
+    final sub = SubscriptionService.instance;
+    final monthData = sub.serverPeriod == monthKey
+        ? sub.serverUsage
+        : (_monthlyUploads[monthKey] ?? const <String, int>{});
 
     final tier = SubscriptionService.instance.currentTier;
     final normalizedType = _normalizeDocType(documentTypeHint);
@@ -155,79 +166,50 @@ class UserProfileService {
     }
 
     if (tier == SubscriptionTier.familyPremium) {
-      const maxLimit = 12; // 4 kişi için toplam 12 belge
-      if (totalMonthUsed >= maxLimit) {
+      // Aile: ayda 5 kart + 5 hesap ekstresi + 2 bordro = 12
+      const limits = {'credit_card': 5, 'checking': 5, 'payroll': 2};
+      final typeLimit = limits[normalizedType]!;
+      if (typeUsed >= typeLimit) {
         return DocumentQuotaResult(
           canUpload: false,
           reason:
-              'Aile Paketi aylık yükleme kotanız ($maxLimit belge) dolmuştur.',
+              'Aile paketinde bu ay ${_getDocTypeName(normalizedType)} hakkın ($typeLimit) doldu. '
+              'Aylık kota: 5 kart ekstresi, 5 hesap ekstresi, 2 bordro.',
           usedThisMonth: totalMonthUsed,
-          maxThisMonth: maxLimit,
+          maxThisMonth: 12,
           planName: 'Aile Paketi',
         );
       }
       return DocumentQuotaResult(
         canUpload: true,
         reason:
-            'Aile Paketi kapsamında bu ay ${maxLimit - totalMonthUsed} belge yükleme hakkınız var.',
+            'Bu ay ${typeLimit - typeUsed} ${_getDocTypeName(normalizedType)} hakkın var.',
         usedThisMonth: totalMonthUsed,
-        maxThisMonth: maxLimit,
+        maxThisMonth: 12,
         planName: 'Aile Paketi',
       );
     }
 
-    // Bireysel Plan: Aylık veya Yıllık
+    // Bireysel: aylık planda ayda 3, yıllık planda ayda 5 belge (tür fark etmez; iki kartı olan da yükleyebilir)
     final isAnnual = SubscriptionService.instance.isAnnualPlan;
-    if (isAnnual) {
-      const maxLimit = 5;
-      if (totalMonthUsed >= maxLimit) {
-        return DocumentQuotaResult(
-          canUpload: false,
-          reason: 'Bireysel Yıllık planınızın aylık 5 belge kotası dolmuştur.',
-          usedThisMonth: totalMonthUsed,
-          maxThisMonth: maxLimit,
-          planName: 'Bireysel Yıllık Premium',
-        );
-      }
+    final maxLimit = isAnnual ? 5 : 3;
+    final planName = isAnnual ? 'Bireysel Yıllık Premium' : 'Bireysel Aylık Premium';
+    if (totalMonthUsed >= maxLimit) {
       return DocumentQuotaResult(
-        canUpload: true,
-        reason:
-            'Bireysel Yıllık planınızda bu ay ${maxLimit - totalMonthUsed} belge yükleme hakkınız var.',
+        canUpload: false,
+        reason: '$planName planının bu ayki $maxLimit belge hakkı doldu.',
         usedThisMonth: totalMonthUsed,
         maxThisMonth: maxLimit,
-        planName: 'Bireysel Yıllık Premium',
-      );
-    } else {
-      // Bireysel Aylık: 1 bordro, 1 hesap ekstresi, 1 kredi kartı ekstresi (toplam 3)
-      if (typeUsed >= 1) {
-        final typeName = _getDocTypeName(normalizedType);
-        return DocumentQuotaResult(
-          canUpload: false,
-          reason:
-              'Bireysel Aylık paketinizde bu ay 1 adet $typeName hakkınız dolmuştur. (Aylık kota: 1 bordro, 1 hesap ekstresi, 1 kredi kartı)',
-          usedThisMonth: totalMonthUsed,
-          maxThisMonth: 3,
-          planName: 'Bireysel Aylık Premium',
-        );
-      }
-      if (totalMonthUsed >= 3) {
-        return DocumentQuotaResult(
-          canUpload: false,
-          reason: 'Bireysel Aylık paketinizin aylık 3 belge kotası dolmuştur.',
-          usedThisMonth: totalMonthUsed,
-          maxThisMonth: 3,
-          planName: 'Bireysel Aylık Premium',
-        );
-      }
-      return DocumentQuotaResult(
-        canUpload: true,
-        reason:
-            'Bireysel Aylık planınızda bu ay ${3 - totalMonthUsed} belge hakkınız var.',
-        usedThisMonth: totalMonthUsed,
-        maxThisMonth: 3,
-        planName: 'Bireysel Aylık Premium',
+        planName: planName,
       );
     }
+    return DocumentQuotaResult(
+      canUpload: true,
+      reason: 'Bu ay ${maxLimit - totalMonthUsed} belge hakkın var.',
+      usedThisMonth: totalMonthUsed,
+      maxThisMonth: maxLimit,
+      planName: planName,
+    );
   }
 
   String _normalizeDocType(String hint) {
@@ -243,16 +225,107 @@ class UserProfileService {
     return 'Banka Hesap Ekstresi';
   }
 
-  Future<void> recordDocumentUpload(String documentTypeHint) async {
+  /// Kotaya sayılmayan yükleme: hesabın ilk 30 gününde, içinde bulunulan aydan önceki bir döneme ait
+  /// belge (geçmiş ekstreleri toplu yükleyip başlangıç yapabilmek için).
+  bool isFreeBackfill(DateTime periodEnd) {
     final now = DateTime.now();
-    final monthKey = '${now.year}-${now.month.toString().padLeft(2, '0')}';
-    final normalizedType = _normalizeDocType(documentTypeHint);
-
-    _monthlyUploads.putIfAbsent(monthKey, () => {});
-    final current = _monthlyUploads[monthKey]![normalizedType] ?? 0;
-    _monthlyUploads[monthKey]![normalizedType] = current + 1;
-    await _persist();
+    return inBackfillWindow && periodEnd.isBefore(DateTime(now.year, now.month));
   }
+
+  /// Hesabın ilk 30 günü: kota dolu olsa da geçmiş dönem belgesi seçilebilir (kayıtta tekrar kontrol edilir).
+  bool get inBackfillWindow {
+    // Sunucu hesabın açılış tarihini bilir; yerel tarih yalnız sunucu yanıtı yokken kullanılır
+    final serverUntil = SubscriptionService.instance.backfillUntil;
+    if (serverUntil != null) return DateTime.now().isBefore(serverUntil);
+    final joined = _profile?.joinedAt;
+    return joined != null && DateTime.now().difference(joined).inDays < 30;
+  }
+
+  /// Bu ayın kullanımını ve paketi sunucudan tazeler (ağ yoksa son bilinen değer kalır).
+  Future<void> refreshUploadUsage() =>
+      SubscriptionService.instance.refreshEntitlement();
+
+  /// Belge kotasını SUNUCUDA atomik olarak düşer; kayıttan ÖNCE çağrılır.
+  /// [documentTypeHint]: belgeden ALGILANAN tür (CREDIT_CARD / CHECKING / PAYSLIP), kullanıcının seçtiği çip değil.
+  /// [isBackfill]: belge geçmiş döneme ait; sunucu yalnız hesabın ilk 30 gününde kotasız sayar.
+  /// Sunucuya ulaşılamazsa yükleme yapılmaz (isNetworkError): kota bir ödeme hakkı olduğu için
+  /// cihazdaki sayaca güvenilmez; belge telefonda kalır, bağlantı gelince yeniden denenebilir.
+  Future<DocumentQuotaResult> consumeUpload(String documentTypeHint,
+      {required bool isBackfill}) async {
+    final normalizedType = _normalizeDocType(documentTypeHint);
+    final client = AccountService.instance.signedInClient;
+    if (client == null) {
+      return const DocumentQuotaResult(
+        canUpload: false,
+        reason: 'Belge yüklemek için hesabına giriş yapmalısın.',
+        usedThisMonth: 0,
+        maxThisMonth: 0,
+        planName: '',
+        isNetworkError: true,
+      );
+    }
+    final Map<String, dynamic> res;
+    try {
+      final data = await client.rpc('consume_upload', params: {
+        'p_doc_type': normalizedType,
+        'p_is_backfill': isBackfill,
+      });
+      res = Map<String, dynamic>.from(data as Map);
+    } catch (e) {
+      debugPrint('Kota sunucuda düşülemedi: $e');
+      return const DocumentQuotaResult(
+        canUpload: false,
+        reason:
+            'Belge hakkın kontrol edilemedi. İnternet bağlantını kontrol edip tekrar dene; belge kaydedilmedi.',
+        usedThisMonth: 0,
+        maxThisMonth: 0,
+        planName: '',
+        isNetworkError: true,
+      );
+    }
+
+    final sub = SubscriptionService.instance;
+    sub.updateUsageFromServer(res);
+    final period = res['period'] as String?;
+    final usage = sub.serverUsage;
+    if (period != null) {
+      _monthlyUploads[period] = Map<String, int>.from(usage);
+      await _persist();
+    }
+
+    final used = usage.values.fold<int>(0, (a, b) => a + b);
+    final totalLimit = (res['total_limit'] as num?)?.toInt() ?? 0;
+    final planName = _planDisplayName(res['plan'] as String? ?? 'free');
+    if (res['allowed'] == true) {
+      return DocumentQuotaResult(
+        canUpload: true,
+        reason: res['counted'] == true
+            ? 'Bu ay $used / $totalLimit belge hakkı kullanıldı.'
+            : 'Geçmiş dönem belgesi: ilk 30 gün kotaya sayılmaz.',
+        usedThisMonth: used,
+        maxThisMonth: totalLimit,
+        planName: planName,
+      );
+    }
+    final typeLimit = (res['type_limit'] as num?)?.toInt();
+    return DocumentQuotaResult(
+      canUpload: false,
+      reason: typeLimit != null && (usage[normalizedType] ?? 0) >= typeLimit
+          ? '$planName: bu ay ${_getDocTypeName(normalizedType)} hakkın ($typeLimit) doldu. '
+              'Aylık kota: 5 kart ekstresi, 5 hesap ekstresi, 2 bordro.'
+          : '$planName planının bu ayki $totalLimit belge hakkı doldu.',
+      usedThisMonth: used,
+      maxThisMonth: totalLimit,
+      planName: planName,
+    );
+  }
+
+  static String _planDisplayName(String plan) => switch (plan) {
+        'family' => 'Aile Paketi',
+        'annual' => 'Bireysel Yıllık Premium',
+        'monthly' => 'Bireysel Aylık Premium',
+        _ => 'Ücretsiz Başlangıç',
+      };
 
   Future<File> _getStorageFile() async {
     final docsDir = await getApplicationDocumentsDirectory();
@@ -286,7 +359,7 @@ class UserProfileService {
         }
 
         if (data['language'] != null) {
-          AppStrings.setLocale(data['language']);
+          AppStrings.setLocale('tr');
         }
 
         if (data['monthly_uploads'] != null) {
@@ -397,32 +470,7 @@ class UserProfileService {
     await _persist();
   }
 
-  Future<void> checkScheduledReminders({int salaryDay = 15}) async {
-    final now = DateTime.now();
-    final monthKey = '${now.year}_${now.month}';
-
-    // 1. Maaş Günü Hatırlatması
-    if (now.day == salaryDay) {
-      await addNotification(
-        id: 'salary_reminder_$monthKey',
-        title: 'Maaş Günü Hatırlatması',
-        message:
-            'Bugün beklenen maaş / hakediş gününüz. Hesabınızı kontrol ederek güncel bakiyenizi teyit edebilirsiniz.',
-      );
-    }
-
-    // 2. Ekstre ve Son Ödeme Günü Hatırlatması
-    if (now.day == 20 || now.day == 1) {
-      await addNotification(
-        id: 'statement_cutoff_${monthKey}_${now.day}',
-        title: 'Kart Ekstresi & Ödeme Hatırlatması',
-        message:
-            'Kredi kartı hesap özetiniz oluşturuldu. Son ödeme tarihini kaçırmamak için borç ödemenizi kontrol edin.',
-      );
-    }
-  }
-
-  Future<void> checkAssetTargetAlert({
+Future<void> checkAssetTargetAlert({
     required String assetId,
     required String assetName,
     required double currentPrice,
@@ -447,25 +495,81 @@ class UserProfileService {
     await _persist();
   }
 
-  /// Tüm veritabanı tablolarını ve yerel profili kalıcı olarak siler
-  Future<void> resetAllUserData() async {
-    // 1. Veritabanını sıfırla
+  // ---- Cihazda tek hesap: telefondaki finansal veri hangi hesaba ait?
+  // Çıkışta silinmez (aynı hesap geri gelince verisini bulur); farklı hesapla girişte sorulur.
+  Future<File> _dataOwnerFile() async {
+    final docsDir = await getApplicationDocumentsDirectory();
+    return File('${docsDir.path}/paraiz_data_owner.json');
+  }
+
+  Future<String?> localDataOwnerId() async {
+    try {
+      final f = await _dataOwnerFile();
+      if (await f.exists()) {
+        return (jsonDecode(await f.readAsString()) as Map)['user_id'] as String?;
+      }
+    } catch (e) {
+      debugPrint('Veri sahibi okunamadı: $e');
+    }
+    return _profile?.id;
+  }
+
+  Future<void> setLocalDataOwner(String userId) async {
+    final f = await _dataOwnerFile();
+    await f.writeAsString(jsonEncode({'user_id': userId}));
+  }
+
+  /// Telefonda ekstre/işlem/hedef gibi finansal kayıt var mı?
+  Future<bool> hasLocalFinancialData() async {
     try {
       final db = await AppDatabase.instance.database;
-      await db.execute('DELETE FROM transactions');
-      await db.execute('DELETE FROM statements');
-      await db.execute('DELETE FROM accounts');
-      await db.execute('DELETE FROM installments');
-      await db.execute('DELETE FROM tax_deductions');
-      await db.execute('DELETE FROM goals');
+      for (final t in const ['transactions', 'accounts', 'goals']) {
+        final r = await db.rawQuery('SELECT 1 FROM $t LIMIT 1');
+        if (r.isNotEmpty) return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  /// Tüm veritabanı tablolarını ve yerel profili kalıcı olarak siler
+  Future<void> resetAllUserData() async {
+    await wipeLocalData();
+    await AccountService.instance.signOut();
+  }
+
+  /// Telefondaki tüm finansal veriyi, profili ve ayarları siler; oturuma dokunmaz.
+  Future<void> wipeLocalData() async {
+    // 1. Veritabanını sıfırla
+    try {
+      await TransactionRepository().clearAllUserData();
+      final db = await AppDatabase.instance.database;
       await db.execute('DELETE FROM goal_contributions');
+      await db.execute('DELETE FROM goals');
       await db.execute('DELETE FROM merchant_rules');
     } catch (e) {
       debugPrint('Veritabanı sıfırlama hatası: $e');
     }
 
-    // 2. Hesap oturumunu kapat, yerel profili ve ayarları sıfırla
-    await AccountService.instance.signOut();
+    // 2. Telefondaki diğer veri dosyaları ve kurulu hatırlatmalar
+    try {
+      await AssetsRepository.instance.clearAll();
+final dir = await getApplicationDocumentsDirectory();
+      for (final name in const [
+        'paraiz_wallets.json',
+        'paraiz_family_members.json',
+        'paraiz_subscriptions_bills.json',
+        'paraiz_market_cache.json',
+        'custom_bank_templates.json',
+      ]) {
+        final f = File('${dir.path}/$name');
+        if (await f.exists()) await f.delete();
+      }
+      await NotificationService.instance.cancelAll();
+    } catch (e) {
+      debugPrint('Yerel dosyalar silinemedi: $e');
+    }
+
+    // 3. Yerel profil ve ayarlar
     _profile = null;
     _dismissedNuanceIds.clear();
     _notifications.clear();
@@ -477,6 +581,8 @@ class UserProfileService {
     if (await file.exists()) {
       await file.delete();
     }
+    final owner = await _dataOwnerFile();
+    if (await owner.exists()) await owner.delete();
   }
 
   Future<void> _persist() async {

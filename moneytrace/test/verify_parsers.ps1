@@ -517,7 +517,7 @@ $hasSwipeDown = $bannerText.Contains("DismissDirection.down")
 $hasEvEconomicsText = $bannerText.ToLower().Contains("elektrik") -and $bannerText.ToLower().Contains("dizel")
 
 $isBannerCompliant = $hasBannerWidget -and $hasMaxHeight25 -and $hasSwipeDown -and $hasEvEconomicsText
-Assert-Test -Name "Compact Smart Insight Banner (<= 25% Height, Swipe Down)" -Condition $isBannerCompliant -Details "Enforces max 25% screen height, DismissDirection.down, and EV economy text"
+Assert-Test -Name "Removed: Compact Insight Banner (dead code, K7)" -Condition (-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/compact_smart_insight_banner.dart"))) -Details "Unused decorative banner deleted"
 
 # 4. Dynamic Lists Schema in remote_config.json
 $configJsonPath = Join-Path $PSScriptRoot "../assets/config/remote_config.json"
@@ -549,7 +549,7 @@ $hasDiMaxHeight = $diText.Contains("0.24") -or $diText.Contains("0.25")
 $hasDiDragDismiss = $diText.Contains("onVerticalDragEnd")
 $hasDiEvContent = $diText.ToLower().Contains("elektrik") -and $diText.ToLower().Contains("dizel")
 $isDiCompliant = $hasDynamicIsland -and $hasDiMaxHeight -and $hasDiDragDismiss -and $hasDiEvContent
-Assert-Test -Name "Shakuro Dynamic Island Capsule (<= 25% Height, Drag Dismiss)" -Condition $isDiCompliant -Details "Floating island overlay, max 24% height, vertical drag dismiss, and EV maintenance comparison"
+Assert-Test -Name "Removed: Dynamic Island Capsule (dead code, K7)" -Condition (-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/dynamic_island_capsule.dart"))) -Details "Unused overlay deleted"
 
 # 2. Better Sleep Branded In-App Modal
 $inAppSheetPath = Join-Path $PSScriptRoot "../lib/core/widgets/in_app_notification_sheet.dart"
@@ -558,7 +558,7 @@ $sheetText = if ($hasInAppSheet) { [System.IO.File]::ReadAllText($inAppSheetPath
 $hasSheet25Height = $sheetText.Contains("0.26") -or $sheetText.Contains("maxHeight")
 $hasSheetDismiss = $sheetText.Contains("onVerticalDragEnd")
 $isSheetCompliant = $hasInAppSheet -and $hasSheet25Height -and $hasSheetDismiss
-Assert-Test -Name "Better Sleep Style In-App Sheet (%25 Height, Drag Dismiss)" -Condition $isSheetCompliant -Details "Branded bottom modal adhering strictly to <=25% height rule with drag dismiss"
+Assert-Test -Name "Removed: In-App Notification Sheet (dead code, K7)" -Condition (-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/in_app_notification_sheet.dart"))) -Details "Unused sheet deleted"
 
 # 3. 20-Point Security Guard Engine (photo_5868465652392202673_y.jpg)
 $securityGuardPath = Join-Path $PSScriptRoot "../lib/core/security/security_guard.dart"
@@ -576,7 +576,7 @@ $streakModalPath = Join-Path $PSScriptRoot "../lib/core/widgets/daily_streak_mod
 $uploadBtnPath = Join-Path $PSScriptRoot "../lib/core/widgets/interactive_file_upload_button.dart"
 $radarBtnPath = Join-Path $PSScriptRoot "../lib/core/widgets/radar_checkout_button.dart"
 $hasAllMicroWidgets = (Test-Path $streakModalPath) -and (Test-Path $uploadBtnPath) -and (Test-Path $radarBtnPath)
-Assert-Test -Name "Video Micro-Interactions (Streak, Morph Upload, Radar Checkout)" -Condition $hasAllMicroWidgets -Details "DailyStreakModal (Video 1), InteractiveFileUploadButton (Video 3), RadarCheckoutButton (Video 4)"
+Assert-Test -Name "No Fake-Progress Widgets (streak, morph upload, radar checkout)" -Condition ((-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/daily_streak_modal.dart"))) -and (-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/morphing_share_button.dart"))) -and (-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/interactive_file_upload_button.dart"))) -and (-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/radar_checkout_button.dart")))) -Details "Fake progress/success animations removed; success shown only after real results"
 
 # 5. Web Portal Security Tab & Video Lab Integration
 $hasSecTab = $webHtml.Contains("tab-security") -and $webHtml.Contains("20/20 DOĞRULANDI")
@@ -622,7 +622,7 @@ foreach ($wName in $expectedWidgets) {
     }
 }
 $allWidgetsValid = ($validWidgetCount -eq 12)
-Assert-Test -Name "All 12 Micro-Interaction Widgets Present & Implemented" -Condition $allWidgetsValid -Details "Validated 12/12 widgets in lib/core/widgets/ ($($expectedWidgets -join ', '))"
+Assert-Test -Name "Decorative Widget Set Reduced to Functional Ones" -Condition ((-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/compact_smart_insight_banner.dart"))) -and (-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/dynamic_island_capsule.dart"))) -and (-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/in_app_notification_sheet.dart"))) -and (-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/daily_streak_modal.dart"))) -and (-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/morphing_share_button.dart"))) -and (-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/interactive_file_upload_button.dart"))) -and (-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/radar_checkout_button.dart"))) -and (-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/streak_confetti_burst.dart")))) -Details "Removed: compact_smart_insight_banner.dart, dynamic_island_capsule.dart, in_app_notification_sheet.dart, daily_streak_modal.dart, morphing_share_button.dart, interactive_file_upload_button.dart, radar_checkout_button.dart, streak_confetti_burst.dart"
 
 # 2. MainNavigationScaffold Floating Capsule Bar Integration
 $navScaffoldPath = Join-Path $PSScriptRoot "../lib/features/navigation/main_navigation_scaffold.dart"
@@ -643,8 +643,10 @@ Assert-Test -Name "Dashboard Screen Minimal Design (no sticky banners)" -Conditi
 # 4. Analysis & Cashflow Morphing Segmented Bars & Shares
 $analysisPath = Join-Path $PSScriptRoot "../lib/features/analysis/presentation/analysis_screen.dart"
 $analysisText = if (Test-Path $analysisPath) { [System.IO.File]::ReadAllText($analysisPath) } else { "" }
+# Sahte ilerleme gösteren MorphingShareButton kalktı (2026-09-24); rapor gerçek dosyayla paylaşılır
 $hasAnalysisInteractions = $analysisText.Contains("MorphingSegmentedBar") -and `
-                           $analysisText.Contains("MorphingShareButton") -and `
+                           $analysisText.Contains("Share.shareXFiles") -and `
+                           -not $analysisText.Contains("MorphingShareButton") -and `
                            -not $analysisText.Contains("DynamicIslandCapsule")
 
 $cashflowPath = Join-Path $PSScriptRoot "../lib/features/cashflow_projection/presentation/cashflow_screen.dart"
@@ -656,28 +658,36 @@ $hasCashflowInteractions = $cashflowText.Contains("MorphingSegmentedBar") -and `
                            -not $cashflowText.Contains("CashflowProjectionService")
 
 $isAnalyticScreensValid = $hasAnalysisInteractions -and $hasCashflowInteractions
-Assert-Test -Name "Analysis & Cashflow Screen Morphing Controls & Tickers" -Condition $isAnalyticScreensValid -Details "MorphingSegmentedBar on Analysis & Wallet, share on Analysis, Wallet bound to WalletHistoryService"
+Assert-Test -Name "Analysis & Cashflow Screens: Real Share, No Fake Progress" -Condition $isAnalyticScreensValid -Details "Analysis shares a real file (no MorphingShareButton); Wallet bound to WalletHistoryService"
 
 # 5. Goals & Deposit Confetti Celebration
 $goalsPath = Join-Path $PSScriptRoot "../lib/features/goals/presentation/goals_screen.dart"
 $goalsText = if (Test-Path $goalsPath) { [System.IO.File]::ReadAllText($goalsPath) } else { "" }
 $addGoalPath = Join-Path $PSScriptRoot "../lib/features/goals/presentation/add_goal_sheet.dart"
 $addGoalText = if (Test-Path $addGoalPath) { [System.IO.File]::ReadAllText($addGoalPath) } else { "" }
+# Hedefler sade: sahte radar düğmesi ve konfeti yok; hedef düzenlenip silinebiliyor, ekran veri değişince yenileniyor.
+$goalRepoPath = Join-Path $PSScriptRoot "../lib/features/goals/repositories/goal_repository.dart"
+$goalRepoText = if (Test-Path $goalRepoPath) { [System.IO.File]::ReadAllText($goalRepoPath) } else { "" }
 $hasGoalsInteractions = $goalsText.Contains("MorphingSegmentedBar") -and `
-                        $goalsText.Contains("RadarCheckoutButton") -and `
-                        $goalsText.Contains("StreakConfettiBurst") -and `
-                        $addGoalText.Contains("RadarCheckoutButton")
-Assert-Test -Name "Goals Module Radar Actions & Confetti Celebration" -Condition $hasGoalsInteractions -Details "GoalsScreen & AddGoalSheet equipped with RadarCheckoutButton and 36-particle confetti burst"
+                        $goalsText.Contains("DataChanges.revision") -and `
+                        -not $goalsText.Contains("RadarCheckoutButton") -and `
+                        -not $goalsText.Contains("StreakConfettiBurst") -and `
+                        -not $addGoalText.Contains("RadarCheckoutButton") -and `
+                        $goalRepoText.Contains("Future<void> updateGoal(") -and `
+                        $goalRepoText.Contains("Future<void> deleteGoal(")
+Assert-Test -Name "Goals Module: Plain Actions, Edit & Delete" -Condition $hasGoalsInteractions -Details "No RadarCheckoutButton/confetti; GoalRepository has updateGoal/deleteGoal; GoalsScreen listens to DataChanges"
 
 # 6. Settings Screen Laser Shimmer, Morph Share & Radar Vault
 $settingsPath = Join-Path $PSScriptRoot "../lib/features/settings/presentation/settings_screen.dart"
 $settingsText = if (Test-Path $settingsPath) { [System.IO.File]::ReadAllText($settingsPath) } else { "" }
-$hasSettingsInteractions = $settingsText.Contains("LaserShimmerCard") -and `
-                           $settingsText.Contains("PulseMetricBadge") -and `
-                           $settingsText.Contains("MorphingShareButton") -and `
-                           $settingsText.Contains("RadarCheckoutButton") -and `
-                           $settingsText.Contains("InteractiveFileUploadButton")
-Assert-Test -Name "Settings Screen Laser Shimmer Card & Vault Morph Buttons" -Condition $hasSettingsInteractions -Details "Settings features sweeping laser beam card, radar encryption backup & morphing restore"
+# Yedek/geri yükleme/CSV başarıyı yalnız gerçek sonuçtan sonra bildirir; sahte animasyonlu düğme yok.
+# Play politikası: abonelik yönetimi ve gizlilik politikası bağlantıları uygulama içinde.
+$hasSettingsInteractions = -not $settingsText.Contains("MorphingShareButton") -and `
+                           -not $settingsText.Contains("RadarCheckoutButton") -and `
+                           -not $settingsText.Contains("InteractiveFileUploadButton") -and `
+                           $settingsText.Contains("AppLinks.manageSubscriptions") -and `
+                           $settingsText.Contains("AppLinks.privacyPolicy")
+Assert-Test -Name "Settings: No Fake Progress, Subscription & Privacy Links" -Condition $hasSettingsInteractions -Details "Plain backup/restore/CSV buttons; manage-subscription and privacy policy links present"
 
 # 7. Dialogs & Sheets System-Wide Design Consistency
 $wizardPath = Join-Path $PSScriptRoot "../lib/features/statement_upload/presentation/statement_smart_wizard.dart"
@@ -695,11 +705,14 @@ $hasFamilyInteractions = $familyText.Contains("PulseMetricBadge") -and `
 
 $subPlansPath = Join-Path $PSScriptRoot "../lib/features/subscription/presentation/subscription_plans_sheet.dart"
 $subPlansText = if (Test-Path $subPlansPath) { [System.IO.File]::ReadAllText($subPlansPath) } else { "" }
-$hasSubPlansInteractions = $subPlansText.Contains("PulseMetricBadge") -and `
-                           $subPlansText.Contains("RadarCheckoutButton")
+$hasSubPlansInteractions = -not $subPlansText.Contains("RadarCheckoutButton") -and `
+                           -not $subPlansText.Contains("Finansal Zeka") -and `
+                           -not $subPlansText.Contains("2 AY HED") -and `
+                           $subPlansText.Contains("AppLinks.manageSubscriptions") -and `
+                           $subPlansText.Contains("otomatik yenilenir")
 
-$areSheetsConsistent = $hasWizardInteractions -and $hasFamilyInteractions -and $hasSubPlansInteractions
-Assert-Test -Name "Sheets & Dialogs Unified Design Consistency" -Condition $areSheetsConsistent -Details "Statement wizard, family budget sheet, and subscription plans adhere to unified design language"
+# Sihirbaz ve aile bütçesi karar bekliyor (K3, K7); abonelik ekranı dürüstlük ölçütüne tabi
+Assert-Test -Name "Subscription Sheet: Honest Copy, Cancel & Privacy Links" -Condition $hasSubPlansInteractions -Details "No fake store verification, no 'unlimited'/'2 months free' claims; auto-renew text and manage-subscription link"
 
 # ---------------------------------------------------------------
 # 14. DYNAMIC SQLITE ANALYSIS, BILINGUAL (TR/EN), GOOGLE PLAY & GITHUB READINESS
@@ -718,7 +731,7 @@ $analysisHasRepo = $analysisTextUtf8.Contains("getCategorySpendingAnalysis") -an
                    $analysisTextUtf8.Contains("_buildEmptyState")
 $goalsHasCleanCheck = $goalsTextUtf8.Contains("isCleanDataMode") -and $goalsTextUtf8.Contains("Finansal Hedef Eklenmedi")
 $isDynamicDataCompliant = $analysisHasRepo -and $goalsHasCleanCheck
-Assert-Test -Name "Zero Fake Data & Dynamic SQLite Analysis Engine" -Condition $isDynamicDataCompliant -Details "Analysis & Goals modules dynamically bound to SQLite with authentic empty states"
+Assert-Test -Name "Zero Fake Data & Dynamic SQLite Analysis Engine" -Condition ($analysisTextUtf8.Contains("getCategorySpendingAnalysis") -and $analysisTextUtf8.Contains("getMonthlyTrendsAnalysis") -and -not $goalsTextUtf8.Contains("StreakConfettiBurst")) -Details "Analysis bound to SQLite; goals without confetti/fake motivation"
 
 # Varlıklar & onboarding: örnek/uydurma değer yok (GERI_BILDIRIM C5/C6/D3/B9)
 $assetsPath = Join-Path $PSScriptRoot "../lib/features/assets_portfolio/presentation/assets_screen.dart"
@@ -742,11 +755,13 @@ $settingsTextUtf8 = if (Test-Path $settingsPath) { [System.IO.File]::ReadAllText
 $newsPath = Join-Path $PSScriptRoot "../lib/features/newsletter/presentation/newsletter_subscription_sheet.dart"
 $newsTextUtf8 = if (Test-Path $newsPath) { [System.IO.File]::ReadAllText($newsPath, [System.Text.Encoding]::UTF8) } else { "" }
 
-$hasRcLanguage = $rcTextUtf8.Contains("appLanguage") -and $rcTextUtf8.Contains("setAppLanguage")
-$hasSettingsLanguage = $settingsTextUtf8.Contains("_buildLanguageOptionTile") -and $settingsTextUtf8.Contains("English")
-$hasNewsLanguage = $newsTextUtf8.Contains("_newsletterLanguage") -and $newsTextUtf8.Contains("Language")
-$isBilingualReady = $hasRcLanguage -and $hasSettingsLanguage -and $hasNewsLanguage
-Assert-Test -Name "Bilingual Language Architecture (Türkçe & English)" -Condition $isBilingualReady -Details "Language selection operational in RemoteConfigService, SettingsScreen & NewsletterSheet"
+# Karar (2026-09-23): arayüz tek dilli (Türkçe). Dil seçici ve İngilizce sözlük kaldırıldı.
+$stringsPath = Join-Path $PSScriptRoot "../lib/core/localization/app_strings.dart"
+$stringsTextUtf8 = if (Test-Path $stringsPath) { [System.IO.File]::ReadAllText($stringsPath, [System.Text.Encoding]::UTF8) } else { "" }
+$isSingleLanguage = -not $settingsTextUtf8.Contains("_buildLanguageOptionTile") -and `
+                    -not $settingsTextUtf8.Contains("English") -and `
+                    -not $stringsTextUtf8.Contains("'en': {")
+Assert-Test -Name "Single-Language UI (Turkish only)" -Condition $isSingleLanguage -Details "No language picker in Settings, no English dictionary in AppStrings"
 
 # 3. Google Play Store Scaffolding & Permissions Compliance
 $manifestPath = Join-Path $PSScriptRoot "../android/app/src/main/AndroidManifest.xml"
@@ -990,7 +1005,7 @@ $hasCandidateExtractor = $serviceText.Contains("extractCandidateFields")
 $hasApplyTemplate = $serviceText.Contains("applyTemplate")
 $hasPresetTemplates = $serviceText.Contains("template_fibabanka_fast") -and $serviceText.Contains("template_kuveytturk_dekont")
 
-Assert-Test -Name "Custom Field Mapping Architecture & Storage" -Condition ($hasMappingTemplate -and $hasMappingService -and $hasCandidateExtractor -and $hasApplyTemplate -and $hasPresetTemplates) -Details "BankMappingTemplate, CustomFieldMappingService and preset templates verified"
+Assert-Test -Name "Removed: Broken Custom Field Mapping (K7)" -Condition ((-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/parser/services/custom_field_mapping_service.dart"))) -and (-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/parser/models/bank_mapping_template.dart")))) -Details "Template mapping wrote non-existent categories; deleted"
 
 # 2. Deterministic Amount vs Balance Isolation (Anti-Blind Parsing Defense)
 $sampleDekont = @"
@@ -1018,8 +1033,10 @@ $uploadSheetPath = Join-Path $PSScriptRoot "../lib/features/statement_upload/pre
 $hasMappingSheet = Test-Path $mappingSheetPath
 $uploadSheetText = if (Test-Path $uploadSheetPath) { [System.IO.File]::ReadAllText($uploadSheetPath) } else { "" }
 $isLinkedToUploadSheet = $uploadSheetText.Contains("CustomFieldMappingSheet.show")
-
-Assert-Test -Name "Mobile Field Mapping Sheet & Upload Integration" -Condition ($hasMappingSheet -and $isLinkedToUploadSheet) -Details "CustomFieldMappingSheet operational and hooked into StatementUploadSheet"
+$orchPath = Join-Path $PSScriptRoot "../lib/core/parser/services/statement_orchestrator.dart"
+$orchText = if (Test-Path $orchPath) { [System.IO.File]::ReadAllText($orchPath) } else { "" }
+# Şablon kaydı var olmayan kategoriye yazdığı için içe aktarımı düşürüyordu (denetim A2): akış kapalı
+Assert-Test -Name "Broken Field Mapping Flow Disabled" -Condition (-not $isLinkedToUploadSheet -and -not $orchText.Contains("findMatchingTemplate")) -Details "Upload sheet has no mapping entry; orchestrator ignores saved templates"
 
 # 4. Web Admin Portal Mapping Lab Tab
 $webAdminPath = Join-Path $PSScriptRoot "../../Web_Yonetici_Paneli/index.html"
@@ -1074,7 +1091,7 @@ $hasRootCheck = $integrityText.Contains("checkDeviceIntegrity") -and `
                 $integrityText.Contains("_hasChecked") -and `
                 $mainActText.Contains("isDeviceRooted") -and `
                 $mainActText.Contains("/system/bin/su")
-Assert-Test -Name "Session-Cached Device Integrity & Root Exploit Detection" -Condition $hasRootCheck -Details "Non-blocking native su binary checks cached in-memory with sub-millisecond execution"
+Assert-Test -Name "Removed: Unused Device Integrity Guard (K7)" -Condition (-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/security/device_integrity_guard.dart"))) -Details "Never called from UI; deleted"
 
 # 5. R8 Code Shrinker & Binary Decompilation Shield
 $gradlePath = Join-Path $PSScriptRoot "../android/app/build.gradle"

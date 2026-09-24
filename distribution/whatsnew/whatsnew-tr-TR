@@ -1,5 +1,5 @@
-• Yeni Cüzdan ekranı: son aylarının gerçek gelir-gideri ve süren taksitlerin.
-• Vergi sekmesi: bordro kesintileri, BSMV/KKDF ve alışverişlerindeki tahmini KDV; bordro dökümü.
-• Varlıklar kalıcı; kart borcu ve son ödeme ekstreden, manuel kart otomatik eşleşir.
-• Araçlar listeden seçilir; 6 ayda bir değer güncelleme hatırlatması.
-• Altın fiyatları ve PDF yükleme düzeltildi; sadeleştirilmiş, bildirimsiz ana sayfa.
+• Analiz > Masraflar: faiz, BSMV, KKDF, ücretler ve vergiler kalem kalem; bu ay ve yıl toplamı.
+• Rakamlar düzeldi: maaş ve kart ödemesi iki kez sayılmıyor, iade gideri azaltıyor, biten taksit listeden kalkıyor.
+• İşlem silme, kategori değiştirme, kart için ödemeyi kaydet, hedef düzenleme.
+• Aile paketi: premium hakkı 4 kişiye kadar; herkesin verisi kendi telefonunda.
+• Abonelik yönetimi ve gizlilik bağlantıları; sadeleştirilmiş ekranlar.

@@ -12,9 +12,6 @@ import '../../../core/database/repositories/transaction_repository.dart';
 import '../../../core/security/security_guard.dart';
 import '../../../core/services/user_profile_service.dart';
 import '../../../core/services/notification_service.dart';
-import '../../wallets/presentation/wallet_selection_sheet.dart';
-import 'statement_smart_wizard.dart';
-import 'custom_field_mapping_sheet.dart';
 import '../../subscription/presentation/subscription_plans_sheet.dart';
 
 class StatementUploadSheet extends StatefulWidget {
@@ -66,7 +63,7 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
   @override
   void initState() {
     super.initState();
-    _selectedDocType = widget.documentTypeHint ?? 'CHECKING';
+    _selectedDocType = widget.documentTypeHint ?? 'CREDIT_CARD';
   }
 
   Future<void> _pickAndProcessPdf() async {
@@ -76,10 +73,12 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
       _parsedResult = null;
     });
 
-    // 10. Madde: Aylık Kota ve Limit Kontrolü
+    // 10. Madde: Aylık Kota ve Limit Kontrolü (ön kontrol; kesin düşüm kayıtta sunucuda yapılır)
+    await UserProfileService.instance.refreshUploadUsage();
+    if (!mounted) return;
     final quota = UserProfileService.instance
         .checkUploadQuota(documentTypeHint: _selectedDocType);
-    if (!quota.canUpload) {
+    if (!quota.canUpload && !UserProfileService.instance.inBackfillWindow) {
       setState(() {
         _errorMessage = quota.reason;
         _errorIsQuota = true;
@@ -146,7 +145,7 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
         setState(() {
           _isProcessing = false;
           _errorMessage =
-              'Bu ekstre belgesi daha önce cüzdanınıza aktarılmış! Mükerrer kayıt önlendi.';
+              'Bu belge daha önce aktarılmış. Aynı belge ikinci kez eklenmedi.';
         });
         return;
       }
@@ -157,6 +156,16 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
         documentTypeHint: _selectedDocType,
         userRules: await _repository.loadUserCategoryRules(),
       );
+
+      // Aynı hesabın aynı dönemi (yeniden indirilmiş aynı ekstre) ikinci kez aktarılmasın
+      if (await _repository.isSamePeriodAlreadyImported(docResult)) {
+        setState(() {
+          _isProcessing = false;
+          _errorMessage =
+              'Bu hesabın bu dönemine ait ekstre daha önce aktarılmış. Aynı dönem ikinci kez eklenmedi.';
+        });
+        return;
+      }
 
       setState(() {
         _isProcessing = false;
@@ -226,48 +235,62 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
     );
   }
 
-  Future<void> _startSmartImportWizard() async {
+  /// Masraf satırı sayısı (faiz, ücret, vergi) — kayıt sonrası özet ve önizleme için
+  static int _feeCount(StatementDocumentResult r) => r.records
+      .where((x) => x.kind == TransactionKind.interestFee || x.kind == TransactionKind.tax)
+      .length;
+  static int _feeCents(StatementDocumentResult r) => r.records
+      .where((x) => x.kind == TransactionKind.interestFee || x.kind == TransactionKind.tax)
+      .fold(0, (sum, x) => sum + (x.type == ParsedTransactionType.debit ? x.billingAmountCents : -x.billingAmountCents));
+
+  Future<void> _saveStatement() async {
     if (_parsedResult == null || _fileHash == null) return;
 
-    // 1. Kullanıcıya yönelik akıllı kararlar diyaloğunu aç
-    final decision = await showDialog<SmartWizardDecisionResult>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => StatementSmartWizardDialog(
-        result: _parsedResult!,
-        salaryDayOfMonth: 15, // Varsayılan 15'i maaş günü
-      ),
-    );
-
-    if (decision == null) {
-      return; // Kullanıcı iptal etti
+    // Bankanın toplamıyla tutmayan ekstre: kaydetmeden önce açık onay (K11)
+    final rec = _parsedResult!.reconciliation;
+    if (rec.isVerifiable && !rec.isBalanced) {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Ekstre bankanın toplamıyla tutmuyor'),
+          content: Text(
+              '${rec.issues.join('\n')}\n\nYine de kaydedersen işlemler "doğrulanmadı" işaretiyle görünür ve toplamlar yanlış olabilir.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Vazgeç')),
+            TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Yine de kaydet')),
+          ],
+        ),
+      );
+      if (ok != true || !mounted) return;
     }
 
-    // 2. Madde: Cüzdan Seçimi Diyaloğu
-    final selectedWallet = await WalletSelectionSheet.show(
-      context,
-      title: 'İşlemler Hangi Cüzdana Aktarılsın?',
-    );
-
-    if (selectedWallet == null) {
-      return; // Cüzdan seçilmedi
-    }
+    // Kota, seçilen çipe göre değil belgeden algılanan türe göre kontrol edilir ve sayılır
+    final detectedType = _parsedResult!.documentType;
+    final isBackfill = UserProfileService.instance.isFreeBackfill(_parsedResult!.periodEnd);
 
     setState(() {
       _isProcessing = true;
     });
 
+    // Kota sunucuda atomik olarak düşülür (kayıttan önce). Hak yoksa ya da sunucuya ulaşılamazsa kayıt yapılmaz.
+    final quota = await UserProfileService.instance
+        .consumeUpload(detectedType, isBackfill: isBackfill);
+    if (!mounted) return;
+    if (!quota.canUpload) {
+      setState(() {
+        _isProcessing = false;
+        _errorMessage = quota.reason;
+        _errorIsQuota = !quota.isNetworkError;
+      });
+      return;
+    }
+
     try {
-      // Kararları uygulayarak veritabanına ve seçilen cüzdana kaydet
       final saved = await _repository.saveStatementResult(
         result: _parsedResult!,
         fileSha256: _fileHash!,
         fileName: _selectedFileName,
-        targetWalletId: selectedWallet.id,
       );
-
-      // Kota kullanımını kaydet
-      await UserProfileService.instance.recordDocumentUpload(_selectedDocType);
 
       // Yeni son ödeme tarihi / talimat varsa hatırlatıcı kur (ilk seferde bildirim izni istenir)
       if (_parsedResult!.summary.dueDate != null || _parsedResult!.summary.scheduledPayments.isNotEmpty) {
@@ -284,9 +307,10 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
           SnackBar(
             backgroundColor: AppColors.incomeGreen,
             content: Text(
-              '${_parsedResult!.institution} ekstresi "${selectedWallet.name}" cüzdanına aktarıldı: '
-              '${saved.inserted} yeni işlem'
-              '${saved.skippedDuplicates > 0 ? ', ${saved.skippedDuplicates} mükerrer işlem atlandı' : ''}.',
+              '${_parsedResult!.institution}: ${saved.inserted} işlem · '
+              '${_feeCount(_parsedResult!)} masraf · '
+              '${_parsedResult!.records.where((x) => x.installment != null).length} taksit kaydedildi'
+              '${saved.skippedDuplicates > 0 ? ' (${saved.skippedDuplicates} işlem zaten vardı)' : ''}.',
             ),
           ),
         );
@@ -345,7 +369,7 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
                   ),
                   SizedBox(height: 2),
                   Text(
-                    'Cihazda %100 Güvenli & Çevrimdışı Ayrıştırma',
+                    'Ekstre bu telefonda okunur, sunucuya gönderilmez',
                     style: TextStyle(
                       fontSize: 12,
                       color: AppColors.textSecondary,
@@ -382,41 +406,22 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
 
           // 1. Madde: Belge Türü Seçimi (Ekstre / Bordro / Kredi Kartı)
           if (_parsedResult == null && !_isProcessing) ...[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Yüklenecek Belge Türü:',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary),
-                ),
-                TextButton.icon(
-                  onPressed: () {
-                    CustomFieldMappingSheet.show(context);
-                  },
-                  icon: const Icon(Icons.alt_route_rounded,
-                      size: 14, color: Color(0xFF2563EB)),
-                  label: const Text('Şablon / Alan Eşle',
-                      style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF2563EB))),
-                ),
-              ],
+            const Text(
+              'Yüklenecek belge türü:',
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary),
             ),
             const SizedBox(height: 8),
+            // İlk faz: Yapı Kredi kart ekstresi ve bordro. Vadesiz okuyucu örnek dökümle eklenecek.
             Row(
               children: [
-                _buildDocTypeChip('CHECKING', 'Hesap Ekstresi',
-                    Icons.account_balance_rounded),
+                _buildDocTypeChip(
+                    'CREDIT_CARD', 'Yapı Kredi Kart', Icons.credit_card_rounded),
                 const SizedBox(width: 8),
                 _buildDocTypeChip(
                     'PAYSLIP', 'Maaş Bordrosu', Icons.work_outline_rounded),
-                const SizedBox(width: 8),
-                _buildDocTypeChip(
-                    'CREDIT_CARD', 'Kredi Kartı', Icons.credit_card_rounded),
               ],
             ),
             const SizedBox(height: 16),
@@ -437,7 +442,7 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
                       strokeWidth: 3, color: AppColors.actionPrimary),
                   SizedBox(height: 16),
                   Text(
-                    'Belge ayrıştırılıyor ve PII maskeleniyor...',
+                    'Belge okunuyor, kişisel bilgiler maskeleniyor…',
                     style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -480,25 +485,15 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
                       ),
                     ],
                   ),
+                  if (_errorIsQuota) ...[
                   const SizedBox(height: 10),
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: () {
-                        if (_errorIsQuota) {
-                          SubscriptionPlansSheet.show(context);
-                        } else {
-                          CustomFieldMappingSheet.show(context);
-                        }
-                      },
-                      icon: Icon(
-                          _errorIsQuota ? Icons.workspace_premium_rounded : Icons.tune_rounded,
-                          size: 16,
-                          color: const Color(0xFF0F172A)),
-                      label: Text(
-                          _errorIsQuota
-                              ? 'Planları Gör'
-                              : 'Bu Banka İçin Alan Eşleştirmesi (Mapping) Tanımla',
+                      onPressed: () => SubscriptionPlansSheet.show(context),
+                      icon: const Icon(Icons.workspace_premium_rounded,
+                          size: 16, color: Color(0xFF0F172A)),
+                      label: const Text('Planları Gör',
                           style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
@@ -511,6 +506,7 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
                       ),
                     ),
                   ),
+                  ],
                 ],
               ),
             ),
@@ -542,7 +538,7 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: _startSmartImportWizard,
+                    onPressed: _saveStatement,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.actionPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -552,11 +548,11 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.checklist_rounded,
+                        Icon(Icons.save_alt_rounded,
                             size: 18, color: Colors.white),
                         SizedBox(width: 6),
                         Text(
-                          'İncele & Cüzdana Aktar',
+                          'Kaydet',
                           style: TextStyle(
                               fontWeight: FontWeight.w800, color: Colors.white),
                         ),
@@ -653,7 +649,8 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
                             color: AppColors.textPrimary),
                       ),
                       Text(
-                        '${result.documentType} • ${result.accountIdentifier}',
+                        '${switch (result.documentType) { 'CREDIT_CARD' => 'Kredi kartı', 'PAYSLIP' => 'Maaş bordrosu', _ => 'Vadesiz hesap' }}'
+                        '${result.accountIdentifier.isNotEmpty ? ' • ${result.accountIdentifier}' : ''}',
                         style: const TextStyle(
                             fontSize: 11, color: AppColors.textMuted),
                       ),
@@ -696,9 +693,14 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
                   'Gelir',
                   CurrencyNormalizer.formatCents(result.totalCreditCents),
                   AppColors.incomeGreen),
+              if (_feeCount(result) > 0)
+                _buildMiniMetric(
+                    'Masraf (${_feeCount(result)} kalem)',
+                    CurrencyNormalizer.formatCents(_feeCents(result)),
+                    AppColors.tax),
               if (result.totalTaxCents > 0)
                 _buildMiniMetric(
-                    'Vergi/Harç',
+                    'Bordro kesintisi',
                     CurrencyNormalizer.formatCents(result.totalTaxCents),
                     AppColors.tax),
             ],
@@ -716,7 +718,7 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
             'Bu belgede banka toplamı bulunmadığı için otomatik doğrulama yapılamadı.')
         : rec.isBalanced
             ? (const Color(0xFFECFDF5), AppColors.incomeGreen, Icons.verified_rounded,
-                'Bankanın beyan ettiği toplamlarla kuruşu kuruşuna doğrulandı.')
+                'Bankanın dönem toplamlarıyla eşleşti.')
             : (const Color(0xFFFEF2F2), AppColors.expenseRed, Icons.warning_amber_rounded,
                 'Dikkat: ${rec.issues.join(' • ')}');
     return Container(

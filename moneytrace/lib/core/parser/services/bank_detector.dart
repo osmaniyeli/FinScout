@@ -63,7 +63,7 @@ class BankDetector {
         institution: SupportedInstitution.enpara,
         documentType: DocumentType.checkingAccount,
         confidence: 0.99,
-        detectedAccountIdentifier: ibanMatch?.group(0)?.trim() ?? 'TR43 0015 **** 8065',
+        detectedAccountIdentifier: ibanMatch?.group(0)?.trim() ?? '',
       );
     }
 
@@ -83,7 +83,7 @@ class BankDetector {
         institution: SupportedInstitution.yapiKredi,
         documentType: DocumentType.creditCard,
         confidence: 0.99,
-        detectedAccountIdentifier: ykCardMatch?.group(0) ?? '4462 12****** 8281',
+        detectedAccountIdentifier: ykCardMatch?.group(0) ?? '',
       );
     }
 
@@ -107,7 +107,7 @@ class BankDetector {
         institution: SupportedInstitution.garanti,
         documentType: isCard ? DocumentType.creditCard : DocumentType.checkingAccount,
         confidence: 0.98,
-        detectedAccountIdentifier: cardMatch?.group(0) ?? ibanMatch?.group(0)?.trim() ?? '5400 **** **** 1234',
+        detectedAccountIdentifier: cardMatch?.group(0) ?? ibanMatch?.group(0)?.trim() ?? '',
       );
     }
 
@@ -126,7 +126,7 @@ class BankDetector {
         institution: SupportedInstitution.isBankasi,
         documentType: isCard ? DocumentType.creditCard : DocumentType.checkingAccount,
         confidence: 0.98,
-        detectedAccountIdentifier: cardMatch?.group(0) ?? ibanMatch?.group(0)?.trim() ?? '4543 **** **** 1923',
+        detectedAccountIdentifier: cardMatch?.group(0) ?? ibanMatch?.group(0)?.trim() ?? '',
       );
     }
 
@@ -145,7 +145,7 @@ class BankDetector {
         institution: SupportedInstitution.akbank,
         documentType: isCard ? DocumentType.creditCard : DocumentType.checkingAccount,
         confidence: 0.98,
-        detectedAccountIdentifier: cardMatch?.group(0) ?? ibanMatch?.group(0)?.trim() ?? '5571 **** **** 4004',
+        detectedAccountIdentifier: cardMatch?.group(0) ?? ibanMatch?.group(0)?.trim() ?? '',
       );
     }
 
@@ -157,7 +157,7 @@ class BankDetector {
         institution: SupportedInstitution.ziraat,
         documentType: DocumentType.checkingAccount,
         confidence: 0.95,
-        detectedAccountIdentifier: 'TR.. 0010 **** ****',
+        detectedAccountIdentifier: '',
       );
     }
 
@@ -169,7 +169,7 @@ class BankDetector {
         institution: SupportedInstitution.halkbank,
         documentType: DocumentType.creditCard,
         confidence: 0.95,
-        detectedAccountIdentifier: 'TR.. 0012 **** ****',
+        detectedAccountIdentifier: '',
       );
     }
 
@@ -180,7 +180,7 @@ class BankDetector {
         institution: SupportedInstitution.vakifbank,
         documentType: DocumentType.creditCard,
         confidence: 0.95,
-        detectedAccountIdentifier: 'TR.. 0015 **** ****',
+        detectedAccountIdentifier: '',
       );
     }
 

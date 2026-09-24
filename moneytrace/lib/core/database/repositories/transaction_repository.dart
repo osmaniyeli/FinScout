@@ -2,9 +2,8 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:sqflite/sqflite.dart';
 import '../app_database.dart';
+import '../../services/data_changes.dart';
 import '../../parser/models/parsed_models.dart';
-import '../../../features/wallets/models/wallet.dart';
-import '../../../features/wallets/repositories/wallet_repository.dart';
 
 class TransactionRepository {
   final AppDatabase _dbProvider;
@@ -25,9 +24,49 @@ class TransactionRepository {
     return res.isNotEmpty;
   }
 
+  /// Ekstrenin kaydedileceği hesabın kimliği. Kart/hesap numarası okunamadıysa aynı bankanın kartı ile
+  /// vadesizi tek hesapta birleşmesin diye belge türü kullanılır.
+  static String accountIdFor(StatementDocumentResult result) {
+    final bank = result.institution.toLowerCase().replaceAll(' ', '_');
+    final identifier = result.accountIdentifier.replaceAll(' ', '');
+    return identifier.isEmpty
+        ? 'acc_${bank}_${result.documentType.toLowerCase()}'
+        : 'acc_${bank}_$identifier';
+  }
+
+  /// Aynı hesabın aynı dönemi daha önce yüklendi mi? Bankadan yeniden indirilen ekstrenin dosya özeti
+  /// (SHA-256) farklı olabilir; bu yüzden hesap + hesap kesim tarihi (yoksa dönem sonu) da karşılaştırılır.
+  Future<bool> isSamePeriodAlreadyImported(StatementDocumentResult result) async {
+    final db = await _dbProvider.database;
+    String day(DateTime d) => d.toIso8601String().split('T')[0];
+    final statementDay = result.summary.statementDate;
+    final res = statementDay != null
+        ? await db.query('statements',
+            columns: ['id'],
+            where: 'account_id = ? AND statement_date = ?',
+            whereArgs: [accountIdFor(result), day(statementDay)],
+            limit: 1)
+        : await db.query('statements',
+            columns: ['id'],
+            where: 'account_id = ? AND period_start = ? AND period_end = ?',
+            whereArgs: [accountIdFor(result), day(result.periodStart), day(result.periodEnd)],
+            limit: 1);
+    return res.isNotEmpty;
+  }
+
   /// Gelir/gider analizlerine girmeyen işlem türleri: kart borcu ödemesi (harcama zaten kart ekstresinde
   /// sayıldı) ve kişinin kendi hesapları arası aktarımı. Aksi halde aynı para iki kez sayılır.
   static const String neutralKindsSql = "('CARDPAYMENT','OWNTRANSFER')";
+
+  /// Bordrodaki net maaş, aynı maaşın vadesiz hesaba yatışı da yüklendiyse ikinci kez gelir sayılmaz.
+  /// (Bordro ayın son günü tarihli; yatış ±20 gün içinde aranır.) `t` takma adıyla kullanılır.
+  static const String payslipDuplicateFilterSql = """
+    AND NOT (t.tx_kind = 'SALARY'
+      AND t.account_id IN (SELECT id FROM accounts WHERE account_type = 'PAYSLIP')
+      AND EXISTS (SELECT 1 FROM transactions s JOIN accounts sa ON sa.id = s.account_id
+        WHERE s.tx_kind = 'SALARY' AND sa.account_type <> 'PAYSLIP'
+          AND ABS(julianday(s.transaction_date) - julianday(t.transaction_date)) <= 20))
+  """;
 
   /// Parser çıktısını tek veritabanı transaction'ı içinde kaydeder.
   /// Aynı işlem (aynı hesap, tarih, tutar, açıklama) tekrar içe aktarılırsa atlanır.
@@ -35,21 +74,17 @@ class TransactionRepository {
     required StatementDocumentResult result,
     required String fileSha256,
     String? fileName,
-    String? targetWalletId,
   }) async {
     final db = await _dbProvider.database;
     var inserted = 0;
     var skipped = 0;
-    var insertedDebit = 0;
-    var insertedCredit = 0;
 
     await db.transaction((txn) async {
       final nowMs = DateTime.now().millisecondsSinceEpoch;
       String day(DateTime d) => d.toIso8601String().split('T')[0];
 
       // 1. Hesap (Account) oluştur veya bul
-      final accountId =
-          'acc_${result.institution.toLowerCase().replaceAll(' ', '_')}_${result.accountIdentifier.replaceAll(' ', '')}';
+      final accountId = accountIdFor(result);
       await txn.insert(
         'accounts',
         {
@@ -146,13 +181,6 @@ class TransactionRepository {
           continue;
         }
         inserted++;
-        if (record.kind != TransactionKind.cardPayment && record.kind != TransactionKind.ownTransfer) {
-          if (isDebit) {
-            insertedDebit += record.billingAmountCents;
-          } else {
-            insertedCredit += record.billingAmountCents;
-          }
-        }
 
         if (record.installment != null) {
           final inst = record.installment!;
@@ -182,21 +210,7 @@ class TransactionRepository {
       }
     });
 
-    if (targetWalletId != null && inserted > 0) {
-      try {
-        await WalletRepository.instance.load();
-        final wallet = WalletRepository.instance.wallets.firstWhere(
-          (w) => w.id == targetWalletId,
-          orElse: () => WalletRepository.instance.getConsolidatedWallet(),
-        );
-        // Kredi kartında harcama borcu artırır, ödeme/iade azaltır; vadesizde tersi
-        final netChange = wallet.type == WalletType.creditCard
-            ? insertedDebit - insertedCredit
-            : insertedCredit - insertedDebit;
-        await WalletRepository.instance.updateBalance(targetWalletId, wallet.balanceCents + netChange);
-      } catch (_) {}
-    }
-
+    if (inserted > 0) DataChanges.notify();
     return StatementSaveResult(inserted: inserted, skippedDuplicates: skipped);
   }
 
@@ -223,12 +237,35 @@ class TransactionRepository {
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
-    return db.update(
+    final changed = await db.update(
       'transactions',
       {'category_id': categoryId},
       where: 'UPPER(counterparty) = ? OR UPPER(clean_merchant) = ?',
       whereArgs: [pattern, pattern],
     );
+    DataChanges.notify();
+    return changed;
+  }
+
+  /// Yalnız tek bir işlemin kategorisini değiştirir (kural kaydetmez).
+  Future<bool> updateTransactionCategory(String transactionId, String categoryId) async {
+    final db = await _dbProvider.database;
+    final changed = await db.update(
+      'transactions',
+      {'category_id': categoryId},
+      where: 'id = ?',
+      whereArgs: [transactionId],
+    );
+    if (changed > 0) DataChanges.notify();
+    return changed > 0;
+  }
+
+  /// Kategori seçici için tüm kategoriler (ada göre sıralı).
+  Future<List<Map<String, dynamic>>> getCategories() async {
+    final db = await _dbProvider.database;
+    return db.query('categories',
+        columns: ['id', 'parent_id', 'name', 'icon_name', 'color_hex'],
+        orderBy: 'name COLLATE NOCASE ASC');
   }
 
   /// Yaklaşan ödemeler: kart son ödeme tarihleri (dönem borcu + asgari) ve ekstrelerdeki planlı talimatlar.
@@ -260,25 +297,30 @@ class TransactionRepository {
     required DateTime date,
     String? note,
     String txKind = 'OTHER',
+    /// Verilirse işlem bu mevcut hesaba yazılır (ör. kart ödemesinin çıktığı vadesiz hesap); yoksa nakit cüzdan.
+    String? accountId,
   }) async {
     final db = await _dbProvider.database;
     final nowMs = DateTime.now().millisecondsSinceEpoch;
     final txId = 'manual_tx_$nowMs';
-    const accountId = 'acc_manual_cash';
+    final useCash = accountId == null;
+    accountId ??= 'acc_manual_cash';
 
-    await db.insert(
-      'accounts',
-      {
-        'id': accountId,
-        'institution_name': 'Nakit & Manuel',
-        'account_type': 'CASH',
-        'account_name': 'Nakit Cüzdan',
-        'card_mask': 'CASH',
-        'currency_code': 'TRY',
-        'created_at': nowMs,
-      },
-      conflictAlgorithm: ConflictAlgorithm.ignore,
-    );
+    if (useCash) {
+      await db.insert(
+        'accounts',
+        {
+          'id': accountId,
+          'institution_name': 'Nakit & Manuel',
+          'account_type': 'CASH',
+          'account_name': 'Nakit Cüzdan',
+          'card_mask': 'CASH',
+          'currency_code': 'TRY',
+          'created_at': nowMs,
+        },
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
+    }
 
     await db.insert('transactions', {
       'id': txId,
@@ -297,18 +339,21 @@ class TransactionRepository {
       'counterparty': title,
       'created_at': nowMs,
     });
+    DataChanges.notify();
   }
 
   /// Döneme ait toplam gider, toplam gelir ve net farkı hesaplar
   Future<Map<String, int>> getMonthlySummary(
       {required String yearMonth}) async {
     final db = await _dbProvider.database;
+    // İade gelir değil, harcamayı azaltır.
     final res = await db.rawQuery('''
-      SELECT 
-        SUM(CASE WHEN transaction_type = 'DEBIT' THEN billing_amount_cents ELSE 0 END) as total_debit,
-        SUM(CASE WHEN transaction_type = 'CREDIT' THEN billing_amount_cents ELSE 0 END) as total_credit
-      FROM transactions
-      WHERE transaction_date LIKE ? AND tx_kind NOT IN $neutralKindsSql
+      SELECT
+        SUM(CASE WHEN t.transaction_type = 'DEBIT' THEN t.billing_amount_cents ELSE 0 END)
+          - SUM(CASE WHEN t.transaction_type = 'CREDIT' AND t.tx_kind = 'REFUND' THEN t.billing_amount_cents ELSE 0 END) as total_debit,
+        SUM(CASE WHEN t.transaction_type = 'CREDIT' AND t.tx_kind <> 'REFUND' THEN t.billing_amount_cents ELSE 0 END) as total_credit
+      FROM transactions t
+      WHERE t.transaction_date LIKE ? AND t.tx_kind NOT IN $neutralKindsSql $payslipDuplicateFilterSql
     ''', ['$yearMonth%']);
 
     final debit = (res.first['total_debit'] as num?)?.toInt() ?? 0;
@@ -333,6 +378,8 @@ class TransactionRepository {
           t.transaction_type,
           t.clean_merchant,
           t.billing_amount_cents,
+          t.category_id,
+          t.counterparty,
           c.name as category_name,
           c.icon_name,
           c.color_hex,
@@ -356,6 +403,8 @@ class TransactionRepository {
         t.transaction_type,
         t.clean_merchant,
         t.billing_amount_cents,
+        t.category_id,
+        t.counterparty,
         c.name as category_name,
         c.icon_name,
         c.color_hex,
@@ -371,8 +420,9 @@ class TransactionRepository {
     ''', [limit]);
   }
 
-  /// Gelecek / Yaklaşan taksit ödemelerini getirir (kalan taksitler: current < total)
-  Future<List<Map<String, dynamic>>> getUpcomingInstallments(
+  /// Devam eden taksit planları. Her aylık ekstre aynı alışverişi yeni bir satır (2/6, 3/6…) olarak
+  /// getirir; her plan için yalnız en güncel satır alınır. Son taksidi (n/n) görülen plan bitmiş sayılır.
+Future<List<Map<String, dynamic>>> getUpcomingInstallments(
       {int limit = 10}) async {
     final db = await _dbProvider.database;
     return await db.rawQuery('''
@@ -389,6 +439,12 @@ class TransactionRepository {
       JOIN transactions t ON i.transaction_id = t.id
       LEFT JOIN categories c ON t.category_id = c.id
       WHERE i.current_installment < i.total_installment
+        AND i.id = (
+          SELECT i2.id FROM installments i2 JOIN transactions t2 ON t2.id = i2.transaction_id
+          WHERE t2.account_id = t.account_id
+            AND UPPER(t2.clean_merchant) = UPPER(t.clean_merchant)
+            AND i2.total_installment = i.total_installment
+          ORDER BY i2.current_installment DESC, i2.created_at DESC LIMIT 1)
       ORDER BY i.due_date ASC
       LIMIT ?
     ''', [limit]);
@@ -445,8 +501,14 @@ class TransactionRepository {
       SELECT 
         strftime('%Y-%m', transaction_date) as year_month,
         SUM(billing_amount_cents) as total_cents
-      FROM transactions
-      WHERE transaction_type = 'DEBIT' AND tx_kind NOT IN $neutralKindsSql
+      FROM (
+        -- İadeler o ayın harcamasından düşülür
+        SELECT transaction_date,
+               CASE WHEN transaction_type = 'DEBIT' THEN billing_amount_cents ELSE -billing_amount_cents END AS billing_amount_cents
+        FROM transactions
+        WHERE tx_kind NOT IN $neutralKindsSql
+          AND (transaction_type = 'DEBIT' OR tx_kind = 'REFUND')
+      )
       GROUP BY year_month
       ORDER BY year_month DESC
       LIMIT 6
@@ -558,6 +620,11 @@ class TransactionRepository {
     final installments = await db.query('installments');
     final taxes = await db.query('tax_deductions');
 
+    // Yedeğe ek tablolar: planlı ödemeler, kategori kuralları, hedefler ve katkıları
+    final extras = <String, List<Map<String, dynamic>>>{
+      for (final t in TransactionRepositoryBackup.extraTables) t: await db.query(t),
+    };
+
     final transactionsWithDetails = await db.rawQuery('''
       SELECT 
         t.*,
@@ -567,12 +634,16 @@ class TransactionRepository {
         i.current_installment,
         i.total_installment,
         tax.tax_type,
-        tax.amount_cents as tax_amount_cents
+        tax.tax_amount_cents
       FROM transactions t
       LEFT JOIN categories c ON t.category_id = c.id
       LEFT JOIN accounts a ON t.account_id = a.id
       LEFT JOIN installments i ON i.transaction_id = t.id
-      LEFT JOIN tax_deductions tax ON tax.transaction_id = t.id
+      -- Bir işlemin birden çok vergi satırı (BSMV + KKDF) işlemi çoğaltmasın: tek satıra indir
+      LEFT JOIN (
+        SELECT transaction_id, GROUP_CONCAT(tax_type, ' + ') AS tax_type, SUM(amount_cents) AS tax_amount_cents
+        FROM tax_deductions GROUP BY transaction_id
+      ) tax ON tax.transaction_id = t.id
       ORDER BY t.transaction_date DESC, t.created_at DESC
     ''');
 
@@ -582,15 +653,19 @@ class TransactionRepository {
       'transactions': transactionsWithDetails,
       'installments': installments,
       'tax_deductions': taxes,
+      ...extras,
     };
   }
 
-  /// JSON Yedeğini Atomik Transaction ile Geri Yükler
+  /// JSON yedeğini tek transaction içinde geri yükler. Önce mevcut kayıtlar silinir:
+  /// yedek, telefondaki verinin üstüne birleştirilmez, onun yerine geçer.
   Future<void> restoreVaultBackup(Map<String, dynamic> data) async {
     final db = await _dbProvider.database;
 
     await db.transaction((txn) async {
-      // 1. Hesaplar
+      await _clearUserTables(txn);
+
+// 1. Hesaplar
       final accounts = data['accounts'] as List<dynamic>? ?? [];
       for (final a in accounts) {
         if (a is Map<String, dynamic>) {
@@ -644,19 +719,50 @@ class TransactionRepository {
               conflictAlgorithm: ConflictAlgorithm.replace);
         }
       }
+
+      // 6. Ek tablolar (yedekte varsa yerine geçer; eski yedekte yoksa mevcut kayıtlar kalır)
+      for (final table in TransactionRepositoryBackup.extraTables) {
+        final rows = data[table];
+        if (rows is! List) continue;
+        if (table == 'goals') await txn.delete('goal_contributions');
+        await txn.delete(table);
+        for (final row in rows) {
+          if (row is Map<String, dynamic>) {
+            await txn.insert(table, row, conflictAlgorithm: ConflictAlgorithm.replace);
+          }
+        }
+      }
     });
+    DataChanges.notify();
   }
 
-  /// Kullanıcı verilerini tamamen sıfırlar (0 TL başlangıç & temiz test modu için)
+  /// Kullanıcı verilerini tamamen sıfırlar.
   Future<void> clearAllUserData() async {
     final db = await _dbProvider.database;
+    await db.transaction(_clearUserTables);
+    DataChanges.notify();
+  }
+
+  static Future<void> _clearUserTables(Transaction txn) async {
+    await txn.delete('tax_deductions');
+    await txn.delete('installments');
+    await txn.delete('scheduled_payments');
+    await txn.delete('transactions');
+    await txn.delete('statements');
+    await txn.delete('accounts');
+  }
+
+  /// Tek bir işlemi, bağlı taksit ve vergi satırlarıyla birlikte kalıcı olarak siler.
+  Future<bool> deleteTransaction(String transactionId) async {
+    final db = await _dbProvider.database;
+    var deleted = 0;
     await db.transaction((txn) async {
-      await txn.delete('tax_deductions');
-      await txn.delete('installments');
-      await txn.delete('transactions');
-      await txn.delete('statements');
-      await txn.delete('accounts');
+      await txn.delete('tax_deductions', where: 'transaction_id = ?', whereArgs: [transactionId]);
+      await txn.delete('installments', where: 'transaction_id = ?', whereArgs: [transactionId]);
+      deleted = await txn.delete('transactions', where: 'id = ?', whereArgs: [transactionId]);
     });
+    if (deleted > 0) DataChanges.notify();
+    return deleted > 0;
   }
 
   /// Kayıtlı tüm hesapları ve kartları getirir
@@ -687,4 +793,9 @@ class StatementSaveResult {
   final int inserted;
   final int skippedDuplicates;
   const StatementSaveResult({required this.inserted, required this.skippedDuplicates});
+}
+
+/// Yedekte işlem tablolarına ek olarak taşınan tablolar (sıra: yabancı anahtarlara göre).
+class TransactionRepositoryBackup {
+  static const extraTables = ['scheduled_payments', 'merchant_rules', 'goals', 'goal_contributions'];
 }

@@ -14,6 +14,9 @@ class AssetsRepository {
   Map<String, dynamic> _data = {};
   bool _loaded = false;
 
+  /// Varlık verisi her değiştiğinde (kayıt, silme, sıfırlama) artar; Varlıklar ekranı dinleyip yeniden yükler.
+  final ValueNotifier<int> revision = ValueNotifier<int>(0);
+
   Future<File> _file() async {
     final dir = await getApplicationDocumentsDirectory();
     return File('${dir.path}/paraiz_assets.json');
@@ -34,12 +37,16 @@ class AssetsRepository {
     }
   }
 
+  /// Dosyaya yazar; yazılamazsa hatayı fırlatır (ekran kullanıcıya gösterir, sahte "kaydedildi" yok).
   Future<void> _save() async {
     try {
       final file = await _file();
       await file.writeAsString(jsonEncode(_data));
     } catch (e) {
       debugPrint('Varlık verisi kaydedilemedi: $e');
+      rethrow;
+    } finally {
+      revision.value++;
     }
   }
 
@@ -107,6 +114,10 @@ class AssetsRepository {
 
   Future<void> clearAll() async {
     _data = {};
-    await _save();
+    try {
+      await _save();
+    } catch (_) {
+      // Sıfırlamanın geri kalanı (diğer dosyalar, bildirimler) yarıda kalmasın.
+    }
   }
 }

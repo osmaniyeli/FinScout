@@ -14,7 +14,6 @@ import '../parsers/statement_parser.dart';
 import '../parsers/yapikredi_card_parser.dart';
 import '../util/tr_statement_text.dart';
 import 'bank_detector.dart';
-import 'custom_field_mapping_service.dart';
 import 'statement_reconciler.dart';
 
 class StatementParseException implements Exception {
@@ -58,17 +57,12 @@ class StatementOrchestrator {
     final isCard = docType == DocumentType.creditCard;
 
     // 1-2. Ayrıştırma
-    var output = ParserOutput.empty;
-    final template = CustomFieldMappingService.instance.findMatchingTemplate(text);
-    final templated = template == null ? null : CustomFieldMappingService.instance.applyTemplate(text, template);
-    if (templated != null) {
-      output = ParserOutput(records: [templated]);
-    } else {
-      output = _parserFor(detection.institution, docType).parse(layout);
-      if (output.records.isEmpty && docType != DocumentType.payslip) {
-        // Kurum parser'ı düzeni tanımadıysa genel tablo okuyucu dener
-        output = GenericBankStatementParser(isCardStatement: isCard).parse(layout);
-      }
+    // Kullanıcı tanımlı alan eşleme şablonları devre dışı: kayıt kategorisi veritabanında olmadığı
+    // için içe aktarımı düşürüyordu ve tek banka fazında gerekmiyor.
+    var output = _parserFor(detection.institution, docType).parse(layout);
+    if (output.records.isEmpty && docType != DocumentType.payslip) {
+      // Kurum parser'ı düzeni tanımadıysa genel tablo okuyucu dener
+      output = GenericBankStatementParser(isCardStatement: isCard).parse(layout);
     }
 
     if (output.records.isEmpty) {

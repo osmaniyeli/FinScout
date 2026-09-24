@@ -6,6 +6,41 @@ Format, [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) standardına da
 
 ---
 
+## [3.7.0] - 2026-09-24
+
+Gece denetimi (310 öğe, 99 bulgu) ve kullanıcı kararları (K1–K18) uygulandı. İlke: az özellik, her rakam doğru; sahte/boş öğe yok.
+
+### Düzeltmeler (rakamlar)
+- İşlem silme gerçekten veritabanından siliyor (onaylı); toplamlar güncelleniyor.
+- Bordro + vadesiz birlikte yüklenince maaş iki kez gelir sayılmıyor; vadesizden kart ödemesi gider sayılmıyor; iade gelir değil, harcamayı azaltıyor.
+- Taksitler: aynı alışveriş her ay tekrar görünmüyor, biten taksit listeden kalkıyor.
+- Cüzdan bakiyesi ve kart borcu son ekstrede bankanın yazdığı değerden; ekranlar veri değişince yenileniyor.
+- CSV'de çok vergili işlem çoğalmıyor; rapordaki Damga Vergisi çakışması giderildi.
+
+### Ekstre motoru
+- EFT/FAST/havale ücreti, komisyon, KMH faizi masraf; stopaj vergi; eşleşme kelime başından.
+- Kart özdeşliği (önceki borç + harcama − ödeme = dönem borcu) ve bordro (brüt − kesintiler = net) kontrolleri; bordroda SGK, damga vergisi ve TİS primi okuma hataları düzeltildi.
+- Aynı hesabın aynı dönemi ikinci kez aktarılmıyor; mutabakat tutmazsa kayıttan önce onay.
+- pdfrx 2.6.5 / engine 0.6.1.
+
+### Yenilikler
+- Analiz › Masraflar: banka maliyeti / ödenen vergi / prim ayrı; bu ay ve takvim yılı; kalem kalem döküm; "BSMV dahil" faiz payı oranla ayrılıp "hesaplanan" diye işaretli; tahmini KDV ayrı kartta.
+- İşlem detayında kategori değiştirme (yalnız bu işlem / bu satıcının tümü).
+- Kart için "Ödemeyi kaydet"; hedef düzenleme, silme ve katkı geçmişi.
+- Aile paketi: sahip tek kullanımlık davet koduyla en fazla 3 kişiyi ekler; premium hakkı paylaşılır, veriler herkesin kendi telefonunda kalır.
+- Abonelik makbuzu sunucuda (Google Play API) doğrulanıyor; aylık belge kotası sunucuda atomik tutuluyor.
+
+### Güvenlik, mağaza, KVKK
+- Abonelik yönetimi/iptal ve gizlilik politikası bağlantıları; açık kaynak lisansları.
+- Kilit ekranı açık alt sayfaları da örtüyor; Android 12+ veri aktarımı kapalı.
+- Cihazda tek hesap: farklı hesapla girişte uyarı ve yerel verinin silinmesi.
+- "Tüm verileri sil" tüm dosyaları ve hatırlatmaları temizliyor; yedek ek tabloları da kapsıyor, geri yükleme birleştirmiyor.
+
+### Kaldırılanlar
+- İnceleme sihirbazı, alan eşleme, dil seçici (tek dil), sahte paylaşım/yedek animasyonları, sabit günlü hatırlatmalar, "Hesap Değiştir".
+- Ölü kod: yerel aile bütçesi, bülten, fatura takibi, persona, cüzdan seçimi ve süs bileşenleri.
+- Yanıltıcı ifadeler: "Sınırsız PDF", "2 ay hediye", "Kriptolu", "%100 güvenli", "Touch ID".
+
 ## [3.6.1] - Yayınlanmadı
 
 Test kullanıcısı geri bildirimleri (Surumler/GERI_BILDIRIM_v3.6.0.md) uygulandı. İlke: ekranda görünen her şey gerçek veriyle çalışır, örnek/uydurma değer gösterilmez.

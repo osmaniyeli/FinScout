@@ -6,19 +6,16 @@ import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/config/remote_config_service.dart';
 import '../../../core/services/data_export_service.dart';
 import '../../../core/services/account_service.dart';
 import '../../../core/services/user_profile_service.dart';
-import '../../../core/localization/app_strings.dart';
 import '../../../core/database/repositories/transaction_repository.dart';
 import '../../../core/widgets/laser_shimmer_card.dart';
 import '../../../core/widgets/pulse_metric_badge.dart';
-import '../../../core/widgets/morphing_share_button.dart';
-import '../../../core/widgets/radar_checkout_button.dart';
-import '../../../core/widgets/interactive_file_upload_button.dart';
+import '../../../core/config/app_links.dart';
 import '../../subscription/services/subscription_service.dart';
 import '../../subscription/presentation/subscription_plans_sheet.dart';
+import '../../family/presentation/family_screen.dart';
 import '../../../core/services/security_auth_service.dart';
 import '../../../core/widgets/fintech/security_auth_sheet.dart';
 
@@ -30,39 +27,15 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  final RemoteConfigService _remoteConfig = RemoteConfigService.instance;
   final SubscriptionService _subscriptionService = SubscriptionService.instance;
   final TransactionRepository _repository = TransactionRepository();
   final DataExportService _exportService = DataExportService.instance;
 
-  late String _selectedLanguage;
   bool _isExporting = false;
 
   @override
   void initState() {
     super.initState();
-    _selectedLanguage = AppStrings.currentLocale.value;
-  }
-
-  void _changeLanguage(String lang) {
-    setState(() {
-      _selectedLanguage = lang;
-      _remoteConfig.setAppLanguage(lang);
-    });
-
-    UserProfileService.instance.updateLanguage(lang);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: AppColors.incomeGreen,
-        content: Text(
-          lang == 'en'
-              ? 'Language changed to English'
-              : 'Uygulama dili Türkçe olarak güncellendi',
-        ),
-        duration: const Duration(seconds: 2),
-      ),
-    );
   }
 
   void _showSubscriptionPlans() {
@@ -222,8 +195,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Text(
                     _subscriptionService.isPremium
                         ? (_subscriptionService.isFamilyPlan
-                            ? 'Aile Boyu Üyelik (4 Kişi)'
-                            : 'Bireysel Premium')
+                            ? (_subscriptionService.isFamilyMemberEntitlement
+                                ? 'Aile Paketi (üye)'
+                                : 'Aile Paketi (sahip)')
+                            : (_subscriptionService.isAnnualPlan
+                                ? 'Bireysel Yıllık Premium'
+                                : 'Bireysel Aylık Premium'))
                         : 'Ücretsiz Başlangıç Paketi',
                     style: const TextStyle(
                         fontSize: 18,
@@ -253,36 +230,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 24),
 
-            // 1.5 DİL & İLETİŞİM TERCİHİ (Bilingual TR/EN)
+            // Abonelik ve yasal bağlantılar (Play politikaları uygulama içinde istiyor)
             const Text(
-              'DİL & İLETİŞİM TERCİHİ / LANGUAGE PREFERENCE',
+              'ABONELİK VE GİZLİLİK',
               style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
                   color: AppColors.textSecondary,
                   letterSpacing: 0.5),
             ),
-            const SizedBox(height: 10),
-
-            _buildLanguageOptionTile(
-              langKey: 'tr',
-              title: 'Türkçe 🇹🇷',
-              subtitle:
-                  'Uygulama arayüzü, e-posta bültenleri ve finansal raporlar Türkçe hazırlanır.',
-              badge: 'Varsayılan',
-              badgeColor: const Color(0xFFDCFCE7),
-              badgeTextColor: const Color(0xFF166534),
+            const SizedBox(height: 6),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.family_restroom_rounded, color: AppColors.textSecondary),
+              title: const Text('Aile',
+                  style: TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+              subtitle: const Text('Premium hakkını en fazla 4 kişiyle paylaş; veriler paylaşılmaz',
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+              onTap: () async {
+                await Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (_) => const FamilyScreen()));
+                if (mounted) setState(() {});
+              },
             ),
-            const SizedBox(height: 8),
-
-            _buildLanguageOptionTile(
-              langKey: 'en',
-              title: 'English 🇬🇧',
-              subtitle:
-                  'App interface, email newsletters, and financial exports delivered in English.',
-              badge: 'Global',
-              badgeColor: const Color(0xFFEFF6FF),
-              badgeTextColor: AppColors.actionPrimary,
+            _buildLinkTile(Icons.credit_card_rounded, 'Aboneliği yönet / iptal et',
+                'Google Play abonelik sayfası açılır', AppLinks.manageSubscriptions()),
+            _buildLinkTile(Icons.privacy_tip_outlined, 'Gizlilik politikası',
+                'Hangi verinin nerede tutulduğu', AppLinks.privacyPolicy),
+            _buildLinkTile(Icons.person_remove_outlined, 'Hesap ve veri silme',
+                'Uygulamadan ya da e-postayla silme yolları', AppLinks.dataDeletion),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.description_outlined, color: AppColors.textSecondary),
+              title: const Text('Açık kaynak lisansları',
+                  style: TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+              subtitle: const Text('Uygulamada kullanılan kütüphaneler',
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+              onTap: () => showLicensePage(context: context, applicationName: 'FinScout'),
             ),
             const SizedBox(height: 24),
 
@@ -322,7 +310,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: const [
                         Text(
-                          'Cihaz İçi Kriptolu Depolama',
+                          'Veriler bu telefonda',
                           style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
@@ -330,7 +318,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         SizedBox(height: 2),
                         Text(
-                          'Ekstre ve finansal kayıtlarınız asla dış sunucuya gönderilmez. %100 telefonunuzda kalır.',
+                          'Ekstreler telefonunda okunur; ekstre ve işlemlerin sunucuya gönderilmez. Sunucuda yalnız hesap bilgin (ad, e-posta) tutulur.',
                           style: TextStyle(
                               fontSize: 11,
                               color: AppColors.textSecondary,
@@ -374,7 +362,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: const [
                             Text(
-                              'Parmak İzi ile Giriş (Touch ID)',
+                              'Parmak izi ile giriş',
                               style: TextStyle(
                                   fontSize: 13.5,
                                   fontWeight: FontWeight.w800,
@@ -411,7 +399,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                         : const Color(0xFF0F172A)),
                                 content: Text(error ??
                                     (val
-                                        ? 'Parmak İzi (Touch ID) aktif edildi.'
+                                        ? 'Parmak izi ile giriş açıldı.'
                                         : 'Parmak İzi devre dışı bırakıldı.')),
                                 duration: const Duration(seconds: 2),
                               ),
@@ -553,7 +541,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             // 4. VERİ YÖNETİMİ & YEDEKLEME (ZERO-KNOWLEDGE)
             const Text(
-              'VERİ YÖNETİMİ & YEDEKLEME (ZERO-KNOWLEDGE)',
+              'VERİ YÖNETİMİ VE YEDEKLEME',
               style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
@@ -589,14 +577,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: const [
-                            Text('Harcama Raporunu İndir (Excel / CSV)',
+                            Text('Harcama raporu (Excel / CSV)',
                                 style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w800,
                                     color: AppColors.textPrimary)),
                             SizedBox(height: 2),
                             Text(
-                                'Türkçe karakter uyumlu (UTF-8 BOM), tüm harcama, taksit ve vergiler.',
+                                'Tüm işlemler; taksit ve vergi satırları işlem başına tek satırda.',
                                 style: TextStyle(
                                     fontSize: 11,
                                     color: AppColors.textSecondary,
@@ -607,12 +595,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  // Video 2: Morflayan CSV İndirme & Paylaşma Butonu
-                  MorphingShareButton(
-                    fileName: 'FinScout_Harcama_Raporu.csv',
-                    label: 'Excel / CSV Raporunu İndir & Paylaş',
-                    accentColor: const Color(0xFF10B981),
-                    onDownloadComplete: _exportToCsv,
+                  _plainActionButton(
+                    icon: Icons.ios_share_rounded,
+                    label: 'CSV raporunu oluştur ve paylaş',
+                    onPressed: _isExporting ? null : _exportToCsv,
                   ),
                 ],
               ),
@@ -646,14 +632,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: const [
-                            Text('Tam Sistem Yedeği Al (JSON)',
+                            Text('Yedek al',
                                 style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w800,
                                     color: AppColors.textPrimary)),
                             SizedBox(height: 2),
                             Text(
-                                'Hesaplar, ekstreler, taksitler ve ayarları içeren taşınabilir arşiv.',
+                                'Hesaplar, ekstreler, işlemler, taksitler ve vergi satırları. İstersen parolayla şifrelenir.',
                                 style: TextStyle(
                                     fontSize: 11,
                                     color: AppColors.textSecondary,
@@ -664,13 +650,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  // Video 4: Radar Dalgalı Doğrulama ve Güvenli Kriptolu Yedekleme
-                  RadarCheckoutButton(
-                    label: 'Tam Yedeği Doğrula & Şifrele',
-                    idleAmountText: 'JSON Arşiv',
-                    verifyingAmountText: 'Kriptolanıyor...',
+                  _plainActionButton(
+                    icon: Icons.save_alt_rounded,
+                    label: 'Yedek dosyası oluştur',
                     onPressed: _exportToJsonBackup,
-                    onVerificationComplete: () {},
                   ),
                 ],
               ),
@@ -711,7 +694,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     color: AppColors.textPrimary)),
                             SizedBox(height: 2),
                             Text(
-                                'Daha önce aldığınız bir FinScout yedek dosyasını geri yükleyin.',
+                                'Telefondaki mevcut kayıtlar silinir, yerine yedektekiler gelir.',
                                 style: TextStyle(
                                     fontSize: 11,
                                     color: AppColors.textSecondary,
@@ -722,13 +705,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  // Video 3: İnteraktif İlerleyen Dosya Yükleme Butonu
-                  InteractiveFileUploadButton(
-                    label: 'Yedek Dosyası Seç & Geri Yükle',
-                    acceptedExtensions: const ['.json', '.enc'],
-                    onFileSelected: (f) {
-                      _restoreFromJsonBackup();
-                    },
+                  _plainActionButton(
+                    icon: Icons.settings_backup_restore_rounded,
+                    label: 'Yedek dosyası seç ve geri yükle',
+                    onPressed: _restoreFromJsonBackup,
                   ),
                 ],
               ),
@@ -821,159 +801,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildLanguageOptionTile({
-    required String langKey,
-    required String title,
-    required String subtitle,
-    required String badge,
-    required Color badgeColor,
-    required Color badgeTextColor,
-  }) {
-    final isSelected = _selectedLanguage == langKey;
-
-    return InkWell(
-      onTap: () => _changeLanguage(langKey),
-      borderRadius: BorderRadius.circular(18),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: isSelected ? AppColors.incomeGreen : const Color(0xFFE2E8F0),
-            width: isSelected ? 2 : 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Radio<String>(
-              value: langKey,
-              groupValue: _selectedLanguage,
-              activeColor: AppColors.incomeGreen,
-              onChanged: (val) {
-                if (val != null) _changeLanguage(val);
-              },
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          title,
-                          style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.textPrimary),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: badgeColor,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          badge,
-                          style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              color: badgeTextColor),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                        fontSize: 11,
-                        color: AppColors.textSecondary,
-                        height: 1.3),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+  Widget _buildLinkTile(IconData icon, String title, String subtitle, String url) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: Icon(icon, color: AppColors.textSecondary),
+      title: Text(title,
+          style: const TextStyle(
+              fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+      subtitle: Text(subtitle,
+          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+      trailing: const Icon(Icons.open_in_new_rounded, size: 18, color: AppColors.textSecondary),
+      onTap: () => AppLinks.open(url),
     );
   }
 
-  Widget _buildActionCard({
-    required IconData icon,
-    required Color iconColor,
-    required Color iconBgColor,
-    required String title,
-    required String subtitle,
-    required String buttonLabel,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: iconBgColor,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: iconColor, size: 22),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textPrimary)),
-                const SizedBox(height: 2),
-                Text(subtitle,
-                    style: const TextStyle(
-                        fontSize: 11,
-                        color: AppColors.textSecondary,
-                        height: 1.3)),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          ElevatedButton(
-            onPressed: _isExporting ? null : onTap,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: AppColors.actionPrimary,
-              elevation: 0,
-              side: const BorderSide(color: Color(0xFFCBD5E1)),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            ),
-            child: Text(buttonLabel,
-                style:
-                    const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
-          ),
-        ],
+  Widget _plainActionButton(
+      {required IconData icon, required String label, VoidCallback? onPressed}) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        icon: Icon(icon, size: 18),
+        label: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
       ),
     );
   }
@@ -1005,119 +858,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
       }
     }
-  }
-
-  void _showCsvResultModal(String csvContent, int rowCount, String filePath) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return Container(
-          padding: const EdgeInsets.all(20),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFECFDF5),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(Icons.table_chart_rounded,
-                            color: Color(0xFF10B981), size: 20),
-                      ),
-                      const SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Excel CSV Raporu Hazır',
-                              style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.textPrimary)),
-                          Text('$rowCount İşlem Satırı • UTF-8 BOM',
-                              style: const TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.textSecondary)),
-                        ],
-                      ),
-                    ],
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close_rounded, size: 20),
-                    onPressed: () => Navigator.pop(ctx),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              Container(
-                height: 140,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                child: SingleChildScrollView(
-                  child: Text(
-                    csvContent,
-                    style: const TextStyle(
-                        fontSize: 11,
-                        fontFamily: 'monospace',
-                        color: Color(0xFF334155)),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () async {
-                    Navigator.pop(ctx);
-                    await Share.shareXFiles(
-                      [XFile(filePath, mimeType: 'text/csv')],
-                      text: 'FinScout Harcama ve İşlem Raporu (Excel / CSV)',
-                    );
-                  },
-                  icon: const Icon(Icons.share_rounded, size: 18),
-                  label: const Text('Excel / Dosyayı Paylaş',
-                      style: TextStyle(fontWeight: FontWeight.w800)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF10B981),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
   }
 
   Future<void> _exportToJsonBackup() async {
@@ -1216,6 +956,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           .cast<Map<String, dynamic>>();
       final taxes = (data['tax_deductions'] as List<dynamic>? ?? [])
           .cast<Map<String, dynamic>>();
+      final extras = {
+        for (final t in TransactionRepositoryBackup.extraTables)
+          t: (data[t] as List<dynamic>? ?? []).cast<Map<String, dynamic>>(),
+      };
 
       final isEncrypted = password != null && password.isNotEmpty;
       final content = isEncrypted
@@ -1225,6 +969,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               transactions: transactions,
               installments: installments,
               taxes: taxes,
+              extras: extras,
               password: password,
             )
           : _exportService.createFullVaultBackupJson(
@@ -1233,6 +978,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               transactions: transactions,
               installments: installments,
               taxes: taxes,
+              extras: extras,
             );
 
       final tempDir = await getTemporaryDirectory();
@@ -1283,7 +1029,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
         content: const Text(
-          'Bu işlem FinScout hesabını (ad, e-posta ve sunucudaki tüm kayıtlar) ve telefonundaki tüm hesapları, ekstreleri, harcama kayıtlarını, hedefleri ve kişisel bilgilerini kalıcı olarak siler.\n\nBu işlem geri alınamaz. Devam etmek istiyor musun?',
+          'Bu işlem FinScout hesabını (ad, e-posta ve sunucudaki tüm kayıtlar) ve telefonundaki tüm hesapları, ekstreleri, harcama kayıtlarını, hedefleri, varlıkları ve kurulu hatırlatmaları kalıcı olarak siler.\n\n'
+          'Google Play aboneliğin varsa hesabı silmek onu iptal etmez; "Aboneliği yönet / iptal et" bağlantısından ayrıca iptal et.\n\n'
+          'Bu işlem geri alınamaz. Devam etmek istiyor musun?',
           style: TextStyle(fontSize: 13, height: 1.4),
         ),
         actions: [

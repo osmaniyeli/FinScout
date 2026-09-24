@@ -15,8 +15,6 @@ class GoalSummaryHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final remainingCents = (summary.totalTargetCents - summary.totalSavedCents).clamp(0, 999999999999);
-
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(18),
@@ -71,11 +69,19 @@ class GoalSummaryHeader extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Toplam Hedef', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+                    const Text('Toplam Hedef',
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textSecondary)),
                     const SizedBox(height: 4),
                     Text(
                       CurrencyNormalizer.formatCents(summary.totalTargetCents),
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary, letterSpacing: -0.3),
+                      style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary,
+                          letterSpacing: -0.3),
                     ),
                   ],
                 ),
@@ -86,11 +92,19 @@ class GoalSummaryHeader extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Toplam Biriken', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+                    const Text('Toplam Biriken',
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textSecondary)),
                     const SizedBox(height: 4),
                     Text(
                       CurrencyNormalizer.formatCents(summary.totalSavedCents),
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.incomeGreen, letterSpacing: -0.3),
+                      style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.incomeGreen,
+                          letterSpacing: -0.3),
                     ),
                   ],
                 ),
@@ -104,9 +118,31 @@ class GoalSummaryHeader extends StatelessWidget {
               value: (summary.overallProgressPercentage / 100).clamp(0.0, 1.0),
               minHeight: 6,
               backgroundColor: const Color(0xFFF1F5F9),
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.actionPrimary),
+              valueColor:
+                  const AlwaysStoppedAnimation<Color>(AppColors.actionPrimary),
             ),
           ),
+          if (summary.totalMonthlyRecommendedSavingsCents > 0) ...[
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Aktif hedefler için aylık gereken',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary)),
+                Text(
+                  CurrencyNormalizer.formatCents(
+                      summary.totalMonthlyRecommendedSavingsCents),
+                  style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

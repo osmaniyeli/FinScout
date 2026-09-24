@@ -63,7 +63,7 @@ class GoalCardTile extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
 
-                // Başlık ve Alt Kategori
+                // Başlık ve Kategori
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -77,33 +77,13 @@ class GoalCardTile extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          Text(
-                            goal.category.displayName,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                          if (goal.subType != null ||
-                              goal.brandModel != null) ...[
-                            const Text(' • ',
-                                style: TextStyle(color: AppColors.textMuted)),
-                            Expanded(
-                              child: Text(
-                                goal.subType ?? goal.brandModel ?? '',
-                                style: TextStyle(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w600,
-                                  color: themeColor,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ],
+                      Text(
+                        goal.category.displayName,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -118,15 +98,15 @@ class GoalCardTile extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    goal.isCompleted
-                        ? 'Tamamlandı'
-                        : '${goal.monthsRemaining} ay kaldı',
+                    goal.timeLabel,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: goal.isCompleted
                           ? AppColors.incomeGreen
-                          : AppColors.textSecondary,
+                          : goal.isOverdue
+                              ? AppColors.expenseRed
+                              : AppColors.textSecondary,
                     ),
                   ),
                 ),
@@ -207,7 +187,7 @@ class GoalCardTile extends StatelessWidget {
                 if (!goal.isCompleted &&
                     goal.recommendedMonthlySavingsCents > 0)
                   Text(
-                    'Aylık hedef: ${CurrencyNormalizer.formatCents(goal.recommendedMonthlySavingsCents)}',
+                    'Aylık gereken: ${CurrencyNormalizer.formatCents(goal.recommendedMonthlySavingsCents)}',
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,

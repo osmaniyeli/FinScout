@@ -254,6 +254,10 @@ class StatementSummary {
   final DateTime? nextStatementDate;
   final DateTime? nextDueDate;
   final List<ScheduledPayment> scheduledPayments;
+  // Bordro beyanları: brüt − yasal kesintiler − özel kesintiler = net ödenen
+  final int? payslipGrossCents;
+  final int? payslipLegalDeductionsCents;
+  final int? payslipOtherDeductionsCents;
 
   const StatementSummary({
     this.statementDate,
@@ -267,6 +271,9 @@ class StatementSummary {
     this.nextStatementDate,
     this.nextDueDate,
     this.scheduledPayments = const [],
+    this.payslipGrossCents,
+    this.payslipLegalDeductionsCents,
+    this.payslipOtherDeductionsCents,
   });
 
   static const empty = StatementSummary();
