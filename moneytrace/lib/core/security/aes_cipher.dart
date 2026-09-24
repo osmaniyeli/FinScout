@@ -339,7 +339,7 @@ class AesCipher {
     return decryptedPadded.sublist(0, decryptedPadded.length - padLen);
   }
 
-  /// Yüksek Güvenlikli Kasa Paketi Oluşturma (Encrypt-then-MAC: PBKDF2 + AES-256-CBC + HMAC-SHA256)
+  /// Şifreli yedek paketi oluşturma (Encrypt-then-MAC: PBKDF2 + AES-256-CBC + HMAC-SHA256)
   static String encryptVaultPayload({required String plainText, required String password}) {
     final rand = Random.secure();
     final salt = Uint8List.fromList(List<int>.generate(16, (_) => rand.nextInt(256)));
@@ -376,10 +376,10 @@ class AesCipher {
     return 'PARAIZ-SEC-VAULT-V2:${base64Encode(utf8.encode(rawJson))}';
   }
 
-  /// Yüksek Güvenlikli Kasa Paketini Çözme (HMAC Bütünlük Kontrolü + AES-256-CBC)
+  /// Şifreli yedek paketini çözme (HMAC Bütünlük Kontrolü + AES-256-CBC)
   static String decryptVaultPayload({required String vaultString, required String password}) {
     if (!vaultString.startsWith('PARAIZ-SEC-VAULT-V2:')) {
-      throw const FormatException('Geçersiz veya desteklenmeyen şifreli kasa formatı.');
+      throw const FormatException('Geçersiz veya desteklenmeyen şifreli yedek dosyası.');
     }
 
     final rawBase64 = vaultString.substring('PARAIZ-SEC-VAULT-V2:'.length);

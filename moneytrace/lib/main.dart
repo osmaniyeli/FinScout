@@ -10,6 +10,7 @@ import 'core/services/security_auth_service.dart';
 import 'core/services/account_service.dart';
 import 'core/parser/enrichment/category_engine.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/push_service.dart';
 import 'features/subscription/services/subscription_service.dart';
 import 'core/database/repositories/transaction_repository.dart';
 import 'core/widgets/fintech/fintech_components.dart';
@@ -31,6 +32,8 @@ void main() async {
   unawaited(syncPaymentReminders());
   // Google Play Billing: satın alma akışını dinle, kayıtlı yetkiyi mağazayla doğrula
   unawaited(SubscriptionService.instance.initialize());
+  // Firebase push (yönetici duyuruları); google-services.json yoksa sessizce kapalı
+  unawaited(PushService.instance.initialize());
 }
 
 /// Ekstrelerden okunan yaklaşan ödemeler için hatırlatıcıları (yeniden) kurar. Hata uygulamayı etkilemez.
@@ -62,7 +65,6 @@ class FinScoutApp extends StatefulWidget {
 
 class _FinScoutAppState extends State<FinScoutApp> with WidgetsBindingObserver {
   bool _isUnlocked = false;
-  bool _isPrivacyShieldActive = false;
   DateTime? _pausedTime;
 
   @override
@@ -82,28 +84,21 @@ class _FinScoutAppState extends State<FinScoutApp> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
-      if (!_isPrivacyShieldActive) {
-        setState(() {
-          _isPrivacyShieldActive = true;
-        });
-      }
-      if (state == AppLifecycleState.paused) {
-        _pausedTime = DateTime.now();
-      }
+    // Kilit yalnız uygulama gerçekten arka planda (paused) ≥30 sn kaldıysa devreye girer.
+    // 'inactive' (bildirim perdesi, sistem diyaloğu) kilidi tetiklemez.
+    if (state == AppLifecycleState.paused) {
+      _pausedTime ??= DateTime.now();
     } else if (state == AppLifecycleState.resumed) {
-      if (_isPrivacyShieldActive) {
+      final pausedAt = _pausedTime;
+      // Kontrolden sonra sıfırlanır; yoksa sonraki her 'resumed'da kilit yeniden açılır (döngü).
+      _pausedTime = null;
+      if (pausedAt != null &&
+          DateTime.now().difference(pausedAt).inSeconds >= 30 &&
+          SecurityAuthService.instance.isAnySecurityActive &&
+          _isUnlocked) {
         setState(() {
-          _isPrivacyShieldActive = false;
+          _isUnlocked = false;
         });
-      }
-      if (_pausedTime != null) {
-        final elapsed = DateTime.now().difference(_pausedTime!).inSeconds;
-        if (elapsed >= 30 && SecurityAuthService.instance.isAnySecurityActive) {
-          setState(() {
-            _isUnlocked = false;
-          });
-        }
       }
     }
   }
@@ -127,8 +122,7 @@ class _FinScoutAppState extends State<FinScoutApp> with WidgetsBindingObserver {
                   : OnboardingScreen(
                       onCompleted: () => setState(() => _isUnlocked = true),
                     ),
-              // Kilit ve gizlilik kalkanı Navigator'ın ÜSTÜNDE: açık alt sayfa, diyalog ya da
-              // itilmiş ekran da örtülür.
+              // Kilit Navigator'ın ÜSTÜNDE: açık alt sayfa, diyalog ya da itilmiş ekran da örtülür.
               builder: (context, child) => _wrapWithGuards(child!, hasProfile),
             );
           },
@@ -151,40 +145,6 @@ class _FinScoutAppState extends State<FinScoutApp> with WidgetsBindingObserver {
               onGenerateRoute: (_) => MaterialPageRoute(
                 builder: (_) => AppLockScreen(
                   onUnlocked: () => setState(() => _isUnlocked = true),
-                ),
-              ),
-            ),
-          ),
-        // Çift Katmanlı Ekran Gizlilik Kalkanı (Ekran Görüntüsü ve Önizleme Koruması)
-        if (_isPrivacyShieldActive)
-          Positioned.fill(
-            child: Container(
-              color: const Color(0xFF0C0E14),
-              child: const Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.shield_rounded, color: Color(0xFF10B981), size: 48),
-                    SizedBox(height: 12),
-                    Text(
-                      'FinScout Güvenlik Kalkanı',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        decoration: TextDecoration.none,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Finansal Veri Gizliliği Korunuyor',
-                      style: TextStyle(
-                        color: Color(0xFF94A3B8),
-                        fontSize: 12,
-                        decoration: TextDecoration.none,
-                      ),
-                    ),
-                  ],
                 ),
               ),
             ),

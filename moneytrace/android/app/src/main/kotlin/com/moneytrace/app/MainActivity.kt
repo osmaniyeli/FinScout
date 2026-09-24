@@ -1,17 +1,16 @@
 package com.moneytrace.app
 
 import android.os.Bundle
-import io.flutter.embedding.android.FlutterFragmentActivity
+import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
-// local_auth (BiometricPrompt) FragmentActivity gerektirir
-class MainActivity: FlutterFragmentActivity() {
+class MainActivity: FlutterActivity() {
     private val INTEGRITY_CHANNEL = "com.moneytrace.app/integrity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Ekran görüntüsü serbest (v3.6.1 ürün kararı); görev değiştirici önizlemesini Flutter gizlilik kalkanı gizler.
+        // Ekran görüntüsü ve görev değiştirici önizlemesi serbest (ürün kararı).
         // Anti-Tapjacking / Overlay Kalkanı: Bankacılık truva atlarının şeffaf katmanla dokunma çalmasını engelle
         window.decorView.filterTouchesWhenObscured = true
     }

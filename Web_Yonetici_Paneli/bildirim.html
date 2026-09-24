@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FinScout Bildirim Gönder</title>
+  <!-- Yalnız yayınlanabilir (publishable) anahtar; service_role ASLA bu dosyaya girmez.
+       Yetki sunucuda: send-push Edge Function'ı çağıranın admin_roles'ta olduğunu doğrular. -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #0B0F19;
+      --card: #131B2E;
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #F8FAFC;
+      --muted: #94A3B8;
+      --dim: #64748B;
+      --blue: #0052FF;
+      --green: #10B981;
+      --red: #FF2D55;
+      --amber: #F59E0B;
+      --input: #0F1626;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    header {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 16px 24px; border-bottom: 1px solid var(--border);
+    }
+    header h1 { margin: 0; font-size: 18px; font-weight: 700; }
+    header a { color: var(--muted); text-decoration: none; font-size: 14px; }
+    header a:hover { color: var(--text); }
+    main { max-width: 720px; margin: 0 auto; padding: 24px 16px 48px; }
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 20px; margin-bottom: 20px;
+    }
+    .card h2 { margin: 0 0 4px; font-size: 16px; }
+    .card p.hint { margin: 0 0 16px; color: var(--muted); font-size: 13px; }
+    label { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 6px; }
+    input[type=text], input[type=email], textarea {
+      width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--input); color: var(--text); font: inherit;
+    }
+    input:focus, textarea:focus { outline: 2px solid var(--blue); outline-offset: -1px; }
+    textarea { min-height: 110px; resize: vertical; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .radio { display: flex; align-items: center; gap: 6px; color: var(--text); margin: 0; font-size: 14px; }
+    button {
+      border: 0; border-radius: 10px; padding: 10px 16px; font: inherit; font-weight: 600;
+      cursor: pointer; background: var(--blue); color: white;
+    }
+    button.ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+    button:disabled { opacity: .5; cursor: default; }
+    .actions { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .msg { margin-top: 12px; font-size: 14px; padding: 10px 12px; border-radius: 10px; display: none; }
+    .msg.show { display: block; }
+    .msg.ok { background: rgba(16, 185, 129, .12); color: var(--green); }
+    .msg.err { background: rgba(255, 45, 85, .12); color: #FF7A93; }
+    .msg.warn { background: rgba(245, 158, 11, .12); color: var(--amber); }
+    .counter { font-size: 12px; color: var(--dim); text-align: right; margin-top: 4px; }
+    .who { color: var(--muted); font-size: 13px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; }
+    td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .table-wrap { overflow-x: auto; }
+    .hidden { display: none; }
+    .empty { color: var(--dim); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Bildirim Gönder</h1>
+    <a href="index.html">← Yönetim paneli</a>
+  </header>
+
+  <main>
+    <!-- 1) Giriş: e-posta + 8 haneli kod -->
+    <section class="card" id="login-card">
+      <h2>Yönetici girişi</h2>
+      <p class="hint">FinScout hesabının e-postasına giriş kodu gönderilir. Yalnız yönetici hesapları bildirim gönderebilir.</p>
+      <label for="email">E-posta</label>
+      <input type="email" id="email" autocomplete="email" placeholder="ornek@gmail.com">
+      <div id="code-block" class="hidden">
+        <label for="code">E-postaya gelen kod</label>
+        <input type="text" id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="8 haneli kod">
+      </div>
+      <div class="actions">
+        <button id="send-code-btn">Kod gönder</button>
+        <button id="verify-btn" class="hidden">Giriş yap</button>
+      </div>
+      <div id="login-msg" class="msg"></div>
+    </section>
+
+    <!-- 2) Yetki yok -->
+    <section class="card hidden" id="denied-card">
+      <h2>Erişim yok</h2>
+      <p class="hint" id="denied-text">Bu hesap yönetici değil.</p>
+      <button class="ghost" id="logout-btn-2">Çıkış yap</button>
+    </section>
+
+    <!-- 3) Gönderim formu -->
+    <section class="card hidden" id="send-card">
+      <div class="row" style="justify-content: space-between;">
+        <h2>Yeni bildirim</h2>
+        <span class="who"><span id="who"></span> · <a href="#" id="logout-btn" style="color: var(--muted);">Çıkış</a></span>
+      </div>
+      <p class="hint">Uygulamada oturum açmış ve bildirim izni vermiş cihazlara gider. Uygulama içi Bildirimler listesine de yazılır.</p>
+
+      <label for="title">Başlık</label>
+      <input type="text" id="title" maxlength="100" placeholder="Örn. Yeni sürüm yayında">
+      <div class="counter"><span id="title-count">0</span>/100</div>
+
+      <label for="body">Mesaj</label>
+      <textarea id="body" maxlength="1000" placeholder="Kullanıcılara gidecek metin"></textarea>
+      <div class="counter"><span id="body-count">0</span>/1000</div>
+
+      <label>Hedef</label>
+      <div class="row">
+        <label class="radio"><input type="radio" name="target" value="all" checked> Herkes</label>
+        <label class="radio"><input type="radio" name="target" value="email"> Tek kullanıcı (e-posta)</label>
+      </div>
+      <input type="email" id="target-email" class="hidden" style="margin-top: 8px;" placeholder="kullanici@ornek.com">
+
+      <div class="actions">
+        <button id="send-btn">Gönder</button>
+      </div>
+      <div id="send-msg" class="msg"></div>
+    </section>
+
+    <!-- 4) Geçmiş -->
+    <section class="card hidden" id="history-card">
+      <div class="row" style="justify-content: space-between;">
+        <h2>Gönderim geçmişi</h2>
+        <button class="ghost" id="refresh-btn">Yenile</button>
+      </div>
+      <div class="table-wrap" style="margin-top: 12px;">
+        <table>
+          <thead>
+            <tr><th>Tarih</th><th>Başlık / mesaj</th><th>Hedef</th><th class="num">Giden</th><th class="num">Başarısız</th></tr>
+          </thead>
+          <tbody id="history-body"></tbody>
+        </table>
+      </div>
+      <p class="empty hidden" id="history-empty">Henüz bildirim gönderilmedi.</p>
+    </section>
+  </main>
+
+  <script>
+    // Uygulamayla aynı proje ve yayınlanabilir anahtar (lib/core/config/supabase_config.dart)
+    const SUPABASE_URL = 'https://oudxswtadqurmlnvcjyc.supabase.co';
+    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_z-4pVDjZcmzDM6n-uMrLuA_hrSLSGdp';
+
+    const $ = (id) => document.getElementById(id);
+    let sb = null;
+
+    function showMsg(el, text, kind) {
+      el.textContent = text;
+      el.className = 'msg show ' + kind;
+    }
+    function hideMsg(el) { el.className = 'msg'; el.textContent = ''; }
+    function show(id, on) { $(id).classList.toggle('hidden', !on); }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    async function init() {
+      if (!window.supabase) {
+        showMsg($('login-msg'), 'Supabase kütüphanesi yüklenemedi. İnternet bağlantısını kontrol edip sayfayı yenile.', 'err');
+        $('send-code-btn').disabled = true;
+        return;
+      }
+      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+        auth: { persistSession: true, autoRefreshToken: true, storageKey: 'finscout-admin-auth' },
+      });
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) await afterLogin(session);
+    }
+
+    // ---- Giriş
+    $('send-code-btn').addEventListener('click', async () => {
+      const email = $('email').value.trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+        showMsg($('login-msg'), 'Geçerli bir e-posta yaz.', 'err');
+        return;
+      }
+      $('send-code-btn').disabled = true;
+      hideMsg($('login-msg'));
+      const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+      $('send-code-btn').disabled = false;
+      if (error) {
+        showMsg($('login-msg'), 'Kod gönderilemedi: ' + error.message, 'err');
+        return;
+      }
+      show('code-block', true);
+      show('verify-btn', true);
+      $('send-code-btn').textContent = 'Kodu yeniden gönder';
+      $('send-code-btn').className = 'ghost';
+      showMsg($('login-msg'), 'Kod ' + email + ' adresine gönderildi.', 'ok');
+      $('code').focus();
+    });
+
+    $('verify-btn').addEventListener('click', async () => {
+      const email = $('email').value.trim().toLowerCase();
+      const token = $('code').value.replace(/\s+/g, '');
+      if (!/^\d{6,10}$/.test(token)) {
+        showMsg($('login-msg'), 'Kodu e-postadaki gibi yaz.', 'err');
+        return;
+      }
+      $('verify-btn').disabled = true;
+      const { data, error } = await sb.auth.verifyOtp({ email, token, type: 'email' });
+      $('verify-btn').disabled = false;
+      if (error || !data.session) {
+        showMsg($('login-msg'), 'Kod hatalı veya süresi dolmuş.', 'err');
+        return;
+      }
+      await afterLogin(data.session);
+    });
+    $('code').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('verify-btn').click(); });
+
+    async function afterLogin(session) {
+      show('login-card', false);
+      const { data: isAdmin, error } = await sb.rpc('is_admin');
+      if (error || isAdmin !== true) {
+        $('denied-text').textContent = error
+          ? 'Yetki kontrol edilemedi: ' + error.message
+          : (session.user.email + ' yönetici değil.');
+        show('denied-card', true);
+        return;
+      }
+      $('who').textContent = session.user.email;
+      show('send-card', true);
+      show('history-card', true);
+      loadHistory();
+    }
+
+    async function logout() {
+      await sb.auth.signOut();
+      location.reload();
+    }
+    $('logout-btn').addEventListener('click', (e) => { e.preventDefault(); logout(); });
+    $('logout-btn-2').addEventListener('click', logout);
+
+    // ---- Form
+    $('title').addEventListener('input', () => { $('title-count').textContent = $('title').value.length; });
+    $('body').addEventListener('input', () => { $('body-count').textContent = $('body').value.length; });
+    document.querySelectorAll('input[name=target]').forEach((r) =>
+      r.addEventListener('change', () => show('target-email', r.value === 'email' && r.checked)));
+
+    $('send-btn').addEventListener('click', async () => {
+      const msg = $('send-msg');
+      const title = $('title').value.trim();
+      const body = $('body').value.trim();
+      const targetKind = document.querySelector('input[name=target]:checked').value;
+      if (!title) return showMsg(msg, 'Başlık boş olamaz.', 'err');
+      if (!body) return showMsg(msg, 'Mesaj boş olamaz.', 'err');
+      let target = 'all';
+      if (targetKind === 'email') {
+        const email = $('target-email').value.trim().toLowerCase();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return showMsg(msg, 'Hedef e-postası geçersiz.', 'err');
+        target = { email };
+      }
+      const label = target === 'all' ? 'TÜM kullanıcılara' : target.email + ' adresine';
+      if (!confirm(label + ' bildirim gönderilsin mi?\n\n' + title + '\n' + body)) return;
+
+      $('send-btn').disabled = true;
+      showMsg(msg, 'Gönderiliyor…', 'warn');
+      const { data, error } = await sb.functions.invoke('send-push', { body: { title, body, target } });
+      $('send-btn').disabled = false;
+
+      if (error) {
+        let text = error.message;
+        try {
+          const detail = await error.context.json();
+          text = detail.message || detail.error || text;
+        } catch (_) {}
+        return showMsg(msg, 'Gönderilemedi: ' + text, 'err');
+      }
+      if (data.device_count === 0) {
+        showMsg(msg, 'Hedefte kayıtlı cihaz yok; kimseye gönderilmedi.', 'warn');
+      } else {
+        const extra = data.removed_invalid ? ' (' + data.removed_invalid + ' geçersiz cihaz kaydı silindi)' : '';
+        showMsg(msg, 'Gönderildi: ' + data.sent + ' cihaz, başarısız: ' + data.failed + extra + '.',
+          data.failed > 0 && data.sent === 0 ? 'err' : 'ok');
+        if (data.sent > 0) { $('title').value = ''; $('body').value = ''; $('title-count').textContent = '0'; $('body-count').textContent = '0'; }
+      }
+      loadHistory();
+    });
+
+    // ---- Geçmiş
+    async function loadHistory() {
+      const { data, error } = await sb.from('admin_notifications')
+        .select('created_at, title, body, target, sent_count, failed_count')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      const tbody = $('history-body');
+      tbody.innerHTML = '';
+      if (error) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty">Geçmiş yüklenemedi: ' + escapeHtml(error.message) + '</td></tr>';
+        return;
+      }
+      show('history-empty', data.length === 0);
+      for (const r of data) {
+        const d = new Date(r.created_at).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' });
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td style="white-space:nowrap">' + escapeHtml(d) + '</td>' +
+          '<td><strong>' + escapeHtml(r.title) + '</strong><br><span class="who">' + escapeHtml(r.body) + '</span></td>' +
+          '<td>' + (r.target === 'all' ? 'Herkes' : escapeHtml(r.target)) + '</td>' +
+          '<td class="num">' + r.sent_count + '</td>' +
+          '<td class="num">' + r.failed_count + '</td>';
+        tbody.appendChild(tr);
+      }
+    }
+    $('refresh-btn').addEventListener('click', loadHistory);
+
+    init();
+  </script>
+</body>
+</html>

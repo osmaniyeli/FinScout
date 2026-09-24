@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/database/repositories/transaction_repository.dart';
 import '../../../core/config/remote_config_service.dart';
 import '../../../core/widgets/remote_feature_gate.dart';
 import '../../../core/widgets/floating_capsule_nav_bar.dart';
@@ -11,7 +10,7 @@ import '../analysis/presentation/analysis_screen.dart';
 import '../cashflow_projection/presentation/cashflow_screen.dart';
 import '../goals/presentation/goals_screen.dart';
 import '../assets_portfolio/presentation/assets_screen.dart';
-import '../quick_entry/presentation/quick_entry_sheet.dart';
+import 'tab_add_actions.dart';
 
 class MainNavigationScaffold extends StatefulWidget {
   const MainNavigationScaffold({Key? key}) : super(key: key);
@@ -22,17 +21,36 @@ class MainNavigationScaffold extends StatefulWidget {
 
 class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
   int _currentIndex = 0;
-  final TransactionRepository _transactionRepository = TransactionRepository();
   final RemoteConfigService _remoteConfig = RemoteConfigService.instance;
 
-  void _openQuickEntry() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      // Kayıt, doğrulama ve sonuç mesajı sayfanın içinde (saveManualTransaction → DataChanges.notify).
-      builder: (ctx) => QuickEntrySheet(repository: _transactionRepository),
-    );
+  /// Her sekme ekranının State'ine erişim: + düğmesi o sekmenin ekleme seçeneklerini buradan okur.
+  final Map<String, GlobalKey> _screenKeys = {
+    for (final k in const ['dashboard', 'cashflow', 'analysis', 'goals', 'assets'])
+      k: GlobalKey(debugLabel: 'tab_$k'),
+  };
+
+  static const Map<String, String> _addMenuTitles = {
+    'dashboard': 'Ne eklemek istersin?',
+    'cashflow': 'Cüzdana ekle',
+    'analysis': 'Analiz',
+    'goals': 'Hedefler',
+    'assets': 'Varlık ekle',
+  };
+
+  /// + düğmesi: açık sekmeye özgü kısa ekleme menüsü. Sekme kapalıysa (bakım) yalnız manuel giriş.
+  void _openAddMenu() {
+    final keys = _getActiveKeys();
+    if (_currentIndex >= keys.length) return;
+    final key = keys[_currentIndex];
+    // State ile TabAddActions ilişkisiz tipler; `is` terfi etmez, bu yüzden Object üzerinden okunur.
+    final Object? state = _screenKeys[key]?.currentState;
+    final actions =
+        state is TabAddActions ? state.addActions : const <TabAddAction>[];
+    if (actions.isEmpty) {
+      openQuickEntrySheet(context);
+      return;
+    }
+    showTabAddMenu(context, _addMenuTitles[key] ?? 'Ekle', actions);
   }
 
   Widget _buildScreenByKey(String key) {
@@ -41,29 +59,30 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
         return RemoteFeatureGate(
           moduleKey: 'dashboard_summary',
           child: DashboardScreen(
+            key: _screenKeys['dashboard'],
             onOpenAnalytics: () => _navigateToModule('analysis'),
             onOpenGoals: () => _navigateToModule('goals'),
           ),
         );
       case 'cashflow':
-        return const RemoteFeatureGate(
+        return RemoteFeatureGate(
           moduleKey: 'cashflow_projection',
-          child: CashflowScreen(),
+          child: CashflowScreen(key: _screenKeys['cashflow']),
         );
       case 'analysis':
-        return const RemoteFeatureGate(
+        return RemoteFeatureGate(
           moduleKey: 'tax_analytics',
-          child: AnalysisScreen(),
+          child: AnalysisScreen(key: _screenKeys['analysis']),
         );
       case 'goals':
-        return const RemoteFeatureGate(
+        return RemoteFeatureGate(
           moduleKey: 'goals_module',
-          child: GoalsScreen(),
+          child: GoalsScreen(key: _screenKeys['goals']),
         );
       case 'assets':
-        return const RemoteFeatureGate(
+        return RemoteFeatureGate(
           moduleKey: 'assets_portfolio',
-          child: AssetsScreen(),
+          child: AssetsScreen(key: _screenKeys['assets']),
         );
       default:
         return const SizedBox.shrink();
@@ -156,7 +175,8 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
           floatingActionButton: isFabHidden
               ? null
               : FloatingActionButton(
-                  onPressed: _openQuickEntry,
+                  onPressed: _openAddMenu,
+                  tooltip: 'Ekle',
                   backgroundColor: AppColors.dynamicPrimary,
                   elevation: buttonConfig.elevation,
                   shape: RoundedRectangleBorder(

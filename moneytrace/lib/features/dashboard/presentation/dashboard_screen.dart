@@ -17,6 +17,8 @@ import '../../../core/config/remote_config_service.dart';
 import '../../subscription/presentation/subscription_plans_sheet.dart';
 import '../../subscription/services/subscription_service.dart';
 import 'widgets/transaction_detail_sheet.dart';
+import '../../../core/widgets/bank_logo.dart';
+import '../../navigation/tab_add_actions.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onOpenAnalytics;
@@ -32,7 +34,32 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen>
+    implements TabAddActions {
+  /// + menüsü: belge yükleme (belge türü seçici) ve manuel gelir/gider.
+  @override
+  List<TabAddAction> get addActions => [
+        TabAddAction(
+          icon: Icons.upload_file_rounded,
+          title: 'Ekstre / bordro yükle',
+          subtitle: 'Kredi kartı ekstresi veya maaş bordrosu (PDF)',
+          onSelected: _showDocumentTypeSelector,
+        ),
+        TabAddAction(
+          icon: Icons.edit_note_rounded,
+          title: 'Manuel gelir / gider',
+          subtitle: 'Nakit harcama, ek gelir vb.',
+          onSelected: () => openQuickEntrySheet(context),
+        ),
+      ];
+
+  /// "2026-10-05" → "05.10.2026"; okunamazsa olduğu gibi.
+  static String _formatDueDate(String iso) {
+    final d = DateTime.tryParse(iso);
+    if (d == null) return iso;
+    return '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
+  }
+
   final TransactionRepository _repository = TransactionRepository();
 
   static const List<String> _monthNames = [
@@ -641,7 +668,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      isPositive ? 'Pozitif Kasa' : 'Bütçe Aşımı',
+                      isPositive ? 'Bütçe içinde' : 'Bütçe Aşımı',
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
@@ -879,24 +906,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               final merchant =
                   item['clean_merchant'] as String? ?? 'Taksitli Harcama';
               final dueDate = item['due_date'] as String?;
+              final bankName = item['institution_name'] as String?;
 
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 child: Row(
                   children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFEF3C7),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.calendar_today_rounded,
-                        size: 18,
-                        color: Color(0xFFD97706),
-                      ),
-                    ),
+                    BankLogo(bankName: bankName, size: 40),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -914,7 +930,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            '$remainingInstallments taksit kaldı • Aylık ${CurrencyNormalizer.formatCents(monthlyCents)}${dueDate != null ? ' • Vade: $dueDate' : ''}',
+                            [
+                              if (bankName != null && bankName.isNotEmpty)
+                                bankName,
+                              '$remainingInstallments taksit kaldı',
+                              'Aylık ${CurrencyNormalizer.formatCents(monthlyCents)}',
+                              if (dueDate != null)
+                                'Vade: ${_formatDueDate(dueDate)}',
+                            ].join(' • '),
                             style: const TextStyle(
                               fontSize: 11.5,
                               fontWeight: FontWeight.w500,

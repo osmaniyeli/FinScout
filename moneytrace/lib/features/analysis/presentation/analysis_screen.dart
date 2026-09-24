@@ -6,7 +6,6 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/currency_normalizer.dart';
 import '../../../core/widgets/morphing_segmented_bar.dart';
-import '../../../core/widgets/pulse_metric_badge.dart';
 import '../../../core/widgets/fintech/fintech_components.dart';
 import '../../../core/database/repositories/transaction_repository.dart';
 import '../../../core/services/data_changes.dart';
@@ -16,6 +15,7 @@ import '../../fees/services/fee_report_service.dart';
 import '../../fees/presentation/fee_period.dart';
 import '../../fees/presentation/fee_report_text.dart';
 import '../../fees/presentation/fees_view.dart';
+import '../../navigation/tab_add_actions.dart';
 
 class AnalysisScreen extends StatefulWidget {
   const AnalysisScreen({Key? key}) : super(key: key);
@@ -24,7 +24,8 @@ class AnalysisScreen extends StatefulWidget {
   State<AnalysisScreen> createState() => _AnalysisScreenState();
 }
 
-class _AnalysisScreenState extends State<AnalysisScreen> {
+class _AnalysisScreenState extends State<AnalysisScreen>
+    implements TabAddActions {
   final TransactionRepository _repository = TransactionRepository();
   int _selectedTabIndex = 0; // 0: Dağılım, 1: Aylık, 2: Masraflar
   bool _isLoading = false;
@@ -122,6 +123,24 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       );
     }
   }
+
+  /// + menüsü: belge yükleme ve rapor paylaşma (rapor yalnız veri varken).
+  @override
+  List<TabAddAction> get addActions => [
+        TabAddAction(
+          icon: Icons.upload_file_rounded,
+          title: 'Ekstre / bordro yükle',
+          subtitle: 'PDF seç; harcamaların buraya işlenir',
+          onSelected: _openStatementUpload,
+        ),
+        if (_categoryShares.isNotEmpty || _fees != null)
+          TabAddAction(
+            icon: Icons.ios_share_rounded,
+            title: 'Raporu paylaş',
+            subtitle: 'Harcama, masraf ve tahmini KDV özeti',
+            onSelected: _shareTaxAndExpenseReport,
+          ),
+      ];
 
   void _openStatementUpload() {
     showModalBottomSheet(
@@ -362,23 +381,12 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 1. Donut Grafiği & Gösterge Kartı
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Kategori Dağılımı',
-                style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary),
-              ),
-              PulseMetricBadge(
-                label: 'LİDER',
-                value: '%${topCat['percentage']} ${topCat['name']}',
-                pulseColor: topCat['color'] as Color,
-                isPositive: false,
-              ),
-            ],
+          const Text(
+            'Kategori Dağılımı',
+            style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary),
           ),
           const SizedBox(height: 10),
           FinanceCard(

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "636445883469",
+    "project_id": "money-trace-5672c",
+    "storage_bucket": "money-trace-5672c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:636445883469:android:a4ff7db204e9a323edb004",
+        "android_client_info": {
+          "package_name": "com.moneytrace.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD2mV9lnhqIcFUMx1GA13K5P5EdKzRtVko"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

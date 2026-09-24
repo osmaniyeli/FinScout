@@ -32,6 +32,11 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 365));
   bool _saving = false;
 
+  // Hatalar formun içinde gösterilir; SnackBar alt sayfanın arkasında kalıp görünmüyordu.
+  String? _titleError;
+  String? _amountError;
+  String? _saveError;
+
   bool get _isEdit => widget.initialGoal != null;
 
   @override
@@ -64,24 +69,17 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
     super.dispose();
   }
 
-  void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-  }
-
   Future<void> _submit() async {
     if (_saving) return;
     final title = _titleController.text.trim();
-    if (title.isEmpty) {
-      _showError('Lütfen hedef adı girin.');
-      return;
-    }
-
     final targetCents =
         CurrencyNormalizer.toMinorUnits(_targetAmountController.text);
-    if (targetCents <= 0) {
-      _showError('Lütfen geçerli bir hedef tutar girin.');
-      return;
-    }
+    setState(() {
+      _titleError = title.isEmpty ? 'Hedef adını gir.' : null;
+      _amountError = targetCents <= 0 ? 'Hedef tutarı gir.' : null;
+      _saveError = null;
+    });
+    if (_titleError != null || _amountError != null) return;
 
     final FinancialGoal goal;
     final existing = widget.initialGoal;
@@ -112,9 +110,12 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
       await widget.onSave(goal);
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
+      debugPrint('Hedef kaydedilemedi: $e');
       if (mounted) {
-        setState(() => _saving = false);
-        _showError('Hedef kaydedilemedi. Lütfen tekrar deneyin.');
+        setState(() {
+          _saving = false;
+          _saveError = 'Hedef kaydedilemedi. Lütfen tekrar dene.';
+        });
       }
     }
   }
@@ -138,11 +139,13 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
     }
   }
 
-  InputDecoration _decoration(String label, {String? hint, String? prefix}) {
+  InputDecoration _decoration(String label,
+      {String? hint, String? prefix, String? error}) {
     return InputDecoration(
       labelText: label,
       hintText: hint,
       prefixText: prefix,
+      errorText: error,
       labelStyle: const TextStyle(fontSize: 13),
       filled: true,
       fillColor: const Color(0xFFF8FAFC),
@@ -273,7 +276,11 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
             TextField(
               controller: _titleController,
               textCapitalization: TextCapitalization.sentences,
-              decoration: _decoration('Hedef adı', hint: 'Örn. Araba peşinatı'),
+              decoration: _decoration('Hedef adı',
+                  hint: 'Örn. Araba peşinatı', error: _titleError),
+              onChanged: (_) {
+                if (_titleError != null) setState(() => _titleError = null);
+              },
             ),
             const SizedBox(height: 12),
 
@@ -289,7 +296,12 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
                     style: const TextStyle(
                         fontSize: 16, fontWeight: FontWeight.w800),
                     decoration: _decoration('Hedef tutar',
-                        hint: '100.000', prefix: '₺ '),
+                        hint: '100.000', prefix: '₺ ', error: _amountError),
+                    onChanged: (_) {
+                      if (_amountError != null) {
+                        setState(() => _amountError = null);
+                      }
+                    },
                   ),
                 ),
                 if (!_isEdit) ...[
@@ -346,6 +358,14 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
             ),
             const SizedBox(height: 20),
 
+            if (_saveError != null) ...[
+              Text(_saveError!,
+                  style: const TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.expenseRed)),
+              const SizedBox(height: 8),
+            ],
             SizedBox(
               width: double.infinity,
               height: 48,

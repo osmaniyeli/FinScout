@@ -19,7 +19,7 @@
 
 Bu işlem:
 - FinScout hesabını ve sunucudaki tüm kayıtlarını (ad, e-posta, cihaz ve yedek kayıtları) **kalıcı olarak siler**,
-- ardından telefonundaki tüm harcama, ekstre, kart, hedef ve profil verilerini ve PIN / parmak izi ayarlarını siler.
+- ardından telefonundaki tüm harcama, ekstre, kart, hedef ve profil verilerini ve PIN ayarını siler.
 
 İşlem geri alınamaz. İnternet bağlantısı yoksa hesap silinemez; bu durumda cihazdaki veriler de silinmez ve işlemi tekrar deneyebilirsin.
 
@@ -47,7 +47,7 @@ Hesabının kayıtlı olduğu e-posta adresinden **pulcratechnology@gmail.com** 
 
 This:
 - **permanently deletes** your FinScout account and all of its server records (name, email, device and backup records),
-- then deletes all expenses, statements, cards, goals and profile data on your phone, along with your PIN and fingerprint settings.
+- then deletes all expenses, statements, cards, goals and profile data on your phone, along with your PIN setting.
 
 This cannot be undone. Without an internet connection the account cannot be deleted; in that case the data on your phone is kept and you can try again.
 

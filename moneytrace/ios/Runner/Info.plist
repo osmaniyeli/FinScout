@@ -53,8 +53,6 @@
 	<string>Paraİz, sesli harcama kaydı alabilmeniz için mikrofona erişim gerektirir.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Paraİz, sesinizi metne dönüştürerek hızlı harcama ekleyebilmeniz için izin gerektirir.</string>
-	<key>NSFaceIDUsageDescription</key>
-	<string>Paraİz, finansal verilerinizi FaceID ile güvenle kilitlemek için biyometrik izin gerektirir.</string>
 
 	<!-- iOS Dosyalar ve AirDrop ile Doğrudan PDF Ekstre Açma -->
 	<key>UIFileSharingEnabled</key>

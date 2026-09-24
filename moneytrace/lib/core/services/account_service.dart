@@ -3,6 +3,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/supabase_config.dart';
+import 'push_service.dart';
 import 'user_profile_service.dart';
 
 /// Kullanıcıya gösterilecek hesap hatası (Türkçe mesaj).
@@ -242,6 +243,8 @@ class AccountService {
 
   Future<void> signOut() async {
     if (!_ready) return;
+    // Oturum kapanmadan: bu cihaza artık duyuru gitmesin (devices satırı silinir)
+    await PushService.instance.unregisterDevice();
     try {
       if (_googleReady) await GoogleSignIn.instance.signOut();
       await _client.auth.signOut();

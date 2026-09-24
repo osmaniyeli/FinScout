@@ -2,6 +2,7 @@
 
 import '../../../core/database/app_database.dart';
 import '../../../core/database/repositories/transaction_repository.dart';
+import '../../../core/widgets/bank_logo.dart';
 
 /// Bir takvim ayının gerçekleşmiş gelir/gider özeti (tahmin yok).
 class WalletMonth {
@@ -27,6 +28,8 @@ class ActiveInstallment {
   final int totalInstallment;
   final int monthlyCents;
   final int remainingCents;
+  /// Taksitin okunduğu kartın bankası (accounts.institution_name)
+  final String? bankName;
 
   const ActiveInstallment({
     required this.merchant,
@@ -34,9 +37,91 @@ class ActiveInstallment {
     required this.totalInstallment,
     required this.monthlyCents,
     required this.remainingCents,
+    this.bankName,
   });
 
   int get remainingCount => totalInstallment - currentInstallment;
+}
+
+/// Tek kartın son ekstredeki dönem borcu ve o ekstreden sonra bu karta kaydedilen ödemeler.
+class CardDebt {
+  final String accountId;
+  final String bankName;
+  final String? cardMask;
+  final int statementDebtCents;
+  final int paidSinceStatementCents;
+  final String? dueDate; // ISO (yyyy-MM-dd), ekstreden
+
+  const CardDebt({
+    required this.accountId,
+    required this.bankName,
+    this.cardMask,
+    required this.statementDebtCents,
+    required this.paidSinceStatementCents,
+    this.dueDate,
+  });
+
+  int get remainingCents =>
+      (statementDebtCents - paidSinceStatementCents).clamp(0, statementDebtCents);
+}
+
+/// Son kart ekstresinden sonraki kart ödemelerini kartlara dağıtır; her ödeme en çok bir kez sayılır.
+/// Hedef kart, ödeme kaydının açıklamasındaki banka adından bulunur ("Yapı Kredi kart ödemesi").
+/// Banka adı hiçbir karta uymuyorsa ödeme yalnız tek kart varken o karta düşülür; aksi hâlde düşülmez.
+/// Aynı bankanın birden çok kartı varsa (hangisine ödendiği bilinmez) ödeme, bu kartların hepsinin
+/// son ekstresinden sonraysa bir kez sayılır ve ilk karta yazılır; toplam borç yine doğru kalır.
+Map<String, int> allocateCardPayments({
+  required List<({String accountId, String bankName, String periodEnd})> cards,
+  required List<({String date, String description, int amountCents})> payments,
+}) {
+  final result = {for (final c in cards) c.accountId: 0};
+  if (cards.isEmpty) return result;
+  final bankKeys = {
+    for (final c in cards) c.accountId: _bankKeys(c.bankName),
+  };
+  for (final p in payments) {
+    final text = BankBrand.fold(p.description).replaceAll(' ', '');
+    var candidates = cards
+        .where((c) => bankKeys[c.accountId]!.any(text.contains))
+        .toList();
+    if (candidates.isEmpty && cards.length == 1) candidates = cards;
+    if (candidates.isEmpty) continue;
+    // Ödeme, aday kartların hepsinin son ekstresinden sonra olmalı (ekstrede zaten düşülmüş olmasın).
+    final after = candidates.every((c) => p.date.compareTo(c.periodEnd) > 0);
+    if (!after) continue;
+    final target = candidates.first.accountId;
+    result[target] = result[target]! + p.amountCents;
+  }
+  return result;
+}
+
+/// Ödeme açıklamasında bankayı tanımak için aranan yalın adlar (boşluksuz, sadeleştirilmiş).
+List<String> _bankKeys(String bankName) {
+  switch (BankBrand.of(bankName)?.slug) {
+    case 'yapi_kredi':
+      return const ['yapikredi', 'ykb'];
+    case 'is_bankasi':
+      return const ['isbank'];
+    case 'garanti':
+      return const ['garanti'];
+    case 'akbank':
+      return const ['akbank'];
+    case 'enpara':
+      return const ['enpara'];
+    case 'ziraat':
+      return const ['ziraat'];
+    case 'halkbank':
+      return const ['halkbank'];
+    case 'vakifbank':
+      return const ['vakif'];
+    case 'qnb':
+      return const ['qnb', 'finansbank'];
+    default:
+      final key = BankBrand.fold(bankName)
+          .replaceAll(RegExp(r'(turkiye|bankasi|bank|a s|t a s|ve)'), ' ')
+          .replaceAll(' ', '');
+      return key.length >= 3 ? [key] : const [];
+  }
 }
 
 class WalletHistory {
@@ -49,6 +134,8 @@ class WalletHistory {
   final int? cardDebtCents;
   /// Son kart ekstresinden sonra kaydedilen kart ödemeleri (manuel "Ödemeyi kaydet" dahil)
   final int cardPaymentsSinceStatementCents;
+  /// Kart bazında son ekstre borçları (banka logosuyla listelenir)
+  final List<CardDebt> cardDebts;
 
   const WalletHistory({
     required this.months,
@@ -57,6 +144,7 @@ class WalletHistory {
     this.accountBalanceCents,
     this.cardDebtCents,
     this.cardPaymentsSinceStatementCents = 0,
+    this.cardDebts = const [],
   });
 
   int get remainingInstallmentsCents => installments.fold(0, (s, i) => s + i.remainingCents);
@@ -105,8 +193,10 @@ class WalletHistoryService {
     // Önce filtrelenirse n/n satırı düşer ve (n-1)/n "kalan 1 ay" olarak sonsuza dek görünürdü.
     final instRows = await db.rawQuery('''
       SELECT t.clean_merchant AS merchant, i.current_installment AS cur, i.total_installment AS tot,
-             i.monthly_amount_cents AS monthly, i.remaining_amount_cents AS remaining
+             i.monthly_amount_cents AS monthly, i.remaining_amount_cents AS remaining,
+             a.institution_name AS bank
       FROM installments i JOIN transactions t ON t.id = i.transaction_id
+      LEFT JOIN accounts a ON a.id = t.account_id
       WHERE i.total_installment > 0
         AND i.id = (
           SELECT i2.id FROM installments i2 JOIN transactions t2 ON t2.id = i2.transaction_id
@@ -125,6 +215,7 @@ class WalletHistoryService {
         totalInstallment: (r['tot'] as num).toInt(),
         monthlyCents: (r['monthly'] as num).toInt(),
         remainingCents: (r['remaining'] as num?)?.toInt() ?? 0,
+        bankName: r['bank'] as String?,
       ));
     }
 
@@ -154,7 +245,8 @@ class WalletHistoryService {
 
     // Bakiye tahmin edilmez: her hesabın en son ekstresinde bankanın yazdığı değer
     final balRows = await db.rawQuery('''
-      SELECT a.account_type AS type, s.statement_balance_cents AS bal, s.period_end AS period_end, a.id AS account_id
+      SELECT a.account_type AS type, s.statement_balance_cents AS bal, s.period_end AS period_end,
+             s.due_date AS due_date, a.id AS account_id, a.institution_name AS bank, a.card_mask AS mask
       FROM accounts a
       JOIN statements s ON s.id = (
         SELECT s2.id FROM statements s2 WHERE s2.account_id = a.id
@@ -163,18 +255,60 @@ class WalletHistoryService {
     ''');
     int? accountBalance;
     int? cardDebt;
-    var paymentsSince = 0;
+    final cardRows = <Map<String, Object?>>[];
     for (final r in balRows) {
       final bal = (r['bal'] as num).toInt();
       if (r['type'] == 'CHECKING') {
         accountBalance = (accountBalance ?? 0) + bal;
       } else {
         cardDebt = (cardDebt ?? 0) + bal;
-        final paid = await db.rawQuery('''
-          SELECT COALESCE(SUM(billing_amount_cents), 0) AS paid FROM transactions
-          WHERE tx_kind = 'CARDPAYMENT' AND transaction_type = 'DEBIT' AND transaction_date > ?
-        ''', [r['period_end']]);
-        paymentsSince += ((paid.first['paid'] as num?) ?? 0).toInt();
+        cardRows.add(r);
+      }
+    }
+
+    // Son kart ekstrelerinden sonraki kart ödemeleri: kart bazında, her ödeme en çok bir kez.
+    var paymentsSince = 0;
+    final cardDebts = <CardDebt>[];
+    if (cardRows.isNotEmpty) {
+      final earliest = cardRows
+          .map((r) => r['period_end'] as String)
+          .reduce((a, b) => a.compareTo(b) <= 0 ? a : b);
+      final payRows = await db.rawQuery('''
+        SELECT transaction_date AS d, billing_amount_cents AS amt,
+               COALESCE(raw_description, '') || ' ' || COALESCE(clean_merchant, '') AS descr
+        FROM transactions
+        WHERE tx_kind = 'CARDPAYMENT' AND transaction_type = 'DEBIT' AND transaction_date > ?
+      ''', [earliest]);
+      final allocated = allocateCardPayments(
+        cards: [
+          for (final r in cardRows)
+            (
+              accountId: r['account_id'] as String,
+              bankName: (r['bank'] as String?) ?? '',
+              periodEnd: r['period_end'] as String,
+            ),
+        ],
+        payments: [
+          for (final p in payRows)
+            (
+              date: p['d'] as String,
+              description: p['descr'] as String,
+              amountCents: (p['amt'] as num).toInt(),
+            ),
+        ],
+      );
+      for (final r in cardRows) {
+        final id = r['account_id'] as String;
+        final paid = allocated[id] ?? 0;
+        paymentsSince += paid;
+        cardDebts.add(CardDebt(
+          accountId: id,
+          bankName: (r['bank'] as String?) ?? 'Kart',
+          cardMask: r['mask'] as String?,
+          statementDebtCents: (r['bal'] as num).toInt(),
+          paidSinceStatementCents: paid,
+          dueDate: r['due_date'] as String?,
+        ));
       }
     }
 
@@ -185,6 +319,7 @@ class WalletHistoryService {
       accountBalanceCents: accountBalance,
       cardDebtCents: cardDebt,
       cardPaymentsSinceStatementCents: paymentsSince,
+      cardDebts: cardDebts,
     );
   }
 }

@@ -434,10 +434,12 @@ Future<List<Map<String, dynamic>>> getUpcomingInstallments(
         i.monthly_amount_cents,
         i.remaining_amount_cents,
         i.due_date,
-        c.color_hex
+        c.color_hex,
+        a.institution_name
       FROM installments i
       JOIN transactions t ON i.transaction_id = t.id
       LEFT JOIN categories c ON t.category_id = c.id
+      LEFT JOIN accounts a ON a.id = t.account_id
       WHERE i.current_installment < i.total_installment
         AND i.id = (
           SELECT i2.id FROM installments i2 JOIN transactions t2 ON t2.id = i2.transaction_id

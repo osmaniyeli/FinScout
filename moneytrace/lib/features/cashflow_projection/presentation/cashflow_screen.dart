@@ -6,6 +6,9 @@ import '../../../core/utils/currency_normalizer.dart';
 import '../../../core/widgets/fintech/fintech_components.dart';
 import '../../../core/widgets/morphing_segmented_bar.dart';
 import '../../../core/services/data_changes.dart';
+import '../../../core/widgets/bank_logo.dart';
+import '../../assets_portfolio/presentation/widgets/card_payment_flow.dart';
+import '../../navigation/tab_add_actions.dart';
 import '../services/wallet_history_service.dart';
 
 /// Cüzdan: geriye dönük, yalnızca gerçekleşmiş veriler (kayıtlı işlemler, ekstrelerdeki taksitler,
@@ -17,7 +20,7 @@ class CashflowScreen extends StatefulWidget {
   State<CashflowScreen> createState() => _CashflowScreenState();
 }
 
-class _CashflowScreenState extends State<CashflowScreen> {
+class _CashflowScreenState extends State<CashflowScreen> implements TabAddActions {
   final WalletHistoryService _service = WalletHistoryService();
   static const _ranges = [3, 6, 12];
   static const _monthNames = [
@@ -60,6 +63,32 @@ class _CashflowScreenState extends State<CashflowScreen> {
 
   String _money(int cents) => CurrencyNormalizer.formatCents(cents);
 
+  /// + menüsü: manuel gelir/gider ve (ekstresi yüklü kart varsa) kart ödemesi.
+  /// Kart ödemesi, Varlıklar'daki "Ödemeyi kaydet" sayfasının kendisidir (CardPaymentFlow):
+  /// aynı nötr kayıt, aynı ödeme kaynağı seçimi; ayrı bir form yazılmadı.
+  @override
+  List<TabAddAction> get addActions => [
+        TabAddAction(
+          icon: Icons.edit_note_rounded,
+          title: 'Manuel gelir / gider',
+          subtitle: 'Nakit harcama, ek gelir vb.',
+          onSelected: () => openQuickEntrySheet(context),
+        ),
+        if (_history?.cardDebts.isNotEmpty ?? false)
+          TabAddAction(
+            icon: Icons.credit_score_rounded,
+            title: 'Kart ödemesi kaydet',
+            subtitle: 'Bankada yaptığın kart ödemesini borçtan düş',
+            onSelected: () => CardPaymentFlow.start(context),
+          ),
+      ];
+
+  static String _formatIso(String? iso) {
+    final d = iso == null ? null : DateTime.tryParse(iso);
+    if (d == null) return '—';
+    return '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final history = _history;
@@ -99,6 +128,12 @@ class _CashflowScreenState extends State<CashflowScreen> {
                   _buildTrendChart(history),
                   const SizedBox(height: 16),
                   IzciInsightCard(message: _scoutNote(history)),
+                  if (history.cardDebts.isNotEmpty) ...[
+                    const SizedBox(height: 20),
+                    _sectionTitle('Kart borçları'),
+                    const SizedBox(height: 8),
+                    ...history.cardDebts.map(_buildCardDebtRow),
+                  ],
                   if (history.installments.isNotEmpty) ...[
                     const SizedBox(height: 20),
                     _sectionTitle('Devam eden taksitler',
@@ -283,6 +318,44 @@ class _CashflowScreenState extends State<CashflowScreen> {
         ],
       );
 
+  Widget _buildCardDebtRow(CardDebt c) => Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Row(
+            children: [
+              BankLogo(bankName: c.bankName, size: 36),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                        [c.bankName, if ((c.cardMask ?? '').isNotEmpty) c.cardMask!].join(' • '),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                    const SizedBox(height: 2),
+                    Text(
+                        c.paidSinceStatementCents > 0
+                            ? 'Ekstre ${_money(c.statementDebtCents)} · sonradan ödenen ${_money(c.paidSinceStatementCents)}'
+                            : 'Son ödeme ${_formatIso(c.dueDate)}',
+                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                  ],
+                ),
+              ),
+              Text(_money(c.remainingCents),
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.expenseRed)),
+            ],
+          ),
+        ),
+      );
+
   Widget _buildInstallmentRow(ActiveInstallment i) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: Container(
@@ -294,6 +367,8 @@ class _CashflowScreenState extends State<CashflowScreen> {
           ),
           child: Row(
             children: [
+              BankLogo(bankName: i.bankName, size: 36),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -303,7 +378,7 @@ class _CashflowScreenState extends State<CashflowScreen> {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
                     const SizedBox(height: 2),
-                    Text('${i.currentInstallment} / ${i.totalInstallment} taksit · kalan ${i.remainingCount} ay',
+                    Text('${i.bankName != null ? '${i.bankName} · ' : ''}${i.currentInstallment} / ${i.totalInstallment} taksit · kalan ${i.remainingCount} ay',
                         style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                   ],
                 ),

@@ -13,6 +13,7 @@ import '../widgets/goal_card_tile.dart';
 import 'add_goal_sheet.dart';
 import 'goal_contribution_dialog.dart';
 import 'goal_detail_sheet.dart';
+import '../../navigation/tab_add_actions.dart';
 
 class GoalsScreen extends StatefulWidget {
   const GoalsScreen({Key? key}) : super(key: key);
@@ -21,7 +22,7 @@ class GoalsScreen extends StatefulWidget {
   State<GoalsScreen> createState() => _GoalsScreenState();
 }
 
-class _GoalsScreenState extends State<GoalsScreen> {
+class _GoalsScreenState extends State<GoalsScreen> implements TabAddActions {
   final GoalRepository _goalRepository = GoalRepository();
   int _filterIndex = 0; // 0: Tümü, 1: Aktif, 2: Tamamlanan
   bool _isLoading = true;
@@ -74,6 +75,86 @@ class _GoalsScreenState extends State<GoalsScreen> {
       DataChanges.notify();
       _toast('Hedef kaydedildi.', success: true);
     }
+  }
+
+  /// + menüsü: "Yeni hedef" ve (aktif hedef varsa) "Birikim ekle".
+  @override
+  List<TabAddAction> get addActions {
+    final active = _goals.where((g) => !g.isCompleted).toList();
+    return [
+      TabAddAction(
+        icon: Icons.flag_rounded,
+        title: 'Yeni hedef',
+        subtitle: 'Tutar ve tarih belirle',
+        onSelected: _openAddGoal,
+      ),
+      if (active.isNotEmpty)
+        TabAddAction(
+          icon: Icons.savings_rounded,
+          title: 'Birikim ekle',
+          subtitle: active.length == 1
+              ? '"${active.first.title}" hedefine'
+              : 'Hedef seçerek',
+          onSelected: () => _pickGoalForContribution(active),
+        ),
+    ];
+  }
+
+  Future<void> _pickGoalForContribution(List<FinancialGoal> active) async {
+    if (active.length == 1) {
+      await _addContribution(active.first);
+      return;
+    }
+    final goal = await showModalBottomSheet<FinancialGoal>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                child: Text('Hangi hedefe birikim eklensin?',
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary)),
+              ),
+              const SizedBox(height: 8),
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: [
+                    for (final g in active)
+                      ListTile(
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 8),
+                        leading: Icon(g.category.iconData,
+                            color: g.category.themeColor),
+                        title: Text(g.title,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w700, fontSize: 14)),
+                        subtitle: Text(
+                            '${CurrencyNormalizer.formatCents(g.currentSavedCents)} / ${CurrencyNormalizer.formatCents(g.targetAmountCents)}',
+                            style: const TextStyle(
+                                fontSize: 11.5,
+                                color: AppColors.textSecondary)),
+                        onTap: () => Navigator.pop(ctx, g),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (goal != null && mounted) await _addContribution(goal);
   }
 
   Future<void> _addContribution(FinancialGoal goal) async {

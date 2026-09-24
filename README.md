@@ -26,7 +26,7 @@
   - Alışkanlık Serisi (30-Day Streak) ve Konfeti Kutlama Efektleri.
   - Yay fiziğiyle kayan kapsül alt navigasyon çubuğu.
 - **Çift Dilli İletişim (Türkçe 🇹🇷 / English 🇬🇧)**: Uygulama ayarlarından ve haftalık finans bülteni aboneliğinden tek tıkla dil seçimi.
-- **Sıfır-Bilgi & 20 Maddelik Güvenlik Standardı**: Biyometrik/cihaz içi şifreleme, UTF-8 BOM Excel ihracı, JSON tam sistem yedeği ve hukuki iade dilekçesi oluşturucu.
+- **Sıfır-Bilgi & 20 Maddelik Güvenlik Standardı**: PIN kilidi ve cihaz içi şifreleme, UTF-8 BOM Excel ihracı, JSON tam sistem yedeği ve hukuki iade dilekçesi oluşturucu.
 
 ### 3. Proje Mimarisi
 ```

@@ -2,7 +2,6 @@ import 'package:file_picker/file_picker.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../core/theme/app_colors.dart';
@@ -18,6 +17,7 @@ import '../../subscription/presentation/subscription_plans_sheet.dart';
 import '../../family/presentation/family_screen.dart';
 import '../../../core/services/security_auth_service.dart';
 import '../../../core/widgets/fintech/security_auth_sheet.dart';
+import 'licenses_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -48,7 +48,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       title: 'Yeni Güvenlik PIN Kodu Belirleyin',
       subtitle: '4 haneli güvenli PIN kodunuzu girin.',
       isSettingNewPin: true,
-      allowBiometrics: false,
     );
     if (res == true && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -69,7 +68,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       title: 'Mevcut PIN Kodunuzu Girin',
       subtitle:
           'Şifrenizi değiştirmek için lütfen mevcut PIN kodunuzu doğrulayın.',
-      allowBiometrics: false,
       onPinEntered: (pin) {
         currentPin = pin;
       },
@@ -82,7 +80,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       title: 'Yeni PIN Kodunu Belirleyin',
       subtitle: 'Kullanmak istediğiniz yeni 4 haneli PIN kodunu girin.',
       isSettingNewPin: true,
-      allowBiometrics: false,
     );
 
     if (newPinSet == true && mounted) {
@@ -103,7 +100,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       title: 'Şifreyi Kaldırmak İçin Mevcut PIN Girin',
       subtitle:
           'Güvenliğiniz için lütfen mevcut 4 haneli PIN kodunuzu girerek şifreyi kaldırın.',
-      allowBiometrics: false,
       onPinEntered: (pin) {
         enteredPin = pin;
       },
@@ -270,147 +266,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: const Text('Uygulamada kullanılan kütüphaneler',
                   style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
               trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
-              onTap: () => showLicensePage(context: context, applicationName: 'FinScout'),
+              onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const LicensesScreen())),
             ),
             const SizedBox(height: 24),
 
-            // 2. GÜVENLİK & BİYOMETRİK KORUMA (Face ID, Fingerprint, PIN)
+            // 2. GÜVENLİK (uygulama kilidi: yalnız PIN)
             const Text(
-              'GİZLİLİK & BİYOMETRİK GÜVENLİK',
+              'GÜVENLİK',
               style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
                   color: AppColors.textSecondary,
                   letterSpacing: 0.5),
-            ),
-            const SizedBox(height: 10),
-
-            // Kriptolu Depolama Rozeti
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFECFDF5),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(Icons.verified_user_rounded,
-                        color: AppColors.incomeGreen, size: 22),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'Veriler bu telefonda',
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.textPrimary),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          'Ekstreler telefonunda okunur; ekstre ve işlemlerin sunucuya gönderilmez. Sunucuda yalnız hesap bilgin (ad, e-posta) tutulur.',
-                          style: TextStyle(
-                              fontSize: 11,
-                              color: AppColors.textSecondary,
-                              height: 1.3),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // 2. Parmak İzi (Touch ID / Fingerprint) Switch Tile
-            ValueListenableBuilder<bool>(
-              valueListenable:
-                  SecurityAuthService.instance.isFingerprintEnabledNotifier,
-              builder: (context, isFpEnabled, _) {
-                return Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEFF6FF),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: const Icon(Icons.fingerprint_rounded,
-                            color: Color(0xFF2563EB), size: 22),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text(
-                              'Parmak izi ile giriş',
-                              style: TextStyle(
-                                  fontSize: 13.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.textPrimary),
-                            ),
-                            SizedBox(height: 2),
-                            Text(
-                              'Telefonun parmak izi sensörüne dokunarak cüzdanınıza erişin.',
-                              style: TextStyle(
-                                  fontSize: 11, color: AppColors.textSecondary),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Switch.adaptive(
-                        value: isFpEnabled,
-                        activeColor: const Color(0xFF2563EB),
-                        onChanged: (val) async {
-                          final error = val
-                              ? await SecurityAuthService.instance
-                                  .enableBiometric(
-                                      BiometricAuthType.fingerprint)
-                              : null;
-                          if (!val)
-                            await SecurityAuthService.instance
-                                .setFingerprintEnabled(false);
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                backgroundColor: error != null
-                                    ? AppColors.expenseRed
-                                    : (val
-                                        ? const Color(0xFF2563EB)
-                                        : const Color(0xFF0F172A)),
-                                content: Text(error ??
-                                    (val
-                                        ? 'Parmak izi ile giriş açıldı.'
-                                        : 'Parmak İzi devre dışı bırakıldı.')),
-                                duration: const Duration(seconds: 2),
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                );
-              },
             ),
             const SizedBox(height: 10),
 
@@ -456,7 +324,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 const SizedBox(height: 2),
                                 Text(
                                   hasPin
-                                      ? 'Cihaz kasası SHA-256 tuzlu PIN ile korunuyor.'
+                                      ? "PIN'in bu telefonda şifrelenmiş olarak saklanır."
                                       : 'Uygulama açılışını 4 haneli sayısal şifre ile koruyun.',
                                   style: const TextStyle(
                                       fontSize: 11,
@@ -888,7 +756,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               controller: passwordController,
               obscureText: true,
               decoration: InputDecoration(
-                labelText: 'Kasa Parolası (En az 6 karakter)',
+                labelText: 'Yedek parolası (en az 6 karakter)',
                 hintText: '••••••••',
                 prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
                 border:
@@ -998,7 +866,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   isEncrypted ? 'application/octet-stream' : 'application/json')
         ],
         text: isEncrypted
-            ? 'FinScout AES-256 Şifreli Kasa Yedeği (.vault)'
+            ? 'FinScout şifreli yedek (.vault)'
             : 'FinScout Sistem Yedeği (JSON)',
       );
     } catch (e) {
@@ -1200,7 +1068,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           controller: passController,
                           obscureText: true,
                           decoration: InputDecoration(
-                            labelText: 'Kasa Parolası',
+                            labelText: 'Yedek parolası',
                             prefixIcon: const Icon(Icons.key_rounded, size: 18),
                             border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12)),

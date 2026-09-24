@@ -17,10 +17,6 @@
 # Path Provider preservation
 -keep class io.flutter.plugins.pathprovider.** { *; }
 
-# Biyometrik kilit (local_auth / androidx.biometric)
--keep class io.flutter.plugins.localauth.** { *; }
--keep class androidx.biometric.** { *; }
-
 # Zamanlanmış bildirimler (flutter_local_notifications, Gson ile serileştirir)
 -keep class com.dexterous.** { *; }
 -keep class com.google.gson.** { *; }

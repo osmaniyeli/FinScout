@@ -10,26 +10,23 @@ class SecurityAuthSheet extends StatefulWidget {
   final VoidCallback onSuccess;
   final ValueChanged<String>? onPinEntered;
   final bool isSettingNewPin;
-  final bool allowBiometrics;
 
   const SecurityAuthSheet({
     Key? key,
     this.title = 'FinScout Güvenlik Doğrulaması',
     this.subtitle =
-        'Lütfen 4 haneli PIN kodunuzu girin veya biyometrik ile doğrulayın.',
+        'Lütfen 4 haneli PIN kodunuzu girin.',
     required this.onSuccess,
     this.onPinEntered,
     this.isSettingNewPin = false,
-    this.allowBiometrics = true,
   }) : super(key: key);
 
   static Future<bool?> show(
     BuildContext context, {
     String title = 'FinScout Güvenlik Doğrulaması',
     String subtitle =
-        'Lütfen 4 haneli PIN kodunuzu girin veya biyometrik ile doğrulayın.',
+        'Lütfen 4 haneli PIN kodunuzu girin.',
     bool isSettingNewPin = false,
-    bool allowBiometrics = true,
     ValueChanged<String>? onPinEntered,
   }) {
     return showModalBottomSheet<bool>(
@@ -40,7 +37,6 @@ class SecurityAuthSheet extends StatefulWidget {
         title: title,
         subtitle: subtitle,
         isSettingNewPin: isSettingNewPin,
-        allowBiometrics: allowBiometrics,
         onPinEntered: onPinEntered,
         onSuccess: () {
           Navigator.of(ctx).pop(true);
@@ -109,30 +105,8 @@ class _SecurityAuthSheetState extends State<SecurityAuthSheet> {
           _isVerifying = false;
           _enteredDigits.clear();
           _errorMessage = SecurityAuthService.instance.isLockedOut
-              ? 'Çok fazla hatalı deneme! Lütfen 30 saniye bekleyin.'
+              ? 'Çok fazla hatalı deneme! Lütfen ${SecurityAuthService.instance.remainingLockoutSeconds} saniye bekleyin.'
               : 'Hatalı PIN kodu! Kalan deneme: ${5 - SecurityAuthService.instance.failedAttempts}';
-        });
-      }
-    }
-  }
-
-  Future<void> _triggerBiometricAuth(BiometricAuthType type) async {
-    if (_isVerifying || !widget.allowBiometrics) return;
-    setState(() {
-      _isVerifying = true;
-      _errorMessage = null;
-    });
-
-    final success = await SecurityAuthService.instance
-        .authenticateFingerprint(reason: 'Parmak izi ile giriş yapılıyor');
-
-    if (mounted) {
-      if (success) {
-        widget.onSuccess();
-      } else {
-        setState(() {
-          _isVerifying = false;
-          _errorMessage = 'Biyometrik doğrulama başarısız oldu.';
         });
       }
     }
@@ -169,7 +143,7 @@ class _SecurityAuthSheetState extends State<SecurityAuthSheet> {
           ),
           const SizedBox(height: 18),
 
-          // Glowing Shield / Biometric Icon
+          // Kilit ikonu
           Container(
             width: 60,
             height: 60,
@@ -278,19 +252,12 @@ class _SecurityAuthSheetState extends State<SecurityAuthSheet> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            // Sol: Parmak İzi Butonu (yalnızca izin verildiyse)
-            widget.allowBiometrics
-                ? _buildSpecialKey(
-                    icon: Icons.fingerprint_rounded,
-                    label: 'Parmak İzi',
-                    onTap: () =>
-                        _triggerBiometricAuth(BiometricAuthType.fingerprint),
-                  )
-                : _buildSpecialKey(
-                    icon: Icons.close_rounded,
-                    label: 'İptal',
-                    onTap: () => Navigator.of(context).pop(false),
-                  ),
+            // Sol: İptal
+            _buildSpecialKey(
+              icon: Icons.close_rounded,
+              label: 'İptal',
+              onTap: () => Navigator.of(context).pop(false),
+            ),
             // Orta: 0
             _buildNumberKey('0'),
             // Sağ: Backspace

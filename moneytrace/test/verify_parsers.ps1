@@ -810,7 +810,7 @@ Assert-Test -Name "Android ADB Backup Defense (allowBackup=false)" -Condition ($
 $mainActivityPath = Join-Path $PSScriptRoot "../android/app/src/main/kotlin/com/moneytrace/app/MainActivity.kt"
 $mainActText = if (Test-Path $mainActivityPath) { [System.IO.File]::ReadAllText($mainActivityPath) } else { "" }
 # v3.6.1: Ekran görüntüsü engeli (FLAG_SECURE) ürün kararıyla kaldırıldı; kullanıcı ekran görüntüsü alabilir.
-# Görev değiştirici önizlemesi Flutter gizlilik kalkanı ile korunur (bkz. TEST 20).
+# Gizlilik kalkani da kaldirildi (bkz. TEST 20).
 $hasNoFlagSecure = -not $mainActText.Contains("FLAG_SECURE")
 Assert-Test -Name "Screenshots Allowed by Product Decision (no FLAG_SECURE)" -Condition $hasNoFlagSecure -Details "Screenshot blocking removed in v3.6.1 at user request"
 
@@ -1061,11 +1061,21 @@ $hasIosBlur = $appDelText.Contains("UIBlurEffect") -and $appDelText.Contains("ap
 
 $mainDartPath = Join-Path $PSScriptRoot "../lib/main.dart"
 $mainDartText = if (Test-Path $mainDartPath) { [System.IO.File]::ReadAllText($mainDartPath, [System.Text.Encoding]::UTF8) } else { "" }
-$hasFlutterShield = $mainDartText.Contains("_isPrivacyShieldActive") -and $mainDartText.Contains("Icons.shield_rounded")
+# Urun karari (2026-09): ekran goruntusu serbest, Flutter gizlilik kalkani kaldirildi.
+$hasNoFlutterShield = -not $mainDartText.Contains("_isPrivacyShieldActive")
+Assert-Test -Name "No Flutter Privacy Shield Overlay (product decision)" -Condition $hasNoFlutterShield -Details "Full-screen privacy shield removed; screenshots and recents preview allowed"
 
-# v3.6.1: FLAG_SECURE kaldırıldı (ekran görüntüsüne izin var); görev değiştirici önizlemesi gizlilik kalkanıyla korunur.
-$isScreenProtected = $hasIosBlur -and $hasFlutterShield
-Assert-Test -Name "Task Switcher Preview Privacy Shield (iOS blur + Flutter shield)" -Condition $isScreenProtected -Details "Recents preview hidden by iOS UIBlurEffect and Flutter privacy shield; screenshots allowed"
+# Kilit dongusu: resumed'da kontrol sonrasi _pausedTime sifirlanmali
+$resetsPausedTime = $mainDartText.Contains("_pausedTime = null")
+Assert-Test -Name "App Lock Resets Paused Timer on Resume (no lock loop)" -Condition $resetsPausedTime -Details "Lock only after >=30s in background; timer cleared after each resume"
+
+# Parmak izi girisi kaldirildi: local_auth, biyometri izinleri ve FragmentActivity olmamali
+$pubspecSecPath = Join-Path $PSScriptRoot "../pubspec.yaml"
+$pubspecSecText = if (Test-Path $pubspecSecPath) { [System.IO.File]::ReadAllText($pubspecSecPath, [System.Text.Encoding]::UTF8) } else { "" }
+$manifestBioPath = Join-Path $PSScriptRoot "../android/app/src/main/AndroidManifest.xml"
+$manifestBioText = if (Test-Path $manifestBioPath) { [System.IO.File]::ReadAllText($manifestBioPath, [System.Text.Encoding]::UTF8) } else { "" }
+$noBiometrics = (-not $pubspecSecText.Contains("local_auth")) -and (-not $manifestBioText.Contains("USE_BIOMETRIC")) -and (-not $manifestBioText.Contains("USE_FINGERPRINT")) -and (-not $mainActText.Contains("FlutterFragmentActivity"))
+Assert-Test -Name "Fingerprint Login Removed (no local_auth / biometric permissions)" -Condition $noBiometrics -Details "App lock is PIN-only; no USE_BIOMETRIC/USE_FINGERPRINT, MainActivity is FlutterActivity"
 
 # 2. Anti-Tapjacking & Invisible Overlay Touch Blocking
 $hasTapjackingBlock = $mainActText.Contains("filterTouchesWhenObscured = true")
@@ -1211,6 +1221,8 @@ Assert-Test -Name "PDF Scanner Stopwatch Cascade Guard" -Condition $hasValidStop
 # 4. Assets Screen Repository Method Guard
 $assetsScreenPath = Join-Path $PSScriptRoot "../lib/features/assets_portfolio/presentation/assets_screen.dart"
 $assetsScreenText = if (Test-Path $assetsScreenPath) { [System.IO.File]::ReadAllText($assetsScreenPath, [System.Text.Encoding]::UTF8) } else { "" }
+$cardPaymentFlowPath = Join-Path $PSScriptRoot "../lib/features/assets_portfolio/presentation/widgets/card_payment_flow.dart"
+if (Test-Path $cardPaymentFlowPath) { $assetsScreenText += [System.IO.File]::ReadAllText($cardPaymentFlowPath, [System.Text.Encoding]::UTF8) }
 $hasValidRepoCall = $assetsScreenText.Contains("saveManualTransaction") -and !($assetsScreenText.Contains("insertTransaction"))
 Assert-Test -Name "Assets Screen Repository Method Guard" -Condition $hasValidRepoCall -Details "assets_screen.dart calls saveManualTransaction avoiding undefined method"
 

@@ -9,7 +9,36 @@ import '../services/family_service.dart';
 /// Aile: premium hakkını en fazla 4 kişiyle paylaşma (davet kodu ile).
 /// Veri paylaşımı YOK: herkesin ekstre ve işlemleri kendi telefonunda kalır.
 class FamilyScreen extends StatefulWidget {
-  const FamilyScreen({Key? key}) : super(key: key);
+  const FamilyScreen({super.key});
+
+  /// "Aile nasıl çalışır?" açıklaması (ör. Premium paketler ekranından).
+  /// Aileye giriş yalnız Ayarlar › Aile'dedir; bu sayfa yalnız anlatır.
+  static Future<void> showHowItWorks(BuildContext context) {
+    return showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const FamilyHowItWorks(),
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Anladım'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   State<FamilyScreen> createState() => _FamilyScreenState();
@@ -24,9 +53,8 @@ class _FamilyScreenState extends State<FamilyScreen> {
   bool _loading = true;
   bool _busy = false;
 
-  static const String _honestNote =
-      'Aile paketi premium hakkını en fazla 4 kişiyle paylaşır. Herkesin ekstre ve işlemleri '
-      'kendi telefonunda kalır; kimse diğerinin verisini görmez.';
+  bool _showJoinForm = false; // Aile Paketi sahibinde "kodla katıl" formu gizli başlar
+  String? _codeError;
 
   @override
   void initState() {
@@ -158,7 +186,7 @@ class _FamilyScreenState extends State<FamilyScreen> {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
         children: [
-          _infoCard(),
+          const FamilyHowItWorks(),
           const SizedBox(height: 20),
           if (!s.inFamily) ..._notInFamily(s) else ..._inFamily(s),
         ],
@@ -166,37 +194,60 @@ class _FamilyScreenState extends State<FamilyScreen> {
     );
   }
 
-  Widget _infoCard() {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0FDF4),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFBBF7D0)),
-      ),
-      child: const Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.lock_outline_rounded, color: AppColors.incomeGreen, size: 20),
-          SizedBox(width: 10),
-          Expanded(
-            child: Text(_honestNote,
-                style: TextStyle(
-                    fontSize: 13, height: 1.35, color: AppColors.textPrimary)),
-          ),
-        ],
-      ),
-    );
-  }
-
+  /// Ailede değilken tek net eylem: Aile Paketi varsa davet kodu oluştur, yoksa aldığın kodu gir.
   List<Widget> _notInFamily(FamilyState s) {
-    return [
-      if (s.canCreate) ...[
+    final join = <Widget>[
+      _sectionTitle('KODU GİR'),
+      const Text(
+        'Aile sahibinin gönderdiği 8 karakterlik kodu gir. Katılınca premium hakların açılır; '
+        'verilerin yine yalnız senin telefonunda kalır.',
+        style: TextStyle(
+            fontSize: 13, color: AppColors.textSecondary, height: 1.35),
+      ),
+      const SizedBox(height: 12),
+      TextField(
+        controller: _codeController,
+        textCapitalization: TextCapitalization.characters,
+        maxLength: 8,
+        inputFormatters: [
+          FilteringTextInputFormatter.allow(RegExp('[A-Za-z0-9]')),
+        ],
+        onChanged: (_) {
+          if (_codeError != null) setState(() => _codeError = null);
+        },
+        decoration: InputDecoration(
+          labelText: 'Davet kodu',
+          errorText: _codeError,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      ),
+      const SizedBox(height: 8),
+      FilledButton(
+        onPressed: _busy
+            ? null
+            : () {
+                final code = _codeController.text.trim();
+                if (code.length != 8) {
+                  setState(() => _codeError = 'Davet kodu 8 karakterdir.');
+                  return;
+                }
+                _run(() async {
+                  await _service.join(code);
+                  _codeController.clear();
+                }, success: 'Aileye katıldın. Premium hakların açıldı.');
+              },
+        child: const Text('Aileye katıl'),
+      ),
+    ];
+
+    if (s.canCreate) {
+      return [
         _sectionTitle('AİLE KUR'),
         const Text(
-          'Aile Paketin aktif. Bir davet kodu oluştur ve eklemek istediğin kişiye gönder. '
+          'Aile Paketin aktif. Davet kodu oluştur ve eklemek istediğin kişiye gönder. '
           'Kod 48 saat geçerlidir ve bir kez kullanılabilir.',
-          style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.35),
+          style: TextStyle(
+              fontSize: 13, color: AppColors.textSecondary, height: 1.35),
         ),
         const SizedBox(height: 12),
         FilledButton.icon(
@@ -208,59 +259,28 @@ class _FamilyScreenState extends State<FamilyScreen> {
           icon: const Icon(Icons.group_add_rounded),
           label: const Text('Davet kodu oluştur'),
         ),
-        const SizedBox(height: 28),
-      ],
-      _sectionTitle('BİR AİLEYE KATIL'),
-      const Text(
-        'Aile sahibinin paylaştığı 8 haneli kodu gir. Katılınca aile paketinin premium hakları '
-        'senin hesabında da açılır; kendi aylık belge kotan olur.',
-        style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.35),
-      ),
-      const SizedBox(height: 12),
-      TextField(
-        controller: _codeController,
-        textCapitalization: TextCapitalization.characters,
-        maxLength: 8,
-        inputFormatters: [
-          FilteringTextInputFormatter.allow(RegExp('[A-Za-z0-9]')),
-        ],
-        decoration: InputDecoration(
-          labelText: 'Davet kodu',
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      ),
-      const SizedBox(height: 8),
-      FilledButton(
-        onPressed: _busy
-            ? null
-            : () {
-                final code = _codeController.text.trim();
-                if (code.length != 8) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text('Davet kodu 8 karakterdir.'),
-                  ));
-                  return;
-                }
-                _run(() async {
-                  await _service.join(code);
-                  _codeController.clear();
-                }, success: 'Aileye katıldın. Premium hakların açıldı.');
-              },
-        child: const Text('Aileye katıl'),
-      ),
-      if (!s.canCreate) ...[
-        const SizedBox(height: 28),
-        _sectionTitle('AİLE PAKETİ'),
-        const Text(
-          'Kendi aileni kurmak için Aile Paketi gerekir (yıllık; sen dahil 4 kişi).',
-          style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.35),
-        ),
-        const SizedBox(height: 10),
-        OutlinedButton(
+        const SizedBox(height: 16),
+        if (_showJoinForm)
+          ...join
+        else
+          Center(
+            child: TextButton(
+              onPressed: () => setState(() => _showJoinForm = true),
+              child: const Text('Başkasının ailesine kodla katılacağım'),
+            ),
+          ),
+      ];
+    }
+
+    return [
+      ...join,
+      const SizedBox(height: 20),
+      Center(
+        child: TextButton(
           onPressed: () => SubscriptionPlansSheet.show(context),
-          child: const Text('Paketleri gör'),
+          child: const Text('Kendi aileni kurmak için: Aile Paketi'),
         ),
-      ],
+      ),
     ];
   }
 
@@ -287,8 +307,11 @@ class _FamilyScreenState extends State<FamilyScreen> {
       if (s.isOwner) ...[
         const SizedBox(height: 24),
         _sectionTitle('DAVET'),
-        if (s.inviteCode != null) _inviteCard(s) else if (s.isFull)
-          const Text('Aile dolu. Yeni birini eklemek için önce bir üyeyi çıkar.',
+        if (s.inviteCode != null)
+          _inviteCard(s)
+        else if (s.isFull)
+          const Text(
+              'Aile dolu. Yeni birini eklemek için önce bir üyeyi çıkar.',
               style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
         const SizedBox(height: 10),
         if (!s.isFull)
@@ -325,7 +348,8 @@ class _FamilyScreenState extends State<FamilyScreen> {
                         'Ayrıl');
                 if (!ok) return;
                 await _run(_service.leave,
-                    success: s.isOwner ? 'Aile dağıtıldı.' : 'Aileden ayrıldın.');
+                    success:
+                        s.isOwner ? 'Aile dağıtıldı.' : 'Aileden ayrıldın.');
               },
         child: Text(s.isOwner ? 'Aileyi dağıt' : 'Aileden ayrıl'),
       ),
@@ -403,7 +427,8 @@ class _FamilyScreenState extends State<FamilyScreen> {
           ),
           if (expires != null) ...[
             const SizedBox(height: 4),
-            Text('Tek kullanımlık · ${_fmtDateTime(expires)} tarihine kadar geçerli',
+            Text(
+                'Tek kullanımlık · ${_fmtDateTime(expires)} tarihine kadar geçerli',
                 style: const TextStyle(
                     fontSize: 12, color: AppColors.textSecondary)),
           ],
@@ -446,4 +471,106 @@ class _FamilyScreenState extends State<FamilyScreen> {
                 color: AppColors.textSecondary,
                 letterSpacing: 0.5)),
       );
+}
+
+/// Aile özelliğinin 3 adımlık açıklaması. Premium hakkı paylaşılır, veri paylaşılmaz.
+class FamilyHowItWorks extends StatelessWidget {
+  const FamilyHowItWorks({super.key});
+
+  static const _steps = [
+    (
+      'Aile Paketi sahibi davet kodu oluşturur',
+      'Ayarlar › Aile › "Davet kodu oluştur". Kod 48 saat geçerli ve tek kullanımlıktır.'
+    ),
+    (
+      'Kodu aile üyesine gönderir',
+      'Kopyala ya da Paylaş ile mesajla gönder. Aile en fazla 4 kişidir (sahip dahil).'
+    ),
+    (
+      'Üye kendi telefonunda kodu girer',
+      'Ayarlar › Aile › Kodu gir. Üyenin premium hakkı açılır.'
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Aile nasıl çalışır?',
+              style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary)),
+          const SizedBox(height: 12),
+          for (var i = 0; i < _steps.length; i++)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 24,
+                    height: 24,
+                    alignment: Alignment.center,
+                    decoration: const BoxDecoration(
+                      color: AppColors.actionPrimary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text('${i + 1}',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800)),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(_steps[i].$1,
+                            style: const TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textPrimary)),
+                        const SizedBox(height: 2),
+                        Text(_steps[i].$2,
+                            style: const TextStyle(
+                                fontSize: 12,
+                                height: 1.35,
+                                color: AppColors.textSecondary)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 2),
+          const Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.lock_outline_rounded,
+                  color: AppColors.incomeGreen, size: 18),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Paylaşılan yalnız premium hakkıdır; veriler paylaşılmaz. Herkesin ekstre ve '
+                  'işlemleri kendi telefonunda kalır, kimse diğerinin verisini görmez.',
+                  style: TextStyle(
+                      fontSize: 12, height: 1.35, color: AppColors.textPrimary),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }

@@ -84,3 +84,9 @@ dependencies {
     // flutter_local_notifications zamanlanmış bildirimler için java.time desugaring gerektirir
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
 }
+
+// Firebase Cloud Messaging (yönetici duyuruları): google-services.json yoksa eklenti uygulanmaz,
+// derleme/CI kırılmaz; uygulama açılışta Firebase'i başlatamaz ve push kapalı kalır.
+if (file('google-services.json').exists()) {
+    apply plugin: 'com.google.gms.google-services'
+}

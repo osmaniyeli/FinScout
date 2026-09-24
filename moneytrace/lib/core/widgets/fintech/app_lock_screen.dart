@@ -36,47 +36,12 @@ class _AppLockScreenState extends State<AppLockScreen>
         .chain(CurveTween(curve: Curves.elasticIn))
         .animate(_shakeController);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _autoTriggerBiometrics();
-    });
   }
 
   @override
   void dispose() {
     _shakeController.dispose();
     super.dispose();
-  }
-
-  Future<void> _autoTriggerBiometrics() async {
-    final auth = SecurityAuthService.instance;
-    if (auth.isLockedOut) return;
-
-    if (auth.isFingerprintEnabled) {
-      await _triggerBiometric(BiometricAuthType.fingerprint);
-    }
-  }
-
-  Future<void> _triggerBiometric(BiometricAuthType type) async {
-    if (_isVerifying) return;
-    setState(() {
-      _isVerifying = true;
-      _errorMessage = null;
-    });
-
-    final success = await SecurityAuthService.instance
-        .authenticateFingerprint(reason: 'FinScout Kasa Kilidi - Parmak İzi');
-
-    if (mounted) {
-      if (success) {
-        widget.onUnlocked();
-      } else {
-        setState(() {
-          _isVerifying = false;
-          _errorMessage =
-              'Biyometrik doğrulama başarısız oldu. Lütfen PIN kodunuzu girin.';
-        });
-      }
-    }
   }
 
   void _onDigitPressed(String digit) {
@@ -117,7 +82,7 @@ class _AppLockScreenState extends State<AppLockScreen>
           _isVerifying = false;
           _enteredDigits.clear();
           _errorMessage = SecurityAuthService.instance.isLockedOut
-              ? 'Çok fazla hatalı deneme! Lütfen 30 saniye bekleyin.'
+              ? 'Çok fazla hatalı deneme! Lütfen ${SecurityAuthService.instance.remainingLockoutSeconds} saniye bekleyin.'
               : 'Hatalı PIN kodu! Kalan deneme: ${5 - SecurityAuthService.instance.failedAttempts}';
         });
       }
@@ -127,8 +92,6 @@ class _AppLockScreenState extends State<AppLockScreen>
   @override
   Widget build(BuildContext context) {
     final userName = UserProfileService.instance.profile?.name ?? 'Kullanıcı';
-    final auth = SecurityAuthService.instance;
-    final hasBiometrics = auth.isFingerprintEnabled;
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
@@ -137,7 +100,7 @@ class _AppLockScreenState extends State<AppLockScreen>
           children: [
             const Spacer(flex: 2),
 
-            // Kalkan İkonu & Parıltı
+            // Kilit ikonu
             Container(
               width: 76,
               height: 76,
@@ -157,7 +120,7 @@ class _AppLockScreenState extends State<AppLockScreen>
               ),
               child: const Center(
                 child: Icon(
-                  Icons.shield_rounded,
+                  Icons.lock_rounded,
                   color: Color(0xFF10B981),
                   size: 38,
                 ),
@@ -178,7 +141,7 @@ class _AppLockScreenState extends State<AppLockScreen>
             ),
             const SizedBox(height: 6),
             const Text(
-              'FinScout Kasa Kilidi Aktif',
+              'Uygulama kilidi açık',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
@@ -188,7 +151,7 @@ class _AppLockScreenState extends State<AppLockScreen>
             ),
             const SizedBox(height: 4),
             const Text(
-              'Devam etmek için 4 haneli PIN kodunuzu girin veya biyometriği kullanın.',
+              'Devam etmek için 4 haneli PIN kodunuzu girin.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
@@ -265,43 +228,16 @@ class _AppLockScreenState extends State<AppLockScreen>
             const Spacer(flex: 3),
 
             // 3x4 Sayısal Tuş Takımı
-            _buildKeypad(hasBiometrics, auth),
+            _buildKeypad(),
 
             const Spacer(flex: 2),
-
-            // Biyometrik Yeniden Tetikleme Butonları (Tuş takımının altında alternatif)
-            if (hasBiometrics)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (auth.isFingerprintEnabled)
-                      TextButton.icon(
-                        onPressed: _isVerifying
-                            ? null
-                            : () => _triggerBiometric(
-                                BiometricAuthType.fingerprint),
-                        icon: const Icon(Icons.fingerprint_rounded,
-                            color: Color(0xFF34D399), size: 18),
-                        label: const Text(
-                          'Parmak İzi ile Aç',
-                          style: TextStyle(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF34D399)),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildKeypad(bool hasBiometrics, SecurityAuthService auth) {
+  Widget _buildKeypad() {
     return Container(
       constraints: const BoxConstraints(maxWidth: 320),
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -316,15 +252,8 @@ class _AppLockScreenState extends State<AppLockScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              // Sol alt köşe: Biyometrik kısayolu veya boşluk
-              if (auth.isFingerprintEnabled)
-                _buildActionButton(
-                  icon: Icons.fingerprint_rounded,
-                  color: const Color(0xFF34D399),
-                  onTap: () => _triggerBiometric(BiometricAuthType.fingerprint),
-                )
-              else
-                const SizedBox(width: 72, height: 72),
+              // Sol alt köşe: boşluk
+              const SizedBox(width: 72, height: 72),
 
               // 0 Rakamı
               _buildDigitButton('0'),

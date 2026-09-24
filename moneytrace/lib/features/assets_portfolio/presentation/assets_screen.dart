@@ -15,18 +15,20 @@ import '../repositories/assets_repository.dart';
 import '../../statement_upload/presentation/statement_upload_sheet.dart';
 import 'widgets/market_news_section.dart';
 import 'widgets/credit_card_action_sheet.dart';
+import 'widgets/card_payment_flow.dart';
+import '../../navigation/tab_add_actions.dart';
 
 class AssetsScreen extends StatefulWidget {
-  const AssetsScreen({Key? key}) : super(key: key);
+  const AssetsScreen({super.key});
 
   @override
   State<AssetsScreen> createState() => _AssetsScreenState();
 }
 
-class _AssetsScreenState extends State<AssetsScreen> {
+class _AssetsScreenState extends State<AssetsScreen> implements TabAddActions {
   final LiveMarketService _marketService = LiveMarketService.instance;
   final TransactionRepository _repository = TransactionRepository();
-  int _selectedTab = 0; // 0: Birikim, 1: Araç & Mülk, 2: Kartlar
+  int _selectedTab = 0; // 0: Birikim, 1: Araçlar, 2: Kartlar
 
   bool _isLoadingRates = false;
   Map<String, MarketTicker> _marketTickers = {};
@@ -40,6 +42,9 @@ class _AssetsScreenState extends State<AssetsScreen> {
 
   double _usdQuantity = 0.0;
   double _usdCostPrice = 0.0; // Alış Kuru ₺/$
+
+  double _eurQuantity = 0.0;
+  double _eurCostPrice = 0.0; // Alış Kuru ₺/€
 
   int _cashTryCents = 0;
 
@@ -56,7 +61,14 @@ class _AssetsScreenState extends State<AssetsScreen> {
   /// ama seçilemez; desteklenmeyen bir bankanın kartı "ekstre bekleniyor" durumunda asılı kalmasın.
   static const String _supportedBank = 'Yapı Kredi';
   static const List<String> _comingSoonBanks = [
-    'Akbank', 'Enpara', 'Garanti BBVA', 'Halkbank', 'İş Bankası', 'QNB', 'VakıfBank', 'Ziraat Bankası',
+    'Akbank',
+    'Enpara',
+    'Garanti BBVA',
+    'Halkbank',
+    'İş Bankası',
+    'QNB',
+    'VakıfBank',
+    'Ziraat Bankası',
   ];
 
   @override
@@ -92,6 +104,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
     final gram = _assets.holding('gram_altin');
     final ceyrek = _assets.holding('ceyrek_altin');
     final usd = _assets.holding('usd');
+    final eur = _assets.holding('eur');
     final cash = _assets.holding('nakit_tl');
     setState(() {
       _gramGoldQuantity = gram['quantity']!;
@@ -100,6 +113,8 @@ class _AssetsScreenState extends State<AssetsScreen> {
       _ceyrekGoldCostPrice = ceyrek['cost']!;
       _usdQuantity = usd['quantity']!;
       _usdCostPrice = usd['cost']!;
+      _eurQuantity = eur['quantity']!;
+      _eurCostPrice = eur['cost']!;
       _cashTryCents = (cash['quantity']! * 100).round();
       _userVehicles = _assets.vehicles;
     });
@@ -249,7 +264,8 @@ class _AssetsScreenState extends State<AssetsScreen> {
             accountId: a['id'] as String,
             label: [
               '${a['institution_name'] ?? 'Banka'} vadesiz',
-              if (((a['card_mask'] as String?) ?? '').isNotEmpty) a['card_mask'],
+              if (((a['card_mask'] as String?) ?? '').isNotEmpty)
+                a['card_mask'],
             ].join(' • '),
           ),
       ];
@@ -267,19 +283,8 @@ class _AssetsScreenState extends State<AssetsScreen> {
 
   /// Kart ödemesini kayda geçirir (nötr CARDPAYMENT). Hata fırlatılır; ödeme sayfası kullanıcıya gösterir.
   Future<void> _recordCardPayment(Map<String, dynamic> card, int paidCents,
-      PaymentSource source, DateTime date) async {
-    final bank = (card['bank'] ?? card['name']).toString();
-    await _repository.saveManualTransaction(
-      title: '$bank kart ödemesi',
-      amountCents: paidCents,
-      isExpense: true,
-      categoryId: 'cat_card_payment',
-      date: date,
-      note: '$bank kart ödemesi (${source.label})',
-      txKind: 'CARDPAYMENT',
-      accountId: source.accountId,
-    );
-  }
+          PaymentSource source, DateTime date) =>
+      CardPaymentFlow.record(_repository, card, paidCents, source, date);
 
   Widget _detailRow(String label, String value, {Color? color}) {
     return Padding(
@@ -484,8 +489,8 @@ class _AssetsScreenState extends State<AssetsScreen> {
   /// Yalnız limit düzenlenir; borç, kesim ve son ödeme ekstreden gelir (salt okunur).
   void _showEditLimitDialog(Map<String, dynamic> card) {
     final current = (card['limit_cents'] as num?)?.toInt() ?? 0;
-    final limitController = TextEditingController(
-        text: current > 0 ? _centsToInput(current) : '');
+    final limitController =
+        TextEditingController(text: current > 0 ? _centsToInput(current) : '');
     String? error;
 
     showDialog(
@@ -574,6 +579,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
   void _showAddCardDialog() {
     final limitController = TextEditingController();
     String? selectedBank = _supportedBank;
+    String? limitError;
 
     showDialog(
       context: context,
@@ -600,7 +606,8 @@ class _AssetsScreenState extends State<AssetsScreen> {
                         value: b,
                         enabled: false,
                         child: Text('$b · Yakında',
-                            style: const TextStyle(color: AppColors.textSecondary)),
+                            style: const TextStyle(
+                                color: AppColors.textSecondary)),
                       ),
                   ],
                   onChanged: (v) => setModalState(() => selectedBank = v),
@@ -610,8 +617,8 @@ class _AssetsScreenState extends State<AssetsScreen> {
                   controller: limitController,
                   keyboardType: TextInputType.number,
                   inputFormatters: const [ThousandsInputFormatter()],
-                  decoration:
-                      const InputDecoration(labelText: 'Kart Limiti (₺)'),
+                  decoration: InputDecoration(
+                      labelText: 'Kart Limiti (₺)', errorText: limitError),
                 ),
                 const SizedBox(height: 10),
                 const Text(
@@ -635,11 +642,9 @@ class _AssetsScreenState extends State<AssetsScreen> {
                 final limitCents =
                     CurrencyNormalizer.toMinorUnits(limitController.text);
                 if (bank.isEmpty || limitCents <= 0) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text('Banka ve kart limitini girin.')));
+                  setModalState(() => limitError = 'Kart limitini gir.');
                   return;
                 }
-                Navigator.pop(ctx);
                 try {
                   await _assets.upsertManualCard({
                     'id': 'mc_${DateTime.now().millisecondsSinceEpoch}',
@@ -647,9 +652,11 @@ class _AssetsScreenState extends State<AssetsScreen> {
                     'limit_cents': limitCents,
                   });
                 } catch (_) {
-                  _showError('Kart kaydedilemedi, tekrar dene.');
+                  setModalState(
+                      () => limitError = 'Kart kaydedilemedi, tekrar dene.');
                   return;
                 }
+                if (ctx.mounted) Navigator.pop(ctx);
                 await _loadCardsFromDb();
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -668,7 +675,60 @@ class _AssetsScreenState extends State<AssetsScreen> {
     );
   }
 
-  void _showSelectAssetToEditDialog() {
+  /// Birikim türleri: anahtar (AssetsRepository), başlık, birim, piyasa sembolü (LiveMarketService).
+  static const List<
+      ({
+        String key,
+        String title,
+        String unit,
+        String? symbol,
+        IconData icon,
+        Color color
+      })> _holdingTypes = [
+    (
+      key: 'gram_altin',
+      title: 'Gram Altın',
+      unit: 'gr',
+      symbol: 'ALTIN_GR',
+      icon: Icons.monetization_on_rounded,
+      color: Color(0xFFF59E0B)
+    ),
+    (
+      key: 'ceyrek_altin',
+      title: 'Çeyrek Altın',
+      unit: 'adet',
+      symbol: 'CEYREK',
+      icon: Icons.circle_rounded,
+      color: Color(0xFFEAB308)
+    ),
+    (
+      key: 'usd',
+      title: 'Amerikan Doları (USD)',
+      unit: 'USD',
+      symbol: 'USD',
+      icon: Icons.attach_money_rounded,
+      color: Color(0xFF10B981)
+    ),
+    (
+      key: 'eur',
+      title: 'Euro (EUR)',
+      unit: 'EUR',
+      symbol: 'EUR',
+      icon: Icons.euro_rounded,
+      color: Color(0xFF2563EB)
+    ),
+    (
+      key: 'nakit_tl',
+      title: 'TL Nakit',
+      unit: '₺',
+      symbol: null,
+      icon: Icons.account_balance_wallet_rounded,
+      color: AppColors.incomeGreen
+    ),
+  ];
+
+  /// "Varlık ekle": tür seç → miktar (+ isteğe bağlı alış fiyatı) → kaydet.
+  void _showAddSavingsSheet() {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -678,86 +738,248 @@ class _AssetsScreenState extends State<AssetsScreen> {
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
         padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 44,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE2E8F0),
-                  borderRadius: BorderRadius.circular(2),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 44,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE2E8F0),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
+              const SizedBox(height: 16),
+              const Text(
+                'Varlık ekle',
+                style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Türü seç; miktarı ve istersen alış fiyatını gir. Eldeki miktarın üstüne eklenir.',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 8),
+              for (final t in _holdingTypes)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(t.icon, color: t.color),
+                  title: Text(t.title,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w700, fontSize: 14)),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _showAddHoldingDialog(t.key);
+                  },
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Seçilen türe miktar ekler. Alış fiyatı verilirse ve eldeki miktarın maliyeti biliniyorsa
+  /// ağırlıklı ortalama maliyet tutulur; biri bilinmiyorsa maliyet "bilinmiyor" (0) olur, K/Z uydurulmaz.
+  void _showAddHoldingDialog(String key) {
+    final type = _holdingTypes.firstWhere((t) => t.key == key);
+    final isCash = key == 'nakit_tl';
+    final current = _assets.holding(key);
+    final oldQty = current['quantity']!;
+    final oldCost = current['cost']!;
+    final qtyController = TextEditingController();
+    final costController = TextEditingController();
+    String? qtyError;
+    String? saveError;
+    bool saving = false;
+
+    final qtyLabel = isCash
+        ? 'Eklenecek tutar (₺)'
+        : key == 'ceyrek_altin'
+            ? 'Adet'
+            : key == 'gram_altin'
+                ? 'Gram miktarı (gr)'
+                : 'Miktar (${type.unit})';
+    final costLabel = key == 'gram_altin'
+        ? 'Alış fiyatı (₺/gr, isteğe bağlı)'
+        : key == 'ceyrek_altin'
+            ? 'Alış fiyatı (₺/adet, isteğe bağlı)'
+            : 'Alış kuru (₺, isteğe bağlı)';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text('${type.title} ekle',
+              style:
+                  const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (oldQty > 0) ...[
+                  Text(
+                    isCash
+                        ? 'Şu an: ${CurrencyNormalizer.formatCents((oldQty * 100).round())}'
+                        : 'Şu an: ${_centsToInput((oldQty * 100).round())} ${type.unit}',
+                    style: const TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                TextField(
+                  controller: qtyController,
+                  autofocus: true,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: const [ThousandsInputFormatter()],
+                  decoration:
+                      InputDecoration(labelText: qtyLabel, errorText: qtyError),
+                  onChanged: (_) {
+                    if (qtyError != null) {
+                      setDialogState(() => qtyError = null);
+                    }
+                  },
+                ),
+                if (!isCash) ...[
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: costController,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: const [ThousandsInputFormatter()],
+                    decoration: InputDecoration(labelText: costLabel),
+                  ),
+                ],
+                if (saveError != null) ...[
+                  const SizedBox(height: 10),
+                  Text(saveError!,
+                      style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.expenseRed)),
+                ],
+              ],
             ),
-            const SizedBox(height: 16),
-            const Text(
-              'Düzenlenecek Varlığı Seçin',
-              style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'Miktarı ve istersen alış maliyetini gir.',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: const Icon(Icons.monetization_on_rounded,
-                  color: Color(0xFFF59E0B)),
-              title: const Text('Gram Altın',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-              trailing: const Icon(Icons.chevron_right_rounded),
-              onTap: () {
-                Navigator.pop(ctx);
-                _showEditAssetDialog('gram_altin');
-              },
-            ),
-            const Divider(height: 1),
-            ListTile(
-              leading:
-                  const Icon(Icons.circle_rounded, color: Color(0xFFEAB308)),
-              title: const Text('Çeyrek Altın',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-              trailing: const Icon(Icons.chevron_right_rounded),
-              onTap: () {
-                Navigator.pop(ctx);
-                _showEditAssetDialog('ceyrek_altin');
-              },
-            ),
-            const Divider(height: 1),
-            ListTile(
-              leading: const Icon(Icons.attach_money_rounded,
-                  color: Color(0xFF10B981)),
-              title: const Text('Amerikan Doları (USD)',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-              trailing: const Icon(Icons.chevron_right_rounded),
-              onTap: () {
-                Navigator.pop(ctx);
-                _showEditAssetDialog('usd');
-              },
-            ),
-            const Divider(height: 1),
-            ListTile(
-              leading: const Icon(Icons.account_balance_wallet_rounded,
-                  color: AppColors.incomeGreen),
-              title: const Text('TL Nakit Bakiye',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-              trailing: const Icon(Icons.chevron_right_rounded),
-              onTap: () {
-                Navigator.pop(ctx);
-                _showEditAssetDialog('nakit_tl');
-              },
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('İptal')),
+            FilledButton(
+              onPressed: saving
+                  ? null
+                  : () async {
+                      // Türkçe sayı biçimi: "10.000" on bin, "1.250,50" bin iki yüz elli virgül elli
+                      final addQty =
+                          CurrencyNormalizer.toMinorUnits(qtyController.text) /
+                              100.0;
+                      if (addQty <= 0) {
+                        setDialogState(() => qtyError =
+                            isCash ? 'Eklenecek tutarı gir.' : 'Miktarı gir.');
+                        return;
+                      }
+                      if (key == 'ceyrek_altin' &&
+                          addQty != addQty.roundToDouble()) {
+                        setDialogState(() =>
+                            qtyError = 'Çeyrek altın adedi tam sayı olmalı.');
+                        return;
+                      }
+                      final addCost = isCash
+                          ? 0.0
+                          : CurrencyNormalizer.toMinorUnits(
+                                  costController.text) /
+                              100.0;
+                      final newQty = oldQty + addQty;
+                      final double newCost;
+                      if (isCash) {
+                        newCost = 0;
+                      } else if (oldQty <= 0) {
+                        newCost = addCost;
+                      } else if (oldCost > 0 && addCost > 0) {
+                        newCost =
+                            (oldQty * oldCost + addQty * addCost) / newQty;
+                      } else {
+                        newCost = 0;
+                      }
+                      setDialogState(() {
+                        saving = true;
+                        saveError = null;
+                      });
+                      try {
+                        // Ekran, AssetsRepository.revision üzerinden kendini yeniler.
+                        await _assets.setHolding(key,
+                            quantity: newQty,
+                            cost: newCost,
+                            target: current['target']!);
+                      } catch (_) {
+                        setDialogState(() {
+                          saving = false;
+                          saveError = 'Kaydedilemedi, tekrar dene.';
+                        });
+                        return;
+                      }
+                      if (ctx.mounted) Navigator.pop(ctx);
+                      if (!mounted) return;
+                      setState(() => _selectedTab = 0);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: AppColors.incomeGreen,
+                          content: Text('${type.title} eklendi.'),
+                        ),
+                      );
+                    },
+              child: const Text('Kaydet'),
             ),
           ],
         ),
       ),
     );
   }
+
+  /// + menüsü (Varlıklar): ilgili bölmeye geçip o ekleme akışını açar.
+  @override
+  List<TabAddAction> get addActions => [
+        TabAddAction(
+          icon: Icons.savings_rounded,
+          title: 'Altın / döviz / nakit',
+          subtitle: 'Gram, çeyrek altın, USD, EUR, TL nakit',
+          onSelected: () {
+            setState(() => _selectedTab = 0);
+            _showAddSavingsSheet();
+          },
+        ),
+        TabAddAction(
+          icon: Icons.directions_car_rounded,
+          title: 'Araç',
+          subtitle: 'Marka, model ve güncel piyasa değeri',
+          onSelected: () {
+            setState(() => _selectedTab = 1);
+            _showVehicleDialog();
+          },
+        ),
+        TabAddAction(
+          icon: Icons.credit_card_rounded,
+          title: 'Kart (limit)',
+          subtitle: 'Kredi kartı limitini gir; ekstre gelince eşleşir',
+          onSelected: () {
+            setState(() => _selectedTab = 2);
+            _showAddCardDialog();
+          },
+        ),
+      ];
 
   void _showEditAssetDialog(String key) {
     String title = '';
@@ -789,11 +1011,18 @@ class _AssetsScreenState extends State<AssetsScreen> {
       costLabel = 'Alış kuru (₺, isteğe bağlı)';
       qtyController.text = input(_usdQuantity);
       costController.text = input(_usdCostPrice);
+    } else if (key == 'eur') {
+      title = 'Euro';
+      qtyLabel = 'Miktar (EUR)';
+      costLabel = 'Alış kuru (₺, isteğe bağlı)';
+      qtyController.text = input(_eurQuantity);
+      costController.text = input(_eurCostPrice);
     } else {
       title = 'TL Nakit';
       qtyLabel = 'Nakit bakiye (₺)';
       showCost = false;
-      qtyController.text = _cashTryCents > 0 ? _centsToInput(_cashTryCents) : '';
+      qtyController.text =
+          _cashTryCents > 0 ? _centsToInput(_cashTryCents) : '';
     }
 
     String? error;
@@ -828,6 +1057,11 @@ class _AssetsScreenState extends State<AssetsScreen> {
                     decoration: InputDecoration(labelText: costLabel),
                   ),
                 ],
+                const SizedBox(height: 8),
+                const Text(
+                  'Miktarı 0 yaparsan bu varlık listeden kalkar.',
+                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                ),
               ],
             ),
           ),
@@ -900,25 +1134,29 @@ class _AssetsScreenState extends State<AssetsScreen> {
     final gramGoldPrice = _valuationPrice('ALTIN_GR');
     final ceyrekGoldPrice = _valuationPrice('CEYREK');
     final usdPrice = _valuationPrice('USD');
+    final eurPrice = _valuationPrice('EUR');
 
     final int gramGoldTotalCents =
         (gramGoldPrice * _gramGoldQuantity * 100).round();
     final int ceyrekGoldTotalCents =
         (ceyrekGoldPrice * _ceyrekGoldQuantity * 100).round();
     final int usdTotalCents = (usdPrice * _usdQuantity * 100).round();
+    final int eurTotalCents = (eurPrice * _eurQuantity * 100).round();
 
     final int vehicleTotalCents = _userVehicles.fold(
         0, (sum, v) => sum + ((v['value_cents'] as num?)?.toInt() ?? 0));
     final int savingsTotalCents = gramGoldTotalCents +
         ceyrekGoldTotalCents +
         usdTotalCents +
+        eurTotalCents +
         _cashTryCents;
     final int totalWealthCents = savingsTotalCents + vehicleTotalCents;
 
     // Miktarı girilmiş ama kuru alınamamış varlık varsa toplamda eksik kalır; kullanıcıya söylenir.
     final bool missingRate = (_gramGoldQuantity > 0 && gramGoldPrice <= 0) ||
         (_ceyrekGoldQuantity > 0 && ceyrekGoldPrice <= 0) ||
-        (_usdQuantity > 0 && usdPrice <= 0);
+        (_usdQuantity > 0 && usdPrice <= 0) ||
+        (_eurQuantity > 0 && eurPrice <= 0);
 
     // Kâr / Zarar hesapları (yalnız alış maliyeti girildiyse ve kur varsa)
     final int gramGoldProfitCents = gramGoldTotalCents -
@@ -927,6 +1165,8 @@ class _AssetsScreenState extends State<AssetsScreen> {
         (_ceyrekGoldCostPrice * _ceyrekGoldQuantity * 100).round();
     final int usdProfitCents =
         usdTotalCents - (_usdCostPrice * _usdQuantity * 100).round();
+    final int eurProfitCents =
+        eurTotalCents - (_eurCostPrice * _eurQuantity * 100).round();
 
     String qtyText(double v) => _centsToInput((v * 100).round());
     String priceText(double p) =>
@@ -936,7 +1176,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
             ? '${profit >= 0 ? "+" : ""}${CurrencyNormalizer.formatCents(profit)}'
             : null;
 
-    final List<Map<String, dynamic>> assets = [
+    final List<Map<String, dynamic>> allAssets = [
       {
         'key': 'gram_altin',
         'title': 'Gram Altın',
@@ -952,6 +1192,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
         'is_profit': gramGoldProfitCents >= 0,
         'icon': Icons.monetization_on_rounded,
         'color': const Color(0xFFF59E0B),
+        'qty': _gramGoldQuantity,
       },
       {
         'key': 'ceyrek_altin',
@@ -968,6 +1209,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
         'is_profit': ceyrekGoldProfitCents >= 0,
         'icon': Icons.circle_rounded,
         'color': const Color(0xFFEAB308),
+        'qty': _ceyrekGoldQuantity.toDouble(),
       },
       {
         'key': 'usd',
@@ -979,11 +1221,29 @@ class _AssetsScreenState extends State<AssetsScreen> {
         'current_value': usdPrice > 0 || _usdQuantity == 0
             ? CurrencyNormalizer.formatCents(usdTotalCents)
             : '—',
-        'profit_text': profitText(
-            _usdCostPrice, usdPrice, _usdQuantity, usdProfitCents),
+        'profit_text':
+            profitText(_usdCostPrice, usdPrice, _usdQuantity, usdProfitCents),
         'is_profit': usdProfitCents >= 0,
         'icon': Icons.attach_money_rounded,
         'color': const Color(0xFF10B981),
+        'qty': _usdQuantity,
+      },
+      {
+        'key': 'eur',
+        'title': 'Euro (EUR)',
+        'amount': '${qtyText(_eurQuantity)} EUR',
+        'cost': _eurCostPrice > 0
+            ? 'Maliyet: ${priceText(_eurCostPrice)}'
+            : 'Alış kuru: ${priceText(eurPrice)}',
+        'current_value': eurPrice > 0 || _eurQuantity == 0
+            ? CurrencyNormalizer.formatCents(eurTotalCents)
+            : '—',
+        'profit_text':
+            profitText(_eurCostPrice, eurPrice, _eurQuantity, eurProfitCents),
+        'is_profit': eurProfitCents >= 0,
+        'icon': Icons.euro_rounded,
+        'color': const Color(0xFF2563EB),
+        'qty': _eurQuantity,
       },
       {
         'key': 'nakit_tl',
@@ -995,8 +1255,12 @@ class _AssetsScreenState extends State<AssetsScreen> {
         'is_profit': true,
         'icon': Icons.account_balance_wallet_rounded,
         'color': AppColors.incomeGreen,
+        'qty': _cashTryCents / 100.0,
       },
     ];
+    // Yalnız eldeki varlıklar listelenir; yenisi "Varlık ekle" ile eklenir.
+    final assets =
+        allAssets.where((a) => (a['qty'] as double) > 0).toList();
 
     // Kurun kaynağı ve kaynaktaki güncellenme zamanı
     final rateTimes = _marketTickers.values.map((t) => t.lastUpdated).toList()
@@ -1118,8 +1382,10 @@ class _AssetsScreenState extends State<AssetsScreen> {
                     children: [
                       _buildTickerChip('USD/TRY', _marketTickers['USD']),
                       _buildTickerChip('EUR/TRY', _marketTickers['EUR']),
-                      _buildTickerChip('Gram Altın', _marketTickers['ALTIN_GR']),
-                      _buildTickerChip('Çeyrek Altın', _marketTickers['CEYREK']),
+                      _buildTickerChip(
+                          'Gram Altın', _marketTickers['ALTIN_GR']),
+                      _buildTickerChip(
+                          'Çeyrek Altın', _marketTickers['CEYREK']),
                     ],
                   ),
                 ),
@@ -1150,10 +1416,10 @@ class _AssetsScreenState extends State<AssetsScreen> {
                           color: AppColors.textPrimary),
                     ),
                     TextButton.icon(
-                      onPressed: () => _showSelectAssetToEditDialog(),
-                      icon: const Icon(Icons.edit_rounded,
+                      onPressed: _showAddSavingsSheet,
+                      icon: const Icon(Icons.add_rounded,
                           size: 16, color: AppColors.actionPrimary),
-                      label: const Text('Düzenle',
+                      label: const Text('Varlık ekle',
                           style: TextStyle(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w700,
@@ -1163,6 +1429,38 @@ class _AssetsScreenState extends State<AssetsScreen> {
                 ),
                 const SizedBox(height: 10),
 
+                if (assets.isEmpty)
+                  FinanceCard(
+                    padding: const EdgeInsets.all(24),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          const Icon(Icons.savings_outlined,
+                              size: 36, color: Color(0xFF94A3B8)),
+                          const SizedBox(height: 8),
+                          const Text('Henüz birikim eklenmedi',
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textPrimary)),
+                          const SizedBox(height: 4),
+                          const Text(
+                              'Altın, döviz ya da nakit ekle; güncel kurla değeri hesaplanır.',
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary),
+                              textAlign: TextAlign.center),
+                          const SizedBox(height: 12),
+                          FilledButton.icon(
+                            onPressed: _showAddSavingsSheet,
+                            icon: const Icon(Icons.add_rounded, size: 16),
+                            label: const Text('Varlık ekle'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
                 FinanceCard(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
@@ -1255,7 +1553,6 @@ class _AssetsScreenState extends State<AssetsScreen> {
                 ),
                 const SizedBox(height: 16),
                 const MarketNewsSection(),
-
               ] else if (_selectedTab == 1) ...[
                 _buildVehiclesView(),
               ] else ...[
@@ -1360,9 +1657,9 @@ class _AssetsScreenState extends State<AssetsScreen> {
           ..._userVehicles.map((v) {
             final fuel = v['fuel_type'] as String;
             Color badgeColor = Colors.grey;
-            if (fuel == 'Elektrik')
+            if (fuel == 'Elektrik') {
               badgeColor = const Color(0xFF00D084);
-            else if (fuel == 'Dizel')
+            } else if (fuel == 'Dizel')
               badgeColor = const Color(0xFF475569);
             else if (fuel == 'Benzin')
               badgeColor = const Color(0xFFF97316);
@@ -1460,7 +1757,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
                 ),
               ),
             );
-          }).toList(),
+          }),
       ],
     );
   }
@@ -1504,6 +1801,8 @@ class _AssetsScreenState extends State<AssetsScreen> {
         TextEditingController(text: _digitsOf(existing?['monthly_cost_cents']));
     String? selectedFuel = existing?['fuel_type'] as String?;
     final isEdit = existing != null;
+    // Eksik alan / kayıt hatası diyaloğun içinde gösterilir (SnackBar diyaloğun arkasında kalırdı).
+    String? formError;
 
     showDialog(
       context: context,
@@ -1625,6 +1924,14 @@ class _AssetsScreenState extends State<AssetsScreen> {
                     decoration: const InputDecoration(
                         labelText: 'Aylık Bakım / Yakıt (₺, isteğe bağlı)')),
                 const SizedBox(height: 10),
+                if (formError != null) ...[
+                  Text(formError!,
+                      style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.expenseRed)),
+                  const SizedBox(height: 6),
+                ],
                 const Text(
                   '6 ayda bir piyasa değerini ve kilometreyi güncellemen için hatırlatma gönderilir.',
                   style: TextStyle(
@@ -1667,13 +1974,15 @@ class _AssetsScreenState extends State<AssetsScreen> {
                     : (model ?? '');
                 final valueCents =
                     CurrencyNormalizer.toMinorUnits(valueController.text);
-                if (brandName.isEmpty ||
-                    modelName.isEmpty ||
-                    selectedFuel == null ||
-                    valueCents <= 0) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text(
-                          'Marka, model, yakıt tipi ve piyasa değerini girin.')));
+                final missing = [
+                  if (brandName.isEmpty) 'marka',
+                  if (modelName.isEmpty) 'model',
+                  if (selectedFuel == null) 'yakıt tipi',
+                  if (valueCents <= 0) 'piyasa değeri',
+                ];
+                if (missing.isNotEmpty) {
+                  setModalState(() =>
+                      formError = 'Eksik: ${missing.join(', ')}.');
                   return;
                 }
                 final vehicle = <String, dynamic>{
@@ -1691,13 +2000,14 @@ class _AssetsScreenState extends State<AssetsScreen> {
                       CurrencyNormalizer.toMinorUnits(costController.text),
                   'updated_at': DateTime.now().toIso8601String(),
                 };
-                Navigator.pop(ctx);
                 try {
                   await _assets.upsertVehicle(vehicle);
                 } catch (_) {
-                  _showError('Araç kaydedilemedi, tekrar dene.');
+                  setModalState(
+                      () => formError = 'Araç kaydedilemedi, tekrar dene.');
                   return;
                 }
+                if (ctx.mounted) Navigator.pop(ctx);
                 await NotificationService.instance.requestPermission();
                 await _scheduleVehicleReminder(vehicle);
                 if (!mounted) return;
@@ -1748,7 +2058,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
           id: 'vehicle_update_${v['id']}_${due.year}_${due.month}',
           title: 'Araç değerini güncelle',
           message:
-              '${v['brand']} ${v['model']} için son güncellemenin üzerinden 6 ay geçti. Varlıklar > Araç & Mülk bölümünden piyasa değerini ve kilometreyi güncelle.',
+              '${v['brand']} ${v['model']} için son güncellemenin üzerinden 6 ay geçti. Varlıklar › Araçlar bölümünden piyasa değerini ve kilometreyi güncelle.',
         );
       } else {
         await _scheduleVehicleReminder(v);
@@ -2005,7 +2315,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
               ),
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }

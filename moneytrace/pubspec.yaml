@@ -1,7 +1,7 @@
 name: moneytrace
 description: "Paraİz (MoneyTrace) - Deterministik Veri Motoru & Harcama Zekası Platformu"
 publish_to: 'none'
-version: 3.7.0+6
+version: 3.7.1+7
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -34,7 +34,6 @@ dependencies:
   # Google Play Billing & Widget
   in_app_purchase: ^3.2.0
   home_widget: ^0.6.0
-  local_auth: ^3.0.2
   flutter_secure_storage: ^10.3.4
   flutter_local_notifications: ^22.3.1
   timezone: ^0.11.1
@@ -44,6 +43,8 @@ dependencies:
   in_app_purchase_android: 0.5.3
   supabase_flutter: ^2.17.2
   google_sign_in: ^7.2.0
+  firebase_core: ^4.15.0
+  firebase_messaging: ^16.7.0
 
 dev_dependencies:
   flutter_test:
@@ -57,3 +58,4 @@ flutter:
     - assets/dictionaries/
     - assets/sql/
     - assets/config/
+    - assets/banks/

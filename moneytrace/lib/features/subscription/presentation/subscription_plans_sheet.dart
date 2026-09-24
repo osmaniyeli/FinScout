@@ -3,14 +3,15 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/config/app_links.dart';
 import '../../../core/widgets/pulse_metric_badge.dart';
 import '../services/subscription_service.dart';
+import '../../family/presentation/family_screen.dart';
 
 class SubscriptionPlansSheet extends StatefulWidget {
   final VoidCallback? onSubscriptionUpdated;
 
   const SubscriptionPlansSheet({
-    Key? key,
+    super.key,
     this.onSubscriptionUpdated,
-  }) : super(key: key);
+  });
 
   static void show(BuildContext context,
       {VoidCallback? onSubscriptionUpdated}) {
@@ -113,8 +114,7 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           backgroundColor: AppColors.actionPrimary,
-          content: Text(
-              'Aboneliğin sunucuda doğrulandı ve etkin.'),
+          content: Text('Aboneliğin sunucuda doğrulandı ve etkin.'),
         ),
       );
     }
@@ -167,9 +167,9 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
                           color: Color(0xFFD97706), size: 24),
                     ),
                     const SizedBox(width: 12),
-                    Column(
+                    const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
                           'FinScout Premium Paketleri',
                           style: TextStyle(
@@ -282,6 +282,19 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
                           color: AppColors.textSecondary,
                           height: 1.3),
                     ),
+                    if (isFamily)
+                      TextButton.icon(
+                        onPressed: () => FamilyScreen.showHowItWorks(context),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: const Size(0, 32),
+                          foregroundColor: AppColors.incomeGreen,
+                        ),
+                        icon: const Icon(Icons.help_outline_rounded, size: 16),
+                        label: const Text('Aile nasıl çalışır?',
+                            style: TextStyle(
+                                fontSize: 12, fontWeight: FontWeight.w700)),
+                      ),
                     if (_service.hasTrial(pkg.identifier) && !isCurrent) ...[
                       const SizedBox(height: 6),
                       const Text(
@@ -330,7 +343,7 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
                   ],
                 ),
               );
-            }).toList(),
+            }),
 
             const SizedBox(height: 10),
 
@@ -363,14 +376,17 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
               alignment: WrapAlignment.center,
               children: [
                 TextButton(
-                  onPressed: () => AppLinks.open(AppLinks.manageSubscriptions()),
+                  onPressed: () =>
+                      AppLinks.open(AppLinks.manageSubscriptions()),
                   child: const Text('Aboneliği yönet / iptal et',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                 ),
                 TextButton(
                   onPressed: () => AppLinks.open(AppLinks.privacyPolicy),
                   child: const Text('Gizlilik politikası',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                 ),
               ],
             ),

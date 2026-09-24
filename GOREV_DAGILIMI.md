@@ -9,6 +9,7 @@ Genel kurallar (`AGENTS.md` ile aynı):
 - `pubspec.yaml`, `android/`, `ios/` dosyalarına **yalnızca Claude** dokunur. Paket gerekiyorsa talep et.
 - Bitirdiğin her görevden sonra `cd moneytrace; flutter analyze` çalıştır; yeni **error** bırakma.
 - Commit atma; kullanıcı inceleyip commit edecek.
+- **Klasör taşıma / yeniden adlandırma YAPMA.** Uygulama `moneytrace/` altında kalır (CI, testler ve betikler bu yola bağlı). 24.09 23:27'de uygulama köke taşındı ve geri alındı.
 - `dart format` / `dart fix --apply` komutlarını **repo geneline çalıştırma**; yalnızca kendi dosyalarına ver
   (ör. `dart format lib/features/quick_entry`). Aksi halde diğer ajanın üzerinde çalıştığı dosyalar ezilir.
 - Görev bitince aşağıdaki tabloda durumu `✅` yap ve 1-2 cümle not düş.
@@ -24,6 +25,7 @@ manifest'e **eklendi**.
 
 | Alan | Sahip |
 |---|---|
+| `pazarlama/**` (reklam, ASO, görsel brifleri), `icerik/**` (rehber, SSS, bildirim şablonları) | **Gemini** |
 | `lib/core/parser/**`, `lib/core/database/**`, `assets/sql/**` | Claude |
 | `lib/features/statement_upload/**` | Claude |
 | `lib/core/services/security_auth_service.dart`, `lib/main.dart` | Claude |
@@ -133,6 +135,8 @@ kullanıcıya **bedava premium veriyor**. Bunu kaldır:
 | G3 Bildirimler | Gemini (API köprüsü) → Claude inceleme | ✅ | Gemini üretti, Claude inceledi. v22'de olmayan uydurma parametre çıkarıldı; hata dayanıklılığı + Android 13 izin isteği eklendi; kart son ödeme/talimat hatırlatıcıları main.dart ve ekstre içe aktarmaya bağlandı. |
 | G4 Billing | Gemini (API köprüsü) → Claude inceleme | ✅ | Gemini üretti, Claude inceledi. Bedava premium kaldırıldı; iptal/süresi dolan aboneliği geri almayan açık kapatıldı (mağaza doğrulaması). |
 | G5 Küçük akışlar | Gemini (API köprüsü) → Claude inceleme | ✅ | Gemini üretti, Claude inceledi. Aile üyeleri kalıcı, bülten mailto, yedek dosyadan geri yükleme (vazgeçilirse yapıştırma yolu). |
+| G6 Reklam çalışması | Gemini (API köprüsü + yan panel) → Claude denetimi → kullanıcı onayı | 🟡 taslak | Brifing: `pazarlama/REKLAM_BRIFING.md`. Taslaklar: `pazarlama/reklam_plani.md`, `reklam_metinleri.md`, `aso_onerileri.md`, `gorsel_brifi.md`. Claude denetimi: "%100 yerel", "veriler dışarı çıkmaz" gibi aşırı iddialar ve 90 karakteri aşan 2 açıklama düzeltildi. Yan panel yalnız `pazarlama/` altına yazar; reklam harcaması üretim yayınından önce başlamaz. |
+| G7 Aile rehberi + bildirim şablonları | Gemini (API köprüsü) → Claude denetimi → kullanıcı onayı | 🟡 taslak | `icerik/aile_rehberi.md` (Nasıl çalışır + 8 SSS), `icerik/bildirim_sablonlari.md` (12 push şablonu). Claude: 120 karakteri aşan 4 metin kısaltıldı; "internet gerekmeden" (kota sunucuda, yanlış) ve "iptalde haklar hemen biter" (dönem sonuna kadar sürer) düzeltildi. Yan panel yalnız `icerik/` ve `pazarlama/` altına yazar. |
 
 ## Notlar / Talepler
 (Buraya "X paketine ihtiyacım var", "main.dart'a şunu ekle" gibi talepleri yaz.)

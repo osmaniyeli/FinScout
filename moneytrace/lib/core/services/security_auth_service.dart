@@ -6,17 +6,11 @@ import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:local_auth/local_auth.dart';
 import 'package:path_provider/path_provider.dart';
 import '../security/aes_cipher.dart';
 
-/// Uygulama yalnızca parmak izi (sistem BiometricPrompt) destekler; yüz tanıma v3.6.1'de kaldırıldı.
-enum BiometricAuthType {
-  fingerprint,
-}
-
-/// Kasa kilidi: PIN + cihaz biyometrisi (Android BiometricPrompt / iOS LocalAuthentication).
-/// Tüm ayarlar ve PIN hash'i Android Keystore / iOS Keychain destekli güvenli depoda tutulur.
+/// Uygulama kilidi: yalnız PIN (parmak izi / yüz tanıma kaldırıldı).
+/// PIN hash'i (PBKDF2) Android Keystore / iOS Keychain destekli güvenli depoda tutulur.
 class SecurityAuthService {
   static final SecurityAuthService instance = SecurityAuthService._internal();
 
@@ -26,10 +20,8 @@ class SecurityAuthService {
   static const int _pinIterations = 20000;
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-  final LocalAuthentication _localAuth = LocalAuthentication();
 
   bool _isInitialized = false;
-  bool _isFingerprintEnabled = false;
   bool _isPinEnabled = false;
   String? _hashedPin;
   String? _salt;
@@ -37,20 +29,19 @@ class SecurityAuthService {
   int _failedAttempts = 0;
   DateTime? _lockedUntil;
 
-  final ValueNotifier<bool> isFingerprintEnabledNotifier = ValueNotifier<bool>(false);
   final ValueNotifier<bool> isPinEnabledNotifier = ValueNotifier<bool>(false);
   final ValueNotifier<bool> hasPinSetNotifier = ValueNotifier<bool>(false);
 
-  bool get isFingerprintEnabled => _isFingerprintEnabled;
   bool get isPinEnabled => _isPinEnabled && hasPinSet;
   bool get hasPinSet => _hashedPin != null && _hashedPin!.isNotEmpty;
-  bool get isAnySecurityActive => _isFingerprintEnabled || isPinEnabled;
+  /// Kilit yalnız PIN tanımlı ve açıksa devrededir (eski parmak izi ayarı yok sayılır).
+  bool get isAnySecurityActive => isPinEnabled;
 
   int get failedAttempts => _failedAttempts;
   bool get isLockedOut => _lockedUntil != null && DateTime.now().isBefore(_lockedUntil!);
   int get remainingLockoutSeconds => isLockedOut ? _lockedUntil!.difference(DateTime.now()).inSeconds : 0;
 
-  /// v1 sürümündeki düz JSON kasa dosyası (yalnızca tek seferlik göç için okunur, sonra silinir)
+  /// v1 sürümündeki düz JSON güvenlik dosyası (yalnızca tek seferlik göç için okunur, sonra silinir)
   Future<File> _getLegacyVaultFile() async {
     final docsDir = await getApplicationDocumentsDirectory();
     return File('${docsDir.path}/paraiz_security_vault.json');
@@ -68,8 +59,8 @@ class SecurityAuthService {
       }
 
       if (data != null) {
-        // Yüz tanıma kaldırıldı: onu açmış kullanıcılar kilitsiz kalmasın diye parmak izine devredilir
-        _isFingerprintEnabled = (data['fingerprint_enabled'] ?? false) || (data['face_id_enabled'] ?? false);
+        // Eski sürümlerden kalan 'fingerprint_enabled' / 'face_id_enabled' alanları bilerek yok sayılır:
+        // parmak izi kaldırıldı; PIN'i olmayan kullanıcının kilidi kendiliğinden kalkar.
         _isPinEnabled = data['pin_enabled'] ?? false;
         _hashedPin = data['hashed_pin'];
         _salt = data['salt'];
@@ -102,7 +93,6 @@ class SecurityAuthService {
   }
 
   void _syncNotifiers() {
-    isFingerprintEnabledNotifier.value = _isFingerprintEnabled;
     isPinEnabledNotifier.value = _isPinEnabled && hasPinSet;
     hasPinSetNotifier.value = hasPinSet;
   }
@@ -110,7 +100,6 @@ class SecurityAuthService {
   Future<void> _persist() async {
     try {
       final data = {
-        'fingerprint_enabled': _isFingerprintEnabled,
         'pin_enabled': _isPinEnabled,
         'hashed_pin': _hashedPin,
         'salt': _salt,
@@ -221,52 +210,6 @@ class SecurityAuthService {
     }
   }
 
-  /// Cihazda kayıtlı biyometri (parmak izi / yüz) var mı?
-  Future<bool> isBiometricAvailable() async {
-    try {
-      final supported = await _localAuth.isDeviceSupported();
-      final canCheck = await _localAuth.canCheckBiometrics;
-      if (!supported || !canCheck) return false;
-      final enrolled = await _localAuth.getAvailableBiometrics();
-      return enrolled.isNotEmpty;
-    } catch (e) {
-      debugPrint('Biyometri kontrol hatasi: $e');
-      return false;
-    }
-  }
-
-  /// Biyometrik kilidi açmadan önce cihaz uyumluluğunu kontrol edip gerçek doğrulama ister.
-  /// Başarılıysa null, değilse kullanıcıya gösterilecek hata mesajını döndürür.
-  Future<String?> enableBiometric(BiometricAuthType type) async {
-    try {
-      if (!await _localAuth.isDeviceSupported() || !await _localAuth.canCheckBiometrics) {
-        return 'Bu cihazda biyometrik sensör bulunamadı.';
-      }
-      final enrolled = await _localAuth.getAvailableBiometrics();
-      if (enrolled.isEmpty) {
-        return 'Cihazınızda kayıtlı parmak izi yok. Lütfen önce telefon ayarlarından ekleyin.';
-      }
-    } catch (e) {
-      return 'Biyometrik donanım kontrol edilemedi: $e';
-    }
-
-    final result = await _authenticate(
-      reason: 'Parmak izini etkinleştirmek için doğrulayın',
-      biometricOnly: true,
-    );
-    if (result != null) return result;
-
-    await setFingerprintEnabled(true);
-    return null;
-  }
-
-  /// Parmak İzi (Touch ID / Fingerprint) Şalterini Aç/Kapat
-  Future<void> setFingerprintEnabled(bool enabled) async {
-    _isFingerprintEnabled = enabled;
-    isFingerprintEnabledNotifier.value = enabled;
-    await _persist();
-  }
-
   /// PIN Girişi Şalterini Aç/Kapat
   Future<void> setPinEnabled(bool enabled) async {
     _isPinEnabled = enabled;
@@ -274,58 +217,8 @@ class SecurityAuthService {
     await _persist();
   }
 
-  /// Sistem biyometrik diyaloğunu açar. Başarılıysa null, değilse hata mesajı döner.
-  /// [biometricOnly] false ise cihaz PIN/desen/şifresi yedek yöntem olarak kabul edilir.
-  Future<String?> _authenticate({required String reason, bool biometricOnly = false}) async {
-    if (isLockedOut) return 'Çok fazla hatalı deneme. Lütfen bekleyin.';
-    try {
-      final ok = await _localAuth.authenticate(
-        localizedReason: reason,
-        biometricOnly: biometricOnly,
-        persistAcrossBackgrounding: true,
-      );
-      if (ok) {
-        _failedAttempts = 0;
-        _lockedUntil = null;
-        return null;
-      }
-      return 'Biyometrik doğrulama başarısız oldu.';
-    } on LocalAuthException catch (e) {
-      switch (e.code) {
-        case LocalAuthExceptionCode.userCanceled:
-        case LocalAuthExceptionCode.systemCanceled:
-          return 'Doğrulama iptal edildi.';
-        case LocalAuthExceptionCode.noBiometricsEnrolled:
-          return 'Cihazınızda kayıtlı parmak izi veya yüz yok.';
-        case LocalAuthExceptionCode.noBiometricHardware:
-          return 'Bu cihazda biyometrik sensör bulunamadı.';
-        case LocalAuthExceptionCode.noCredentialsSet:
-          return 'Cihazınızda ekran kilidi tanımlı değil.';
-        default:
-          return 'Biyometrik doğrulama kullanılamıyor (${e.code.name}).';
-      }
-    } catch (e) {
-      debugPrint('Biyometrik doğrulama hatasi: $e');
-      return 'Biyometrik doğrulama kullanılamıyor.';
-    }
-  }
-
-  /// Parmak izi doğrulama köprüsü
-  Future<bool> authenticateFingerprint({required String reason}) async {
-    return await _authenticate(reason: reason) == null;
-  }
-
-  /// Genel biyometrik çağrısı (önceki kodlarla geriye dönük uyumluluk için)
-  Future<bool> authenticateBiometric({
-    required String reason,
-    BiometricAuthType? specificType,
-  }) async {
-    return await _authenticate(reason: reason) == null;
-  }
-
-  /// "Tüm verileri sıfırla" akışı için kasa kilidini tamamen temizler
+  /// "Tüm verileri sıfırla" akışı için uygulama kilidini tamamen temizler
   Future<void> resetAll() async {
-    _isFingerprintEnabled = false;
     _isPinEnabled = false;
     _hashedPin = null;
     _salt = null;
