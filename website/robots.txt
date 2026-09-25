@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://osmaniyeli.github.io/FinScout/sitemap.xml

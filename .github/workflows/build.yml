@@ -3,6 +3,7 @@ name: Build Release APK & AAB
 on:
   push:
     branches: [ main ]
+    paths-ignore: ['website/**', '.github/workflows/pages.yml']
   workflow_dispatch:
 
 # Aynı anda iki derleme Play'e yarışarak yükleme yapmasın

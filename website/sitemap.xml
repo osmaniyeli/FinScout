@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://osmaniyeli.github.io/FinScout/</loc>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://osmaniyeli.github.io/FinScout/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://osmaniyeli.github.io/FinScout/en/"/>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://osmaniyeli.github.io/FinScout/en/</loc>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://osmaniyeli.github.io/FinScout/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://osmaniyeli.github.io/FinScout/en/"/>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://osmaniyeli.github.io/FinScout/gizlilik.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://osmaniyeli.github.io/FinScout/kullanim-sartlari.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://osmaniyeli.github.io/FinScout/hesap-silme.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://osmaniyeli.github.io/FinScout/destek.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+</urlset>
