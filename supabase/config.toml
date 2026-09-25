@@ -159,7 +159,7 @@ site_url = "http://localhost:3000"
 # The public URL that Auth serves on. Defaults to the API external URL with `/auth/v1` appended.
 # external_url = ""
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = []
+additional_redirect_urls = ["com.moneytrace.app://login-callback"]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to auth.external_url.
@@ -343,7 +343,7 @@ max_frequency = "5s"
 [auth.external.google]
 enabled = true
 client_id = "454506681574-mqon8e4h6n6jr1rst6ae477lgetskkd3.apps.googleusercontent.com,454506681574-kpfbsalhk2bgk7jronlmjjo2ovq3ip9k.apps.googleusercontent.com"
-secret = ""
+secret = "env(GOOGLE_WEB_CLIENT_SECRET)"
 redirect_uri = ""
 url = ""
 skip_nonce_check = true
