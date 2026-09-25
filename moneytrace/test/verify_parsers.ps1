@@ -272,9 +272,9 @@ foreach ($item in $testDescriptions) {
 }
 
 # ---------------------------------------------------------------
-# 8. DATA EXPORT (UTF-8 BOM CSV, PETITION & VAULT JSON)
+# 8. DATA EXPORT (UTF-8 BOM CSV & PETITION)
 # ---------------------------------------------------------------
-Write-Host "`n--- TEST 8: Data Export UTF-8 BOM CSV, Petition & Vault JSON ---" -ForegroundColor Yellow
+Write-Host "`n--- TEST 8: Data Export UTF-8 BOM CSV & Petition ---" -ForegroundColor Yellow
 
 # 1. UTF-8 BOM CSV Validation
 $csvBuffer = [System.Text.StringBuilder]::new()
@@ -308,23 +308,6 @@ $hasLawReference = $petitionText.Contains("6502 sayılı Tüketicinin Korunması
 $hasCourtPrecedent = $petitionText.Contains("Yargıtay 13. Hukuk Dairesi")
 $hasFeeMatch = $petitionText.Contains($feeAmountStr)
 Assert-Test -Name "Legal Refund Petition Law & Precedent Reference" -Condition ($hasLawReference -and $hasCourtPrecedent -and $hasFeeMatch) -Details "Contains Law 6502, Court of Cassation precedent and fee amount"
-
-# 3. Vault JSON Envelope Validation
-$vaultJson = @"
-{
-  "app": "ParaIz (MoneyTrace)",
-  "version": "1.0.0",
-  "vault_format": "zero_knowledge_v1",
-  "metrics": { "total_transactions": 142 },
-  "data": {
-    "accounts": [{ "id": "acc_1" }],
-    "transactions": [{ "id": "tx_1", "billing_amount_cents": 45050 }]
-  }
-}
-"@
-$parsedVault = $vaultJson | ConvertFrom-Json
-$isValidVault = ($parsedVault.app -eq "ParaIz (MoneyTrace)" -and $parsedVault.metrics.total_transactions -eq 142 -and $parsedVault.data.transactions.Count -eq 1)
-Assert-Test -Name "JSON Vault Backup Envelope Structure" -Condition $isValidVault -Details "Valid zero-knowledge backup archive schema confirmed"
 
 # ---------------------------------------------------------------
 # 9. UX, BUTTON AUDIT, COLLISION DEFENSE & SECURITY CONSTRAINTS
@@ -623,6 +606,10 @@ foreach ($wName in $expectedWidgets) {
 }
 $allWidgetsValid = ($validWidgetCount -eq 12)
 Assert-Test -Name "Decorative Widget Set Reduced to Functional Ones" -Condition ((-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/compact_smart_insight_banner.dart"))) -and (-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/dynamic_island_capsule.dart"))) -and (-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/in_app_notification_sheet.dart"))) -and (-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/daily_streak_modal.dart"))) -and (-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/morphing_share_button.dart"))) -and (-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/interactive_file_upload_button.dart"))) -and (-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/radar_checkout_button.dart"))) -and (-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/streak_confetti_burst.dart")))) -Details "Removed: compact_smart_insight_banner.dart, dynamic_island_capsule.dart, in_app_notification_sheet.dart, daily_streak_modal.dart, morphing_share_button.dart, interactive_file_upload_button.dart, radar_checkout_button.dart, streak_confetti_burst.dart"
+# Analiz "LIDER %32" benzeri koyu, yanip sonen rozetler (PulseMetricBadge) tum ekranlardan kaldirildi (2026-09-25)
+$pulseBadgeFile = Join-Path $PSScriptRoot "../lib/core/widgets/pulse_metric_badge.dart"
+$pulseBadgeUsers = @(Get-ChildItem -Path (Join-Path $PSScriptRoot "../lib") -Recurse -Filter *.dart | Select-String -Pattern "PulseMetricBadge" -SimpleMatch)
+Assert-Test -Name "No Decorative Pulse Badges (LIDER / plan / savings pills)" -Condition ((-not (Test-Path $pulseBadgeFile)) -and ($pulseBadgeUsers.Count -eq 0)) -Details "pulse_metric_badge.dart removed; no PulseMetricBadge usage left in lib/ (found: $($pulseBadgeUsers.Count))"
 
 # 2. MainNavigationScaffold Floating Capsule Bar Integration
 $navScaffoldPath = Join-Path $PSScriptRoot "../lib/features/navigation/main_navigation_scaffold.dart"
@@ -677,17 +664,23 @@ $hasGoalsInteractions = $goalsText.Contains("MorphingSegmentedBar") -and `
                         $goalRepoText.Contains("Future<void> deleteGoal(")
 Assert-Test -Name "Goals Module: Plain Actions, Edit & Delete" -Condition $hasGoalsInteractions -Details "No RadarCheckoutButton/confetti; GoalRepository has updateGoal/deleteGoal; GoalsScreen listens to DataChanges"
 
-# 6. Settings Screen Laser Shimmer, Morph Share & Radar Vault
+# 6. Settings Screen: CSV Report Only (backup/restore removed 2026-09-25)
 $settingsPath = Join-Path $PSScriptRoot "../lib/features/settings/presentation/settings_screen.dart"
 $settingsText = if (Test-Path $settingsPath) { [System.IO.File]::ReadAllText($settingsPath) } else { "" }
-# Yedek/geri yükleme/CSV başarıyı yalnız gerçek sonuçtan sonra bildirir; sahte animasyonlu düğme yok.
+# Yedek al / yedekten geri yukle kartlari kaldirildi; yalniz CSV raporu kalir, sahte animasyonlu dugme yok.
 # Play politikası: abonelik yönetimi ve gizlilik politikası bağlantıları uygulama içinde.
 $hasSettingsInteractions = -not $settingsText.Contains("MorphingShareButton") -and `
                            -not $settingsText.Contains("RadarCheckoutButton") -and `
                            -not $settingsText.Contains("InteractiveFileUploadButton") -and `
+                           -not $settingsText.Contains("_exportToJsonBackup") -and `
+                           -not $settingsText.Contains("_restoreFromJsonBackup") -and `
+                           -not $settingsText.Contains("validateAndParseBackup") -and `
+                           -not $settingsText.Contains(".vault") -and `
+                           -not $settingsText.Contains("PulseMetricBadge") -and `
+                           $settingsText.Contains("_exportToCsv") -and `
                            $settingsText.Contains("AppLinks.manageSubscriptions") -and `
                            $settingsText.Contains("AppLinks.privacyPolicy")
-Assert-Test -Name "Settings: No Fake Progress, Subscription & Privacy Links" -Condition $hasSettingsInteractions -Details "Plain backup/restore/CSV buttons; manage-subscription and privacy policy links present"
+Assert-Test -Name "Settings: CSV Report Only, No Backup/Restore, Subscription & Privacy Links" -Condition $hasSettingsInteractions -Details "Backup/restore cards removed; CSV report kept; manage-subscription and privacy policy links present"
 
 # 7. Dialogs & Sheets System-Wide Design Consistency
 $wizardPath = Join-Path $PSScriptRoot "../lib/features/statement_upload/presentation/statement_smart_wizard.dart"
@@ -829,11 +822,12 @@ $hasCsprngCsrf = $secGuardText.Contains("Random.secure()") -and $secGuardText.Co
 $hasSaltedPin = $secGuardText.Contains("hashPin") -and $secGuardText.Contains("verifyPinHash")
 Assert-Test -Name "CSPRNG CSRF Tokens & Salted PIN Authentication" -Condition ($hasCsprngCsrf -and $hasSaltedPin) -Details "Secure random generator prevents token prediction; salted HMAC protects user PINs"
 
-# 5. Encrypted Vault Backup (.vault) in DataExportService
+# 5. Backup (.vault / JSON) is not offered in the app UI; CSV report export remains (2026-09-25)
 $exportPath = Join-Path $PSScriptRoot "../lib/core/services/data_export_service.dart"
 $exportText = if (Test-Path $exportPath) { [System.IO.File]::ReadAllText($exportPath) } else { "" }
-$hasVaultExport = $exportText.Contains("createEncryptedVaultBackup") -and $exportText.Contains("PARAIZ-SEC-VAULT-V2:")
-Assert-Test -Name "Password-Protected Encrypted Vault Backups (.vault)" -Condition $hasVaultExport -Details "Exports protected with PBKDF2 + AES-256, rejecting decryption on wrong passwords"
+$vaultUiUsers = @(Get-ChildItem -Path (Join-Path $PSScriptRoot "../lib/features") -Recurse -Filter *.dart | Select-String -Pattern "createEncryptedVaultBackup","validateAndParseBackup","restoreVaultBackup" -SimpleMatch)
+$hasCsvOnlyExport = $exportText.Contains("exportToCsv") -and ($vaultUiUsers.Count -eq 0)
+Assert-Test -Name "No Backup/Restore in UI, CSV Export Kept" -Condition $hasCsvOnlyExport -Details "No screen calls vault backup/restore APIs (found: $($vaultUiUsers.Count)); DataExportService.exportToCsv present"
 
 # ---------------------------------------------------------------
 # 16. GARANTI BBVA PARACARD & BONUS STATEMENT PARSER

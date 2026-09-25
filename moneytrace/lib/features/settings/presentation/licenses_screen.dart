@@ -14,7 +14,6 @@ class _OpenSourcePackage {
 
 const List<_OpenSourcePackage> _packages = [
   _OpenSourcePackage('Flutter', 'BSD-3-Clause', 'Uygulama çatısı'),
-  _OpenSourcePackage('cupertino_icons', 'MIT', 'Simgeler'),
   _OpenSourcePackage('fl_chart', 'MIT', 'Grafikler'),
   _OpenSourcePackage('google_fonts', 'BSD-3-Clause', 'Yazı tipleri'),
   _OpenSourcePackage('sqflite', 'BSD-2-Clause', 'Telefondaki veritabanı'),
@@ -22,13 +21,10 @@ const List<_OpenSourcePackage> _packages = [
   _OpenSourcePackage('path', 'BSD-3-Clause', 'Dosya yolu işlemleri'),
   _OpenSourcePackage('file_picker', 'MIT', 'Ekstre dosyası seçme'),
   _OpenSourcePackage('crypto', 'BSD-3-Clause', 'Özet (hash) hesaplama'),
-  _OpenSourcePackage('encrypt', 'BSD-3-Clause', 'Yedek şifreleme'),
-  _OpenSourcePackage('intl', 'BSD-3-Clause', 'Tarih ve para biçimleri'),
   _OpenSourcePackage('share_plus', 'BSD-3-Clause', 'Dosya paylaşma'),
   _OpenSourcePackage('url_launcher', 'BSD-3-Clause', 'Bağlantı açma'),
   _OpenSourcePackage('in_app_purchase', 'BSD-3-Clause', 'Google Play abonelikleri'),
   _OpenSourcePackage('in_app_purchase_android', 'BSD-3-Clause', 'Google Play abonelikleri'),
-  _OpenSourcePackage('home_widget', 'BSD-3-Clause', 'Ana ekran bileşeni'),
   _OpenSourcePackage('flutter_secure_storage', 'BSD-3-Clause', 'Güvenli depolama (PIN)'),
   _OpenSourcePackage('flutter_local_notifications', 'BSD-3-Clause', 'Hatırlatma bildirimleri'),
   _OpenSourcePackage('timezone', 'BSD-2-Clause', 'Saat dilimi verisi'),

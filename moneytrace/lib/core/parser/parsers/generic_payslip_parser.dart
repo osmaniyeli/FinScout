@@ -59,6 +59,11 @@ class GenericPayslipParser implements LayoutStatementParser {
     final unemployment = baseUnemployment == null ? null : baseUnemployment + (tisUnemployment ?? 0);
     final legalTotal = amount(['Yasal Kesinti', 'Yasal Kesintiler Toplamı', 'Toplam Yasal Kesinti']);
     final otherTotal = amount(['Özel Kesinti', 'Özel Kesintiler Toplamı', 'Diğer Kesintiler'])?.abs();
+    // Birim ücret (saatlik/aylık, bordronun başlığında "Ücreti 21,20" gibi). Zam tespitinin sinyali:
+    // brüt fazla mesai/ikramiyeyle oynar, birim ücret yalnız zamla değişir. Etiketler tam eşleşir;
+    // "Net Ücret" / "Brüt Ücret" ayrı etiketlerdir ve buraya karışmaz. Okunamazsa null (tahmin yok).
+    final wage = amount(['Ücreti', 'Birim Ücret', 'Saat Ücreti', 'Saatlik Ücret', 'Aylık Ücret']);
+    final baseWage = (wage == null || wage <= 0) ? null : wage;
 
     // Bazı bordrolarda damga vergisi kesintisi etiketsiz/yanlış etiketli basılır. Yasal kesinti toplamı
     // biliniyorsa damga = yasal toplam − (SGK + işsizlik + gelir vergisi). Makul değilse (brütün %1'inden
@@ -106,6 +111,7 @@ class GenericPayslipParser implements LayoutStatementParser {
         payslipLegalDeductionsCents:
             legalTotal == null ? null : legalTotal + (tisSgk ?? 0) + (tisUnemployment ?? 0),
         payslipOtherDeductionsCents: otherTotal,
+        payslipBaseWageCents: baseWage,
       ),
     );
   }

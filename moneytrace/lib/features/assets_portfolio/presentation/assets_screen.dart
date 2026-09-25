@@ -1659,11 +1659,13 @@ class _AssetsScreenState extends State<AssetsScreen> implements TabAddActions {
             Color badgeColor = Colors.grey;
             if (fuel == 'Elektrik') {
               badgeColor = const Color(0xFF00D084);
-            } else if (fuel == 'Dizel')
+            } else if (fuel == 'Dizel') {
               badgeColor = const Color(0xFF475569);
-            else if (fuel == 'Benzin')
+            } else if (fuel == 'Benzin') {
               badgeColor = const Color(0xFFF97316);
-            else if (fuel == 'Hibrit') badgeColor = const Color(0xFF06B6D4);
+            } else if (fuel == 'Hibrit') {
+              badgeColor = const Color(0xFF06B6D4);
+            }
 
             final km = (v['km'] as num?)?.toInt() ?? 0;
             final updated = _formatIsoDate(v['updated_at'] as String?);

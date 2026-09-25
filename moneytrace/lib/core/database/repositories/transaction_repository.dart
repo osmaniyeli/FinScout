@@ -171,6 +171,9 @@ class TransactionRepository {
             'counterparty': record.counterparty,
             'sector': record.sector,
             'balance_after_cents': record.balanceAfterCents,
+            // Bordro birim ücreti yalnız bordronun maaş kaydına yazılır (zam tespiti)
+            if (result.documentType == 'PAYSLIP' && record.kind == TransactionKind.salary)
+              'base_wage_cents': summary.payslipBaseWageCents,
             'fingerprint': fingerprint,
             'created_at': nowMs,
           },
@@ -788,6 +791,28 @@ Future<List<Map<String, dynamic>>> getUpcomingInstallments(
       WHERE a.account_type IN ('CREDIT_CARD', 'CHECKING')
       ORDER BY a.created_at DESC
     ''');
+  }
+
+  /// Bordrodan gelen maaş kayıtları (net = billing, brüt = original; brüt okunamadıysa null;
+  /// base_wage_cents = bordrodaki birim ücret, okunamadıysa null)
+  /// ve bu kayıtlara bağlı yasal kesinti kalemleri. Hesaplama PayslipAnalyticsService'te yapılır.
+  Future<({List<Map<String, Object?>> incomes, List<Map<String, Object?>> taxes})> getPayslipRows() async {
+    final db = await _dbProvider.database;
+    final incomes = await db.rawQuery('''
+      SELECT t.id, t.transaction_date, t.billing_amount_cents, t.original_amount_cents, t.base_wage_cents
+      FROM transactions t JOIN accounts a ON a.id = t.account_id
+      WHERE a.account_type = 'PAYSLIP' AND t.tx_kind = 'SALARY' AND t.transaction_type = 'CREDIT'
+      ORDER BY t.transaction_date
+    ''');
+    final taxes = await db.rawQuery('''
+      SELECT d.transaction_id, t.transaction_date, d.tax_type, d.amount_cents
+      FROM tax_deductions d
+      JOIN transactions t ON t.id = d.transaction_id
+      JOIN accounts a ON a.id = t.account_id
+      WHERE a.account_type = 'PAYSLIP'
+      ORDER BY t.transaction_date
+    ''');
+    return (incomes: incomes, taxes: taxes);
   }
 }
 

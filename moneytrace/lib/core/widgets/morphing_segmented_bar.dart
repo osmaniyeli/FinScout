@@ -19,7 +19,7 @@ class MorphingSegmentedBar extends StatefulWidget {
   final EdgeInsetsGeometry padding;
 
   const MorphingSegmentedBar({
-    Key? key,
+    super.key,
     required this.segments,
     required this.selectedIndex,
     required this.onSelected,
@@ -29,7 +29,7 @@ class MorphingSegmentedBar extends StatefulWidget {
     this.backgroundColor,
     this.height = 42,
     this.padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-  }) : super(key: key);
+  });
 
   @override
   State<MorphingSegmentedBar> createState() => _MorphingSegmentedBarState();

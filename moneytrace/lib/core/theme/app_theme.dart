@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
+import 'app_motion.dart';
 
 class AppSpacing {
   static const double xs = 4.0;
@@ -85,6 +86,8 @@ class AppTheme {
               BorderRadius.vertical(top: Radius.circular(AppRadius.sheet)),
         ),
       ),
+      // Tüm push/pop geçişleri (MaterialPageRoute) — bkz. AppMotion
+      pageTransitionsTheme: AppMotion.pageTransitionsTheme,
       dividerTheme: const DividerThemeData(
         color: AppColors.divider,
         thickness: 1,

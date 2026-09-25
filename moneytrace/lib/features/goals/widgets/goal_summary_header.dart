@@ -9,9 +9,9 @@ class GoalSummaryHeader extends StatelessWidget {
   final GoalsSummary summary;
 
   const GoalSummaryHeader({
-    Key? key,
+    super.key,
     required this.summary,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

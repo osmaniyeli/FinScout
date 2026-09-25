@@ -25,11 +25,11 @@ class CreditCardActionSheet extends StatefulWidget {
   final List<PaymentSource> sourceAccounts;
 
   const CreditCardActionSheet({
-    Key? key,
+    super.key,
     required this.card,
     required this.onPaymentRecorded,
     required this.sourceAccounts,
-  }) : super(key: key);
+  });
 
   static Future<void> show(
     BuildContext context, {

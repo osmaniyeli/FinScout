@@ -164,8 +164,8 @@ class EnparaCheckingParser implements LayoutStatementParser {
     if (head.startsWith('ENCARD HARCAMASI') || head.startsWith('DIGER')) {
       return _EnparaClass(TransactionKind.purchase, posMerchant());
     }
-    if (head.startsWith('PARA CEKME')) return _EnparaClass(TransactionKind.cashAdvance, 'ATM');
-    if (head.startsWith('PARA YATIRMA')) return _EnparaClass(TransactionKind.transferIn, 'ATM Para Yatırma');
+    if (head.startsWith('PARA CEKME')) return const _EnparaClass(TransactionKind.cashAdvance, 'ATM');
+    if (head.startsWith('PARA YATIRMA')) return const _EnparaClass(TransactionKind.transferIn, 'ATM Para Yatırma');
     if (head.startsWith('VERGI KESINTISI')) {
       final fold = TrStatementText.fold(description);
       final tax = fold.contains('KKDF') ? 'KKDF' : (fold.contains('BSMV') ? 'BSMV' : 'OTHER_TAX');
@@ -174,7 +174,7 @@ class EnparaCheckingParser implements LayoutStatementParser {
     if (head.startsWith('ODEME')) {
       final fold = TrStatementText.fold(description);
       if (fold.contains('KREDI') && fold.contains('TAKSIT')) {
-        return _EnparaClass(TransactionKind.loanPayment, 'Enpara İhtiyaç Kredisi');
+        return const _EnparaClass(TransactionKind.loanPayment, 'Enpara İhtiyaç Kredisi');
       }
       if (fold.contains('FATURA')) {
         return _EnparaClass(TransactionKind.billPayment, second.replaceAll(RegExp(r'\s*faturası.*', caseSensitive: false), ''));

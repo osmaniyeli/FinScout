@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:moneytrace/core/parser/enrichment/transaction_classifier.dart';
 import 'package:moneytrace/core/parser/layout/statement_layout.dart';
 import 'package:moneytrace/core/parser/models/parsed_models.dart';
+import 'package:moneytrace/core/parser/parsers/generic_payslip_parser.dart';
 import 'package:moneytrace/core/parser/parsers/yapikredi_card_parser.dart';
 import 'package:moneytrace/core/parser/services/merchant_sanitizer.dart';
 import 'package:moneytrace/core/parser/services/statement_reconciler.dart';
@@ -197,6 +198,63 @@ void main() {
       // Bir kesinti kalemi okunamamış (ör. SGK)
       expect(StatementReconciler.check(records: [payslip(60000, [10000])], summary: summary, isCardStatement: false).isBalanced,
           isFalse);
+      // Ödenen net, bordro hesabından düşük: fark uydurma kayıtla kapatılmaz, açıkça söylenir
+      final short = StatementReconciler.check(
+          records: [payslip(55000, [20000, 10000])], summary: summary, isCardStatement: false);
+      expect(short.isBalanced, isFalse);
+      expect(short.issues.single, contains('açıklaması bordroda yok'));
+      expect(short.issues.single, contains('bankaya ödenen'));
+      // Ödenen net, hesaptan yüksek: genel "tutmuyor" mesajı
+      final over = StatementReconciler.check(
+          records: [payslip(65000, [20000, 10000])], summary: summary, isCardStatement: false);
+      expect(over.issues.single, startsWith('Bordro tutmuyor'));
+    });
+
+    test('Bordro çıktısı her zaman tek gelir kaydıdır (uydurma ek kayıt yok)', () {
+      // Uydurma değerlerle sentetik bordro düzeni: Net Ödenen brüt − yasal − özelden düşük ve "İkramiye" satırı var
+      final layout = StatementLayout.fromFragments([
+        ..._row(800, [(40, 'Haziran 2026')]),
+        ..._row(700, [(40, 'Toplam Brüt'), (300, '100.000,00')]),
+        ..._row(680, [(40, 'İkramiye'), (300, '20.000,00')]),
+        ..._row(660, [(40, 'Yasal Kesinti'), (300, '30.000,00')]),
+        ..._row(640, [(40, 'Gelir Vergisi'), (300, '15.000,00')]),
+        ..._row(620, [(40, 'SSK Kesintisi'), (300, '15.000,00')]),
+        ..._row(600, [(40, 'Net Ödenen'), (300, '60.000,00')]),
+      ], pageCount: 1);
+      final out = GenericPayslipParser().parse(layout);
+      expect(out.records.length, 1);
+      expect(out.records.single.billingAmountCents, 6000000);
+      expect(out.records.single.categoryId, 'cat_salary');
+      final rec = StatementReconciler.check(records: out.records, summary: out.summary, isCardStatement: false);
+      expect(rec.isBalanced, isFalse); // 100.000 − 30.000 − 0 = 70.000 ≠ 60.000
+      expect(rec.issues.first, contains('açıklaması bordroda yok'));
+    });
+
+    test('Bordro birim ücreti "Ücreti" satırından okunur; Net/Brüt Ücret ile karışmaz', () {
+      // Uydurma sayılar; kimlik numarası maskeli örnek
+      final layout = StatementLayout.fromFragments([
+        ..._row(800, [(40, 'Mart 2026')]),
+        ..._row(760, [(40, 'T.C Kimlik No'), (160, '111****2222'), (320, 'Ücreti'), (420, '42,50')]),
+        ..._row(700, [(40, 'Brüt Ücret'), (300, '10.000,00')]),
+        ..._row(660, [(40, 'SSK Kesintisi'), (300, '1.400,00')]),
+        ..._row(600, [(40, 'Net Ücret'), (300, '8.600,00')]),
+      ], pageCount: 1);
+      final out = GenericPayslipParser().parse(layout);
+      expect(out.summary.payslipBaseWageCents, 4250);
+      expect(out.summary.payslipGrossCents, 1000000);
+      expect(out.records.single.billingAmountCents, 860000);
+    });
+
+    test('Ücret satırı yoksa birim ücret null (brüt/net\'ten tahmin edilmez)', () {
+      final layout = StatementLayout.fromFragments([
+        ..._row(800, [(40, 'Mart 2026')]),
+        ..._row(700, [(40, 'Brüt Ücret'), (300, '10.000,00')]),
+        ..._row(660, [(40, 'SSK Kesintisi'), (300, '1.400,00')]),
+        ..._row(600, [(40, 'Net Ücret'), (300, '8.600,00')]),
+      ], pageCount: 1);
+      final out = GenericPayslipParser().parse(layout);
+      expect(out.records, isNotEmpty);
+      expect(out.summary.payslipBaseWageCents, isNull);
     });
 
     test('Vadesiz: bakiye zinciri kopunca hangi satır olduğu raporlanır', () {

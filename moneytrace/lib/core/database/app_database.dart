@@ -10,7 +10,25 @@ class AppDatabase {
   static final AppDatabase instance = AppDatabase._internal();
   AppDatabase._internal();
 
-  static const int schemaVersion = 3;
+  static const int schemaVersion = 5;
+
+  /// Şema sürümü → o sürüme geçişte çalışan SQL dosyası. Yeni kurulum hepsini sırayla çalıştırır
+  /// (v1 iki dosyadan oluşur), yükseltme yalnız eski sürümden sonrakileri.
+  static const Map<int, List<String>> migrationScripts = {
+    1: ['assets/sql/v1_create_schema.sql', 'assets/sql/v1_seed_categories.sql'],
+    2: ['assets/sql/v2_statement_intelligence.sql'],
+    3: ['assets/sql/v3_manual_entry_categories.sql'],
+    4: ['assets/sql/v4_payslip_wage.sql'],
+    5: ['assets/sql/v5_indexes.sql'],
+  };
+
+  /// Sıfırdan kurulumda çalışacak dosyalar.
+  static List<String> createScripts() => upgradeScripts(0);
+
+  /// [oldVersion]'dan [schemaVersion]'a yükseltirken sırayla çalışacak dosyalar.
+  static List<String> upgradeScripts(int oldVersion) => [
+        for (var v = oldVersion + 1; v <= schemaVersion; v++) ...?migrationScripts[v],
+      ];
 
   static Database? _database;
 
@@ -28,17 +46,13 @@ class AppDatabase {
       dbPath,
       version: schemaVersion,
       onCreate: (db, version) async {
-        await _runSqlAsset(db, 'assets/sql/v1_create_schema.sql');
-        await _runSqlAsset(db, 'assets/sql/v1_seed_categories.sql');
-        await _runSqlAsset(db, 'assets/sql/v2_statement_intelligence.sql');
-        await _runSqlAsset(db, 'assets/sql/v3_manual_entry_categories.sql');
+        for (final script in createScripts()) {
+          await _runSqlAsset(db, script);
+        }
       },
       onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 2) {
-          await _runSqlAsset(db, 'assets/sql/v2_statement_intelligence.sql');
-        }
-        if (oldVersion < 3) {
-          await _runSqlAsset(db, 'assets/sql/v3_manual_entry_categories.sql');
+        for (final script in upgradeScripts(oldVersion)) {
+          await _runSqlAsset(db, script);
         }
       },
       onConfigure: (db) async {

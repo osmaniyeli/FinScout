@@ -27,7 +27,7 @@ class SlidingOverlayCard extends StatefulWidget {
   final double borderRadius;
 
   const SlidingOverlayCard({
-    Key? key,
+    super.key,
     required this.primaryHeroTitle,
     required this.primaryHeroSubtitle,
     required this.primaryButtonText,
@@ -42,7 +42,7 @@ class SlidingOverlayCard extends StatefulWidget {
     this.onToggle,
     this.height = 220,
     this.borderRadius = 22,
-  }) : super(key: key);
+  });
 
   @override
   State<SlidingOverlayCard> createState() => _SlidingOverlayCardState();

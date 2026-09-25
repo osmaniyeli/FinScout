@@ -12,11 +12,11 @@ class TransactionDetailSheet extends StatefulWidget {
   final TransactionRepository? repository;
 
   const TransactionDetailSheet({
-    Key? key,
+    super.key,
     required this.transaction,
     this.onDelete,
     this.repository,
-  }) : super(key: key);
+  });
 
   static void show(BuildContext context,
       {required Map<String, dynamic> transaction,

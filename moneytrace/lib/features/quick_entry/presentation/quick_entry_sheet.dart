@@ -16,10 +16,10 @@ class QuickEntrySheet extends StatefulWidget {
   final TransactionRepository? repository;
 
   const QuickEntrySheet({
-    Key? key,
+    super.key,
     this.onSaved,
     this.repository,
-  }) : super(key: key);
+  });
 
   @override
   State<QuickEntrySheet> createState() => _QuickEntrySheetState();

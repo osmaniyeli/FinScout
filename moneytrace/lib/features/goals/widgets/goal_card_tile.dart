@@ -11,11 +11,11 @@ class GoalCardTile extends StatelessWidget {
   final VoidCallback? onAddContribution;
 
   const GoalCardTile({
-    Key? key,
+    super.key,
     required this.goal,
     this.onTap,
     this.onAddContribution,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

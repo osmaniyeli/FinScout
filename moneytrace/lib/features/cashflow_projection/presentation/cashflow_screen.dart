@@ -14,7 +14,7 @@ import '../services/wallet_history_service.dart';
 /// Cüzdan: geriye dönük, yalnızca gerçekleşmiş veriler (kayıtlı işlemler, ekstrelerdeki taksitler,
 /// son ekstrelerde bankanın yazdığı bakiye ve borçlar). Tahmin veya örnek veri yoktur.
 class CashflowScreen extends StatefulWidget {
-  const CashflowScreen({Key? key}) : super(key: key);
+  const CashflowScreen({super.key});
 
   @override
   State<CashflowScreen> createState() => _CashflowScreenState();

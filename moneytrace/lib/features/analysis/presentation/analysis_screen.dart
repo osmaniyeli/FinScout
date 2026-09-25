@@ -15,10 +15,11 @@ import '../../fees/services/fee_report_service.dart';
 import '../../fees/presentation/fee_period.dart';
 import '../../fees/presentation/fee_report_text.dart';
 import '../../fees/presentation/fees_view.dart';
+import 'payslip_view.dart';
 import '../../navigation/tab_add_actions.dart';
 
 class AnalysisScreen extends StatefulWidget {
-  const AnalysisScreen({Key? key}) : super(key: key);
+  const AnalysisScreen({super.key});
 
   @override
   State<AnalysisScreen> createState() => _AnalysisScreenState();
@@ -27,7 +28,7 @@ class AnalysisScreen extends StatefulWidget {
 class _AnalysisScreenState extends State<AnalysisScreen>
     implements TabAddActions {
   final TransactionRepository _repository = TransactionRepository();
-  int _selectedTabIndex = 0; // 0: Dağılım, 1: Aylık, 2: Masraflar
+  int _selectedTabIndex = 0; // 0: Dağılım, 1: Aylık, 2: Masraflar, 3: Maaş & Vergi
   bool _isLoading = false;
 
   List<Map<String, dynamic>> _categoryShares = [];
@@ -172,7 +173,7 @@ class _AnalysisScreenState extends State<AnalysisScreen>
         children: [
           // Video & Shakuro Micro-Interaction: Morflayan Kayan Segment Bar
           MorphingSegmentedBar(
-            segments: const ['Dağılım', 'Aylık Trend', 'Masraflar'],
+            segments: const ['Dağılım', 'Aylık Trend', 'Masraflar', 'Maaş/Vergi'],
             selectedIndex: _selectedTabIndex,
             onSelected: (index) {
               setState(() => _selectedTabIndex = index);
@@ -185,7 +186,9 @@ class _AnalysisScreenState extends State<AnalysisScreen>
                 ? _buildDistributionTab()
                 : (_selectedTabIndex == 1
                     ? _buildMonthlyTrendsTab()
-                    : _buildFeesTab()),
+                    : (_selectedTabIndex == 2
+                        ? _buildFeesTab()
+                        : const PayslipView())),
           ),
         ],
       ),

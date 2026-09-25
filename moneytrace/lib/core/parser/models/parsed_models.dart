@@ -258,6 +258,8 @@ class StatementSummary {
   final int? payslipGrossCents;
   final int? payslipLegalDeductionsCents;
   final int? payslipOtherDeductionsCents;
+  // Bordro birim ücreti (saatlik/aylık "Ücreti" satırı); zam tespiti bunun değişimine bakar
+  final int? payslipBaseWageCents;
 
   const StatementSummary({
     this.statementDate,
@@ -274,6 +276,7 @@ class StatementSummary {
     this.payslipGrossCents,
     this.payslipLegalDeductionsCents,
     this.payslipOtherDeductionsCents,
+    this.payslipBaseWageCents,
   });
 
   static const empty = StatementSummary();

@@ -16,7 +16,7 @@ import 'goal_detail_sheet.dart';
 import '../../navigation/tab_add_actions.dart';
 
 class GoalsScreen extends StatefulWidget {
-  const GoalsScreen({Key? key}) : super(key: key);
+  const GoalsScreen({super.key});
 
   @override
   State<GoalsScreen> createState() => _GoalsScreenState();

@@ -1,10 +1,12 @@
 // lib/core/widgets/rolling_number_ticker.dart
 
 import 'package:flutter/material.dart';
+import '../theme/app_motion.dart';
 
 /// Video & FinTech Dynamic Ticker: Rolling Number Ticker
 /// Finansal tutarlar (₺), yüzdeler ve birikim metrikleri değiştiğinde
-/// pürüzsüz artan/azalan yay eğrili sayı animasyonu.
+/// pürüzsüz artan/azalan sayı geçişi (300 ms, M3 emphasized decelerate; zıplama yok).
+/// "Animasyonları kaldır" açıksa yeni değer anında gösterilir.
 class RollingNumberTicker extends StatefulWidget {
   final double value;
   final String prefix;
@@ -14,14 +16,14 @@ class RollingNumberTicker extends StatefulWidget {
   final int fractionDigits;
 
   const RollingNumberTicker({
-    Key? key,
+    super.key,
     required this.value,
     this.prefix = '',
     this.suffix = '',
     this.style,
-    this.duration = const Duration(milliseconds: 750),
+    this.duration = AppMotion.page,
     this.fractionDigits = 2,
-  }) : super(key: key);
+  });
 
   @override
   State<RollingNumberTicker> createState() => _RollingNumberTickerState();
@@ -39,16 +41,23 @@ class _RollingNumberTickerState extends State<RollingNumberTicker>
     _previousValue = widget.value;
     _controller = AnimationController(vsync: this, duration: widget.duration);
     _animation = Tween<double>(begin: widget.value, end: widget.value)
-        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+        .animate(CurvedAnimation(parent: _controller, curve: AppMotion.enter));
   }
 
   @override
   void didUpdateWidget(covariant RollingNumberTicker oldWidget) {
     super.didUpdateWidget(oldWidget);
+    _controller.duration = widget.duration;
     if (oldWidget.value != widget.value) {
-      _previousValue = oldWidget.value;
+      // Geçiş sürerken değer yine değişirse ekranda görünen ara değerden devam et (sıçrama yok).
+      _previousValue = _animation.value;
+      if (AppMotion.reduceMotion(context)) {
+        _animation = AlwaysStoppedAnimation<double>(widget.value);
+        _controller.value = 1.0;
+        return;
+      }
       _animation = Tween<double>(begin: _previousValue, end: widget.value)
-          .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+          .animate(CurvedAnimation(parent: _controller, curve: AppMotion.enter));
       _controller.forward(from: 0.0);
     }
   }

@@ -13,11 +13,11 @@ class RemoteFeatureGate extends StatelessWidget {
   final Widget? fallbackWidget;
 
   const RemoteFeatureGate({
-    Key? key,
+    super.key,
     required this.moduleKey,
     required this.child,
     this.fallbackWidget,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

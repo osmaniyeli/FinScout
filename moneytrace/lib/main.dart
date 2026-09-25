@@ -19,14 +19,22 @@ import 'features/onboarding/presentation/onboarding_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await RemoteConfigService.instance.loadFromAsset();
-  await UserProfileService.instance.load();
-  await SecurityAuthService.instance.initialize();
-  // Hesap (Supabase Auth): oturum cihazdan yüklenir, ağ beklemez
-  await AccountService.instance.initialize();
+  // İlk kare için gerekenler birbirinden bağımsız: sırayla değil birlikte beklenir.
+  // (Her biri hatayı kendi içinde yakalar; Future.wait hiçbir zaman hata fırlatmaz.)
+  await Future.wait<void>([
+    RemoteConfigService.instance.loadFromAsset(),
+    // Profil: açılışta Onboarding mi Ana sayfa mı gösterileceğini belirler
+    UserProfileService.instance.load(),
+    // PIN kilidi: ilk karede kilit ekranı gerekip gerekmediğini belirler
+    SecurityAuthService.instance.initialize(),
+    // Hesap (Supabase Auth): oturum cihazdan yüklenir, ağ beklemez
+    AccountService.instance.initialize(),
+  ]);
   // PDF motoru (PDFium) — ekstreler tamamen cihaz üzerinde okunur
   pdfrxFlutterInitialize();
-  await _loadMerchantDictionary();
+  // Üye işyeri sözlüğü yalnız ekstre içe aktarırken gerekir: ilk kareyi bekletmeden arka planda
+  // (ayrı isolate'te) çözülür; içe aktarma başlamadan önce StatementOrchestrator bitmesini bekler.
+  unawaited(_loadMerchantDictionary());
   runApp(const FinScoutApp());
   // Açılışı bekletmeden: kart son ödeme ve ekstre talimatı hatırlatıcılarını güncelle
   unawaited(syncPaymentReminders());
@@ -48,16 +56,12 @@ Future<void> syncPaymentReminders() async {
 }
 
 /// Üye işyeri → sektör sözlüğü. Dosya yoksa kategori motoru yerleşik kurallarla çalışır.
-Future<void> _loadMerchantDictionary() async {
-  try {
-    CategoryEngine.instance.loadDictionary(
-      await rootBundle.loadString('assets/dictionaries/merchant_sectors_tr.json'),
-    );
-  } catch (_) {}
-}
+Future<void> _loadMerchantDictionary() =>
+    CategoryEngine.instance.loadDictionaryInBackground(() =>
+        rootBundle.loadString('assets/dictionaries/merchant_sectors_tr.json'));
 
 class FinScoutApp extends StatefulWidget {
-  const FinScoutApp({Key? key}) : super(key: key);
+  const FinScoutApp({super.key});
 
   @override
   State<FinScoutApp> createState() => _FinScoutAppState();
@@ -111,7 +115,8 @@ class _FinScoutAppState extends State<FinScoutApp> with WidgetsBindingObserver {
         return ValueListenableBuilder<UserProfile?>(
           valueListenable: UserProfileService.instance.profileNotifier,
           builder: (context, profile, _) {
-            final hasProfile = profile != null && profile.name.trim().isNotEmpty;
+            final hasProfile =
+                profile != null && profile.name.trim().isNotEmpty;
 
             return MaterialApp(
               title: 'FinScout',
@@ -132,8 +137,9 @@ class _FinScoutAppState extends State<FinScoutApp> with WidgetsBindingObserver {
   }
 
   Widget _wrapWithGuards(Widget child, bool hasProfile) {
-    final shouldLock =
-        hasProfile && SecurityAuthService.instance.isAnySecurityActive && !_isUnlocked;
+    final shouldLock = hasProfile &&
+        SecurityAuthService.instance.isAnySecurityActive &&
+        !_isUnlocked;
 
     return Stack(
       children: [
@@ -153,4 +159,3 @@ class _FinScoutAppState extends State<FinScoutApp> with WidgetsBindingObserver {
     );
   }
 }
-

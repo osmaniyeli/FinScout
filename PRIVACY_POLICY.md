@@ -1,6 +1,6 @@
 # Gizlilik Politikası (Privacy Policy) — FinScout
 
-**Son Güncelleme / Last Updated:** 23 Eylül 2026
+**Son Güncelleme / Last Updated:** 25 Eylül 2026
 
 FinScout olarak kişisel verilerinizin ve finansal gizliliğinizin korunmasına azami önem veriyoruz. Bu Gizlilik Politikası, uygulamamızı kullandığınızda hangi verilerin nerede tutulduğunu ve nasıl işlendiğini açıklar.
 
@@ -21,7 +21,7 @@ FinScout olarak kişisel verilerinizin ve finansal gizliliğinizin korunmasına 
 
 ## 3. Uygulama İzinleri (Permissions)
 FinScout yalnızca temel işlevler için minimum düzeyde izin kullanır:
-- **Dosya Erişimi (sistem dosya seçici):** Yalnızca kullanıcının kendi seçtiği PDF ekstrelerini ve yedek (.vault / .json) dosyalarını okumak, yedekleri dışa aktarmak için kullanılır. Arka planda dosya taraması yapılmaz. Şifreli ekstreler için girilen PDF parolası kaydedilmez.
+- **Dosya Erişimi (sistem dosya seçici):** Yalnızca kullanıcının kendi seçtiği PDF ekstre ve bordro dosyalarını okumak için kullanılır; harcama raporu (CSV) paylaşım menüsüyle dışa aktarılır. Arka planda dosya taraması yapılmaz. Şifreli ekstreler için girilen PDF parolası kaydedilmez.
 - **İnternet (`INTERNET`):** Hesaba giriş (e-posta kodu / Google), herkese açık döviz/altın kurları ve haber (RSS) akışları ile Google Play abonelik işlemleri için kullanılır. Finansal kayıtlarınız internet üzerinden gönderilmez.
 - **Bildirimler (`POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`):** Fatura, abonelik ve kredi kartı son ödeme hatırlatıcılarını göstermek için. Hatırlatıcılar cihazda zamanlanır, telefon yeniden başladığında korunur. Aynı izin, FinScout ekibinin gönderdiği duyuruları (push bildirimi) göstermek için de kullanılır.
 - **Kamera, Mikrofon, Konum ve Biyometri (parmak izi / yüz):** Uygulama bu izinleri **talep etmez**.
@@ -36,7 +36,7 @@ FinScout yalnızca temel işlevler için minimum düzeyde izin kullanır:
 - Finansal verileriniz cihazınızdaki SQLite veritabanında tutulduğu için kontrolü tamamen sizdedir.
 - Uygulama içindeki **Ayarlar > "Tüm Verilerimi Sıfırla ve Hesabı Sil"** seçeneği FinScout hesabınızı ve sunucudaki tüm kayıtlarını kalıcı olarak siler, ardından cihazınızdaki verileri temizler.
 - Uygulamayı kaldırmak yalnızca cihazdaki verileri siler; hesabınız sunucuda kalır. Uygulamaya erişemiyorsanız **pulcratechnology@gmail.com** adresine yazarak hesabınızın silinmesini isteyebilirsiniz; talepler en geç 30 gün içinde yerine getirilir. Ayrıntılar: [Hesap ve Veri Silme](https://github.com/osmaniyeli/FinScout/blob/main/DATA_DELETION.md)
-- Cihaz değişikliği durumunda **Ayarlar > Yedek** özelliği (parolayla şifreli .vault ya da JSON dosyası) ile verilerinizi güvenli bir şekilde kendiniz taşıyabilirsiniz.
+- Uygulamada yedekleme / geri yükleme özelliği bulunmaz; finansal verileriniz yalnızca kullandığınız cihazda durur ve telefon değiştirdiğinizde yeni cihaza aktarılmaz. İşlemlerinizi **Ayarlar > Harcama raporu (Excel / CSV)** ile dışa aktarabilirsiniz; bu rapor uygulamaya geri yüklenemez.
 
 ## 6. Çocukların Gizliliği
 Uygulamamız 13 yaşın (veya ilgili yargı alanındaki asgari yaşın) altındaki çocuklara yönelik değildir ve bilerek çocuklardan veri toplamaz.

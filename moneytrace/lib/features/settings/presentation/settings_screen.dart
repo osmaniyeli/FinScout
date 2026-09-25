@@ -1,5 +1,3 @@
-import 'package:file_picker/file_picker.dart';
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
@@ -10,7 +8,6 @@ import '../../../core/services/account_service.dart';
 import '../../../core/services/user_profile_service.dart';
 import '../../../core/database/repositories/transaction_repository.dart';
 import '../../../core/widgets/laser_shimmer_card.dart';
-import '../../../core/widgets/pulse_metric_badge.dart';
 import '../../../core/config/app_links.dart';
 import '../../subscription/services/subscription_service.dart';
 import '../../subscription/presentation/subscription_plans_sheet.dart';
@@ -20,7 +17,7 @@ import '../../../core/widgets/fintech/security_auth_sheet.dart';
 import 'licenses_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -162,30 +159,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'AKTİF PLANINIZ',
-                        style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF94A3B8),
-                            letterSpacing: 0.5),
-                      ),
-                      PulseMetricBadge(
-                        label: _subscriptionService.isPremium
-                            ? 'GÜVENLİ'
-                            : 'TEMEL',
-                        value: _subscriptionService.isPremium
-                            ? 'PREMIUM AKTİF'
-                            : 'ÜCRETSİZ PLAN',
-                        pulseColor: _subscriptionService.isPremium
-                            ? const Color(0xFFF59E0B)
-                            : const Color(0xFF38BDF8),
-                        isPositive: _subscriptionService.isPremium,
-                      ),
-                    ],
+                  const Text(
+                    'AKTİF PLANINIZ',
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF94A3B8),
+                        letterSpacing: 0.5),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -407,9 +387,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 24),
 
-            // 4. VERİ YÖNETİMİ & YEDEKLEME (ZERO-KNOWLEDGE)
+            // 4. VERİ YÖNETİMİ (CSV raporu)
             const Text(
-              'VERİ YÖNETİMİ VE YEDEKLEME',
+              'VERİ YÖNETİMİ',
               style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
@@ -441,10 +421,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             color: Color(0xFF10B981), size: 22),
                       ),
                       const SizedBox(width: 12),
-                      Expanded(
+                      const Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text('Harcama raporu (Excel / CSV)',
                                 style: TextStyle(
                                     fontSize: 13,
@@ -467,116 +447,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     icon: Icons.ios_share_rounded,
                     label: 'CSV raporunu oluştur ve paylaş',
                     onPressed: _isExporting ? null : _exportToCsv,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // 2. Tam Sistem Yedeği (Radar Doğrulama Butonu)
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEFF6FF),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: const Icon(Icons.security_rounded,
-                            color: AppColors.actionPrimary, size: 22),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text('Yedek al',
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.textPrimary)),
-                            SizedBox(height: 2),
-                            Text(
-                                'Hesaplar, ekstreler, işlemler, taksitler ve vergi satırları. İstersen parolayla şifrelenir.',
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    color: AppColors.textSecondary,
-                                    height: 1.3)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  _plainActionButton(
-                    icon: Icons.save_alt_rounded,
-                    label: 'Yedek dosyası oluştur',
-                    onPressed: _exportToJsonBackup,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // 3. Yedekten Geri Yükle (İnteraktif Yükleme Butonu)
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF5F3FF),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: const Icon(Icons.settings_backup_restore_rounded,
-                            color: Color(0xFF8B5CF6), size: 22),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text('Yedekten Geri Yükle',
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.textPrimary)),
-                            SizedBox(height: 2),
-                            Text(
-                                'Telefondaki mevcut kayıtlar silinir, yerine yedektekiler gelir.',
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    color: AppColors.textSecondary,
-                                    height: 1.3)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  _plainActionButton(
-                    icon: Icons.settings_backup_restore_rounded,
-                    label: 'Yedek dosyası seç ve geri yükle',
-                    onPressed: _restoreFromJsonBackup,
                   ),
                 ],
               ),
@@ -616,10 +486,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             color: AppColors.expenseRed, size: 22),
                       ),
                       const SizedBox(width: 12),
-                      Expanded(
+                      const Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text(
                               'Tüm Verilerimi Sıfırla ve Sil',
                               style: TextStyle(
@@ -728,157 +598,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _exportToJsonBackup() async {
-    final passwordController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (dialogCtx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
-          children: [
-            Icon(Icons.shield_rounded, color: Color(0xFF10B981), size: 24),
-            SizedBox(width: 8),
-            Text('Sistem Yedeği Al',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Yedeğinizi AES-256 ile şifrelemek için bir koruma parolası belirleyin (Önerilen). Boş bırakırsanız düz metin JSON olarak kaydedilir.',
-              style: TextStyle(
-                  fontSize: 12, color: AppColors.textSecondary, height: 1.4),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: InputDecoration(
-                labelText: 'Yedek parolası (en az 6 karakter)',
-                hintText: '••••••••',
-                prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text('İptal'),
-          ),
-          ElevatedButton.icon(
-            icon: const Icon(Icons.lock_rounded, size: 16),
-            label: const Text('🔒 Güvenli Şifreli Yedek (.vault)'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF10B981),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-            ),
-            onPressed: () async {
-              final pwd = passwordController.text.trim();
-              if (pwd.length < 6) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    backgroundColor: AppColors.expenseRed,
-                    content: Text(
-                        'Güvenli yedek için parola en az 6 karakter olmalıdır!'),
-                  ),
-                );
-                return;
-              }
-              Navigator.pop(dialogCtx);
-              await _executeExportProcess(password: pwd);
-            },
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(dialogCtx);
-              await _executeExportProcess(password: null);
-            },
-            child: const Text('Şifresiz JSON Al',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _executeExportProcess({String? password}) async {
-    setState(() => _isExporting = true);
-    try {
-      final data = await _repository.getAllDataForExport();
-      final accounts = (data['accounts'] as List<dynamic>? ?? [])
-          .cast<Map<String, dynamic>>();
-      final statements = (data['statements'] as List<dynamic>? ?? [])
-          .cast<Map<String, dynamic>>();
-      final transactions = (data['transactions'] as List<dynamic>? ?? [])
-          .cast<Map<String, dynamic>>();
-      final installments = (data['installments'] as List<dynamic>? ?? [])
-          .cast<Map<String, dynamic>>();
-      final taxes = (data['tax_deductions'] as List<dynamic>? ?? [])
-          .cast<Map<String, dynamic>>();
-      final extras = {
-        for (final t in TransactionRepositoryBackup.extraTables)
-          t: (data[t] as List<dynamic>? ?? []).cast<Map<String, dynamic>>(),
-      };
-
-      final isEncrypted = password != null && password.isNotEmpty;
-      final content = isEncrypted
-          ? _exportService.createEncryptedVaultBackup(
-              accounts: accounts,
-              statements: statements,
-              transactions: transactions,
-              installments: installments,
-              taxes: taxes,
-              extras: extras,
-              password: password,
-            )
-          : _exportService.createFullVaultBackupJson(
-              accounts: accounts,
-              statements: statements,
-              transactions: transactions,
-              installments: installments,
-              taxes: taxes,
-              extras: extras,
-            );
-
-      final tempDir = await getTemporaryDirectory();
-      final fileName = isEncrypted
-          ? 'FinScout_Sistem_Yedegi.vault'
-          : 'FinScout_Sistem_Yedegi.json';
-      final file = File('${tempDir.path}/$fileName');
-      await file.writeAsString(content);
-
-      if (!mounted) return;
-      setState(() => _isExporting = false);
-
-      await Share.shareXFiles(
-        [
-          XFile(file.path,
-              mimeType:
-                  isEncrypted ? 'application/octet-stream' : 'application/json')
-        ],
-        text: isEncrypted
-            ? 'FinScout şifreli yedek (.vault)'
-            : 'FinScout Sistem Yedeği (JSON)',
-      );
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isExporting = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Yedek üretilirken hata: $e')),
-        );
-      }
-    }
-  }
-
   void _confirmAndResetAllData() {
     showDialog(
       context: context,
@@ -946,198 +665,5 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     );
-  }
-
-  /// Yedek dosyasını seçtirir (.vault / .json); vazgeçilirse metin yapıştırma yolu açık kalır.
-  Future<void> _restoreFromJsonBackup() async {
-    try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.any,
-        withData: true,
-      );
-
-      var decodedText = '';
-      if (result != null && result.files.isNotEmpty) {
-        final file = result.files.first;
-        final fileName = file.name.toLowerCase();
-        if (!fileName.endsWith('.json') && !fileName.endsWith('.vault')) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                backgroundColor: AppColors.expenseRed,
-                content: Text(
-                    'Geçersiz dosya biçimi! Yalnızca .json veya .vault uzantılı dosyalar desteklenir.'),
-              ),
-            );
-          }
-          return;
-        }
-
-        if (file.bytes == null) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                backgroundColor: AppColors.expenseRed,
-                content: Text('Dosya içeriği okunamadı.'),
-              ),
-            );
-          }
-          return;
-        }
-
-        decodedText = utf8.decode(file.bytes!);
-      }
-
-      if (!mounted) return;
-
-      final controller = TextEditingController(text: decodedText);
-      final passController = TextEditingController();
-
-      showDialog(
-        context: context,
-        builder: (ctx) {
-          return StatefulBuilder(
-            builder: (context, setDialogState) {
-              final isVault =
-                  controller.text.trim().startsWith('PARAIZ-SEC-VAULT-V2:');
-
-              return AlertDialog(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20)),
-                title: const Row(
-                  children: [
-                    Icon(Icons.settings_backup_restore_rounded,
-                        color: AppColors.actionPrimary, size: 22),
-                    SizedBox(width: 8),
-                    Text('Yedekten Geri Yükle',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w800)),
-                  ],
-                ),
-                content: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                          'Yedek dosyasından okunan veri içeriği (gerekirse düzenleyin):',
-                          style: TextStyle(
-                              fontSize: 12, color: AppColors.textSecondary)),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: controller,
-                        maxLines: 4,
-                        onChanged: (_) => setDialogState(() {}),
-                        style: const TextStyle(
-                            fontSize: 11, fontFamily: 'monospace'),
-                        decoration: InputDecoration(
-                          hintText: 'PARAIZ-SEC-VAULT-V2:... veya JSON metni',
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          contentPadding: const EdgeInsets.all(10),
-                        ),
-                      ),
-                      if (isVault) ...[
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFECFDF5),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: const Color(0xFFA7F3D0)),
-                          ),
-                          child: const Row(
-                            children: [
-                              Icon(Icons.lock_rounded,
-                                  color: Color(0xFF059669), size: 18),
-                              SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  'Bu yedek AES-256 ile şifrelenmiştir. Çözmek için belirlediğiniz parolayı giriniz.',
-                                  style: TextStyle(
-                                      fontSize: 11,
-                                      color: Color(0xFF065F46),
-                                      fontWeight: FontWeight.w600),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: passController,
-                          obscureText: true,
-                          decoration: InputDecoration(
-                            labelText: 'Yedek parolası',
-                            prefixIcon: const Icon(Icons.key_rounded, size: 18),
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12)),
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 8),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                actions: [
-                  TextButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      child: const Text('İptal')),
-                  ElevatedButton(
-                    onPressed: () async {
-                      final text = controller.text.trim();
-                      if (text.isEmpty) return;
-
-                      try {
-                        final pwd = passController.text.trim();
-                        final parsed = _exportService.validateAndParseBackup(
-                          text,
-                          password: pwd.isNotEmpty ? pwd : null,
-                        );
-                        await _repository.restoreVaultBackup(parsed);
-
-                        if (mounted) {
-                          Navigator.pop(ctx);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              backgroundColor: Color(0xFF10B981),
-                              content: Text(
-                                  'Yedek başarıyla geri yüklendi! Verileriniz güncellendi.'),
-                            ),
-                          );
-                        }
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              backgroundColor: AppColors.expenseRed,
-                              content: Text('Geri yükleme hatası: $e')),
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.actionPrimary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: const Text('Geri Yükle'),
-                  ),
-                ],
-              );
-            },
-          );
-        },
-      );
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: AppColors.expenseRed,
-            content: Text('Dosya seçme hatası: $e'),
-          ),
-        );
-      }
-    }
   }
 }

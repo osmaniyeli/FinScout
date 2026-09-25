@@ -1,6 +1,8 @@
 // lib/features/statement_upload/presentation/statement_upload_sheet.dart
 
+import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
@@ -13,6 +15,7 @@ import '../../../core/security/security_guard.dart';
 import '../../../core/services/user_profile_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../subscription/presentation/subscription_plans_sheet.dart';
+import '../services/batch_upload_tally.dart';
 
 class StatementUploadSheet extends StatefulWidget {
   final VoidCallback? onImportSuccess;
@@ -20,11 +23,11 @@ class StatementUploadSheet extends StatefulWidget {
   final String? documentTypeTitle;
 
   const StatementUploadSheet({
-    Key? key,
+    super.key,
     this.onImportSuccess,
     this.documentTypeHint,
     this.documentTypeTitle,
-  }) : super(key: key);
+  });
 
   static Future<void> show(
     BuildContext context, {
@@ -60,6 +63,12 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
   StatementDocumentResult? _parsedResult;
   late String _selectedDocType;
 
+  // Toplu yükleme ilerlemesi ve sonuç özeti
+  int _batchTotal = 0;
+  int _batchDone = 0;
+  String? _batchCurrent;
+  List<String>? _batchReport;
+
   @override
   void initState() {
     super.initState();
@@ -71,6 +80,7 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
       _errorMessage = null;
       _errorIsQuota = false;
       _parsedResult = null;
+      _batchReport = null;
     });
 
     // 10. Madde: Aylık Kota ve Limit Kontrolü (ön kontrol; kesin düşüm kayıtta sunucuda yapılır)
@@ -90,37 +100,26 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf'],
-        withData: true, // Web & Mobile uyumlu bayt okuma
+        allowMultiple: true,
+        // Toplu seçimde tüm dosyaları belleğe almamak için mobilde yoldan okunur
+        withData: kIsWeb,
       );
 
-      if (result == null || result.files.isEmpty) {
-        return; // Kullanıcı seçim yapmadı
+      if (!mounted || result == null || result.files.isEmpty) {
+        return; // Kullanıcı seçim yapmadı ya da sayfa kapandı
+      }
+
+      if (result.files.length > 1) {
+        await _processBatch(result.files);
+        return;
       }
 
       final file = result.files.first;
-      final Uint8List? bytes = file.bytes;
-
+      final bytes = await _readBytes(file);
+      if (!mounted) return;
       if (bytes == null) {
         setState(() {
           _errorMessage = 'Dosya verisi okunamadı. Lütfen tekrar deneyin.';
-        });
-        return;
-      }
-
-      // 20 Maddelik Güvenlik Kuralı #13: File Upload Validation & Derin Zararlı Taraması
-      final malwareScan = SecurityGuard.instance.scanPdfForMalware(bytes);
-      if (!malwareScan.isSafe) {
-        setState(() {
-          _errorMessage =
-              'Güvenlik Kalkanı: Belgede potansiyel zararlı içerik/exploit algılandı! (${malwareScan.threatsDetected.first})';
-        });
-        return;
-      }
-
-      if (!SecurityGuard.instance.validatePdfFile(bytes: bytes)) {
-        setState(() {
-          _errorMessage =
-              'Güvenlik Reddi: Geçersiz veya bozuk PDF formatı! Dosya başlığı "%PDF-" doğrulanmalıdır.';
         });
         return;
       }
@@ -130,48 +129,26 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
         _selectedFileName = file.name;
       });
 
-      // 1. PDF düzeni ve SHA256 çıkarımı (PDFium, tamamen cihaz üzerinde; şifreliyse parola sorulur)
-      final extracted = await _extractWithPassword(bytes);
-      if (extracted == null) {
+      final prepared = await _prepareDocument(bytes);
+      if (!mounted) return;
+      if (prepared.cancelled) {
         setState(() => _isProcessing = false);
         return;
       }
-      _fileHash = extracted.sha256Hash;
-
-      // 2. Mükerrer Ekstre Kontrolü
-      final alreadyImported =
-          await _repository.isStatementAlreadyImported(extracted.sha256Hash);
-      if (alreadyImported) {
+      if (prepared.error != null) {
         setState(() {
           _isProcessing = false;
-          _errorMessage =
-              'Bu belge daha önce aktarılmış. Aynı belge ikinci kez eklenmedi.';
+          _errorMessage = prepared.error;
         });
         return;
       }
-
-      // 3. Deterministik Orkestratör ile İşleme (Belge türü ipucuyla)
-      final docResult = await _orchestrator.processDocument(
-        layout: extracted.layout,
-        documentTypeHint: _selectedDocType,
-        userRules: await _repository.loadUserCategoryRules(),
-      );
-
-      // Aynı hesabın aynı dönemi (yeniden indirilmiş aynı ekstre) ikinci kez aktarılmasın
-      if (await _repository.isSamePeriodAlreadyImported(docResult)) {
-        setState(() {
-          _isProcessing = false;
-          _errorMessage =
-              'Bu hesabın bu dönemine ait ekstre daha önce aktarılmış. Aynı dönem ikinci kez eklenmedi.';
-        });
-        return;
-      }
-
+      _fileHash = prepared.hash;
       setState(() {
         _isProcessing = false;
-        _parsedResult = docResult;
+        _parsedResult = prepared.result;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isProcessing = false;
         _errorMessage =
@@ -180,18 +157,241 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
     }
   }
 
-  /// Şifreli ekstrelerde (bankalar genelde TCKN veya doğum tarihi tabanlı parola kullanır) parola ister.
-  /// Kullanıcı vazgeçerse null döner. Parola hiçbir yerde saklanmaz.
-  Future<ExtractedPdfDocument?> _extractWithPassword(Uint8List bytes) async {
+  Future<Uint8List?> _readBytes(PlatformFile file) async {
+    if (file.bytes != null) return file.bytes;
+    if (file.path == null) return null;
+    return File(file.path!).readAsBytes();
+  }
+
+  /// Tek bir PDF'i doğrular, okur ve ayrıştırır; kaydetmez. Hata metni kullanıcıya gösterilecek biçimdedir.
+  /// [rememberedPassword]: toplu yüklemede önceki dosyada çalışan parola önce sessizce denenir.
+  Future<_PreparedDocument> _prepareDocument(Uint8List bytes,
+      {String? rememberedPassword}) async {
+    // 20 Maddelik Güvenlik Kuralı #13: File Upload Validation & Derin Zararlı Taraması
+    final malwareScan = SecurityGuard.instance.scanPdfForMalware(bytes);
+    if (!malwareScan.isSafe) {
+      return _PreparedDocument.failed(
+          'Belgede zararlı olabilecek içerik algılandı (${malwareScan.threatsDetected.first}).');
+    }
+    if (!SecurityGuard.instance.validatePdfFile(bytes: bytes)) {
+      return const _PreparedDocument.failed('Geçersiz veya bozuk PDF dosyası.');
+    }
+
+    // 1. PDF düzeni ve SHA256 çıkarımı (PDFium, tamamen cihaz üzerinde; şifreliyse parola sorulur)
+    final extracted =
+        await _extractWithPassword(bytes, rememberedPassword: rememberedPassword);
+    if (extracted == null) return _PreparedDocument.cancel;
+    final (document, password) = extracted;
+
+    // 2. Mükerrer Ekstre Kontrolü
+    if (await _repository.isStatementAlreadyImported(document.sha256Hash)) {
+      return const _PreparedDocument.failed(
+          'Bu belge daha önce aktarılmış. Aynı belge ikinci kez eklenmedi.',
+          duplicate: true);
+    }
+
+    // 3. Deterministik Orkestratör ile İşleme (Belge türü ipucuyla)
+    final docResult = await _orchestrator.processDocument(
+      layout: document.layout,
+      documentTypeHint: _selectedDocType,
+      userRules: await _repository.loadUserCategoryRules(),
+    );
+
+    // Aynı hesabın aynı dönemi (yeniden indirilmiş aynı ekstre) ikinci kez aktarılmasın
+    if (await _repository.isSamePeriodAlreadyImported(docResult)) {
+      return const _PreparedDocument.failed(
+          'Bu hesabın bu dönemine ait belge daha önce aktarılmış. Aynı dönem ikinci kez eklenmedi.',
+          duplicate: true);
+    }
+    return _PreparedDocument(
+        result: docResult, hash: document.sha256Hash, password: password);
+  }
+
+  /// Kotayı sunucuda düşer ve kaydeder. Kota yoksa ya da sunucuya ulaşılamazsa kayıt yapılmaz.
+  Future<(StatementSaveResult?, DocumentQuotaResult)> _consumeAndSave(
+      StatementDocumentResult result, String hash, String? fileName) async {
+    // Kota, seçilen çipe göre değil belgeden algılanan türe göre kontrol edilir ve sayılır
+    final isBackfill =
+        UserProfileService.instance.isFreeBackfill(result.periodEnd);
+    final quota = await UserProfileService.instance
+        .consumeUpload(result.documentType, isBackfill: isBackfill);
+    if (!quota.canUpload) return (null, quota);
+    final saved = await _repository.saveStatementResult(
+      result: result,
+      fileSha256: hash,
+      fileName: fileName,
+    );
+    return (saved, quota);
+  }
+
+  /// Birden fazla PDF: sırayla okunur ve kaydedilir. Toplamıyla tutmayanlar sonda tek bir onayla (K11)
+  /// kaydedilir; kota biterse kalanlar kaydedilmez ve özet listede yazılır. Sayfa toplu yükleme sürerken
+  /// kapatılırsa kalan belgeler işlenmez; o ana kadar kaydedilenler için hatırlatıcı ve yenileme yine yapılır.
+  Future<void> _processBatch(List<PlatformFile> files) async {
+    setState(() {
+      _isProcessing = true;
+      _batchTotal = files.length;
+      _batchDone = 0;
+    });
+
+    final tally = BatchUploadTally(files.length);
+    final unbalanced = <(String, _PreparedDocument)>[];
+    var hasPaymentInfo = false;
     String? password;
-    var wrong = false;
+    DocumentQuotaResult? stopQuota;
+
+    /// true: kaydedildi ya da mükerrer çıktı; false: kota/bağlantı durdurdu ([stopQuota]).
+    Future<bool> save(String name, _PreparedDocument doc) async {
+      final result = doc.result!;
+      // Aynı toplu seçimdeki iki kopya ya da aynı dönemin iki ekstresi: ilki kaydedildikten sonra
+      // ikincisi için kota harcanmaz (dosya özeti UNIQUE olduğundan kayıt da hata verirdi).
+      if (await _repository.isStatementAlreadyImported(doc.hash!) ||
+          await _repository.isSamePeriodAlreadyImported(result)) {
+        tally.addDuplicate();
+        return true;
+      }
+      final (saved, quota) = await _consumeAndSave(result, doc.hash!, name);
+      if (saved == null) {
+        stopQuota = quota;
+        return false;
+      }
+      tally.addSaved(saved.inserted);
+      if (result.summary.dueDate != null ||
+          result.summary.scheduledPayments.isNotEmpty) {
+        hasPaymentInfo = true;
+      }
+      return true;
+    }
+
+    for (var i = 0; i < files.length; i++) {
+      final file = files[i];
+      if (!mounted) break;
+      setState(() {
+        _batchDone = i;
+        _batchCurrent = file.name;
+      });
+      try {
+        final bytes = await _readBytes(file);
+        if (bytes == null) {
+          tally.addFailure(file.name, 'dosya okunamadı');
+          continue;
+        }
+        final doc = await _prepareDocument(bytes, rememberedPassword: password);
+        if (doc.cancelled) {
+          tally.addFailure(file.name, 'parola girilmedi, atlandı');
+          continue;
+        }
+        if (doc.error != null) {
+          if (doc.duplicate) {
+            tally.addDuplicate();
+          } else {
+            tally.addFailure(file.name, doc.error!);
+          }
+          continue;
+        }
+        password = doc.password ?? password;
+        final rec = doc.result!.reconciliation;
+        if (rec.isVerifiable && !rec.isBalanced) {
+          unbalanced.add((file.name, doc));
+          continue;
+        }
+        if (!await save(file.name, doc)) {
+          // Bu belge, sonrakiler ve onay bekleyen tutmayanlar kaydedilmedi
+          tally.stop(stopQuota!.reason,
+              isNetworkError: stopQuota!.isNetworkError,
+              remaining: files.length - i + unbalanced.length);
+          unbalanced.clear();
+          break;
+        }
+      } catch (e) {
+        tally.addFailure(file.name, e.toString().replaceAll('Exception: ', ''));
+      }
+    }
+
+    if (!tally.isStopped && unbalanced.isNotEmpty && mounted) {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('${unbalanced.length} belge toplamıyla tutmuyor'),
+          content: SingleChildScrollView(
+            child: Text([
+              for (final (name, doc) in unbalanced)
+                '• $name: ${doc.result!.reconciliation.issues.join(' ')}',
+              '',
+              'Yine de kaydedersen bu belgelerin işlemleri "doğrulanmadı" işaretiyle görünür ve toplamlar yanlış olabilir.',
+            ].join('\n')),
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Bunları atla')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Yine de kaydet')),
+          ],
+        ),
+      );
+      for (final (j, (name, doc)) in unbalanced.indexed) {
+        if (ok != true || !mounted) {
+          tally.addFailure(name, 'toplamı tutmadığı için kaydedilmedi');
+          continue;
+        }
+        try {
+          if (!await save(name, doc)) {
+            tally.stop(stopQuota!.reason,
+                isNetworkError: stopQuota!.isNetworkError,
+                remaining: unbalanced.length - j);
+            break;
+          }
+        } catch (e) {
+          tally.addFailure(name, e.toString().replaceAll('Exception: ', ''));
+        }
+      }
+    }
+
+    if (hasPaymentInfo) {
+      try {
+        await NotificationService.instance.requestPermission();
+        await NotificationService.instance
+            .syncUpcomingPayments(await _repository.getUpcomingPayments());
+      } catch (_) {}
+    }
+
+    // Sayfa kapanmış olsa da kaydedilenler için çağıran ekran yenilensin
+    if (tally.saved > 0) widget.onImportSuccess?.call();
+    if (!mounted) return;
+    setState(() {
+      _isProcessing = false;
+      _batchTotal = 0;
+      _batchCurrent = null;
+      _errorIsQuota = tally.isStopped && !tally.stopIsNetworkError;
+      _errorMessage = tally.stopReason;
+      _batchReport = tally.summaryLines();
+    });
+  }
+
+  /// Şifreli ekstrelerde (bankalar genelde TCKN veya doğum tarihi tabanlı parola kullanır) parola ister.
+  /// Kullanıcı vazgeçerse null döner. Parola hiçbir yerde saklanmaz; toplu yüklemede yalnız o yükleme
+  /// boyunca bellekte kalır ve sonraki şifreli dosyada önce o denenir.
+  Future<(ExtractedPdfDocument, String?)?> _extractWithPassword(Uint8List bytes,
+      {String? rememberedPassword}) async {
+    String? password;
+    var triedRemembered = false;
     while (true) {
       try {
-        return await PdfExtractorService.extract(bytes, password: password);
+        return (
+          await PdfExtractorService.extract(bytes, password: password),
+          password
+        );
       } on PdfPasswordRequiredException catch (e) {
-        wrong = e.wasPasswordWrong;
+        if (!triedRemembered && rememberedPassword != null) {
+          triedRemembered = true;
+          password = rememberedPassword;
+          continue;
+        }
         if (!mounted) return null;
-        password = await _askPdfPassword(wrong: wrong);
+        password = await _askPdfPassword(
+            wrong: e.wasPasswordWrong && password != rememberedPassword);
         if (password == null) return null;
       }
     }
@@ -203,7 +403,8 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Şifreli Ekstre', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+        title: const Text('Şifreli Ekstre',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -212,7 +413,10 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
               wrong
                   ? 'Parola hatalı. Lütfen tekrar deneyin.'
                   : 'Bu ekstre bankanız tarafından şifrelenmiş. PDF parolasını girin (parola kaydedilmez).',
-              style: TextStyle(fontSize: 12, color: wrong ? AppColors.expenseRed : AppColors.textSecondary),
+              style: TextStyle(
+                  fontSize: 12,
+                  color:
+                      wrong ? AppColors.expenseRed : AppColors.textSecondary),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -221,15 +425,19 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
               autofocus: true,
               decoration: InputDecoration(
                 labelText: 'PDF parolası',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
               onSubmitted: (v) => Navigator.pop(ctx, v),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Vazgeç')),
-          ElevatedButton(onPressed: () => Navigator.pop(ctx, controller.text), child: const Text('Aç')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Vazgeç')),
+          ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, controller.text),
+              child: const Text('Aç')),
         ],
       ),
     );
@@ -237,11 +445,21 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
 
   /// Masraf satırı sayısı (faiz, ücret, vergi) — kayıt sonrası özet ve önizleme için
   static int _feeCount(StatementDocumentResult r) => r.records
-      .where((x) => x.kind == TransactionKind.interestFee || x.kind == TransactionKind.tax)
+      .where((x) =>
+          x.kind == TransactionKind.interestFee ||
+          x.kind == TransactionKind.tax)
       .length;
   static int _feeCents(StatementDocumentResult r) => r.records
-      .where((x) => x.kind == TransactionKind.interestFee || x.kind == TransactionKind.tax)
-      .fold(0, (sum, x) => sum + (x.type == ParsedTransactionType.debit ? x.billingAmountCents : -x.billingAmountCents));
+      .where((x) =>
+          x.kind == TransactionKind.interestFee ||
+          x.kind == TransactionKind.tax)
+      .fold(
+          0,
+          (sum, x) =>
+              sum +
+              (x.type == ParsedTransactionType.debit
+                  ? x.billingAmountCents
+                  : -x.billingAmountCents));
 
   Future<void> _saveStatement() async {
     if (_parsedResult == null || _fileHash == null) return;
@@ -256,47 +474,42 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
           content: Text(
               '${rec.issues.join('\n')}\n\nYine de kaydedersen işlemler "doğrulanmadı" işaretiyle görünür ve toplamlar yanlış olabilir.'),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Vazgeç')),
-            TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Yine de kaydet')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Vazgeç')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Yine de kaydet')),
           ],
         ),
       );
       if (ok != true || !mounted) return;
     }
 
-    // Kota, seçilen çipe göre değil belgeden algılanan türe göre kontrol edilir ve sayılır
-    final detectedType = _parsedResult!.documentType;
-    final isBackfill = UserProfileService.instance.isFreeBackfill(_parsedResult!.periodEnd);
-
     setState(() {
       _isProcessing = true;
     });
 
-    // Kota sunucuda atomik olarak düşülür (kayıttan önce). Hak yoksa ya da sunucuya ulaşılamazsa kayıt yapılmaz.
-    final quota = await UserProfileService.instance
-        .consumeUpload(detectedType, isBackfill: isBackfill);
-    if (!mounted) return;
-    if (!quota.canUpload) {
-      setState(() {
-        _isProcessing = false;
-        _errorMessage = quota.reason;
-        _errorIsQuota = !quota.isNetworkError;
-      });
-      return;
-    }
-
     try {
-      final saved = await _repository.saveStatementResult(
-        result: _parsedResult!,
-        fileSha256: _fileHash!,
-        fileName: _selectedFileName,
-      );
+      final (saved, quota) =
+          await _consumeAndSave(_parsedResult!, _fileHash!, _selectedFileName);
+      if (!mounted) return;
+      if (saved == null) {
+        setState(() {
+          _isProcessing = false;
+          _errorMessage = quota.reason;
+          _errorIsQuota = !quota.isNetworkError;
+        });
+        return;
+      }
 
       // Yeni son ödeme tarihi / talimat varsa hatırlatıcı kur (ilk seferde bildirim izni istenir)
-      if (_parsedResult!.summary.dueDate != null || _parsedResult!.summary.scheduledPayments.isNotEmpty) {
+      if (_parsedResult!.summary.dueDate != null ||
+          _parsedResult!.summary.scheduledPayments.isNotEmpty) {
         try {
           await NotificationService.instance.requestPermission();
-          await NotificationService.instance.syncUpcomingPayments(await _repository.getUpcomingPayments());
+          await NotificationService.instance
+              .syncUpcomingPayments(await _repository.getUpcomingPayments());
         } catch (_) {}
       }
 
@@ -316,6 +529,7 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
         );
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isProcessing = false;
         _errorMessage = 'Veritabanına kaydedilirken hata: $e';
@@ -356,9 +570,9 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
+              const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text(
                     'Ekstre / Bordro Yükle',
                     style: TextStyle(
@@ -417,8 +631,8 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
             // İlk faz: Yapı Kredi kart ekstresi ve bordro. Vadesiz okuyucu örnek dökümle eklenecek.
             Row(
               children: [
-                _buildDocTypeChip(
-                    'CREDIT_CARD', 'Yapı Kredi Kart', Icons.credit_card_rounded),
+                _buildDocTypeChip('CREDIT_CARD', 'Yapı Kredi Kart',
+                    Icons.credit_card_rounded),
                 const SizedBox(width: 8),
                 _buildDocTypeChip(
                     'PAYSLIP', 'Maaş Bordrosu', Icons.work_outline_rounded),
@@ -436,21 +650,53 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: const Color(0xFFE2E8F0)),
               ),
-              child: Column(
-                children: const [
-                  CircularProgressIndicator(
-                      strokeWidth: 3, color: AppColors.actionPrimary),
-                  SizedBox(height: 16),
-                  Text(
-                    'Belge okunuyor, kişisel bilgiler maskeleniyor…',
-                    style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary),
-                  ),
-                ],
-              ),
+              child: _batchTotal > 1
+                  ? Column(
+                      children: [
+                        LinearProgressIndicator(
+                          value: _batchDone / _batchTotal,
+                          minHeight: 6,
+                          borderRadius: BorderRadius.circular(6),
+                          color: AppColors.actionPrimary,
+                          backgroundColor: const Color(0xFFE2E8F0),
+                        ),
+                        const SizedBox(height: 14),
+                        Text(
+                          '${_batchDone + 1} / $_batchTotal belge okunuyor',
+                          style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary),
+                        ),
+                        if (_batchCurrent != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            _batchCurrent!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                fontSize: 12, color: AppColors.textSecondary),
+                          ),
+                        ],
+                      ],
+                    )
+                  : const Column(
+                      children: [
+                        CircularProgressIndicator(
+                            strokeWidth: 3, color: AppColors.actionPrimary),
+                        SizedBox(height: 16),
+                        Text(
+                          'Belge okunuyor, kişisel bilgiler maskeleniyor…',
+                          style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary),
+                        ),
+                      ],
+                    ),
             )
+          else if (_batchReport != null)
+            _buildBatchReport()
           else if (_parsedResult == null)
             _buildUploadPlaceholder()
           else
@@ -486,26 +732,26 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
                     ],
                   ),
                   if (_errorIsQuota) ...[
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () => SubscriptionPlansSheet.show(context),
-                      icon: const Icon(Icons.workspace_premium_rounded,
-                          size: 16, color: Color(0xFF0F172A)),
-                      label: const Text('Planları Gör',
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF0F172A))),
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        side: const BorderSide(color: Color(0xFFCBD5E1)),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => SubscriptionPlansSheet.show(context),
+                        icon: const Icon(Icons.workspace_premium_rounded,
+                            size: 16, color: Color(0xFF0F172A)),
+                        label: const Text('Planları Gör',
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF0F172A))),
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          side: const BorderSide(color: Color(0xFFCBD5E1)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
                       ),
                     ),
-                  ),
                   ],
                 ],
               ),
@@ -567,7 +813,83 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
     );
   }
 
-  /// Tek dosya seçici: dokununca sistem dosya seçicisi açılır (Android'in seçicisi ek izin istemez).
+  /// Toplu yükleme sonucu: kaç belge kaydedildi, hangileri neden kaydedilmedi.
+  Widget _buildBatchReport() {
+    final lines = _batchReport!;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.task_alt_rounded,
+                  size: 20, color: AppColors.incomeGreen),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(lines.first,
+                    style: const TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary)),
+              ),
+            ],
+          ),
+          if (lines.length > 1) ...[
+            const SizedBox(height: 10),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 220),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (final line in lines.skip(1))
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Text(line,
+                            style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary)),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _pickAndProcessPdf,
+                  child: const Text('Başka belge ekle'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.actionPrimary),
+                  child: const Text('Bitti',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w800, color: Colors.white)),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Dosya seçici: dokununca sistem dosya seçicisi açılır (Android'in seçicisi ek izin istemez).
+  /// Birden fazla PDF seçilebilir; hepsi sırayla okunup kaydedilir.
   Widget _buildUploadPlaceholder() {
     return InkWell(
       onTap: _pickAndProcessPdf,
@@ -590,17 +912,21 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
                   color: Color(0xFFEFF6FF),
                   borderRadius: BorderRadius.all(Radius.circular(14)),
                 ),
-                child: Icon(Icons.upload_file_rounded, size: 26, color: AppColors.actionPrimary),
+                child: Icon(Icons.upload_file_rounded,
+                    size: 26, color: AppColors.actionPrimary),
               ),
             ),
             SizedBox(height: 10),
             Text(
               'PDF Seç',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary),
             ),
             SizedBox(height: 4),
             Text(
-              'Kredi kartı ekstresi, hesap ekstresi veya maaş bordrosu',
+              'Kredi kartı ekstresi veya maaş bordrosu. Birden fazla dosyayı birlikte seçebilirsin.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12, color: AppColors.textMuted),
             ),
@@ -649,7 +975,11 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
                             color: AppColors.textPrimary),
                       ),
                       Text(
-                        '${switch (result.documentType) { 'CREDIT_CARD' => 'Kredi kartı', 'PAYSLIP' => 'Maaş bordrosu', _ => 'Vadesiz hesap' }}'
+                        '${switch (result.documentType) {
+                          'CREDIT_CARD' => 'Kredi kartı',
+                          'PAYSLIP' => 'Maaş bordrosu',
+                          _ => 'Vadesiz hesap'
+                        }}'
                         '${result.accountIdentifier.isNotEmpty ? ' • ${result.accountIdentifier}' : ''}',
                         style: const TextStyle(
                             fontSize: 11, color: AppColors.textMuted),
@@ -677,7 +1007,8 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
           ),
           const SizedBox(height: 12),
           _buildReconciliationBanner(result),
-          if (result.summary.dueDate != null || result.summary.statementBalanceCents != null) ...[
+          if (result.summary.dueDate != null ||
+              result.summary.statementBalanceCents != null) ...[
             const SizedBox(height: 8),
             _buildPaymentScheduleRow(result.summary),
           ],
@@ -714,23 +1045,39 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
   Widget _buildReconciliationBanner(StatementDocumentResult result) {
     final rec = result.reconciliation;
     final (Color bg, Color fg, IconData icon, String text) = !rec.isVerifiable
-        ? (const Color(0xFFF1F5F9), AppColors.textSecondary, Icons.info_outline_rounded,
-            'Bu belgede banka toplamı bulunmadığı için otomatik doğrulama yapılamadı.')
+        ? (
+            const Color(0xFFF1F5F9),
+            AppColors.textSecondary,
+            Icons.info_outline_rounded,
+            'Bu belgede banka toplamı bulunmadığı için otomatik doğrulama yapılamadı.'
+          )
         : rec.isBalanced
-            ? (const Color(0xFFECFDF5), AppColors.incomeGreen, Icons.verified_rounded,
-                'Bankanın dönem toplamlarıyla eşleşti.')
-            : (const Color(0xFFFEF2F2), AppColors.expenseRed, Icons.warning_amber_rounded,
-                'Dikkat: ${rec.issues.join(' • ')}');
+            ? (
+                const Color(0xFFECFDF5),
+                AppColors.incomeGreen,
+                Icons.verified_rounded,
+                'Bankanın dönem toplamlarıyla eşleşti.'
+              )
+            : (
+                const Color(0xFFFEF2F2),
+                AppColors.expenseRed,
+                Icons.warning_amber_rounded,
+                'Dikkat: ${rec.issues.join(' • ')}'
+              );
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12)),
+      decoration:
+          BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12)),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, size: 18, color: fg),
           const SizedBox(width: 8),
-          Expanded(child: Text(text, style: TextStyle(fontSize: 11.5, color: fg, fontWeight: FontWeight.w600))),
+          Expanded(
+              child: Text(text,
+                  style: TextStyle(
+                      fontSize: 11.5, color: fg, fontWeight: FontWeight.w600))),
         ],
       ),
     );
@@ -748,11 +1095,15 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
     ];
     return Row(
       children: [
-        const Icon(Icons.event_rounded, size: 16, color: AppColors.actionPrimary),
+        const Icon(Icons.event_rounded,
+            size: 16, color: AppColors.actionPrimary),
         const SizedBox(width: 6),
         Expanded(
           child: Text(parts.join(' • '),
-              style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+              style: const TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary)),
         ),
       ],
     );
@@ -824,4 +1175,36 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
       ),
     );
   }
+}
+
+/// Kaydetmeye hazır, ayrıştırılmış tek belge ya da neden hazırlanamadığı.
+class _PreparedDocument {
+  final StatementDocumentResult? result;
+  final String? hash;
+  final String? password;
+  final String? error;
+  final bool duplicate;
+  final bool cancelled;
+
+  const _PreparedDocument({this.result, this.hash, this.password})
+      : error = null,
+        duplicate = false,
+        cancelled = false;
+
+  const _PreparedDocument.failed(String message, {this.duplicate = false})
+      : error = message,
+        result = null,
+        hash = null,
+        password = null,
+        cancelled = false;
+
+  const _PreparedDocument._cancelled()
+      : result = null,
+        hash = null,
+        password = null,
+        error = null,
+        duplicate = false,
+        cancelled = true;
+
+  static const cancel = _PreparedDocument._cancelled();
 }

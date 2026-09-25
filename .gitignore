@@ -44,3 +44,18 @@ iBank - Banking & E-Money Management App _ FinPay _ Digital _ Finance Mobile Ban
 
 # Flutter iOS geçici dosyaları
 moneytrace/ios/Flutter/ephemeral/
+
+# Yerel araçlar ve IDE/araç çıktıları (commit edilmez)
+ai_dialogue.py
+test_baglanti.py
+.claude/settings.json
+.claude/settings.local.json
+devtools_options.yaml
+.widget_preview/
+__pycache__/
+moneytrace/windows/
+moneytrace/.metadata
+arsiv/cop_kutusu/
+
+# Kişisel bordrolar (asla commit edilmez)
+*Bordrolar*/

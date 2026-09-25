@@ -9,9 +9,9 @@ class AppLockScreen extends StatefulWidget {
   final VoidCallback onUnlocked;
 
   const AppLockScreen({
-    Key? key,
+    super.key,
     required this.onUnlocked,
-  }) : super(key: key);
+  });
 
   @override
   State<AppLockScreen> createState() => _AppLockScreenState();

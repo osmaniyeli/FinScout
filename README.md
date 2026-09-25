@@ -76,7 +76,7 @@ Ev Ekonomisi/
   - Streak Confetti Celebrations & Habit Gamification.
   - Spring-physics floating capsule navigation bar.
 - **Bilingual Support (Turkish 🇹🇷 & English 🇬🇧)**: Language selection available in Settings and Newsletter subscription sheets.
-- **20-Point Security Standard**: Client-side encryption, UTF-8 BOM CSV exports, portable JSON backups, and zero tracking.
+- **20-Point Security Standard**: Client-side encryption, UTF-8 BOM CSV exports, and zero tracking.
 
 ### 3. Build & Test Instructions
 

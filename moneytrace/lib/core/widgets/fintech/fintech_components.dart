@@ -18,7 +18,7 @@ class FinanceCard extends StatelessWidget {
   final Border? border;
 
   const FinanceCard({
-    Key? key,
+    super.key,
     required this.child,
     this.padding = const EdgeInsets.all(16),
     this.margin,
@@ -26,7 +26,7 @@ class FinanceCard extends StatelessWidget {
     this.onTap,
     this.borderRadius,
     this.border,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -64,13 +64,13 @@ class IzciInsightCard extends StatelessWidget {
   final VoidCallback? onDismiss;
 
   const IzciInsightCard({
-    Key? key,
+    super.key,
     this.title = "İZCİ'DEN BİR NOT",
     required this.message,
     this.actionLabel,
     this.onActionTap,
     this.onDismiss,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -174,7 +174,7 @@ class CleanTransactionRow extends StatelessWidget {
   final VoidCallback? onTap;
 
   const CleanTransactionRow({
-    Key? key,
+    super.key,
     required this.title,
     required this.subtitle,
     required this.amount,
@@ -183,7 +183,7 @@ class CleanTransactionRow extends StatelessWidget {
     this.iconColor,
     this.badgeText,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -72,6 +72,8 @@ class StatementOrchestrator {
     }
 
     // 3-4. Zenginleştirme + gizlilik
+    // Üye işyeri sözlüğü açılışta arka planda yüklenir; kategorilemeden önce hazır olduğundan emin ol.
+    await _categories.ensureDictionaryLoaded();
     final holder = output.accountHolder == null ? null : TrStatementText.fold(output.accountHolder!);
     final records = output.records
         .map((r) => _enrich(r, isCard: isCard, userRules: userRules, holder: holder))

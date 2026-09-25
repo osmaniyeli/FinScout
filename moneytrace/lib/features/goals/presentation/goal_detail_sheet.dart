@@ -16,10 +16,10 @@ class GoalDetailSheet extends StatefulWidget {
   final GoalRepository repository;
 
   const GoalDetailSheet({
-    Key? key,
+    super.key,
     required this.goal,
     required this.repository,
-  }) : super(key: key);
+  });
 
   @override
   State<GoalDetailSheet> createState() => _GoalDetailSheetState();

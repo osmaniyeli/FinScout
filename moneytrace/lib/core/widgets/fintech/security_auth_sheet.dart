@@ -12,14 +12,14 @@ class SecurityAuthSheet extends StatefulWidget {
   final bool isSettingNewPin;
 
   const SecurityAuthSheet({
-    Key? key,
+    super.key,
     this.title = 'FinScout Güvenlik Doğrulaması',
     this.subtitle =
         'Lütfen 4 haneli PIN kodunuzu girin.',
     required this.onSuccess,
     this.onPinEntered,
     this.isSettingNewPin = false,
-  }) : super(key: key);
+  });
 
   static Future<bool?> show(
     BuildContext context, {

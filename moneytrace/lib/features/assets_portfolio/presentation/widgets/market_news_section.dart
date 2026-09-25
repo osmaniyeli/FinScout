@@ -8,7 +8,7 @@ import '../../../../core/services/market_news_service.dart';
 import '../../../../core/widgets/remote_feature_gate.dart';
 
 class MarketNewsSection extends StatefulWidget {
-  const MarketNewsSection({Key? key}) : super(key: key);
+  const MarketNewsSection({super.key});
 
   @override
   State<MarketNewsSection> createState() => _MarketNewsSectionState();

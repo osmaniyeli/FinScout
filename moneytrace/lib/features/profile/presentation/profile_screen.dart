@@ -10,7 +10,7 @@ import '../../settings/presentation/settings_screen.dart';
 class ProfileScreen extends StatefulWidget {
   final VoidCallback? onLoggedOut;
 
-  const ProfileScreen({Key? key, this.onLoggedOut}) : super(key: key);
+  const ProfileScreen({super.key, this.onLoggedOut});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -249,7 +249,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: const Icon(Icons.settings_outlined, color: AppColors.textPrimary, size: 20),
                     ),
                     title: Text(AppStrings.get('app_settings_btn'), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                    subtitle: const Text('Güvenlik, yedekleme, abonelik ve gizlilik',style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                    subtitle: const Text('Güvenlik, CSV raporu, abonelik ve gizlilik',style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                     trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
                     onTap: () {
                       Navigator.push(

@@ -15,7 +15,7 @@ class FloatingCapsuleNavBar extends StatelessWidget {
   final Color inactiveColor;
 
   const FloatingCapsuleNavBar({
-    Key? key,
+    super.key,
     required this.currentIndex,
     required this.onTap,
     required this.items,
@@ -23,7 +23,7 @@ class FloatingCapsuleNavBar extends StatelessWidget {
     this.activeIndicatorColor = const Color(0xFF2563EB), // iBank FinTech Kobalt
     this.activeContentColor = Colors.white,
     this.inactiveColor = const Color(0xFF94A3B8), // Muted Slate
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -6,6 +6,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/currency_normalizer.dart';
 import '../../../core/database/repositories/transaction_repository.dart';
 import '../../../core/widgets/rolling_number_ticker.dart';
+import '../../../core/widgets/fade_slide_in.dart';
 import '../../../core/widgets/fintech/fintech_components.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/services/user_profile_service.dart';
@@ -25,10 +26,10 @@ class DashboardScreen extends StatefulWidget {
   final VoidCallback? onOpenGoals;
 
   const DashboardScreen({
-    Key? key,
+    super.key,
     this.onOpenAnalytics,
     this.onOpenGoals,
-  }) : super(key: key);
+  });
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -389,8 +390,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                       itemCount: _recentTransactions.length,
                       separatorBuilder: (_, __) =>
                           const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                      itemBuilder: (ctx, index) =>
-                          _buildTransactionRow(_recentTransactions[index]),
+                      itemBuilder: (ctx, index) => FadeSlideIn(
+                        index: index,
+                        child: _buildTransactionRow(_recentTransactions[index]),
+                      ),
                     ),
                   ),
 

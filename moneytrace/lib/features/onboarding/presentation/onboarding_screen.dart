@@ -10,8 +10,7 @@ import '../../../core/widgets/fintech/fintech_components.dart';
 class OnboardingScreen extends StatefulWidget {
   final VoidCallback onCompleted;
 
-  const OnboardingScreen({Key? key, required this.onCompleted})
-      : super(key: key);
+  const OnboardingScreen({super.key, required this.onCompleted});
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -254,10 +253,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   end: Alignment.bottomRight,
                   colors: [Color(0xFF047857), Color(0xFF0F172A)],
                 ),
-                primaryForm: Column(
+                primaryForm: const Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Row(
                       children: [
                         Icon(Icons.person_add_alt_1_rounded,
@@ -291,10 +290,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   end: Alignment.bottomRight,
                   colors: [Color(0xFF2563EB), Color(0xFF0F172A)],
                 ),
-                secondaryForm: Column(
+                secondaryForm: const Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Row(
                       children: [
                         Icon(Icons.lock_open_rounded,
@@ -439,8 +438,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: const Color(0xFFBBF7D0)),
             ),
-            child: Row(
-              children: const [
+            child: const Row(
+              children: [
                 Icon(Icons.shield_outlined, color: Color(0xFF16A34A), size: 20),
                 SizedBox(width: 10),
                 Expanded(

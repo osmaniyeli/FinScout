@@ -14,10 +14,10 @@ class AddGoalSheet extends StatefulWidget {
   final Future<void> Function(FinancialGoal goal) onSave;
 
   const AddGoalSheet({
-    Key? key,
+    super.key,
     this.initialGoal,
     required this.onSave,
-  }) : super(key: key);
+  });
 
   @override
   State<AddGoalSheet> createState() => _AddGoalSheetState();

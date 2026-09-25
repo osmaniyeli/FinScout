@@ -1,6 +1,7 @@
 // lib/core/parser/enrichment/category_engine.dart
 
 import 'dart:convert';
+import 'dart:isolate';
 
 import '../models/parsed_models.dart';
 import '../services/merchant_sanitizer.dart';
@@ -32,23 +33,54 @@ class CategoryEngine {
 
   /// Sözlük JSON'unu yükler (uygulamada rootBundle, testte dosyadan). Bozuk veri sessizce yok sayılır.
   void loadDictionary(String json) {
+    _dictionary
+      ..clear()
+      ..addAll(_parseDictionary(json));
+  }
+
+  Future<void>? _pendingLoad;
+
+  /// Sözlüğü arka planda yükler: JSON çözümleme + kalıp katlama ayrı bir isolate'te yapılır, böylece
+  /// uygulama açılışında ilk kare beklemez. [ensureDictionaryLoaded] yükleme bitene kadar bekletir.
+  /// Kaynak okunamazsa ya da veri bozuksa sözlük boş kalır (yerleşik kurallar çalışmaya devam eder).
+  Future<void> loadDictionaryInBackground(Future<String> Function() source) {
+    return _pendingLoad = () async {
+      try {
+        final json = await source();
+        final entries = await _parseInIsolate(json);
+        _dictionary
+          ..clear()
+          ..addAll(entries);
+      } catch (_) {
+        _dictionary.clear();
+      }
+    }();
+  }
+
+  /// Arka planda başlatılmış bir sözlük yüklemesi varsa bitmesini bekler; yoksa hemen döner.
+  Future<void> ensureDictionaryLoaded() => _pendingLoad ?? Future<void>.value();
+
+  // Statik: isolate'e gönderilen kapanış yalnız [json]'u taşır (örnek/servis durumu değil).
+  static Future<List<_DictEntry>> _parseInIsolate(String json) =>
+      Isolate.run(() => _parseDictionary(json));
+
+  static List<_DictEntry> _parseDictionary(String json) {
     try {
       final data = jsonDecode(json) as Map<String, dynamic>;
       final entries = (data['entries'] as List<dynamic>? ?? []).cast<Map<String, dynamic>>();
-      _dictionary
-        ..clear()
-        ..addAll(entries
-            .where((e) => (e['pattern'] as String?)?.trim().isNotEmpty == true && e['category'] != null)
-            .map((e) => _DictEntry(
-                  TrStatementText.fold(e['pattern'] as String),
-                  e['category'] as String,
-                  e['sector'] as String?,
-                  e['brand'] as String?,
-                )))
+      return entries
+          .where((e) => (e['pattern'] as String?)?.trim().isNotEmpty == true && e['category'] != null)
+          .map((e) => _DictEntry(
+                TrStatementText.fold(e['pattern'] as String),
+                e['category'] as String,
+                e['sector'] as String?,
+                e['brand'] as String?,
+              ))
+          .toList()
         // Uzun kalıp önce: "SHELL" yerine "SHELL CAFE" gibi daha özgül eşleşme kazanır
         ..sort((a, b) => b.pattern.length.compareTo(a.pattern.length));
     } catch (_) {
-      _dictionary.clear();
+      return const [];
     }
   }
 
@@ -143,7 +175,8 @@ class CategoryEngine {
     return false;
   }
 
-  static bool _isAlnum(String ch) => RegExp(r'[A-Z0-9]').hasMatch(ch);
+  static final RegExp _alnum = RegExp(r'[A-Z0-9]');
+  static bool _isAlnum(String ch) => _alnum.hasMatch(ch);
 }
 
 class _DictEntry {

@@ -5,6 +5,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/config/remote_config_service.dart';
 import '../../../core/widgets/remote_feature_gate.dart';
 import '../../../core/widgets/floating_capsule_nav_bar.dart';
+import '../../../core/widgets/fade_through_indexed_stack.dart';
 import '../dashboard/presentation/dashboard_screen.dart';
 import '../analysis/presentation/analysis_screen.dart';
 import '../cashflow_projection/presentation/cashflow_screen.dart';
@@ -13,7 +14,7 @@ import '../assets_portfolio/presentation/assets_screen.dart';
 import 'tab_add_actions.dart';
 
 class MainNavigationScaffold extends StatefulWidget {
-  const MainNavigationScaffold({Key? key}) : super(key: key);
+  const MainNavigationScaffold({super.key});
 
   @override
   State<MainNavigationScaffold> createState() => _MainNavigationScaffoldState();
@@ -25,7 +26,13 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
 
   /// Her sekme ekranının State'ine erişim: + düğmesi o sekmenin ekleme seçeneklerini buradan okur.
   final Map<String, GlobalKey> _screenKeys = {
-    for (final k in const ['dashboard', 'cashflow', 'analysis', 'goals', 'assets'])
+    for (final k in const [
+      'dashboard',
+      'cashflow',
+      'analysis',
+      'goals',
+      'assets'
+    ])
       k: GlobalKey(debugLabel: 'tab_$k'),
   };
 
@@ -161,35 +168,50 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
         }
 
         final screens = activeKeys.map((k) => _buildScreenByKey(k)).toList();
-        final navItems = activeKeys.map((k) => _buildCapsuleNavItemByKey(k)).toList();
+        final navItems =
+            activeKeys.map((k) => _buildCapsuleNavItemByKey(k)).toList();
 
         final buttonConfig = _remoteConfig.buttonConfig;
         final isFabHidden = buttonConfig.fabPosition == 'hidden';
 
-        return Scaffold(
-          extendBody: false, // Temiz native fintech barı, içerik arkada kalmaz
-          body: IndexedStack(
-            index: _currentIndex,
-            children: screens,
-          ),
-          floatingActionButton: isFabHidden
-              ? null
-              : FloatingActionButton(
-                  onPressed: _openAddMenu,
-                  tooltip: 'Ekle',
-                  backgroundColor: AppColors.dynamicPrimary,
-                  elevation: buttonConfig.elevation,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(buttonConfig.borderRadius * 1.5),
+        // Ana sayfa dışındaki bir sekmede geri tuşu önce ana sayfaya döner, uygulamadan çıkmaz.
+        return PopScope(
+          canPop: _currentIndex == 0,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop && _currentIndex != 0) {
+              setState(() => _currentIndex = 0);
+            }
+          },
+          child: Scaffold(
+            extendBody:
+                false, // Temiz native fintech barı, içerik arkada kalmaz
+            // Sekmeler canlı tutulur (IndexedStack gibi); geçiş Material fade-through, 280 ms.
+            body: FadeThroughIndexedStack(
+              index: _currentIndex,
+              children: screens,
+            ),
+            floatingActionButton: isFabHidden
+                ? null
+                : FloatingActionButton(
+                    onPressed: _openAddMenu,
+                    tooltip: 'Ekle',
+                    backgroundColor: AppColors.dynamicPrimary,
+                    elevation: buttonConfig.elevation,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                          buttonConfig.borderRadius * 1.5),
+                    ),
+                    child: const Icon(Icons.add_rounded,
+                        color: Colors.white, size: 28),
                   ),
-                  child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
-                ),
-          floatingActionButtonLocation: _resolveFabLocation(buttonConfig.fabPosition),
-          bottomNavigationBar: FloatingCapsuleNavBar(
-            currentIndex: _currentIndex,
-            onTap: (index) => setState(() => _currentIndex = index),
-            items: navItems,
-            activeIndicatorColor: AppColors.dynamicPrimary,
+            floatingActionButtonLocation:
+                _resolveFabLocation(buttonConfig.fabPosition),
+            bottomNavigationBar: FloatingCapsuleNavBar(
+              currentIndex: _currentIndex,
+              onTap: (index) => setState(() => _currentIndex = index),
+              items: navItems,
+              activeIndicatorColor: AppColors.dynamicPrimary,
+            ),
           ),
         );
       },

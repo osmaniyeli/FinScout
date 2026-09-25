@@ -71,7 +71,12 @@ class StatementReconciler {
       checks++;
       final net = records.first.billingAmountCents;
       final other = summary.payslipOtherDeductionsCents ?? 0;
-      if (gross - legal - other != net) {
+      final diff = gross - legal - other - net;
+      if (diff > 0) {
+        // Bordro, ödenen tutarı açıklamıyor: fark uydurma bir gelir kaydıyla kapatılmaz, kullanıcıya söylenir.
+        issues.add('Bordroda net gelir − özel kesinti, ödenen tutardan ${_fmt(diff)} fazla; farkın açıklaması '
+            'bordroda yok. Kaydedilen tutar: bankaya ödenen ${_fmt(net)}.');
+      } else if (diff < 0) {
         issues.add('Bordro tutmuyor: brüt ${_fmt(gross)} − yasal ${_fmt(legal)} − özel ${_fmt(other)} ≠ net ${_fmt(net)}');
       }
       final itemized = records.first.taxes.fold<int>(0, (s, t) => s + t.amountCents);

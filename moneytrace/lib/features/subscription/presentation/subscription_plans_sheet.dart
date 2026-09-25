@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/config/app_links.dart';
-import '../../../core/widgets/pulse_metric_badge.dart';
 import '../services/subscription_service.dart';
 import '../../family/presentation/family_screen.dart';
 
@@ -232,33 +231,14 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            Text(
-                              pkg.title,
-                              style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.textPrimary),
-                            ),
-                            if (isFamily) ...[
-                              const SizedBox(width: 8),
-                              const PulseMetricBadge(
-                                label: '4 KİŞİLİK',
-                                value: 'AİLE',
-                                pulseColor: Color(0xFF16A34A),
-                                isPositive: true,
-                              ),
-                            ] else if (isAnnual) ...[
-                              const SizedBox(width: 8),
-                              const PulseMetricBadge(
-                                label: 'AVANTAJ',
-                                value: '%37 TASARRUF',
-                                pulseColor: AppColors.actionPrimary,
-                                isPositive: true,
-                              ),
-                            ],
-                          ],
+                        Flexible(
+                          child: Text(
+                            pkg.title,
+                            style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.textPrimary),
+                          ),
                         ),
                         Text(
                           displayPrice,

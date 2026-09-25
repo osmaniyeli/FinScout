@@ -17,7 +17,7 @@ class LaserShimmerCard extends StatefulWidget {
   final VoidCallback? onTap;
 
   const LaserShimmerCard({
-    Key? key,
+    super.key,
     required this.child,
     this.padding = const EdgeInsets.all(16),
     this.margin = const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -27,7 +27,7 @@ class LaserShimmerCard extends StatefulWidget {
     this.borderColor = const Color(0xFF334155),
     this.enableShimmer = true,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   State<LaserShimmerCard> createState() => _LaserShimmerCardState();
@@ -83,21 +83,27 @@ class _LaserShimmerCardState extends State<LaserShimmerCard>
       );
     }
 
+    // Sürekli dönen animasyon: her karede yalnız kenar çizgisi boyansın. Dış sınır ekranın geri
+    // kalanını, iç sınır kart içeriğini (metin, simgeler) her karede yeniden boyanmaktan korur.
+    final staticContent = RepaintBoundary(child: cardContent);
     return Container(
       margin: widget.margin,
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, _) {
-          return CustomPaint(
-            painter: _LaserBorderPainter(
-              progress: _controller.value,
-              shimmerColor: widget.shimmerColor,
-              baseBorderColor: widget.borderColor,
-              borderRadius: widget.borderRadius,
-            ),
-            child: cardContent,
-          );
-        },
+      child: RepaintBoundary(
+        child: AnimatedBuilder(
+          animation: _controller,
+          child: staticContent,
+          builder: (context, child) {
+            return CustomPaint(
+              painter: _LaserBorderPainter(
+                progress: _controller.value,
+                shimmerColor: widget.shimmerColor,
+                baseBorderColor: widget.borderColor,
+                borderRadius: widget.borderRadius,
+              ),
+              child: child,
+            );
+          },
+        ),
       ),
     );
   }

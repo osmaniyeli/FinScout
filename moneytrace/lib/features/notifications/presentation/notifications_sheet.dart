@@ -6,7 +6,7 @@ import '../../../core/localization/app_strings.dart';
 import '../../../core/services/user_profile_service.dart';
 
 class NotificationsSheet extends StatelessWidget {
-  const NotificationsSheet({Key? key}) : super(key: key);
+  const NotificationsSheet({super.key});
 
   static void show(BuildContext context) {
     showModalBottomSheet(

@@ -74,8 +74,6 @@ class AppStrings {
       'language_option': 'Dil Seçeneği',
       'data_management': 'Veri Yönetimi',
       'export_excel': 'Excel Olarak Dışa Aktar (.csv)',
-      'export_backup': 'Sistem Yedeği Al (.json)',
-      'restore_backup': 'Yedekten Geri Yükle',
       'subscription_status': 'Abonelik ve Google Play',
       'delete_all_data': 'Tüm Verilerimi Sıfırla ve Sil',
       'delete_data_confirm_title': 'Tüm Verileriniz Silinsin mi?',
