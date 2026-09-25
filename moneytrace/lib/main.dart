@@ -17,6 +17,9 @@ import 'core/widgets/fintech/fintech_components.dart';
 import 'features/navigation/main_navigation_scaffold.dart';
 import 'features/onboarding/presentation/onboarding_screen.dart';
 
+/// Ekran değişse de alttaki bildirimin (SnackBar) kaybolmaması için uygulama düzeyinde messenger.
+final GlobalKey<ScaffoldMessengerState> appMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // İlk kare için gerekenler birbirinden bağımsız: sırayla değil birlikte beklenir.
@@ -120,12 +123,16 @@ class _FinScoutAppState extends State<FinScoutApp> with WidgetsBindingObserver {
 
             return MaterialApp(
               title: 'FinScout',
+              scaffoldMessengerKey: appMessengerKey,
               debugShowCheckedModeBanner: false,
               theme: AppTheme.lightTheme,
               home: hasProfile
                   ? const MainNavigationScaffold()
                   : OnboardingScreen(
-                      onCompleted: () => setState(() => _isUnlocked = true),
+                      onCompleted: () {
+                        setState(() => _isUnlocked = true);
+                        _announceNewAccount();
+                      },
                     ),
               // Kilit Navigator'ın ÜSTÜNDE: açık alt sayfa, diyalog ya da itilmiş ekran da örtülür.
               builder: (context, child) => _wrapWithGuards(child!, hasProfile),
@@ -134,6 +141,24 @@ class _FinScoutAppState extends State<FinScoutApp> with WidgetsBindingObserver {
         );
       },
     );
+  }
+
+  /// Hesap yeni açıldıysa ana ekran geldikten sonra altta bir kez bildirim gösterir.
+  void _announceNewAccount() {
+    if (!AccountService.instance.lastSignInCreatedAccount) return;
+    AccountService.instance.lastSignInCreatedAccount = false;
+    final email = UserProfileService.instance.profile?.email ?? '';
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      appMessengerKey.currentState?.showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+          content: Text(email.isEmpty
+              ? 'Hesabın oluşturuldu.'
+              : 'Hesabın oluşturuldu: $email'),
+        ),
+      );
+    });
   }
 
   Widget _wrapWithGuards(Widget child, bool hasProfile) {

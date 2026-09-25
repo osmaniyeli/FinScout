@@ -77,13 +77,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       if (profile == null && code != null && mounted) {
         // Telefonun hesap seçicisi girişi tamamlamadı (çoğunlukla imza/OAuth yapılandırması).
         // Tarayıcı yolu bu yapılandırmaya bağlı değil: kullanıcıya sun.
+        // Teşhis: telefondaki uygulamanın imza SHA-1'i; Google Cloud'daki Android istemcisiyle karşılaştırılır.
+        final sha1 = await AccountService.instance.appSigningSha1();
+        if (!mounted) return;
         final useBrowser = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
             title: const Text('Google girişi tamamlanmadı'),
-            content: Text(
+            content: SelectableText(
                 'Telefonun Google hesap seçicisi girişi bitiremedi.\n\n'
                 'Ayrıntı: $code\n\n'
+                '${sha1.isEmpty ? '' : 'Uygulama imzası (SHA-1):\n${sha1.join('\n')}\n\n'}'
                 'Google girişini tarayıcıda yapabilirsin.'),
             actions: [
               TextButton(

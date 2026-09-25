@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show MethodChannel;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -106,6 +107,11 @@ class AccountService {
         fallbackEmail: email.trim().toLowerCase(), name: fullName);
   }
 
+  /// Son girişte hesap yeni mi açıldı (Supabase kaydı son 15 dakikada oluşturulduysa).
+  /// E-posta kodunda kullanıcı kod gönderilirken oluşur; kod en fazla birkaç dakikada girildiği için
+  /// 15 dakikalık pencere yeni hesabı ayırt etmeye yeter. Ana ekranda bir kez "hesabın oluşturuldu" gösterilir.
+  bool lastSignInCreatedAccount = false;
+
   /// Son Google girişi iptal/kesinti kodu (tanı için ekranda gösterilir). Android Credential Manager
   /// yapılandırma hatalarını (imza SHA-1'i ile OAuth istemcisi uyuşmazlığı) da "canceled" olarak bildirebilir.
   String? lastGoogleCancelCode;
@@ -163,6 +169,17 @@ class AccountService {
     }
     return _saveLocalProfile(user,
         fallbackEmail: account.email, name: account.displayName);
+  }
+
+  /// Google girişi teşhisi: telefondaki uygulamayı imzalayan sertifikanın SHA-1'i (son imza en sonda).
+  Future<List<String>> appSigningSha1() async {
+    try {
+      final r = await const MethodChannel('com.moneytrace.app/integrity')
+          .invokeListMethod<String>('signingSha1');
+      return r ?? const [];
+    } catch (_) {
+      return const [];
+    }
   }
 
   /// Tarayıcı üzerinden Google girişinin uygulamaya döndüğü adres (AndroidManifest'te intent-filter,
@@ -247,6 +264,9 @@ class AccountService {
       monthlyBudgetCents: existing?.monthlyBudgetCents ?? 0,
       joinedAt: existing?.joinedAt ?? DateTime.now(),
     );
+    final created = DateTime.tryParse(user.createdAt);
+    lastSignInCreatedAccount = created != null &&
+        DateTime.now().toUtc().difference(created.toUtc()) < const Duration(minutes: 15);
     await UserProfileService.instance.saveProfile(profile);
     await UserProfileService.instance.setLocalDataOwner(user.id);
     return profile;
