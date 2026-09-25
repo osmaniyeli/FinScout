@@ -115,12 +115,13 @@ class GoalCardTile extends StatelessWidget {
 
             const SizedBox(height: 14),
 
-            // Tutar Bilgisi
+            // Tutar Bilgisi (büyük yazıda tutarlar alt satıra kırılır, satır taşmaz)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                RichText(
-                  text: TextSpan(
+                Flexible(
+                  child: Text.rich(
+                  TextSpan(
                     style: const TextStyle(
                       color: AppColors.textPrimary,
                     ),
@@ -154,6 +155,8 @@ class GoalCardTile extends StatelessWidget {
                     ],
                   ),
                 ),
+                ),
+                const SizedBox(width: 8),
                 Text(
                   '%${progress.toStringAsFixed(0)}',
                   style: TextStyle(
@@ -186,17 +189,20 @@ class GoalCardTile extends StatelessWidget {
               children: [
                 if (!goal.isCompleted &&
                     goal.recommendedMonthlySavingsCents > 0)
-                  Text(
-                    'Aylık gereken: ${CurrencyNormalizer.formatCents(goal.recommendedMonthlySavingsCents)}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
+                  Flexible(
+                    child: Text(
+                      'Aylık gereken: ${CurrencyNormalizer.formatCents(goal.recommendedMonthlySavingsCents)}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   )
                 else
                   const SizedBox.shrink(),
-                if (onAddContribution != null && !goal.isCompleted)
+                if (onAddContribution != null && !goal.isCompleted) ...[
+                  const SizedBox(width: 8),
                   InkWell(
                     onTap: onAddContribution,
                     borderRadius: BorderRadius.circular(10),
@@ -217,6 +223,7 @@ class GoalCardTile extends StatelessWidget {
                       ),
                     ),
                   ),
+                ],
               ],
             ),
           ],

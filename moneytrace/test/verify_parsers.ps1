@@ -584,7 +584,6 @@ $expectedWidgets = @(
     "pulse_metric_badge.dart",
     "streak_confetti_burst.dart",
     "morphing_segmented_bar.dart",
-    "laser_shimmer_card.dart",
     "rolling_number_ticker.dart"
 )
 
@@ -610,6 +609,10 @@ Assert-Test -Name "Decorative Widget Set Reduced to Functional Ones" -Condition 
 $pulseBadgeFile = Join-Path $PSScriptRoot "../lib/core/widgets/pulse_metric_badge.dart"
 $pulseBadgeUsers = @(Get-ChildItem -Path (Join-Path $PSScriptRoot "../lib") -Recurse -Filter *.dart | Select-String -Pattern "PulseMetricBadge" -SimpleMatch)
 Assert-Test -Name "No Decorative Pulse Badges (LIDER / plan / savings pills)" -Condition ((-not (Test-Path $pulseBadgeFile)) -and ($pulseBadgeUsers.Count -eq 0)) -Details "pulse_metric_badge.dart removed; no PulseMetricBadge usage left in lib/ (found: $($pulseBadgeUsers.Count))"
+# Ayarlar plan kartindaki lazer parlama efekti (LaserShimmerCard) kaldirildi; duz, sakin kart (2026-09-25)
+$laserCardFile = Join-Path $PSScriptRoot "../lib/core/widgets/laser_shimmer_card.dart"
+$laserCardUsers = @(Get-ChildItem -Path (Join-Path $PSScriptRoot "../lib") -Recurse -Filter *.dart | Select-String -Pattern "LaserShimmerCard" -SimpleMatch)
+Assert-Test -Name "No Laser Shimmer Plan Card (calm settings plan card)" -Condition ((-not (Test-Path $laserCardFile)) -and ($laserCardUsers.Count -eq 0)) -Details "laser_shimmer_card.dart removed; no LaserShimmerCard usage left in lib/ (found: $($laserCardUsers.Count))"
 
 # 2. MainNavigationScaffold Floating Capsule Bar Integration
 $navScaffoldPath = Join-Path $PSScriptRoot "../lib/features/navigation/main_navigation_scaffold.dart"

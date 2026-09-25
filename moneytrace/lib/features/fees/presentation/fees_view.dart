@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../../../core/layout/adaptive.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/currency_normalizer.dart';
 import '../../../core/widgets/fintech/fintech_components.dart';
@@ -35,8 +36,11 @@ class FeesView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final r = report;
-    return ListView(
+    // Tablette okunabilir sütun (en fazla 720 dp), ortalı
+    return AdaptiveListPadding(
       padding: const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 84),
+      builder: (context, padding) => ListView(
+      padding: padding,
       children: [
         _PeriodSelector(period: period, onChanged: onPeriodChanged),
         const SizedBox(height: 14),
@@ -86,6 +90,7 @@ class FeesView extends StatelessWidget {
             ),
           ),
       ],
+      ),
     );
   }
 }

@@ -22,6 +22,10 @@ class DocumentQuotaResult {
   /// Sunucuya ulaşılamadığı için karar verilemedi (kota dolu değil; bağlantı sorunu)
   final bool isNetworkError;
 
+  /// Sunucuda sayılan tüketimin kimliği (consume_upload → consumption_id). Kayıt başarısız olursa
+  /// [UserProfileService.refundUpload] bununla iade ister. Kotaya sayılmayan yüklemede null.
+  final String? consumptionId;
+
   const DocumentQuotaResult({
     required this.canUpload,
     required this.reason,
@@ -29,6 +33,7 @@ class DocumentQuotaResult {
     required this.maxThisMonth,
     required this.planName,
     this.isNetworkError = false,
+    this.consumptionId,
   });
 }
 
@@ -305,6 +310,7 @@ class UserProfileService {
         usedThisMonth: used,
         maxThisMonth: totalLimit,
         planName: planName,
+        consumptionId: res['consumption_id'] as String?,
       );
     }
     final typeLimit = (res['type_limit'] as num?)?.toInt();
@@ -318,6 +324,32 @@ class UserProfileService {
       maxThisMonth: totalLimit,
       planName: planName,
     );
+  }
+
+  /// Kota düşüldükten sonra cihazdaki kayıt başarısız olduysa o tek tüketimi sunucuda geri alır
+  /// (refund_upload: yalnız kendi, 15 dk içindeki, iade edilmemiş tüketim; ayda en fazla 3 iade).
+  /// Hata fırlatmaz: iade olmazsa yalnız loglanır, kullanıcıya gösterilen kayıt hatası değişmez.
+  Future<bool> refundUpload(String consumptionId) async {
+    final client = AccountService.instance.signedInClient;
+    if (client == null) {
+      debugPrint('Kota iadesi yapılamadı: oturum yok');
+      return false;
+    }
+    try {
+      final data = await client.rpc('refund_upload', params: {'p_consumption_id': consumptionId});
+      final res = Map<String, dynamic>.from(data as Map);
+      final sub = SubscriptionService.instance;
+      sub.updateUsageFromServer(res);
+      final period = res['period'] as String?;
+      if (period != null) {
+        _monthlyUploads[period] = Map<String, int>.from(sub.serverUsage);
+        await _persist();
+      }
+      return res['refunded'] == true;
+    } catch (e) {
+      debugPrint('Kota iadesi yapılamadı: $e');
+      return false;
+    }
   }
 
   static String _planDisplayName(String plan) => switch (plan) {

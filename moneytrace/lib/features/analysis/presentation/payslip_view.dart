@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/layout/adaptive.dart';
 import '../../../core/services/data_changes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
@@ -16,7 +17,10 @@ import '../services/payslip_analytics_service.dart';
 /// Analiz > Maaş & Vergi: yüklenen bordrolardan yıllar boyu maaş ve yasal kesinti geçmişi.
 /// Filtreler (yıl, ölçü, aylık/yıllık) yalnız görünümü değiştirir; tüm sayılar bordrolardan gelir.
 class PayslipView extends StatefulWidget {
-  const PayslipView({super.key});
+  const PayslipView({super.key, @visibleForTesting this.loadMonths});
+
+  /// Yalnız testler için: bordro verisini veritabanı yerine buradan okur (yerleşim testleri).
+  final Future<List<PayslipMonth>> Function()? loadMonths;
 
   @override
   State<PayslipView> createState() => _PayslipViewState();
@@ -86,7 +90,7 @@ class _PayslipViewState extends State<PayslipView> {
     final request = ++_request;
     setState(() => _loading = true);
     try {
-      final months = await _service.loadMonths();
+      final months = await (widget.loadMonths ?? _service.loadMonths)();
       if (!mounted || request != _request) return;
       final available = PayslipAnalyticsService.yearsOf(months).toSet();
       setState(() {
@@ -123,8 +127,12 @@ class _PayslipViewState extends State<PayslipView> {
     final allYears = PayslipAnalyticsService.yearsOf(months);
     final picked = PayslipAnalyticsService.filterYears(months, _years);
 
-    return ListView(
+    // Tablette sütun ortalanır (en fazla Breakpoints.wide); grafik genişliğe yayılır, özet kartları 4'lü dizilir.
+    return AdaptiveListPadding(
       padding: const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 84),
+      maxWidth: Breakpoints.wide,
+      builder: (context, padding) => ListView(
+      padding: padding,
       children: [
         _ChipRow(children: [
           _Chip(label: 'Tümü', selected: _years.isEmpty, onTap: () => setState(() => _years = {})),
@@ -179,6 +187,7 @@ class _PayslipViewState extends State<PayslipView> {
           ),
         ),
       ],
+      ),
     );
   }
 }
@@ -328,7 +337,7 @@ class _ChartCard extends StatelessWidget {
               final width = math.max(constraints.maxWidth, bars.length * minSlot + 44);
               // Grafik kendi katmanında: kaydırma ve çevredeki çip/metin değişimleri onu yeniden boyamaz
               final chart = RepaintBoundary(
-                child: SizedBox(width: width, height: 220, child: _chart(bars, values, color, width)),
+                child: SizedBox(width: width, height: 220, child: _chart(bars, values, color, width, MediaQuery.textScalerOf(context))),
               );
               if (width <= constraints.maxWidth) return chart;
               // Uzun geçmişte en yeni aylar görünsün: kaydırma sağdan başlar
@@ -344,11 +353,14 @@ class _ChartCard extends StatelessWidget {
     );
   }
 
-  Widget _chart(List<_Bar> bars, List<int> values, Color color, double width) {
+  Widget _chart(List<_Bar> bars, List<int> values, Color color, double width, TextScaler textScaler) {
+    // Eksen etiketleri için ayrılan alan yazı boyutuyla büyür (1.0'da 44 / 30 dp, önceki gibi)
+    final leftReserved = math.max(44.0, textScaler.scale(10) * 4.4);
+    final bottomReserved = math.max(30.0, textScaler.scale(9.5) * 1.1 * 2 + 8);
     final maxTl = values.reduce(math.max) / 100;
     final top = maxTl <= 0 ? 1.0 : maxTl * 1.15;
     final interval = top / 4;
-    final rodWidth = ((width - 44) / bars.length * 0.6).clamp(4.0, 28.0);
+    final rodWidth = ((width - leftReserved) / bars.length * 0.6).clamp(4.0, 28.0);
     final labelEvery = math.max(1, (bars.length / 8).ceil());
 
     return BarChart(
@@ -368,7 +380,7 @@ class _ChartCard extends StatelessWidget {
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 44,
+              reservedSize: leftReserved,
               interval: interval,
               getTitlesWidget: (value, meta) {
                 if (value == meta.max) return const SizedBox.shrink();
@@ -383,7 +395,7 @@ class _ChartCard extends StatelessWidget {
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 30,
+              reservedSize: bottomReserved,
               getTitlesWidget: (value, meta) {
                 final i = value.toInt();
                 if (i < 0 || i >= bars.length) return const SizedBox.shrink();
@@ -547,7 +559,9 @@ class _Insights extends StatelessWidget {
     return Column(
       children: [
         LayoutBuilder(builder: (context, c) {
-          final w = (c.maxWidth - 10) / 2;
+          // Telefonda 2×2, geniş sütunda (≥ 720 dp) tek sırada 4 kart
+          final perRow = c.maxWidth >= Breakpoints.readable ? 4 : 2;
+          final w = (c.maxWidth - 10 * (perRow - 1)) / perRow;
           return Wrap(
             spacing: 10,
             runSpacing: 10,
@@ -567,16 +581,29 @@ class _Insights extends StatelessWidget {
                 for (final g in growth)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 3),
-                    child: Row(
+                    // Büyük yazıda haplar satırı taşırmaz, alt alta dizilir
+                    child: LayoutBuilder(
+                      builder: (context, rc) => Row(
                       children: [
                         Expanded(
                           child: Text('${g.fromYear} → ${g.toYear}',
                               style: const TextStyle(
                                   fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
                         ),
-                        if (g.grossPct != null) _GrowthPill('Brüt', g.grossPct!),
-                        if (g.netPct != null) ...[const SizedBox(width: 6), _GrowthPill('Net', g.netPct!)],
+                        ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: rc.maxWidth * 0.7),
+                          child: Wrap(
+                            alignment: WrapAlignment.end,
+                            spacing: 6,
+                            runSpacing: 4,
+                            children: [
+                              if (g.grossPct != null) _GrowthPill('Brüt', g.grossPct!),
+                              if (g.netPct != null) _GrowthPill('Net', g.netPct!),
+                            ],
+                          ),
+                        ),
                       ],
+                      ),
                     ),
                   ),
               ],
@@ -661,7 +688,9 @@ class _EmptyPayslips extends StatelessWidget {
   Widget build(BuildContext context) => Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-          child: FinanceCard(
+          child: AdaptiveBody(
+            maxWidth: 560,
+            child: FinanceCard(
             padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
             child: Column(
               children: [
@@ -702,6 +731,7 @@ class _EmptyPayslips extends StatelessWidget {
                 ),
               ],
             ),
+          ),
           ),
         ),
       );

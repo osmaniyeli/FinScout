@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/layout/adaptive.dart';
 import '../../../core/theme/app_colors.dart';
 
 /// Uygulamanın doğrudan kullandığı açık kaynak paketler (pubspec.yaml `dependencies`).
@@ -56,8 +57,11 @@ class LicensesScreen extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
       ),
-      body: ListView(
+      // Tablette okunabilir sütun (en fazla 720 dp), ortalı
+      body: AdaptiveListPadding(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        builder: (context, padding) => ListView(
+        padding: padding,
         children: [
           const Text(
             'FinScout aşağıdaki açık kaynak yazılımları kullanır. Emeği geçenlere teşekkürler.',
@@ -94,6 +98,7 @@ class LicensesScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

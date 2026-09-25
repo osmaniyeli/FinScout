@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../core/layout/adaptive.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../subscription/presentation/subscription_plans_sheet.dart';
 import '../services/family_service.dart';
@@ -183,13 +184,17 @@ class _FamilyScreenState extends State<FamilyScreen> {
     final s = _state!;
     return RefreshIndicator(
       onRefresh: _load,
-      child: ListView(
+      // Tablette okunabilir sütun (en fazla 720 dp), ortalı
+      child: AdaptiveListPadding(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-        children: [
-          const FamilyHowItWorks(),
-          const SizedBox(height: 20),
-          if (!s.inFamily) ..._notInFamily(s) else ..._inFamily(s),
-        ],
+        builder: (context, padding) => ListView(
+          padding: padding,
+          children: [
+            const FamilyHowItWorks(),
+            const SizedBox(height: 20),
+            if (!s.inFamily) ..._notInFamily(s) else ..._inFamily(s),
+          ],
+        ),
       ),
     );
   }

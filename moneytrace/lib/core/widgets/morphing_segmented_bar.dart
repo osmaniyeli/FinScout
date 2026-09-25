@@ -1,7 +1,10 @@
 // lib/core/widgets/morphing_segmented_bar.dart
 
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../layout/adaptive.dart' show Breakpoints;
 import '../theme/app_colors.dart';
 
 /// Video Micro-Interaction & Shakuro Inspired: Morflayan Kayan Segment Bar
@@ -43,19 +46,29 @@ class _MorphingSegmentedBarState extends State<MorphingSegmentedBar> {
     final activeText = widget.activeTextColor ?? Colors.white;
     final inactiveText = widget.inactiveTextColor ?? AppColors.textSecondary;
 
+    // Büyük yazı boyutunda (erişilebilirlik) çubuk yazıyla birlikte uzar; 1.0'da yükseklik aynı.
+    final scaledTextHeight =
+        MediaQuery.textScalerOf(context).scale(12.5) * 1.35 + 8 + 2;
+    final barHeight = math.max(widget.height, scaledTextHeight);
+
     return Padding(
       padding: widget.padding,
-      child: LayoutBuilder(
+      // Tablet/yatay ekranda çubuk okunabilir genişlikte ortalanır (segmentler 300 dp'lik haplara dönüşmez)
+      child: Center(
+        heightFactor: 1,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: Breakpoints.readable),
+          child: LayoutBuilder(
         builder: (context, constraints) {
           final totalWidth = constraints.maxWidth;
           final segmentWidth = (totalWidth - 8) / widget.segments.length;
 
           return Container(
-            height: widget.height,
+            height: barHeight,
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
               color: bgColor,
-              borderRadius: BorderRadius.circular(widget.height / 2 + 4),
+              borderRadius: BorderRadius.circular(barHeight / 2 + 4),
               border: Border.all(
                 color: const Color(0xFFE2E8F0),
                 width: 0.8,
@@ -74,7 +87,7 @@ class _MorphingSegmentedBarState extends State<MorphingSegmentedBar> {
                   child: Container(
                     decoration: BoxDecoration(
                       color: activeColor,
-                      borderRadius: BorderRadius.circular(widget.height / 2),
+                      borderRadius: BorderRadius.circular(barHeight / 2),
                       boxShadow: [
                         BoxShadow(
                           color: activeColor.withValues(alpha: 0.35),
@@ -125,6 +138,8 @@ class _MorphingSegmentedBarState extends State<MorphingSegmentedBar> {
             ),
           );
         },
+          ),
+        ),
       ),
     );
   }

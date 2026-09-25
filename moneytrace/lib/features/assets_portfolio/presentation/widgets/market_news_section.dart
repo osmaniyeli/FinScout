@@ -54,13 +54,15 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'PİYASA HABERLERİ',
-                style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textSecondary,
-                    letterSpacing: 0.5),
+              const Flexible(
+                child: Text(
+                  'PİYASA HABERLERİ',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textSecondary,
+                      letterSpacing: 0.5),
+                ),
               ),
               InkWell(
                 onTap: _isLoading ? null : () => _loadNews(forceRefresh: true),

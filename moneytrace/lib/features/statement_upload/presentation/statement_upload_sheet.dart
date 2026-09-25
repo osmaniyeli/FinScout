@@ -216,11 +216,22 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
     final quota = await UserProfileService.instance
         .consumeUpload(result.documentType, isBackfill: isBackfill);
     if (!quota.canUpload) return (null, quota);
-    final saved = await _repository.saveStatementResult(
-      result: result,
-      fileSha256: hash,
-      fileName: fileName,
-    );
+    final StatementSaveResult saved;
+    try {
+      saved = await _repository.saveStatementResult(
+        result: result,
+        fileSha256: hash,
+        fileName: fileName,
+      );
+    } catch (_) {
+      // Kota düştü ama belge kaydedilemedi: hakkı geri ver. İade başarısız olursa refundUpload
+      // sessizce loglar; kayıt hatası yine kullanıcıya gösterilir (hata yutulmaz).
+      final consumptionId = quota.consumptionId;
+      if (consumptionId != null) {
+        await UserProfileService.instance.refundUpload(consumptionId);
+      }
+      rethrow;
+    }
     return (saved, quota);
   }
 

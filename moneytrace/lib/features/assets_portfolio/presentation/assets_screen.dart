@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../core/layout/adaptive.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/currency_normalizer.dart';
@@ -289,12 +290,16 @@ class _AssetsScreenState extends State<AssetsScreen> implements TabAddActions {
   Widget _detailRow(String label, String value, {Color? color}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
+      // Dar ekran / büyük yazıda etiket alt satıra kırılır, tutar sağda kalır (taşma yok)
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label,
-              style: const TextStyle(
-                  fontSize: 13, color: AppColors.textSecondary)),
+          Flexible(
+            child: Text(label,
+                style: const TextStyle(
+                    fontSize: 13, color: AppColors.textSecondary)),
+          ),
+          const SizedBox(width: 12),
           Text(value,
               style: TextStyle(
                   fontSize: 14,
@@ -1300,7 +1305,9 @@ class _AssetsScreenState extends State<AssetsScreen> implements TabAddActions {
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Column(
+          // Tablette okunabilir sütun (en fazla 720 dp), ortalı
+          child: AdaptiveBody(
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Segment Kontrolcü: [Birikim] | [Araçlar] | [Kartlar]
@@ -1408,12 +1415,14 @@ class _AssetsScreenState extends State<AssetsScreen> implements TabAddActions {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Birikimlerim',
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textPrimary),
+                    const Flexible(
+                      child: Text(
+                        'Birikimlerim',
+                        style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary),
+                      ),
                     ),
                     TextButton.icon(
                       onPressed: _showAddSavingsSheet,
@@ -1560,6 +1569,7 @@ class _AssetsScreenState extends State<AssetsScreen> implements TabAddActions {
               ],
               const SizedBox(height: 84), // Navigasyon & FAB boşluğu
             ],
+          ),
           ),
         ),
       ),

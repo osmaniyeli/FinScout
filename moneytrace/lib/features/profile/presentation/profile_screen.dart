@@ -1,6 +1,7 @@
 // lib/features/profile/presentation/profile_screen.dart
 
 import 'package:flutter/material.dart';
+import '../../../core/layout/adaptive.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/services/user_profile_service.dart';
@@ -131,7 +132,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
-        child: Column(
+        // Tablette okunabilir sütun (en fazla 720 dp), ortalı
+        child: AdaptiveBody(
+          child: Column(
           children: [
             // 1. Profil Avatar & İsim Kartı
             Center(
@@ -234,11 +237,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 24),
 
             // 3. EN ALT ALAN: Uygulama Ayarları, Çıkış Yap
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
+            // Material: ListTile dokunma dalgası kartın beyaz zemininin üstünde görünsün
+            // (Container rengi dalgayı örtüyordu; debug'da ListTile uyarısı veriyordu). Görünüm aynı.
+            Material(
+              color: Colors.white,
+              clipBehavior: Clip.antiAlias,
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                side: const BorderSide(color: Color(0xFFE2E8F0)),
               ),
               child: Column(
                 children: [
@@ -275,6 +281,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 30),
           ],
+        ),
         ),
       ),
     );

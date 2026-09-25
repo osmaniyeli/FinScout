@@ -34,9 +34,16 @@ class TransactionRepository {
         : 'acc_${bank}_$identifier';
   }
 
+  /// Aynı-dönem kontrolü bu belgeye uygulanır mı? Bordroda uygulanmaz: aynı ay için eşin bordrosu
+  /// (ya da fark bordrosu) meşru olarak eklenebilir; bordroda yalnız dosya birebir aynıysa
+  /// (SHA-256, [isStatementAlreadyImported]) uyarı verilir. Kart/hesap ekstrelerinde aynen uygulanır.
+  static bool samePeriodCheckApplies(StatementDocumentResult result) => result.documentType != 'PAYSLIP';
+
   /// Aynı hesabın aynı dönemi daha önce yüklendi mi? Bankadan yeniden indirilen ekstrenin dosya özeti
   /// (SHA-256) farklı olabilir; bu yüzden hesap + hesap kesim tarihi (yoksa dönem sonu) da karşılaştırılır.
+  /// Bordrolar için her zaman false ([samePeriodCheckApplies]).
   Future<bool> isSamePeriodAlreadyImported(StatementDocumentResult result) async {
+    if (!samePeriodCheckApplies(result)) return false;
     final db = await _dbProvider.database;
     String day(DateTime d) => d.toIso8601String().split('T')[0];
     final statementDay = result.summary.statementDate;
@@ -68,8 +75,31 @@ class TransactionRepository {
           AND ABS(julianday(s.transaction_date) - julianday(t.transaction_date)) <= 20))
   """;
 
+  /// İşlemin mükerrer parmak izi anahtarı (fingerprint = sha1(anahtar#tekrar)).
+  /// Kart/hesap ekstresinde: hesap + tarih + tutar + açıklama + taksit no; aynı işlem farklı (yeniden
+  /// indirilmiş) dosyadan tekrar gelirse atlanır. Bordroda dosya özeti (SHA-256) de anahtara girer:
+  /// bordro tek kayıtlıdır ve aynı ay için eşin bordrosu aynı tutarda olsa bile farklı dosyadır,
+  /// eklenebilmelidir. Birebir aynı bordro dosyası zaten SHA-256 kontrolüyle yüklemeden önce durur.
+  static String transactionDedupKey({
+    required StatementDocumentResult result,
+    required String accountId,
+    required String fileSha256,
+    required ParsedRecord record,
+  }) {
+    String day(DateTime d) => d.toIso8601String().split('T')[0];
+    return [
+      accountId,
+      day(record.date),
+      record.signedAmountCents,
+      record.rawDescription.toUpperCase().replaceAll(RegExp(r'\s+'), ' '),
+      record.installment?.currentInstallment ?? 0,
+      if (result.documentType == 'PAYSLIP') 'file:$fileSha256',
+    ].join('|');
+  }
+
   /// Parser çıktısını tek veritabanı transaction'ı içinde kaydeder.
-  /// Aynı işlem (aynı hesap, tarih, tutar, açıklama) tekrar içe aktarılırsa atlanır.
+  /// Aynı işlem (aynı hesap, tarih, tutar, açıklama) tekrar içe aktarılırsa atlanır
+  /// (bordroda dosya bazında ayrılır, bkz. [transactionDedupKey]).
   Future<StatementSaveResult> saveStatementResult({
     required StatementDocumentResult result,
     required String fileSha256,
@@ -137,13 +167,8 @@ class TransactionRepository {
       final occurrences = <String, int>{};
       for (final (index, record) in result.records.indexed) {
         final isDebit = record.type == ParsedTransactionType.debit;
-        final baseKey = [
-          accountId,
-          day(record.date),
-          record.signedAmountCents,
-          record.rawDescription.toUpperCase().replaceAll(RegExp(r'\s+'), ' '),
-          record.installment?.currentInstallment ?? 0,
-        ].join('|');
+        final baseKey = transactionDedupKey(
+            result: result, accountId: accountId, fileSha256: fileSha256, record: record);
         // Aynı gün aynı tutarlı gerçek tekrarlar (ör. iki toplu taşıma geçişi) ayrı kayıt olarak kalsın
         final occurrence = occurrences.update(baseKey, (n) => n + 1, ifAbsent: () => 0);
         final fingerprint = sha1.convert(utf8.encode('$baseKey#$occurrence')).toString();

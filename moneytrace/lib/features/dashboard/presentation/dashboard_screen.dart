@@ -1,6 +1,7 @@
 // lib/features/dashboard/presentation/dashboard_screen.dart
 
 import 'package:flutter/material.dart';
+import '../../../core/layout/adaptive.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/currency_normalizer.dart';
@@ -324,81 +325,46 @@ class _DashboardScreenState extends State<DashboardScreen>
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. Üst Karşılama, Profil Barı, Kompakt PDF Yükleme ve Bildirimler
-                _buildTopBar(),
-                const SizedBox(height: 14),
+            // Tablette içerik ortada, en fazla Breakpoints.wide genişlikte; geniş sütunda
+            // özet + taksitler solda, son işlemler sağda (AdaptiveTwoPane). Telefonda değişiklik yok.
+            child: AdaptiveBody(
+              maxWidth: Breakpoints.wide,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. Üst Karşılama, Profil Barı, Kompakt PDF Yükleme ve Bildirimler
+                  _buildTopBar(),
+                  const SizedBox(height: 14),
 
-                // 2. Dönem Seçici (Temiz FinTech Kapsül)
-                _buildMonthNavigator(),
-                const SizedBox(height: 14),
+                  // 2. Dönem Seçici (Temiz FinTech Kapsül)
+                  _buildMonthNavigator(),
+                  const SizedBox(height: 14),
 
-                // 3. Finansal Özet Kartı (iBank Hero Balance Tarzı)
-                _buildSummaryCards(),
-                const SizedBox(height: 14),
+                  AdaptiveTwoPane(
+                    gap: 20,
+                    verticalGap: 0, // özet bloğu kendi alt boşluğunu taşır
+                    start: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 3. Finansal Özet Kartı (iBank Hero Balance Tarzı)
+                        _buildSummaryCards(),
+                        const SizedBox(height: 14),
 
-                const SizedBox(height: 6),
+                        const SizedBox(height: 6),
 
-                // Yaklaşan Taksitler & Borçlar Bloğu
-                if (_upcomingInstallments.isNotEmpty) ...[
-                  _buildUpcomingInstallmentsBlock(),
-                  const SizedBox(height: 20),
-                ],
-
-                // 5. Kayıtlar (Son Hareketler Başlığı ve Listesi)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Son İşlemler',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textPrimary,
-                        letterSpacing: -0.2,
-                      ),
+                        // Yaklaşan Taksitler & Borçlar Bloğu
+                        if (_upcomingInstallments.isNotEmpty) ...[
+                          _buildUpcomingInstallmentsBlock(),
+                          const SizedBox(height: 20),
+                        ],
+                      ],
                     ),
-                    Text(
-                      '${_recentTransactions.length} işlem',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textMuted,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-
-                if (_isLoading)
-                  const Padding(
-                    padding: EdgeInsets.all(30),
-                    child: Center(
-                        child: CircularProgressIndicator(strokeWidth: 2)),
-                  )
-                else if (_recentTransactions.isEmpty)
-                  _buildEmptyStateCard()
-                else
-                  FinanceCard(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    child: ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _recentTransactions.length,
-                      separatorBuilder: (_, __) =>
-                          const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                      itemBuilder: (ctx, index) => FadeSlideIn(
-                        index: index,
-                        child: _buildTransactionRow(_recentTransactions[index]),
-                      ),
-                    ),
+                    end: _buildRecentTransactionsBlock(),
                   ),
 
-                const SizedBox(height: 84), // Navigasyon & FAB boşluğu
-              ],
+                  const SizedBox(height: 84), // Navigasyon & FAB boşluğu
+                ],
+              ),
             ),
           ),
         ),
@@ -406,12 +372,72 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
+  /// Son işlemler başlığı ve listesi (geniş ekranda sağ sütun).
+  Widget _buildRecentTransactionsBlock() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 5. Kayıtlar (Son Hareketler Başlığı ve Listesi)
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Flexible(
+              child: Text(
+                'Son İşlemler',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary,
+                  letterSpacing: -0.2,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              '${_recentTransactions.length} işlem',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textMuted,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        if (_isLoading)
+          const Padding(
+            padding: EdgeInsets.all(30),
+            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          )
+        else if (_recentTransactions.isEmpty)
+          _buildEmptyStateCard()
+        else
+          FinanceCard(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            child: ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _recentTransactions.length,
+              separatorBuilder: (_, __) =>
+                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
+              itemBuilder: (ctx, index) => FadeSlideIn(
+                index: index,
+                child: _buildTransactionRow(_recentTransactions[index]),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
   Widget _buildTopBar() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Sol Alan: Profil Avatarı ve Karşılama
-        ValueListenableBuilder<UserProfile?>(
+        // Sol Alan: Profil Avatarı ve Karşılama (büyük yazıda sağdaki düğmelere yer bırakır)
+        Flexible(
+          child: ValueListenableBuilder<UserProfile?>(
           valueListenable: UserProfileService.instance.profileNotifier,
           builder: (context, profile, _) {
             final name = profile?.name.trim().isNotEmpty == true
@@ -439,6 +465,7 @@ class _DashboardScreenState extends State<DashboardScreen>
               },
               borderRadius: BorderRadius.circular(20),
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   CircleAvatar(
                     radius: 20,
@@ -452,30 +479,38 @@ class _DashboardScreenState extends State<DashboardScreen>
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        AppStrings.get('welcome'),
-                        style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                            fontWeight: FontWeight.w500),
-                      ),
-                      Text(
-                        name,
-                        style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textPrimary),
-                      ),
-                    ],
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          AppStrings.get('welcome'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w500),
+                        ),
+                        Text(
+                          name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             );
           },
+          ),
         ),
+        const SizedBox(width: 8),
 
         // Sağ Alan: Kompakt PDF Yükleme Butonu, Bildirimler ve Premium
         Row(
@@ -640,15 +675,18 @@ class _DashboardScreenState extends State<DashboardScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'AYLIK NET BAKİYE (GELİR - GİDER)',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textSecondary,
-                  letterSpacing: 0.8,
+              const Flexible(
+                child: Text(
+                  'AYLIK NET BAKİYE (GELİR - GİDER)',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textSecondary,
+                    letterSpacing: 0.8,
+                  ),
                 ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
@@ -861,15 +899,18 @@ class _DashboardScreenState extends State<DashboardScreen>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Yaklaşan Taksitler & Borçlar',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary,
-                letterSpacing: -0.2,
+            const Flexible(
+              child: Text(
+                'Yaklaşan Taksitler & Borçlar',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary,
+                  letterSpacing: -0.2,
+                ),
               ),
             ),
+            const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(

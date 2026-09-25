@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import '../../../core/layout/adaptive.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/currency_normalizer.dart';
@@ -231,12 +232,14 @@ class _AnalysisScreenState extends State<AnalysisScreen>
                   ),
                 ),
                 const SizedBox(width: 10),
-                Text(
-                  '${cat['name']} Analitiği',
-                  style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary),
+                Expanded(
+                  child: Text(
+                    '${cat['name']} Analitiği',
+                    style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary),
+                  ),
                 ),
               ],
             ),
@@ -253,9 +256,11 @@ class _AnalysisScreenState extends State<AnalysisScreen>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Dönem Toplamı:',
-                          style: TextStyle(
-                              fontSize: 13, color: AppColors.textSecondary)),
+                      const Flexible(
+                        child: Text('Dönem Toplamı:',
+                            style: TextStyle(
+                                fontSize: 13, color: AppColors.textSecondary)),
+                      ),
                       Text(cat['amount'] as String,
                           style: const TextStyle(
                               fontSize: 15, fontWeight: FontWeight.w900)),
@@ -265,9 +270,11 @@ class _AnalysisScreenState extends State<AnalysisScreen>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Toplam Bütçedeki Pay:',
-                          style: TextStyle(
-                              fontSize: 13, color: AppColors.textSecondary)),
+                      const Flexible(
+                        child: Text('Toplam Bütçedeki Pay:',
+                            style: TextStyle(
+                                fontSize: 13, color: AppColors.textSecondary)),
+                      ),
                       Text('%${cat['percentage']}',
                           style: const TextStyle(
                               fontSize: 15,
@@ -309,7 +316,9 @@ class _AnalysisScreenState extends State<AnalysisScreen>
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-        child: FinanceCard(
+        child: AdaptiveBody(
+          maxWidth: 560,
+          child: FinanceCard(
           padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -358,6 +367,7 @@ class _AnalysisScreenState extends State<AnalysisScreen>
             ],
           ),
         ),
+        ),
       ),
     );
   }
@@ -380,9 +390,18 @@ class _AnalysisScreenState extends State<AnalysisScreen>
 
     return SingleChildScrollView(
       padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 84),
-      child: Column(
+      // Geniş ekranda: dağılım kartı solda, tüm kalemler sağda
+      child: AdaptiveBody(
+        maxWidth: Breakpoints.wide,
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          AdaptiveTwoPane(
+          gap: 20,
+          verticalGap: 20,
+          start: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           // 1. Donut Grafiği & Gösterge Kartı
           const Text(
             'Kategori Dağılımı',
@@ -486,8 +505,11 @@ class _AnalysisScreenState extends State<AnalysisScreen>
               ],
             ),
           ),
-          const SizedBox(height: 20),
-
+          ],
+          ),
+          end: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           // 2. Kategori Dağılım Çubukları
           const Text(
             'Tüm Harcama Kalemleri',
@@ -565,6 +587,9 @@ class _AnalysisScreenState extends State<AnalysisScreen>
               }).toList(),
             ),
           ),
+          ],
+          ),
+          ),
           const SizedBox(height: 18),
 
           SizedBox(
@@ -582,6 +607,7 @@ class _AnalysisScreenState extends State<AnalysisScreen>
             ),
           ),
         ],
+      ),
       ),
     );
   }
@@ -659,7 +685,8 @@ class _AnalysisScreenState extends State<AnalysisScreen>
 
     return SingleChildScrollView(
       padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 84),
-      child: Column(
+      child: AdaptiveBody(
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 1. Özet Kartı
@@ -671,14 +698,17 @@ class _AnalysisScreenState extends State<AnalysisScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'DÖNEMLİK AYLIK ORTALAMA',
-                      style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textSecondary,
-                          letterSpacing: 0.5),
+                    const Flexible(
+                      child: Text(
+                        'DÖNEMLİK AYLIK ORTALAMA',
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textSecondary,
+                            letterSpacing: 0.5),
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 3),
@@ -731,8 +761,9 @@ class _AnalysisScreenState extends State<AnalysisScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Her ay eşit pay alır: çok ay / dar ekran / büyük yazıda satır taşmaz;
+                // tutar etiketi sütuna sığmazsa küçülür (rakam kırpılmaz).
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: _monthlyTrends.map((m) {
                     final ratio = ((m['ratio'] as num?)?.toDouble() ?? 0.1)
@@ -743,43 +774,54 @@ class _AnalysisScreenState extends State<AnalysisScreen>
                         .replaceAll('₺', '')
                         .split(',')[0]
                         .trim();
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          formatted,
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            color: isMax
-                                ? AppColors.actionPrimary
-                                : AppColors.textMuted,
+                    return Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              formatted,
+                              maxLines: 1,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: isMax
+                                    ? AppColors.actionPrimary
+                                    : AppColors.textMuted,
+                              ),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 6),
-                        Container(
-                          width: 28,
-                          height: 120 * ratio,
-                          decoration: BoxDecoration(
-                            color: isMax
-                                ? AppColors.actionPrimary
-                                : const Color(0xFFE2E8F0),
-                            borderRadius: BorderRadius.circular(6),
+                          const SizedBox(height: 6),
+                          Container(
+                            width: 28,
+                            height: 120 * ratio,
+                            margin: const EdgeInsets.symmetric(horizontal: 2),
+                            decoration: BoxDecoration(
+                              color: isMax
+                                  ? AppColors.actionPrimary
+                                  : const Color(0xFFE2E8F0),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          m['month'] as String? ?? '',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight:
-                                isMax ? FontWeight.w800 : FontWeight.w600,
-                            color: isMax
-                                ? AppColors.actionPrimary
-                                : AppColors.textSecondary,
+                          const SizedBox(height: 8),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              m['month'] as String? ?? '',
+                              maxLines: 1,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight:
+                                    isMax ? FontWeight.w800 : FontWeight.w600,
+                                color: isMax
+                                    ? AppColors.actionPrimary
+                                    : AppColors.textSecondary,
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     );
                   }).toList(),
                 ),
@@ -795,6 +837,7 @@ class _AnalysisScreenState extends State<AnalysisScreen>
                 'Aylık harcama tablonuz son ${_monthlyTrends.length} dönemde incelendiğinde harcamaların ${maxMonth['month']} ayında zirveye çıktığı görülüyor. Bir sonraki ayda sabit bütçe disipliniyle tasarruf yaratabilirsiniz.',
           ),
         ],
+      ),
       ),
     );
   }

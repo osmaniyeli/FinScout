@@ -133,9 +133,12 @@ class _SlidingOverlayCardState extends State<SlidingOverlayCard>
       builder: (context, constraints) {
         final totalWidth = constraints.maxWidth;
         final halfWidth = totalWidth * 0.48; // Kapak genişliği
+        // Kart yüksekliği yazı boyutuyla orantılı büyür (1.0'da aynı): büyük yazıda
+        // kapak ve form metinleri sabit yüksekliğe sığmayıp taşıyordu.
+        final cardHeight = MediaQuery.textScalerOf(context).scale(widget.height);
 
         return Container(
-          height: widget.height,
+          height: cardHeight < widget.height ? widget.height : cardHeight,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(widget.borderRadius),
@@ -221,8 +224,16 @@ class _SlidingOverlayCardState extends State<SlidingOverlayCard>
                         ],
                       ),
                       padding: const EdgeInsets.all(14),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      // Kapak, kayma animasyonu için sabit geometrili: çok dar ekranda / çok
+                      // büyük yazıda metin kapağa sığmazsa (yalnız o zaman) orantılı küçülür.
+                      // Genişlik sabitlenir ki metin tek satıra açılıp aşırı küçülmesin.
+                      child: Center(
+                        child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: SizedBox(
+                        width: halfWidth > 28 ? halfWidth - 28 : 0,
+                        child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           // Canlı Hero Başlık (Cross-fade)
@@ -245,6 +256,9 @@ class _SlidingOverlayCardState extends State<SlidingOverlayCard>
                             duration: const Duration(milliseconds: 320),
                           ),
                         ],
+                      ),
+                      ),
+                      ),
                       ),
                     ),
                   );
@@ -305,14 +319,17 @@ class _SlidingOverlayCardState extends State<SlidingOverlayCard>
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
+                Flexible(
+                  child: Text(
                   buttonText,
+                  textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.6,
                   ),
+                ),
                 ),
                 const SizedBox(width: 4),
                 const Icon(Icons.arrow_forward_ios_rounded,

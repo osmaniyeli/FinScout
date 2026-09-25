@@ -1,6 +1,7 @@
 // lib/features/cashflow_projection/presentation/cashflow_screen.dart
 
 import 'package:flutter/material.dart';
+import '../../../core/layout/adaptive.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/currency_normalizer.dart';
 import '../../../core/widgets/fintech/fintech_components.dart';
@@ -108,9 +109,12 @@ class _CashflowScreenState extends State<CashflowScreen> implements TabAddAction
           : RefreshIndicator(
               onRefresh: _load,
               color: AppColors.actionPrimary,
-              child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
+              // Tablette okunabilir sütun (en fazla 720 dp), ortalı; kaydırma tüm genişlikte
+              child: AdaptiveListPadding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 84),
+                builder: (context, padding) => ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: padding,
                 children: [
                   _buildBalanceCard(history),
                   const SizedBox(height: 16),
@@ -146,6 +150,7 @@ class _CashflowScreenState extends State<CashflowScreen> implements TabAddAction
                   const SizedBox(height: 8),
                   ...history.months.reversed.map(_buildMonthRow),
                 ],
+              ),
               ),
             ),
     );
@@ -245,8 +250,10 @@ class _CashflowScreenState extends State<CashflowScreen> implements TabAddAction
           const Text('Aylık değişim',
               style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
           const SizedBox(height: 12),
+          // Çubuklar sabit yükseklikte; ay etiketleri ayrı satırda, yazı boyutu büyüyünce
+          // kutu da uzar (eskiden etiket sabit 18 dp'lik paya sığmak zorundaydı).
           SizedBox(
-            height: barMax * 2 + 18,
+            height: barMax * 2,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: history.months.map((m) {
@@ -267,13 +274,23 @@ class _CashflowScreenState extends State<CashflowScreen> implements TabAddAction
                     children: [
                       SizedBox(height: barMax, child: Align(alignment: Alignment.bottomCenter, child: positive ? bar : null)),
                       SizedBox(height: barMax, child: Align(alignment: Alignment.topCenter, child: positive ? null : bar)),
-                      Text(_monthNames[m.month.month - 1].substring(0, 3),
-                          style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
                     ],
                   ),
                 );
               }).toList(),
             ),
+          ),
+          Row(
+            children: [
+              for (final m in history.months)
+                Expanded(
+                  child: Text(_monthNames[m.month.month - 1].substring(0, 3),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.clip,
+                      style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
+                ),
+            ],
           ),
         ],
       ),
@@ -311,11 +328,35 @@ class _CashflowScreenState extends State<CashflowScreen> implements TabAddAction
   Widget _sectionTitle(String title, {String? trailing}) => Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
-          if (trailing != null)
-            Text(trailing, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+          Flexible(
+            child: Text(title,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+          ),
+          if (trailing != null) ...[
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(trailing,
+                  textAlign: TextAlign.end,
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+            ),
+          ],
         ],
+      );
+
+  /// Satır sonundaki tutar sütunu: normalde doğal genişliğinde (telefon düzeni aynı), büyük yazı
+  /// boyutunda satır genişliğinin [maxFraction]'ını aşmaz ve alt satıra kırılır (taşma yok).
+  Widget _rowWithTrailing(List<Widget> leading, Widget trailing,
+          {double maxFraction = 0.55}) =>
+      LayoutBuilder(
+        builder: (context, c) => Row(
+          children: [
+            ...leading,
+            ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: c.maxWidth * maxFraction),
+              child: trailing,
+            ),
+          ],
+        ),
       );
 
   Widget _buildCardDebtRow(CardDebt c) => Padding(
@@ -365,8 +406,8 @@ class _CashflowScreenState extends State<CashflowScreen> implements TabAddAction
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: const Color(0xFFE2E8F0)),
           ),
-          child: Row(
-            children: [
+          child: _rowWithTrailing(
+            [
               BankLogo(bankName: i.bankName, size: 36),
               const SizedBox(width: 12),
               Expanded(
@@ -383,16 +424,18 @@ class _CashflowScreenState extends State<CashflowScreen> implements TabAddAction
                   ],
                 ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(_money(i.monthlyCents),
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
-                  Text('kalan ${_money(i.remainingCents)}',
-                      style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                ],
-              ),
             ],
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(_money(i.monthlyCents),
+                    textAlign: TextAlign.end,
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+                Text('kalan ${_money(i.remainingCents)}',
+                    textAlign: TextAlign.end,
+                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+              ],
+            ),
           ),
         ),
       );
@@ -406,28 +449,30 @@ class _CashflowScreenState extends State<CashflowScreen> implements TabAddAction
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: const Color(0xFFE2E8F0)),
           ),
-          child: Row(
-            children: [
+          child: _rowWithTrailing(
+            [
               Expanded(
                 child: Text('${_monthNames[m.month.month - 1]} ${m.month.year}',
                     style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
               ),
-              if (m.transactionCount == 0)
-                const Text('Kayıt yok', style: TextStyle(fontSize: 12, color: AppColors.textMuted))
-              else
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('${m.netCents >= 0 ? '+' : ''}${_money(m.netCents)}',
-                        style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            color: m.netCents >= 0 ? AppColors.actionPrimary : AppColors.expenseRed)),
-                    Text('gelir ${_money(m.incomeCents)} · gider ${_money(m.expenseCents)}',
-                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                  ],
-                ),
             ],
+            m.transactionCount == 0
+                ? const Text('Kayıt yok', style: TextStyle(fontSize: 12, color: AppColors.textMuted))
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text('${m.netCents >= 0 ? '+' : ''}${_money(m.netCents)}',
+                          textAlign: TextAlign.end,
+                          style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: m.netCents >= 0 ? AppColors.actionPrimary : AppColors.expenseRed)),
+                      Text('gelir ${_money(m.incomeCents)} · gider ${_money(m.expenseCents)}',
+                          textAlign: TextAlign.end,
+                          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                    ],
+                  ),
+            maxFraction: 0.7,
           ),
         ),
       );

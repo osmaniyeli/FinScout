@@ -2,12 +2,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import '../../../core/layout/adaptive.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/data_export_service.dart';
 import '../../../core/services/account_service.dart';
 import '../../../core/services/user_profile_service.dart';
 import '../../../core/database/repositories/transaction_repository.dart';
-import '../../../core/widgets/laser_shimmer_card.dart';
 import '../../../core/config/app_links.dart';
 import '../../subscription/services/subscription_service.dart';
 import '../../subscription/presentation/subscription_plans_sheet.dart';
@@ -144,18 +144,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Column(
+        // Tablette okunabilir sütun (en fazla 720 dp), ortalı
+        child: AdaptiveBody(
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 1. Plan Kartı (Google Play Billing Entegrasyonu)
-            LaserShimmerCard(
-              margin: EdgeInsets.zero,
+            // Düz, sakin kart: animasyon/parlama yok (kullanıcı kararı 2026-09-25).
+            Container(
+              width: double.infinity,
               padding: const EdgeInsets.all(18),
-              backgroundColor: const Color(0xFF0F172A),
-              shimmerColor: _subscriptionService.isPremium
-                  ? const Color(0xFFF59E0B)
-                  : const Color(0xFF38BDF8),
-              borderColor: const Color(0xFF334155),
+              decoration: BoxDecoration(
+                color: AppColors.canvasLight,
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: AppColors.borderLight),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -164,7 +167,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF94A3B8),
+                        color: AppColors.textSecondary,
                         letterSpacing: 0.5),
                   ),
                   const SizedBox(height: 8),
@@ -181,19 +184,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
-                        color: Colors.white),
+                        color: AppColors.textPrimary),
                   ),
                   const SizedBox(height: 4),
                   const Text(
                     'Google Play Store Güvencesiyle',
-                    style: TextStyle(fontSize: 12, color: Color(0xFFCBD5E1)),
+                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 14),
                   OutlinedButton(
                     onPressed: _showSubscriptionPlans,
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: const BorderSide(color: Color(0xFF475569)),
+                      foregroundColor: AppColors.actionPrimary,
+                      side: const BorderSide(color: AppColors.borderLight),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                     ),
@@ -314,7 +317,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                           ),
                           if (!hasPin)
-                            ElevatedButton(
+                            // Büyük yazıda düğme satırın yarısını aşmaz (yazı kırılır), satır taşmaz
+                            ConstrainedBox(
+                              constraints: BoxConstraints(
+                                  maxWidth: MediaQuery.sizeOf(context).width *
+                                      0.4),
+                              child: ElevatedButton(
                               onPressed: _setNewPin,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF0F172A),
@@ -326,9 +334,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 elevation: 0,
                               ),
                               child: const Text('Şifre Belirle',
+                                  textAlign: TextAlign.center,
                                   style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w700)),
+                            ),
                             ),
                         ],
                       ),
@@ -534,6 +544,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             const SizedBox(height: 84),
           ],
+        ),
         ),
       ),
     );

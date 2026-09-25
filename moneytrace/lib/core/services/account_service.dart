@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -126,7 +128,10 @@ class AccountService {
       debugPrint('Google girişi: ${e.code} ${e.description}');
       if (e.code == GoogleSignInExceptionCode.canceled ||
           e.code == GoogleSignInExceptionCode.interrupted) {
-        lastGoogleCancelCode = e.code.name;
+        // Google'ın asıl nedeni (ör. "[16] Account reauth failed") açıklamada gelir; teşhis için taşınır.
+        final why = e.description?.trim();
+        lastGoogleCancelCode =
+            (why == null || why.isEmpty) ? e.code.name : '${e.code.name}: $why';
         return null;
       }
       throw AccountException(
@@ -158,6 +163,46 @@ class AccountService {
     }
     return _saveLocalProfile(user,
         fallbackEmail: account.email, name: account.displayName);
+  }
+
+  /// Tarayıcı üzerinden Google girişinin uygulamaya döndüğü adres (AndroidManifest'te intent-filter,
+  /// Supabase'de izinli yönlendirme adresi olarak kayıtlı).
+  static const String oauthRedirectUrl = 'com.moneytrace.app://login-callback';
+
+  /// Google girişi, telefonun Google hesap seçicisi yerine tarayıcıda yapılır. Uygulamanın imza
+  /// parmak izine (SHA-1) ve Android OAuth istemcisine bağlı değildir; yerel akış "canceled" dönerse
+  /// yedek yol olarak kullanılır. Kullanıcı vazgeçerse ya da 5 dakikada dönmezse null döner.
+  Future<UserProfile?> signInWithGoogleBrowser() async {
+    final client = _client;
+    final signedIn = Completer<User?>();
+    final sub = client.auth.onAuthStateChange.listen((state) {
+      final session = state.session;
+      if (state.event == AuthChangeEvent.signedIn && session != null && !signedIn.isCompleted) {
+        signedIn.complete(session.user);
+      }
+    });
+    try {
+      final launched = await client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: oauthRedirectUrl,
+        authScreenLaunchMode: LaunchMode.externalApplication,
+      );
+      if (!launched) {
+        throw const AccountException('Tarayıcı açılamadı. E-posta koduyla giriş yapabilirsin.');
+      }
+      final user = await signedIn.future
+          .timeout(const Duration(minutes: 5), onTimeout: () => null);
+      if (user == null) return null;
+      final meta = user.userMetadata ?? const {};
+      final name = (meta['full_name'] ?? meta['name']) as String?;
+      return await _saveLocalProfile(user, fallbackEmail: user.email ?? '', name: name);
+    } on AuthException catch (e) {
+      debugPrint('Tarayıcıyla Google girişi: ${e.code} ${e.message}');
+      throw AccountException(
+          'Google girişi tarayıcıda tamamlanamadı (${e.code ?? e.statusCode ?? 'bilinmiyor'}).');
+    } finally {
+      await sub.cancel();
+    }
   }
 
   /// Farklı hesapla girişte bekleyen profil bilgisi (kullanıcı veriyi silmeyi onaylarsa kullanılır)

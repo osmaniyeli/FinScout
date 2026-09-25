@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../core/layout/adaptive.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/account_service.dart';
 import '../../../core/services/security_auth_service.dart';
@@ -73,9 +74,35 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         return;
       }
       final code = AccountService.instance.lastGoogleCancelCode;
-      if (profile == null && code != null) {
-        _showError(
-            'Google girişi tamamlanmadı ($code). Hesabı seçtiğin halde bu mesajı görüyorsan e-posta koduyla devam edebilirsin.');
+      if (profile == null && code != null && mounted) {
+        // Telefonun hesap seçicisi girişi tamamlamadı (çoğunlukla imza/OAuth yapılandırması).
+        // Tarayıcı yolu bu yapılandırmaya bağlı değil: kullanıcıya sun.
+        final useBrowser = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Google girişi tamamlanmadı'),
+            content: Text(
+                'Telefonun Google hesap seçicisi girişi bitiremedi.\n\n'
+                'Ayrıntı: $code\n\n'
+                'Google girişini tarayıcıda yapabilirsin.'),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Vazgeç')),
+              TextButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const Text('Tarayıcıyla devam et')),
+            ],
+          ),
+        );
+        if (useBrowser == true) {
+          final viaBrowser =
+              await AccountService.instance.signInWithGoogleBrowser();
+          if (viaBrowser != null && mounted) {
+            widget.onCompleted();
+            return;
+          }
+        }
       }
     } on DifferentAccountDataException {
       await _resolveAccountSwitch();
@@ -176,7 +203,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Column(
+          // Tablet/yatay ekranda form ortada, en fazla 560 dp (telefonda değişiklik yok)
+          child: AdaptiveBody(
+            maxWidth: 560,
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Logo ve Marka Başlığı
@@ -262,12 +292,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         Icon(Icons.person_add_alt_1_rounded,
                             color: Color(0xFF10B981), size: 16),
                         SizedBox(width: 6),
-                        Text(
-                          'KAYIT OL',
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF0F172A)),
+                        Flexible(
+                          child: Text(
+                            'KAYIT OL',
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF0F172A)),
+                          ),
                         ),
                       ],
                     ),
@@ -299,12 +331,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         Icon(Icons.lock_open_rounded,
                             color: Color(0xFF2563EB), size: 16),
                         SizedBox(width: 6),
-                        Text(
-                          'GİRİŞ YAP',
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF0F172A)),
+                        Flexible(
+                          child: Text(
+                            'GİRİŞ YAP',
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF0F172A)),
+                          ),
                         ),
                       ],
                     ),
@@ -332,6 +366,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   duration: const Duration(milliseconds: 320),
                 ),
             ],
+          ),
           ),
         ),
       ),
@@ -455,9 +490,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           const SizedBox(height: 20),
 
           // Başla Butonu
-          SizedBox(
-            width: double.infinity,
-            height: 52,
+          ConstrainedBox(
+            constraints:
+                const BoxConstraints(minWidth: double.infinity, minHeight: 52),
             child: ElevatedButton(
               onPressed: _isLoading ? null : _completeRegistration,
               style: ElevatedButton.styleFrom(
@@ -545,9 +580,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 14),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
+            ConstrainedBox(
+              constraints:
+                  const BoxConstraints(minWidth: double.infinity, minHeight: 48),
               child: ElevatedButton.icon(
                 onPressed: _isLoading ? null : _startEmailSignIn,
                 icon: const Icon(Icons.send_rounded, size: 18),
@@ -576,9 +611,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _googleButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
+    // En az 50 dp; büyük yazıda düğme uzar (sabit yükseklik yazıyı taşırıyordu)
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minWidth: double.infinity, minHeight: 50),
       child: OutlinedButton(
         onPressed: _isLoading ? null : _signInWithGoogle,
         style: OutlinedButton.styleFrom(
@@ -601,8 +636,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           fontWeight: FontWeight.w900,
                           color: Color(0xFF4285F4))),
                   SizedBox(width: 10),
-                  Text('Google ile Devam Et',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                  Flexible(
+                    child: Text('Google ile Devam Et',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                  ),
                 ],
               ),
       ),
@@ -615,11 +653,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: Row(
         children: [
           Expanded(child: Divider(color: Color(0xFFE2E8F0))),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 10),
-            child: Text('veya e-posta ile',
-                style:
-                    TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+          Flexible(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 10),
+              child: Text('veya e-posta ile',
+                  textAlign: TextAlign.center,
+                  style:
+                      TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+            ),
           ),
           Expanded(child: Divider(color: Color(0xFFE2E8F0))),
         ],

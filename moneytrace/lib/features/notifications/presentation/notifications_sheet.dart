@@ -56,15 +56,19 @@ class NotificationsSheet extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.notifications_active_outlined, color: Color(0xFF0052FF), size: 22),
-                      const SizedBox(width: 8),
-                      Text(
-                        AppStrings.get('notifications_title'),
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-                      ),
-                    ],
+                  Flexible(
+                    child: Row(
+                      children: [
+                        const Icon(Icons.notifications_active_outlined, color: Color(0xFF0052FF), size: 22),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            AppStrings.get('notifications_title'),
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   if (notifications.isNotEmpty)
                     PopupMenuButton<String>(
@@ -168,14 +172,18 @@ class NotificationsSheet extends StatelessWidget {
                                   style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.3),
                                 ),
                                 const SizedBox(height: 10),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                // Büyük yazıda düğmeler tarihin altına kayar (Wrap), satır taşmaz
+                                Wrap(
+                                  alignment: WrapAlignment.spaceBetween,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  runSpacing: 4,
                                   children: [
                                     Text(
                                       timeStr,
                                       style: const TextStyle(fontSize: 10.5, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
                                     ),
                                     Row(
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
                                         if (!item.isRead)
                                           TextButton(

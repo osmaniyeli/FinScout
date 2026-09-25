@@ -1,6 +1,7 @@
 // lib/features/navigation/main_navigation_scaffold.dart
 
 import 'package:flutter/material.dart';
+import '../../../core/layout/adaptive.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/config/remote_config_service.dart';
 import '../../../core/widgets/remote_feature_gate.dart';
@@ -23,6 +24,7 @@ class MainNavigationScaffold extends StatefulWidget {
 class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
   int _currentIndex = 0;
   final RemoteConfigService _remoteConfig = RemoteConfigService.instance;
+  final GlobalKey _stackKey = GlobalKey(debugLabel: 'tab_stack');
 
   /// Her sekme ekranının State'ine erişim: + düğmesi o sekmenin ekleme seçeneklerini buradan okur.
   final Map<String, GlobalKey> _screenKeys = {
@@ -145,6 +147,66 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
     return order.where((k) => visible[k] ?? true).toList();
   }
 
+  /// Geniş ekran gezinmesi: alt çubukla aynı sekmeler, aynı sıra, aynı + düğmesi.
+  Widget _buildRail(List<String> activeKeys, Widget? addButton) {
+    // Yatay telefonda (alçak pencere) ya da büyük yazı boyutunda ray sığmazsa kaydırılır.
+    return ColoredBox(
+      color: Colors.white,
+      child: SafeArea(
+        right: false,
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: IntrinsicHeight(
+                child: _rail(activeKeys, addButton),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _rail(List<String> activeKeys, Widget? addButton) {
+    return NavigationRail(
+      selectedIndex: _currentIndex,
+      onDestinationSelected: (index) => setState(() => _currentIndex = index),
+      labelType: NavigationRailLabelType.all,
+      backgroundColor: Colors.white,
+      indicatorColor: AppColors.dynamicPrimary.withValues(alpha: 0.14),
+      selectedIconTheme: IconThemeData(color: AppColors.dynamicPrimary),
+      unselectedIconTheme: const IconThemeData(color: Color(0xFF94A3B8)),
+      selectedLabelTextStyle: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        color: AppColors.dynamicPrimary,
+      ),
+      unselectedLabelTextStyle: const TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        color: Color(0xFF64748B),
+      ),
+      groupAlignment: -0.85,
+      leading: addButton == null
+          ? null
+          : Padding(
+              padding: const EdgeInsets.only(top: 8, bottom: 16),
+              child: addButton,
+            ),
+      destinations: [
+        for (final k in activeKeys)
+          () {
+            final item = _buildCapsuleNavItemByKey(k);
+            return NavigationRailDestination(
+              icon: Icon(item.icon),
+              label: Text(item.label),
+            );
+          }(),
+      ],
+    );
+  }
+
   FloatingActionButtonLocation _resolveFabLocation(String locationKey) {
     switch (locationKey) {
       case 'centerDocked':
@@ -174,6 +236,34 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
         final buttonConfig = _remoteConfig.buttonConfig;
         final isFabHidden = buttonConfig.fabPosition == 'hidden';
 
+        // Geniş pencerede (M3 "expanded", ≥ 840 dp: tablet yatay, katlanabilir yatay, masaüstü)
+        // alt çubuk yerine sol kenarda NavigationRail; + düğmesi rayın başına taşınır.
+        final useRail = WindowSizeClass.of(context).isAtLeastExpanded;
+
+        // Sekmeler canlı tutulur (IndexedStack gibi); geçiş Material fade-through, 280 ms.
+        // Anahtar sabit: telefon ↔ ray düzeni arasında geçerken (döndürme, pencere boyutu)
+        // sekme ekranlarının durumu korunur.
+        final stack = FadeThroughIndexedStack(
+          key: _stackKey,
+          index: _currentIndex,
+          children: screens,
+        );
+
+        final addButton = isFabHidden
+            ? null
+            : FloatingActionButton(
+                onPressed: _openAddMenu,
+                tooltip: 'Ekle',
+                backgroundColor: AppColors.dynamicPrimary,
+                elevation: useRail ? 0 : buttonConfig.elevation,
+                shape: RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.circular(buttonConfig.borderRadius * 1.5),
+                ),
+                child:
+                    const Icon(Icons.add_rounded, color: Colors.white, size: 28),
+              );
+
         // Ana sayfa dışındaki bir sekmede geri tuşu önce ana sayfaya döner, uygulamadan çıkmaz.
         return PopScope(
           canPop: _currentIndex == 0,
@@ -182,37 +272,31 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
               setState(() => _currentIndex = 0);
             }
           },
-          child: Scaffold(
-            extendBody:
-                false, // Temiz native fintech barı, içerik arkada kalmaz
-            // Sekmeler canlı tutulur (IndexedStack gibi); geçiş Material fade-through, 280 ms.
-            body: FadeThroughIndexedStack(
-              index: _currentIndex,
-              children: screens,
-            ),
-            floatingActionButton: isFabHidden
-                ? null
-                : FloatingActionButton(
-                    onPressed: _openAddMenu,
-                    tooltip: 'Ekle',
-                    backgroundColor: AppColors.dynamicPrimary,
-                    elevation: buttonConfig.elevation,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                          buttonConfig.borderRadius * 1.5),
-                    ),
-                    child: const Icon(Icons.add_rounded,
-                        color: Colors.white, size: 28),
+          child: useRail
+              ? Scaffold(
+                  body: Row(
+                    children: [
+                      _buildRail(activeKeys, addButton),
+                      const VerticalDivider(
+                          width: 1, thickness: 1, color: Color(0xFFE2E8F0)),
+                      Expanded(child: stack),
+                    ],
                   ),
-            floatingActionButtonLocation:
-                _resolveFabLocation(buttonConfig.fabPosition),
-            bottomNavigationBar: FloatingCapsuleNavBar(
-              currentIndex: _currentIndex,
-              onTap: (index) => setState(() => _currentIndex = index),
-              items: navItems,
-              activeIndicatorColor: AppColors.dynamicPrimary,
-            ),
-          ),
+                )
+              : Scaffold(
+                  extendBody:
+                      false, // Temiz native fintech barı, içerik arkada kalmaz
+                  body: stack,
+                  floatingActionButton: addButton,
+                  floatingActionButtonLocation:
+                      _resolveFabLocation(buttonConfig.fabPosition),
+                  bottomNavigationBar: FloatingCapsuleNavBar(
+                    currentIndex: _currentIndex,
+                    onTap: (index) => setState(() => _currentIndex = index),
+                    items: navItems,
+                    activeIndicatorColor: AppColors.dynamicPrimary,
+                  ),
+                ),
         );
       },
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../layout/adaptive.dart' show Breakpoints;
 import 'app_colors.dart';
 import 'app_motion.dart';
 
@@ -80,6 +81,9 @@ class AppTheme {
         ),
       ),
       bottomSheetTheme: const BottomSheetThemeData(
+        // Tablet/yatay ekranda alt sayfalar ortalanır ve en fazla 640 dp genişler (M3).
+        // Telefonda (< 640 dp) etkisi yok: tam genişlik.
+        constraints: BoxConstraints(maxWidth: Breakpoints.sheet),
         backgroundColor: AppColors.cardSurface,
         shape: RoundedRectangleBorder(
           borderRadius:

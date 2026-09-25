@@ -1,6 +1,7 @@
 // lib/features/goals/presentation/goals_screen.dart
 
 import 'package:flutter/material.dart';
+import '../../../core/layout/adaptive.dart';
 import '../../../core/services/data_changes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/currency_normalizer.dart';
@@ -226,7 +227,10 @@ class _GoalsScreenState extends State<GoalsScreen> implements TabAddActions {
               onRefresh: _loadGoals,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                child: Column(
+                // Tablette içerik ortalanır; hedef kartları genişliğe göre 2–3 sütun
+                child: AdaptiveBody(
+                  maxWidth: Breakpoints.wide,
+                  child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // 1. Özet Kartı ve 2. Filtre (yalnız hedef varsa)
@@ -309,16 +313,24 @@ class _GoalsScreenState extends State<GoalsScreen> implements TabAddActions {
                         ),
                       )
                     else
-                      ...filteredGoals.map((g) {
-                        return GoalCardTile(
-                          goal: g,
-                          onTap: () => _showGoalDetail(g),
-                          onAddContribution: () => _addContribution(g),
-                        );
-                      }),
+                      // Kartların kendi dış boşluğu (margin) var: ızgara ek boşluk koymaz
+                      AdaptiveGrid(
+                        minItemWidth: 340,
+                        spacing: 0,
+                        runSpacing: 0,
+                        children: [
+                          for (final g in filteredGoals)
+                            GoalCardTile(
+                              goal: g,
+                              onTap: () => _showGoalDetail(g),
+                              onAddContribution: () => _addContribution(g),
+                            ),
+                        ],
+                      ),
 
                     const SizedBox(height: 84), // Navigasyon & FAB boşluğu
                   ],
+                ),
                 ),
               ),
             ),
