@@ -6,6 +6,30 @@ Format, [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) standardına da
 
 ---
 
+## [3.10.0] - 2026-09-28
+
+3.8.0–3.9.3 arası commit'ler bu dosyaya işlenmemişti; bu sürüm hem o birikimi hem 26–28 Eylül'ün yeni işlerini kapsar.
+
+### Yenilikler
+- **Hesaba bağlı, ezberlenen şifresiz bulut yedekleme.** PDF'ler hariç tüm finansal veriler her değişiklikte otomatik şifrelenip hesaba yedekleniyor; çıkış yapıp başka bir cihazdan aynı hesapla girince geri geliyor. Şifreleme anahtarı sunucuda tutulan bir sırdan hesap kimliğinden türetiliyor (yeni Edge Function `backup-key`), hiçbir tabloda saklanmıyor.
+- **Dil seçimi geri geldi.** Ayarlar'da gerçek bir Türkçe/English anahtarı; seçim kalıcı. Şimdilik yalnız Ana Sayfa, Profil ve Bildirimler ekranları bu dile geçiyor, geri kalanı Türkçe.
+- Profil'e "Yüklediğim Belgeler" listesi (v3.9.3).
+- Kredi kartı ve hesap ekstresinde, PDF'ten banka adı kesin olarak tanınıp okuyucusu olmayan bir bankaysa (İş Bankası, Akbank, Ziraat, VakıfBank, Halkbank, QNB) artık net bir mesajla reddediliyor ve kota düşülmüyor — genel okuyucuyla sessizce yanlış rakam üretme riski kapandı.
+- Maaş bordrosu desteği "(deneme)" etiketiyle işaretlendi.
+
+### Güvenlik
+- **"Harcama raporu (Excel/CSV)" özelliği tamamen kaldırıldı.** Yetkisiz erişim (çalıntı/açık telefon) durumunda tüm finansal geçmişin tek dokunuşla dışarı çıkmasına izin veren bir açık kapıydı.
+- **PIN ekranı yeniden yazıldı.** Özel dairesel tuş takımı ve karmaşık `IntrinsicHeight`/`Spacer`/titreşim animasyonu kombinasyonu (siyah ekranda kilitlenme hatasının olası kök nedeni) kaldırıldı; yerine telefonun kendi sistem klavyesiyle çalışan tek bir metin alanı geldi. Kilit zorunluluğu (`_kPinLockEnforced`) gerçek cihazda tekrar denenene kadar hâlâ kapalı.
+- "Verilerin yalnız bu telefonda kalır" iddiası artık doğru olmadığı için uygulama, web sitesi ve mağaza metninden kaldırıldı; yalnız Gizlilik Politikası, Kullanım Şartları ve Hesap/Veri Silme belgesinde doğru açıklama olarak kaldı. PDF'in cihazdan hiç ayrılmadığı iddiası (hâlâ doğru) korundu.
+
+### Düzeltmeler (birikmiş, 3.8.0–3.9.3)
+- **Google girişi çözüldü** (kök neden: Android OAuth istemcisinde yanlış kayıtlı SHA-1).
+- **Kendi hesaplar arası transfer artık çift gider sayılmıyor** (ör. Yapı Kredi → Enpara); hesap kartı ekstresi yanlışlıkla kredi kartı gibi okunmuyor.
+- Çoklu PDF yükleme, Maaş/Vergi sekmesi, tablet düzenleri, aynı ayın farklı bordroları, kota iadesi.
+
+### Web sitesi
+- miralife.app'in birebir yapısal kopyası olarak yeniden kuruldu: [osmaniyeli.github.io/FinScout](https://osmaniyeli.github.io/FinScout/).
+
 ## [3.7.0] - 2026-09-24
 
 Gece denetimi (310 öğe, 99 bulgu) ve kullanıcı kararları (K1–K18) uygulandı. İlke: az özellik, her rakam doğru; sahte/boş öğe yok.

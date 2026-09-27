@@ -6,6 +6,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/supabase_config.dart';
+import 'backup_service.dart';
 import 'push_service.dart';
 import 'user_profile_service.dart';
 
@@ -111,6 +112,11 @@ class AccountService {
   /// E-posta kodunda kullanıcı kod gönderilirken oluşur; kod en fazla birkaç dakikada girildiği için
   /// 15 dakikalık pencere yeni hesabı ayırt etmeye yeter. Ana ekranda bir kez "hesabın oluşturuldu" gösterilir.
   bool lastSignInCreatedAccount = false;
+
+  /// Son girişte telefonda veri yoktu ve sunucudaki şifreli yedek başarıyla geri yüklendi.
+  /// Yeni hesap açılışıyla aynı anda tetiklenmez (biri diğerini engeller): ana ekranda bir kez
+  /// "verilerin geri yüklendi" bildirimi göstermek için kullanılır.
+  bool lastSignInRestoredBackup = false;
 
   /// Son Google girişi iptal/kesinti kodu (tanı için ekranda gösterilir). Android Credential Manager
   /// yapılandırma hatalarını (imza SHA-1'i ile OAuth istemcisi uyuşmazlığı) da "canceled" olarak bildirebilir.
@@ -269,6 +275,19 @@ class AccountService {
         DateTime.now().toUtc().difference(created.toUtc()) < const Duration(minutes: 15);
     await UserProfileService.instance.saveProfile(profile);
     await UserProfileService.instance.setLocalDataOwner(user.id);
+
+    // Bu, girişten sonra tüm başarılı akışların (yeni hesap, dönüş girişi, hesap değişimi
+    // onayından sonraki yeniden deneme) tek geçtiği yer: telefonda hâlâ veri yoksa (taze cihaz
+    // ya da confirmAccountSwitch() az önce wipeLocalData çalıştırdı), sunucudaki şifreli yedeği
+    // geri yüklemeyi dene. Var olan yerel veriyi ASLA ezmez (restoreIfEmpty kendi içinde kontrol eder).
+    lastSignInRestoredBackup = false;
+    if (!await UserProfileService.instance.hasLocalFinancialData()) {
+      try {
+        lastSignInRestoredBackup = await BackupService.instance.restoreIfEmpty();
+      } catch (e) {
+        debugPrint('Sunucu yedeği geri yüklenemedi: $e');
+      }
+    }
     return profile;
   }
 
@@ -308,6 +327,11 @@ class AccountService {
 
   Future<void> signOut() async {
     if (!_ready) return;
+    // Oturum kapanmadan HEMEN ÖNCE, oturum hâlâ geçerliyken: debounce'u beklemeden son
+    // değişiklikleri senkron yedekle. Kaçırılan bir debounce penceresi yüzünden son birkaç
+    // saniyelik değişikliğin yedeklenmeden kalmasına karşı bir güvenlik ağı. Oturum ya da
+    // anahtar alınamazsa (ör. hesap az önce sunucuda silindiyse) sessizce hiçbir şey yapmaz.
+    await BackupService.instance.backupNow(force: true);
     // Oturum kapanmadan: bu cihaza artık duyuru gitmesin (devices satırı silinir)
     await PushService.instance.unregisterDevice();
     try {
@@ -316,6 +340,8 @@ class AccountService {
     } catch (e) {
       debugPrint('Oturum kapatılamadı: $e');
     }
+    // Bir sonraki oturum (aynı ya da farklı hesap) kendi anahtarını taze alsın.
+    BackupService.instance.clearCachedKey();
   }
 
   String _mapAuthError(AuthException e, {required bool createUser}) {

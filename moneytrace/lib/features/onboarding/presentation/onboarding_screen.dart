@@ -125,15 +125,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       builder: (ctx) => AlertDialog(
         title: const Text('Bu telefonda başka bir hesabın verisi var'),
         content: const Text(
-            'FinScout bir telefonda aynı anda tek hesapla kullanılır. Devam edersen önceki hesabın bu telefondaki '
-            'ekstre, işlem, hedef ve varlık kayıtları silinir. Önceki hesabın kendisi silinmez; o hesapla tekrar '
-            'girersen ekstrelerini yeniden yükleyebilirsin.'),
+            'FinScout bir telefonda aynı anda tek hesapla kullanılır. Bu hesabın verileri (ekstre, işlem, hedef, '
+            'varlık) kullanım boyunca otomatik olarak hesabına şifreli şekilde yedeklenir; devam edersen bu '
+            'telefondan kaldırılır ama kaybolmaz — bu hesapla tekrar giriş yaptığında otomatik olarak geri gelir. '
+            'Şimdi seçtiğin hesaba geçilecek.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Vazgeç')),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Verileri sil ve devam et',
-                style: TextStyle(color: AppColors.expenseRed)),
+            child: const Text('Devam et'),
           ),
         ],
       ),

@@ -391,7 +391,7 @@ class UserProfileService {
         }
 
         if (data['language'] != null) {
-          AppStrings.setLocale('tr');
+          AppStrings.setLocale(data['language'] as String);
         }
 
         if (data['monthly_uploads'] != null) {

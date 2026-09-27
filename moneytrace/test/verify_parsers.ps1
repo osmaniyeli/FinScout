@@ -272,23 +272,15 @@ foreach ($item in $testDescriptions) {
 }
 
 # ---------------------------------------------------------------
-# 8. DATA EXPORT (UTF-8 BOM CSV & PETITION)
+# 8. DATA EXPORT (PETITION)
 # ---------------------------------------------------------------
-Write-Host "`n--- TEST 8: Data Export UTF-8 BOM CSV & Petition ---" -ForegroundColor Yellow
+Write-Host "`n--- TEST 8: Data Export Petition ---" -ForegroundColor Yellow
 
-# 1. UTF-8 BOM CSV Validation
-$csvBuffer = [System.Text.StringBuilder]::new()
-[void]$csvBuffer.Append([char]0xFEFF) # UTF-8 BOM
-[void]$csvBuffer.AppendLine("Tarih;İşlem Türü;İşyeri / Açıklama;Kategori;Tutar (TL);Hesap / Kart;Taksit Durumu;Vergi Kesintisi")
-[void]$csvBuffer.AppendLine("2026-09-18;Gider;BİM BİRLEŞİK MAĞAZALAR;Market;450,50;Yapı Kredi;1/3 Taksit;BSMV: 5,20 TL")
-$csvOutput = $csvBuffer.ToString()
+# CSV/Excel harcama raporu özelliği güvenlik gerekçesiyle kaldırıldı (2026-09-28):
+# yetkisiz erişim sağlayan biri tek dokunuşla tüm finansal geçmişi düz metin CSV olarak dışarı çıkarabiliyordu.
+# DataExportService.exportToCsv ve Ayarlar'daki kartı kaldırıldı; bkz. Test 6 ve Test "No CSV Export" aşağıda.
 
-$hasBom = ($csvOutput[0] -eq [char]0xFEFF)
-$hasHeaders = $csvOutput.Contains("Tarih;İşlem Türü;İşyeri / Açıklama;Kategori;Tutar (TL)")
-Assert-Test -Name "CSV UTF-8 BOM Presence" -Condition $hasBom -Details "BOM detected for Excel Turkish character encoding"
-Assert-Test -Name "CSV Semicolon Header Structure" -Condition $hasHeaders -Details "Standard Turkish Excel semicolon delimiter verified"
-
-# 2. Formal Petition Legal Text Generator Validation
+# 1. Formal Petition Legal Text Generator Validation
 $bankName = "Yapı Kredi Bankası A.Ş."
 $cardMask = "4462 12** **** 8281"
 $feeAmountStr = "₺650,00"
@@ -667,10 +659,12 @@ $hasGoalsInteractions = $goalsText.Contains("MorphingSegmentedBar") -and `
                         $goalRepoText.Contains("Future<void> deleteGoal(")
 Assert-Test -Name "Goals Module: Plain Actions, Edit & Delete" -Condition $hasGoalsInteractions -Details "No RadarCheckoutButton/confetti; GoalRepository has updateGoal/deleteGoal; GoalsScreen listens to DataChanges"
 
-# 6. Settings Screen: CSV Report Only (backup/restore removed 2026-09-25)
+# 6. Settings Screen: No Backup/Restore, No CSV Export (removed 2026-09-25 / 2026-09-28)
 $settingsPath = Join-Path $PSScriptRoot "../lib/features/settings/presentation/settings_screen.dart"
 $settingsText = if (Test-Path $settingsPath) { [System.IO.File]::ReadAllText($settingsPath) } else { "" }
-# Yedek al / yedekten geri yukle kartlari kaldirildi; yalniz CSV raporu kalir, sahte animasyonlu dugme yok.
+# Yedek al / yedekten geri yukle kartlari kaldirildi. CSV/Excel harcama raporu kartı da güvenlik
+# gerekçesiyle kaldırıldı (2026-09-28): yetkisiz erişim sağlayan biri tek dokunuşla tüm finansal
+# geçmişi düz metin CSV olarak dışarı çıkarabiliyordu.
 # Play politikası: abonelik yönetimi ve gizlilik politikası bağlantıları uygulama içinde.
 $hasSettingsInteractions = -not $settingsText.Contains("MorphingShareButton") -and `
                            -not $settingsText.Contains("RadarCheckoutButton") -and `
@@ -680,10 +674,13 @@ $hasSettingsInteractions = -not $settingsText.Contains("MorphingShareButton") -a
                            -not $settingsText.Contains("validateAndParseBackup") -and `
                            -not $settingsText.Contains(".vault") -and `
                            -not $settingsText.Contains("PulseMetricBadge") -and `
-                           $settingsText.Contains("_exportToCsv") -and `
+                           -not $settingsText.Contains("_exportToCsv") -and `
+                           -not $settingsText.Contains("_isExporting") -and `
+                           -not $settingsText.Contains("DataExportService") -and `
+                           -not $settingsText.Contains("share_plus") -and `
                            $settingsText.Contains("AppLinks.manageSubscriptions") -and `
                            $settingsText.Contains("AppLinks.privacyPolicy")
-Assert-Test -Name "Settings: CSV Report Only, No Backup/Restore, Subscription & Privacy Links" -Condition $hasSettingsInteractions -Details "Backup/restore cards removed; CSV report kept; manage-subscription and privacy policy links present"
+Assert-Test -Name "Settings: No Backup/Restore, No CSV Export, Subscription & Privacy Links" -Condition $hasSettingsInteractions -Details "Backup/restore cards removed; CSV/Excel report card and code removed for security (data exfiltration risk); manage-subscription and privacy policy links present"
 
 # 7. Dialogs & Sheets System-Wide Design Consistency
 $wizardPath = Join-Path $PSScriptRoot "../lib/features/statement_upload/presentation/statement_smart_wizard.dart"
@@ -751,13 +748,18 @@ $settingsTextUtf8 = if (Test-Path $settingsPath) { [System.IO.File]::ReadAllText
 $newsPath = Join-Path $PSScriptRoot "../lib/features/newsletter/presentation/newsletter_subscription_sheet.dart"
 $newsTextUtf8 = if (Test-Path $newsPath) { [System.IO.File]::ReadAllText($newsPath, [System.Text.Encoding]::UTF8) } else { "" }
 
-# Karar (2026-09-23): arayüz tek dilli (Türkçe). Dil seçici ve İngilizce sözlük kaldırıldı.
+# Karar (2026-09-28): arayüz TR/EN çift dilli. Ayarlar'da gerçek bir dil seçici var; AppStrings
+# hem 'tr' hem 'en' sözlüğünü taşır ve seçim UserProfileService ile kalıcı hale gelir.
 $stringsPath = Join-Path $PSScriptRoot "../lib/core/localization/app_strings.dart"
 $stringsTextUtf8 = if (Test-Path $stringsPath) { [System.IO.File]::ReadAllText($stringsPath, [System.Text.Encoding]::UTF8) } else { "" }
-$isSingleLanguage = -not $settingsTextUtf8.Contains("_buildLanguageOptionTile") -and `
-                    -not $settingsTextUtf8.Contains("English") -and `
-                    -not $stringsTextUtf8.Contains("'en': {")
-Assert-Test -Name "Single-Language UI (Turkish only)" -Condition $isSingleLanguage -Details "No language picker in Settings, no English dictionary in AppStrings"
+$profileServicePath = Join-Path $PSScriptRoot "../lib/core/services/user_profile_service.dart"
+$profileServiceTextUtf8 = if (Test-Path $profileServicePath) { [System.IO.File]::ReadAllText($profileServicePath, [System.Text.Encoding]::UTF8) } else { "" }
+$hasBilingualUi = $settingsTextUtf8.Contains("_langChip") -and `
+                  $settingsTextUtf8.Contains("English") -and `
+                  $stringsTextUtf8.Contains("'en': {") -and `
+                  $stringsTextUtf8.Contains("langCode != 'tr' && langCode != 'en'") -and `
+                  $profileServiceTextUtf8.Contains("AppStrings.setLocale(data['language'] as String)")
+Assert-Test -Name "Bilingual TR/EN Settings Picker" -Condition $hasBilingualUi -Details "Settings has a real language toggle; AppStrings carries 'en' dictionary and setLocale persists via UserProfileService"
 
 # 3. Google Play Store Scaffolding & Permissions Compliance
 $manifestPath = Join-Path $PSScriptRoot "../android/app/src/main/AndroidManifest.xml"
@@ -825,12 +827,13 @@ $hasCsprngCsrf = $secGuardText.Contains("Random.secure()") -and $secGuardText.Co
 $hasSaltedPin = $secGuardText.Contains("hashPin") -and $secGuardText.Contains("verifyPinHash")
 Assert-Test -Name "CSPRNG CSRF Tokens & Salted PIN Authentication" -Condition ($hasCsprngCsrf -and $hasSaltedPin) -Details "Secure random generator prevents token prediction; salted HMAC protects user PINs"
 
-# 5. Backup (.vault / JSON) is not offered in the app UI; CSV report export remains (2026-09-25)
+# 5. Backup (.vault / JSON) is not offered in the app UI; CSV report export removed entirely (2026-09-28)
 $exportPath = Join-Path $PSScriptRoot "../lib/core/services/data_export_service.dart"
 $exportText = if (Test-Path $exportPath) { [System.IO.File]::ReadAllText($exportPath) } else { "" }
 $vaultUiUsers = @(Get-ChildItem -Path (Join-Path $PSScriptRoot "../lib/features") -Recurse -Filter *.dart | Select-String -Pattern "createEncryptedVaultBackup","validateAndParseBackup","restoreVaultBackup" -SimpleMatch)
-$hasCsvOnlyExport = $exportText.Contains("exportToCsv") -and ($vaultUiUsers.Count -eq 0)
-Assert-Test -Name "No Backup/Restore in UI, CSV Export Kept" -Condition $hasCsvOnlyExport -Details "No screen calls vault backup/restore APIs (found: $($vaultUiUsers.Count)); DataExportService.exportToCsv present"
+$csvExportUsers = @(Get-ChildItem -Path (Join-Path $PSScriptRoot "../lib") -Recurse -Filter *.dart | Select-String -Pattern "exportToCsv" -SimpleMatch)
+$hasNoCsvExport = (-not $exportText.Contains("exportToCsv")) -and ($vaultUiUsers.Count -eq 0) -and ($csvExportUsers.Count -eq 0)
+Assert-Test -Name "No Backup/Restore in UI, No CSV Export Anywhere" -Condition $hasNoCsvExport -Details "No screen calls vault backup/restore APIs (found: $($vaultUiUsers.Count)); DataExportService.exportToCsv removed for security (found $($csvExportUsers.Count) remaining references)"
 
 # ---------------------------------------------------------------
 # 16. GARANTI BBVA PARACARD & BONUS STATEMENT PARSER

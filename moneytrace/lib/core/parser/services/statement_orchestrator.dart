@@ -45,6 +45,24 @@ class StatementOrchestrator {
     final text = layout.plainText;
     final detection = BankDetector.identify(text);
 
+    // Banka adı fingerprint'le kesin olarak tanındı ama okuyucusu yok: genel tablo okuyucuya
+    // sessizce düşürmek yerine reddet. Aksi halde doğrulanmamış bir düzenle üretilen rakamlar,
+    // K11 mutabakat uyarısı yakalamazsa fark edilmeden kaydedilebilir. Kota bu adımdan SONRA
+    // düşüldüğü için (bkz. statement_upload_sheet._consumeAndSave) burada harcanmaz.
+    const unsupportedInstitutions = {
+      SupportedInstitution.isBankasi,
+      SupportedInstitution.akbank,
+      SupportedInstitution.ziraat,
+      SupportedInstitution.vakifbank,
+      SupportedInstitution.halkbank,
+      SupportedInstitution.qnb,
+    };
+    if (unsupportedInstitutions.contains(detection.institution)) {
+      throw StatementParseException(
+        '${_displayName(detection.institution, DocumentType.checkingAccount)} için okuyucumuz henüz hazır değil. Şu an yalnız Yapı Kredi, Enpara ve Garanti BBVA ekstreleri destekleniyor.',
+      );
+    }
+
     var docType = detection.documentType;
     if (docType == DocumentType.unknown && documentTypeHint != null) {
       docType = switch (documentTypeHint) {

@@ -39,26 +39,26 @@
 
     <p>FinScout olarak kişisel verilerinizin ve finansal gizliliğinizin korunmasına azami önem veriyoruz. Bu Gizlilik Politikası, uygulamamızı kullandığınızda hangi verilerin nerede tutulduğunu ve nasıl işlendiğini açıklar.</p>
 
-    <h2>1. Finansal Veriler Cihazınızda, Hesap Bilgileri Sunucuda</h2>
+    <h2>1. Finansal Veriler Şifreli Olarak Hesabınıza Yedeklenir, Belge Asılları Cihazınızda Kalır</h2>
     <ul>
       <li><strong>Hesap (sunucuda yalnızca kimlik):</strong> Giriş yapabilmeniz için adınız ve e-posta adresiniz FinScout hesabınızda saklanır. Hesap altyapısı Supabase üzerindedir; veriler Avrupa Birliği'nde (Frankfurt) tutulur ve aktarım sırasında şifrelenir (HTTPS/TLS). Google ile giriş yaparsanız Google'dan yalnızca adınız ve e-posta adresiniz alınır. Giriş kodları e-postanıza Google (Gmail) e-posta altyapısı üzerinden gönderilir.</li>
-      <li><strong>Finansal Veriler Cihazınızda Kalır:</strong> Gelir, gider, varlık, hedef ve bütçe kayıtlarınız yalnızca telefonunuzda, uygulamanın diğer uygulamalarca erişilemeyen korumalı alanındaki (Android sandbox) SQLite veritabanında saklanır. Uygulama kilidi PIN'iniz Android Keystore ile korunan şifreli depoda tutulur.</li>
-      <li><strong>Banka Ekstreleri (PDF/CSV):</strong> İçe aktardığınız kredi kartı ve hesap ekstreleri yalnızca cihazınızın RAM belleğinde anlık olarak ayrıştırılır (parse edilir). Hiçbir üçüncü tarafa ya da harici sunucuya iletilmez.</li>
+      <li><strong>Finansal Verileriniz Otomatik ve Şifreli Olarak Yedeklenir:</strong> Gelir, gider, hesap, varlık, hedef ve bütçe kayıtlarınız önce telefonunuzda (Android sandbox içindeki SQLite veritabanında) tutulur; her değişiklikte ayrıca hesabınıza bağlı, şifrelenmiş bir kopyası sunucuda (Supabase, Frankfurt) saklanır. Böylece çıkış yapıp aynı hesapla başka bir cihazdan girdiğinizde verileriniz kaybolmaz. Şifreleme anahtarı ezberlemeniz gereken bir parola değildir: yalnızca sunucuda tutulan bir sırdan ve hesap kimliğinizden türetilir, hiçbir tabloda saklanmaz, yalnızca siz oturum açtığınızda yeniden üretilir. Uygulama kilidi PIN'iniz ayrıca Android Keystore ile korunan şifreli depoda tutulur.</li>
+      <li><strong>Banka Ekstreleri ve Bordro PDF'leri Cihazınızdan Hiç Ayrılmaz:</strong> İçe aktardığınız kredi kartı, hesap ekstresi ve bordro PDF dosyalarının kendisi yalnızca cihazınızın RAM belleğinde anlık olarak ayrıştırılır (parse edilir); sunucuya hiçbir zaman yüklenmez. Sunucuya yedeklenen yalnızca PDF'ten çıkarılan işlem/tutar verileridir, PDF dosyasının kendisi değil.</li>
     </ul>
 
     <h2>2. Toplanan ve İşlenen Veriler</h2>
-    <p><strong>Sunucuda (hesabınız için):</strong> ad, e-posta adresi, hesap kimliği ve oturum bilgileri; oturum açtığınız cihazlar için ayrıca push bildirim cihaz jetonu (FCM token), platform ve son görülme zamanı (bkz. Bölüm 4, Push bildirimleri). Bu veriler yalnızca giriş yapmanızı sağlamak için kullanılır; satılmaz, reklam veya profilleme amacıyla kullanılmaz ve üçüncü taraflarla paylaşılmaz (yalnızca hizmeti sağlayan altyapı sağlayıcıları Supabase ve Google tarafından bizim adımıza işlenir).</p>
-    <p><strong>Yalnızca cihazınızda tutulan veriler:</strong></p>
+    <p><strong>Sunucuda (hesabınız için):</strong> ad, e-posta adresi, hesap kimliği ve oturum bilgileri; oturum açtığınız cihazlar için ayrıca push bildirim cihaz jetonu (FCM token), platform ve son görülme zamanı (bkz. Bölüm 4, Push bildirimleri); ve Bölüm 1'de açıklanan, hesabınıza bağlı anahtarla şifrelenmiş finansal veri yedeğiniz. Bu veriler yalnızca giriş yapmanızı ve verilerinizi cihazlar arası korumanızı sağlamak için kullanılır; satılmaz, reklam veya profilleme amacıyla kullanılmaz ve üçüncü taraflarla paylaşılmaz (yalnızca hizmeti sağlayan altyapı sağlayıcıları Supabase ve Google tarafından bizim adımıza işlenir).</p>
+    <p><strong>Yalnızca cihazınızda tutulan veriler (yedeklenmez):</strong></p>
     <ul>
-      <li>Kullanıcı tarafından girilen harcama, gelir ve bütçe tutarları.</li>
-      <li>Kullanıcı tarafından yüklenen ekstrelerden elde edilen işlem satırları (üye işyeri adı, tutar, tarih).</li>
+      <li>İçe aktardığınız PDF ekstre ve bordro dosyalarının kendisi (bkz. Bölüm 1).</li>
+      <li>Şifreli ekstreler için girilen PDF parolası.</li>
       <li>Uygulama tercihleri (dil seçimi, tema, para birimi).</li>
     </ul>
 
     <h2>3. Uygulama İzinleri (Permissions)</h2>
     <p>FinScout yalnızca temel işlevler için minimum düzeyde izin kullanır:</p>
     <ul>
-      <li><strong>Dosya Erişimi (sistem dosya seçici):</strong> Yalnızca kullanıcının kendi seçtiği PDF ekstre ve bordro dosyalarını okumak için kullanılır; harcama raporu (CSV) paylaşım menüsüyle dışa aktarılır. Arka planda dosya taraması yapılmaz. Şifreli ekstreler için girilen PDF parolası kaydedilmez.</li>
+      <li><strong>Dosya Erişimi (sistem dosya seçici):</strong> Yalnızca kullanıcının kendi seçtiği PDF ekstre ve bordro dosyalarını okumak için kullanılır. Arka planda dosya taraması yapılmaz. Şifreli ekstreler için girilen PDF parolası kaydedilmez.</li>
       <li><strong>İnternet (INTERNET):</strong> Hesaba giriş (e-posta kodu / Google), herkese açık döviz/altın kurları ve haber (RSS) akışları ile Google Play abonelik işlemleri için kullanılır. Finansal kayıtlarınız internet üzerinden gönderilmez.</li>
       <li><strong>Bildirimler (POST_NOTIFICATIONS, RECEIVE_BOOT_COMPLETED):</strong> Fatura, abonelik ve kredi kartı son ödeme hatırlatıcılarını göstermek için. Hatırlatıcılar cihazda zamanlanır, telefon yeniden başladığında korunur. Aynı izin, FinScout ekibinin gönderdiği duyuruları (push bildirimi) göstermek için de kullanılır.</li>
       <li><strong>Kamera, Mikrofon, Konum ve Biyometri (parmak izi / yüz):</strong> Uygulama bu izinleri talep etmez.</li>
@@ -74,10 +74,10 @@
 
     <h2>5. Veri Güvenliği ve Silme</h2>
     <ul>
-      <li>Finansal verileriniz cihazınızdaki SQLite veritabanında tutulduğu için kontrolü tamamen sizdedir.</li>
-      <li>Uygulama içindeki <strong>Ayarlar &gt; "Tüm Verilerimi Sıfırla ve Hesabı Sil"</strong> seçeneği FinScout hesabınızı ve sunucudaki tüm kayıtlarını kalıcı olarak siler, ardından cihazınızdaki verileri temizler.</li>
-      <li>Uygulamayı kaldırmak yalnızca cihazdaki verileri siler; hesabınız sunucuda kalır. Uygulamaya erişemiyorsanız <a href="mailto:pulcratechnology@gmail.com">pulcratechnology@gmail.com</a> adresine yazarak hesabınızın silinmesini isteyebilirsiniz; talepler en geç 30 gün içinde yerine getirilir. Ayrıntılar: <a href="hesap-silme.html">Hesap ve Veri Silme</a>.</li>
-      <li>Uygulamada yedekleme / geri yükleme özelliği bulunmaz; finansal verileriniz yalnızca kullandığınız cihazda durur ve telefon değiştirdiğinizde yeni cihaza aktarılmaz. İşlemlerinizi Ayarlar &gt; Harcama raporu (Excel / CSV) ile dışa aktarabilirsiniz; bu rapor uygulamaya geri yüklenemez.</li>
+      <li>Finansal verileriniz önce cihazınızdaki SQLite veritabanında tutulur; hesabınıza bağlı şifreli yedeğinize yalnızca siz, o hesapla oturum açarak erişebilirsiniz.</li>
+      <li>Uygulama içindeki <strong>Ayarlar &gt; "Tüm Verilerimi Sıfırla ve Hesabı Sil"</strong> seçeneği FinScout hesabınızı, sunucudaki şifreli yedeğiniz dahil tüm kayıtlarınızı kalıcı olarak siler, ardından cihazınızdaki verileri temizler.</li>
+      <li>Uygulamayı kaldırmak yalnızca cihazdaki verileri siler; hesabınız ve şifreli yedeğiniz sunucuda kalır, aynı hesapla tekrar giriş yaptığınızda geri gelir. Hesabınızı tamamen silmek isterseniz <a href="mailto:pulcratechnology@gmail.com">pulcratechnology@gmail.com</a> adresine yazabilirsiniz; talepler en geç 30 gün içinde yerine getirilir. Ayrıntılar: <a href="hesap-silme.html">Hesap ve Veri Silme</a>.</li>
+      <li>Telefonunuzu değiştirdiğinizde ya da uygulamayı silip tekrar kurduğunuzda, aynı hesapla giriş yaptığınızda verileriniz otomatik olarak geri yüklenir. Uygulamada bir seferde tüm verileri dışa aktarma (CSV/Excel gibi) özelliği bulunmaz; bu, hesabınıza yetkisiz erişim halinde toplu veri sızıntısını önlemek için bilinçli bir tercihtir.</li>
     </ul>
 
     <h2>6. Çocukların Gizliliği</h2>

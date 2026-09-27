@@ -1,6 +1,6 @@
 # FinScout - Hesap ve Veri Silme Politikası (Account & Data Deletion Policy)
 
-**Son Güncelleme / Last Updated:** 23 Eylül 2026  
+**Son Güncelleme / Last Updated:** 28 Eylül 2026  
 **Uygulama Adı / App Name:** FinScout  
 **Geliştirici / Developer:** osmaniyeli  
 
@@ -10,7 +10,7 @@
 
 ### 1. Hangi veriler nerede tutulur?
 - **Hesap bilgileri (sunucuda):** Adın ve e-posta adresin, giriş yapabilmen için FinScout hesabında tutulur. Hesap altyapısı Supabase üzerindedir ve veriler Avrupa Birliği'nde (Frankfurt) saklanır.
-- **Finansal veriler (yalnızca cihazında):** Ekstreler, harcamalar, kartlar, bordrolar, hedefler ve varlıklar yalnızca telefonundaki uygulama veritabanında durur; sunucuya gönderilmez.
+- **Finansal veriler (cihazında + şifreli yedek olarak sunucuda):** Ekstreler, harcamalar, kartlar, bordrolar, hedefler ve varlıklar önce telefonundaki uygulama veritabanında durur; her değişiklikte ayrıca hesabına bağlı, şifrelenmiş bir kopyası sunucuda tutulur (böylece başka bir cihazdan aynı hesapla girdiğinde kaybolmaz). İçe aktardığın PDF ekstre/bordro dosyalarının kendisi bu yedeğe dahil değildir; yalnızca cihazının belleğinde işlenir, hiçbir zaman sunucuya gönderilmez.
 
 ### 2. Uygulama içinden hesabı ve verileri silme
 1. **FinScout** uygulamasını aç.
@@ -38,7 +38,7 @@ Hesabının kayıtlı olduğu e-posta adresinden **pulcratechnology@gmail.com** 
 
 ### 1. What is stored where?
 - **Account details (server):** Your name and email address are kept in your FinScout account so you can sign in. The account backend runs on Supabase, with data stored in the European Union (Frankfurt).
-- **Financial data (device only):** Statements, expenses, cards, payslips, goals and assets stay only in the app database on your phone and are never sent to a server.
+- **Financial data (device + encrypted backup on the server):** Statements, expenses, cards, payslips, goals and assets are kept in the app database on your phone; an encrypted, account-bound copy is also backed up to the server on every change, so it survives signing in from a different device. The statement/payslip PDF files themselves are never part of this backup — they are processed only in your device's memory and never uploaded.
 
 ### 2. Delete your account and data in the app
 1. Open the **FinScout** app.

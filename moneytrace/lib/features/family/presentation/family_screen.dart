@@ -8,7 +8,7 @@ import '../../subscription/presentation/subscription_plans_sheet.dart';
 import '../services/family_service.dart';
 
 /// Aile: premium hakkını en fazla 4 kişiyle paylaşma (davet kodu ile).
-/// Veri paylaşımı YOK: herkesin ekstre ve işlemleri kendi telefonunda kalır.
+/// Üyeler birbirinin ekstre ve işlemlerini görmez; yalnız premium hakkı paylaşılır.
 class FamilyScreen extends StatefulWidget {
   const FamilyScreen({super.key});
 
@@ -205,7 +205,7 @@ class _FamilyScreenState extends State<FamilyScreen> {
       _sectionTitle('KODU GİR'),
       const Text(
         'Aile sahibinin gönderdiği 8 karakterlik kodu gir. Katılınca premium hakların açılır; '
-        'verilerin yine yalnız senin telefonunda kalır.',
+        'kimse senin ekstre ve işlemlerini görmez.',
         style: TextStyle(
             fontSize: 13, color: AppColors.textSecondary, height: 1.35),
       ),
@@ -566,8 +566,8 @@ class FamilyHowItWorks extends StatelessWidget {
               SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Paylaşılan yalnız premium hakkıdır; veriler paylaşılmaz. Herkesin ekstre ve '
-                  'işlemleri kendi telefonunda kalır, kimse diğerinin verisini görmez.',
+                  'Paylaşılan yalnız premium hakkıdır; herkesin ekstre ve işlemleri kendine '
+                  'özeldir, kimse diğerinin verisini görmez.',
                   style: TextStyle(
                       fontSize: 12, height: 1.35, color: AppColors.textPrimary),
                 ),

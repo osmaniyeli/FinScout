@@ -1,10 +1,7 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:path_provider/path_provider.dart';
 import '../../../core/layout/adaptive.dart';
+import '../../../core/localization/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/services/data_export_service.dart';
 import '../../../core/services/account_service.dart';
 import '../../../core/services/user_profile_service.dart';
 import '../../../core/database/repositories/transaction_repository.dart';
@@ -26,9 +23,6 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final SubscriptionService _subscriptionService = SubscriptionService.instance;
   final TransactionRepository _repository = TransactionRepository();
-  final DataExportService _exportService = DataExportService.instance;
-
-  bool _isExporting = false;
 
   @override
   void initState() {
@@ -271,6 +265,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 18),
 
+            // DİL / LANGUAGE
+            const Text(
+              'DİL / LANGUAGE',
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textSecondary,
+                  letterSpacing: 0.5),
+            ),
+            const SizedBox(height: 8),
+            ValueListenableBuilder<String>(
+              valueListenable: AppStrings.currentLocale,
+              builder: (context, locale, _) {
+                return Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(child: _langChip('Türkçe', 'tr', locale == 'tr')),
+                          const SizedBox(width: 10),
+                          Expanded(child: _langChip('English', 'en', locale == 'en')),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Şimdilik yalnız Ana Sayfa, Profil ve Bildirimler bu dile geçer; uygulamanın geri kalanı Türkçe kalır.\nFor now only Home, Profile and Notifications switch language; the rest of the app stays in Turkish.',
+                        style: TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.4),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 18),
+
             // 2. GÜVENLİK (uygulama kilidi: yalnız PIN)
             const Text(
               'GÜVENLİK',
@@ -416,73 +452,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 18),
 
-            // 4. VERİ YÖNETİMİ (CSV raporu)
-            const Text(
-              'VERİ YÖNETİMİ',
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textSecondary,
-                  letterSpacing: 0.5),
-            ),
-            const SizedBox(height: 8),
-
-            // 1. CSV / Excel Raporu (Morflayan Buton)
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFECFDF5),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: const Icon(Icons.table_chart_rounded,
-                            color: Color(0xFF10B981), size: 20),
-                      ),
-                      const SizedBox(width: 10),
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Harcama raporu (Excel / CSV)',
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.textPrimary)),
-                            SizedBox(height: 2),
-                            Text(
-                                'Tüm işlemler; taksit ve vergi satırları işlem başına tek satırda.',
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    color: AppColors.textSecondary,
-                                    height: 1.3)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  _plainActionButton(
-                    icon: Icons.ios_share_rounded,
-                    label: 'CSV raporunu oluştur ve paylaş',
-                    onPressed: _isExporting ? null : _exportToCsv,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 18),
-
-            // 6. TEHLİKELİ BÖLGE: TÜM VERİLERİMİ SIFIRLA VE SİL
+            // TEHLİKELİ BÖLGE: TÜM VERİLERİMİ SIFIRLA VE SİL
             const Text(
               'TEHLİKELİ BÖLGE / VERİLERİ SIFIRLA',
               style: TextStyle(
@@ -569,6 +539,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Widget _langChip(String label, String code, bool selected) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: () => UserProfileService.instance.updateLanguage(code),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.textPrimary : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+              color: selected ? AppColors.textPrimary : const Color(0xFFE2E8F0)),
+        ),
+        alignment: Alignment.center,
+        child: Text(label,
+            style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w700,
+                color: selected ? Colors.white : AppColors.textPrimary)),
+      ),
+    );
+  }
+
   Widget _buildLinkTile(IconData icon, String title, String subtitle, String url) {
     return ListTile(
       dense: true,
@@ -582,51 +574,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       trailing: const Icon(Icons.open_in_new_rounded, size: 18, color: AppColors.textSecondary),
       onTap: () => AppLinks.open(url),
     );
-  }
-
-  Widget _plainActionButton(
-      {required IconData icon, required String label, VoidCallback? onPressed}) {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon, size: 18),
-        label: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _exportToCsv() async {
-    setState(() => _isExporting = true);
-    try {
-      final exportData = await _repository.getAllDataForExport();
-      final txList = (exportData['transactions'] as List<dynamic>? ?? [])
-          .cast<Map<String, dynamic>>();
-
-      final csvContent = _exportService.exportToCsv(txList);
-      final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/FinScout_Harcama_Raporu.csv');
-      await file.writeAsString(csvContent);
-
-      if (!mounted) return;
-      setState(() => _isExporting = false);
-
-      await Share.shareXFiles(
-        [XFile(file.path, mimeType: 'text/csv')],
-        text: 'FinScout Harcama ve İşlem Raporu (Excel / CSV)',
-      );
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isExporting = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('CSV paylaşılırken hata: $e')),
-        );
-      }
-    }
   }
 
   void _confirmAndResetAllData() {

@@ -1,10 +1,14 @@
 // lib/core/widgets/fintech/app_lock_screen.dart
 
 import 'package:flutter/material.dart';
-import '../../theme/app_theme.dart';
+import 'package:flutter/services.dart';
 import '../../services/security_auth_service.dart';
 import '../../services/user_profile_service.dart';
 
+/// Uygulama açılış kilidi. Telefonun kendi sistem klavyesini kullanır
+/// (özel çizilmiş dairesel tuş takımı 2026-09-28'de kaldırıldı — karmaşık
+/// IntrinsicHeight/Spacer/AnimationController kombinasyonu, siyah ekranda
+/// takılma hatasının olası kök nedenlerinden biriydi).
 class AppLockScreen extends StatefulWidget {
   final VoidCallback onUnlocked;
 
@@ -17,142 +21,74 @@ class AppLockScreen extends StatefulWidget {
   State<AppLockScreen> createState() => _AppLockScreenState();
 }
 
-class _AppLockScreenState extends State<AppLockScreen>
-    with SingleTickerProviderStateMixin {
-  final List<String> _enteredDigits = [];
+class _AppLockScreenState extends State<AppLockScreen> {
+  final TextEditingController _pinController = TextEditingController();
+  final FocusNode _pinFocusNode = FocusNode();
   bool _isVerifying = false;
   String? _errorMessage;
-  late AnimationController _shakeController;
-  late Animation<double> _shakeAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _shakeController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 400),
-    );
-    _shakeAnimation = Tween<double>(begin: 0, end: 12)
-        .chain(CurveTween(curve: Curves.elasticIn))
-        .animate(_shakeController);
-
-  }
 
   @override
   void dispose() {
-    _shakeController.dispose();
+    _pinController.dispose();
+    _pinFocusNode.dispose();
     super.dispose();
   }
 
-  void _onDigitPressed(String digit) {
-    if (_enteredDigits.length >= 4 || _isVerifying) return;
-
-    setState(() {
-      _errorMessage = null;
-      _enteredDigits.add(digit);
-    });
-
-    if (_enteredDigits.length == 4) {
-      _verifyPin();
+  void _onPinChanged(String value) {
+    if (_errorMessage != null) {
+      setState(() => _errorMessage = null);
+    }
+    if (value.length == 4 && !_isVerifying) {
+      _verifyPin(value);
     }
   }
 
-  void _onBackspacePressed() {
-    if (_enteredDigits.isNotEmpty && !_isVerifying) {
-      setState(() {
-        _errorMessage = null;
-        _enteredDigits.removeLast();
-      });
-    }
-  }
-
-  Future<void> _verifyPin() async {
+  Future<void> _verifyPin(String pin) async {
     setState(() => _isVerifying = true);
-    final pin = _enteredDigits.join();
 
     final isValid = await SecurityAuthService.instance.verifyPin(pin);
+    if (!mounted) return;
+
     if (isValid) {
-      if (mounted) {
-        widget.onUnlocked();
-      }
-    } else {
-      if (mounted) {
-        _shakeController.forward(from: 0.0);
-        setState(() {
-          _isVerifying = false;
-          _enteredDigits.clear();
-          _errorMessage = SecurityAuthService.instance.isLockedOut
-              ? 'Çok fazla hatalı deneme! Lütfen ${SecurityAuthService.instance.remainingLockoutSeconds} saniye bekleyin.'
-              : 'Hatalı PIN kodu! Kalan deneme: ${5 - SecurityAuthService.instance.failedAttempts}';
-        });
-      }
+      widget.onUnlocked();
+      return;
     }
+
+    HapticFeedback.heavyImpact();
+    _pinController.clear();
+    setState(() {
+      _isVerifying = false;
+      _errorMessage = SecurityAuthService.instance.isLockedOut
+          ? 'Çok fazla hatalı deneme! Lütfen ${SecurityAuthService.instance.remainingLockoutSeconds} saniye bekleyin.'
+          : 'Hatalı PIN kodu! Kalan deneme: ${5 - SecurityAuthService.instance.failedAttempts}';
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final userName = UserProfileService.instance.profile?.name ?? 'Kullanıcı';
 
-    // Yatay telefonda (alçak pencere) başlık solda, tuş takımı sağda; dikeyde önceki düzen.
-    // Kısa ekran / büyük yazıda içerik kaydırılabilir: tuş takımı taşmaz.
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final sideBySide = constraints.maxWidth > constraints.maxHeight &&
-                constraints.maxHeight < 560;
-            if (sideBySide) {
-              return Row(
-                children: [
-                  Expanded(
-                    child: Center(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: _buildHeader(userName),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Center(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        child: _buildKeypad(),
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            }
-            return SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: IntrinsicHeight(
-                  child: Column(
-                    children: [
-                      const Spacer(flex: 2),
-                      ..._buildHeader(userName),
-                      const Spacer(flex: 3),
-
-                      // 3x4 Sayısal Tuş Takımı
-                      _buildKeypad(),
-
-                      const Spacer(flex: 2),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 24),
+              ..._buildHeader(userName),
+              const SizedBox(height: 32),
+              _buildPinField(),
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  /// Kilit ikonu, selamlama, PIN noktaları ve hata mesajı.
+  /// Kilit ikonu, selamlama ve açıklama metni.
   List<Widget> _buildHeader(String userName) => [
         // Kilit ikonu
         Container(
@@ -212,56 +148,65 @@ class _AppLockScreenState extends State<AppLockScreen>
             color: Color(0xFF94A3B8),
           ),
         ),
+      ];
 
-        const SizedBox(height: 28),
-
-        // 4 PIN Noktası (Animasyonlu ve Titreşimli)
-        AnimatedBuilder(
-          animation: _shakeAnimation,
-          builder: (context, child) {
-            return Transform.translate(
-              offset: Offset(
-                  _shakeAnimation.value * (_enteredDigits.isEmpty ? 1 : -1),
-                  0),
-              child: child,
-            );
-          },
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(4, (index) {
-              final isFilled = index < _enteredDigits.length;
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                margin: const EdgeInsets.symmetric(horizontal: 10),
-                width: 18,
-                height: 18,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isFilled
-                      ? const Color(0xFF10B981)
-                      : const Color(0xFF334155),
-                  boxShadow: isFilled
-                      ? [
-                          BoxShadow(
-                            color: const Color(0xFF10B981)
-                                .withValues(alpha: 0.5),
-                            blurRadius: 10,
-                            spreadRadius: 1,
-                          ),
-                        ]
-                      : null,
-                  border: Border.all(
-                    color: isFilled
-                        ? const Color(0xFF34D399)
-                        : const Color(0xFF475569),
-                    width: 2,
-                  ),
-                ),
-              );
-            }),
+  Widget _buildPinField() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: 220,
+          child: TextField(
+            controller: _pinController,
+            focusNode: _pinFocusNode,
+            autofocus: true,
+            enabled: !_isVerifying,
+            onChanged: _onPinChanged,
+            keyboardType: TextInputType.number,
+            textInputAction: TextInputAction.done,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            maxLength: 4,
+            obscureText: true,
+            obscuringCharacter: '●',
+            textAlign: TextAlign.center,
+            autofillHints: const [AutofillHints.password],
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 30,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 18,
+            ),
+            decoration: InputDecoration(
+              counterText: '',
+              filled: true,
+              fillColor: const Color(0xFF1E293B),
+              contentPadding: const EdgeInsets.symmetric(vertical: 16),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: Color(0xFF334155)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: Color(0xFF334155)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: Color(0xFF10B981), width: 2),
+              ),
+            ),
           ),
         ),
-
+        if (_isVerifying) ...[
+          const SizedBox(height: 16),
+          const SizedBox(
+            width: 22,
+            height: 22,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.4,
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF10B981)),
+            ),
+          ),
+        ],
         // Hata Mesajı
         if (_errorMessage != null) ...[
           const SizedBox(height: 16),
@@ -278,93 +223,7 @@ class _AppLockScreenState extends State<AppLockScreen>
             ),
           ),
         ],
-      ];
-  Widget _buildKeypad() {
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 320),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        children: [
-          _buildKeypadRow(['1', '2', '3']),
-          const SizedBox(height: 14),
-          _buildKeypadRow(['4', '5', '6']),
-          const SizedBox(height: 14),
-          _buildKeypadRow(['7', '8', '9']),
-          const SizedBox(height: 14),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              // Sol alt köşe: boşluk
-              const SizedBox(width: 72, height: 72),
-
-              // 0 Rakamı
-              _buildDigitButton('0'),
-
-              // Sağ alt köşe: Silme (Backspace)
-              _buildActionButton(
-                icon: Icons.backspace_outlined,
-                color: Colors.white70,
-                onTap: _onBackspacePressed,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildKeypadRow(List<String> digits) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: digits.map((d) => _buildDigitButton(d)).toList(),
-    );
-  }
-
-  Widget _buildDigitButton(String digit) {
-    return InkWell(
-      onTap: _isVerifying ? null : () => _onDigitPressed(digit),
-      borderRadius: BorderRadius.circular(36),
-      child: Container(
-        width: 72,
-        height: 72,
-        decoration: BoxDecoration(
-          color: const Color(0xFF1E293B),
-          shape: BoxShape.circle,
-          border: Border.all(color: const Color(0xFF334155)),
-        ),
-        child: Center(
-          child: Text(
-            digit,
-            style: AppTheme.numericStyle.copyWith(
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: _isVerifying ? null : onTap,
-      borderRadius: BorderRadius.circular(36),
-      child: Container(
-        width: 72,
-        height: 72,
-        decoration: const BoxDecoration(
-          color: Colors.transparent,
-          shape: BoxShape.circle,
-        ),
-        child: Center(
-          child: Icon(icon, color: color, size: 26),
-        ),
-      ),
+      ],
     );
   }
 }

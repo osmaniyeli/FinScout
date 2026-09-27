@@ -2195,34 +2195,7 @@ class _AssetsScreenState extends State<AssetsScreen> implements TabAddActions {
                       fontSize: 22,
                       fontWeight: FontWeight.w900,
                       color: AppColors.textPrimary)),
-              const SizedBox(height: 14),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: AppColors.incomeGreen,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text('Veriler yalnız bu telefonda',
-                        style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textSecondary)),
-                  ],
-                ),
-              ),
+              const SizedBox(height: 4),
             ],
           ),
         ),

@@ -646,7 +646,7 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
                     Icons.credit_card_rounded),
                 const SizedBox(width: 8),
                 _buildDocTypeChip(
-                    'PAYSLIP', 'Maaş Bordrosu', Icons.work_outline_rounded),
+                    'PAYSLIP', 'Maaş Bordrosu (deneme)', Icons.work_outline_rounded),
               ],
             ),
             const SizedBox(height: 16),

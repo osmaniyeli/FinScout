@@ -8,6 +8,7 @@ import 'core/localization/app_strings.dart';
 import 'core/services/user_profile_service.dart';
 import 'core/services/security_auth_service.dart';
 import 'core/services/account_service.dart';
+import 'core/services/backup_service.dart';
 import 'core/parser/enrichment/category_engine.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/push_service.dart';
@@ -49,6 +50,9 @@ void main() async {
   unawaited(SubscriptionService.instance.initialize());
   // Firebase push (yönetici duyuruları); google-services.json yoksa sessizce kapalı
   unawaited(PushService.instance.initialize());
+  // Hesaba bağlı otomatik yedekleme: DataChanges dinleyicisini kurar (her değişiklikte debounce
+  // ile arka planda yedekler). Ağ/oturum gerektirmez; oturum yoksa backupNow kendi içinde çıkar.
+  unawaited(BackupService.instance.initialize());
 }
 
 /// Ekstrelerden okunan yaklaşan ödemeler için hatırlatıcıları (yeniden) kurar. Hata uygulamayı etkilemez.
@@ -148,6 +152,7 @@ class _FinScoutAppState extends State<FinScoutApp> with WidgetsBindingObserver {
                       onCompleted: () {
                         setState(() => _isUnlocked = true);
                         _announceNewAccount();
+                        _announceRestoredBackup();
                       },
                     ),
               // Kilit Navigator'ın ÜSTÜNDE: açık alt sayfa, diyalog ya da itilmiş ekran da örtülür.
@@ -172,6 +177,24 @@ class _FinScoutAppState extends State<FinScoutApp> with WidgetsBindingObserver {
           content: Text(email.isEmpty
               ? 'Hesabın oluşturuldu.'
               : 'Hesabın oluşturuldu: $email'),
+        ),
+      );
+    });
+  }
+
+  /// Girişte telefonda veri yoktu ve sunucudaki şifreli yedek geri yüklendiyse ana ekran
+  /// geldikten sonra altta bir kez bildirim gösterir. _announceNewAccount ile aynı anda
+  /// tetiklenmez: biri yeni hesap açılışını, diğeri var olan bir hesabın verisinin bu
+  /// cihaza dönüşünü bildirir.
+  void _announceRestoredBackup() {
+    if (!AccountService.instance.lastSignInRestoredBackup) return;
+    AccountService.instance.lastSignInRestoredBackup = false;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      appMessengerKey.currentState?.showSnackBar(
+        const SnackBar(
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 4),
+          content: Text('Verilerin bu cihaza geri yüklendi.'),
         ),
       );
     });

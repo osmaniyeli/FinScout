@@ -120,8 +120,8 @@ class SubscriptionService {
       title: 'Aile Paketi',
       description:
           'Premium hakkını en fazla 4 kişiyle paylaşır (sen dahil). Her üyenin kendi aylık kotası: '
-          '5 kart ekstresi, 5 hesap ekstresi, 2 bordro. Herkesin ekstre ve işlemleri kendi '
-          'telefonunda kalır; kimse diğerinin verisini görmez.',
+          '5 kart ekstresi, 5 hesap ekstresi, 2 bordro. Herkesin ekstre ve işlemleri kendine '
+          'özeldir; kimse diğerinin verisini görmez.',
       priceFormatted: '₺899,99 / Yıl',
       tier: SubscriptionTier.familyPremium,
       maxFamilyMembers: 4,
