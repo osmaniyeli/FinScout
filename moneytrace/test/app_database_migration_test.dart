@@ -18,8 +18,8 @@ List<String> _statements(String path) {
 
 void main() {
   group('AppDatabase göçleri', () {
-    test('şema sürümü 5 ve her sürümün göç dosyası var', () {
-      expect(AppDatabase.schemaVersion, 5);
+    test('şema sürümü 6 ve her sürümün göç dosyası var', () {
+      expect(AppDatabase.schemaVersion, 6);
       for (var v = 1; v <= AppDatabase.schemaVersion; v++) {
         final scripts = AppDatabase.migrationScripts[v];
         expect(scripts, isNotNull, reason: 'v$v göçü tanımlı değil');
@@ -30,7 +30,7 @@ void main() {
       }
     });
 
-    test('sıfırdan kurulum v1..v5 dosyalarını eski sırayla çalıştırır', () {
+    test('sıfırdan kurulum v1..v6 dosyalarını eski sırayla çalıştırır', () {
       expect(AppDatabase.createScripts(), [
         'assets/sql/v1_create_schema.sql',
         'assets/sql/v1_seed_categories.sql',
@@ -38,19 +38,23 @@ void main() {
         'assets/sql/v3_manual_entry_categories.sql',
         'assets/sql/v4_payslip_wage.sql',
         'assets/sql/v5_indexes.sql',
+        'assets/sql/v6_owntransfer_index.sql',
       ]);
     });
 
     test('yükseltme yalnız eski sürümden sonraki dosyaları çalıştırır', () {
-      expect(AppDatabase.upgradeScripts(4), ['assets/sql/v5_indexes.sql']);
-      expect(AppDatabase.upgradeScripts(3), ['assets/sql/v4_payslip_wage.sql', 'assets/sql/v5_indexes.sql']);
+      expect(AppDatabase.upgradeScripts(5), ['assets/sql/v6_owntransfer_index.sql']);
+      expect(AppDatabase.upgradeScripts(4), ['assets/sql/v5_indexes.sql', 'assets/sql/v6_owntransfer_index.sql']);
+      expect(AppDatabase.upgradeScripts(3),
+          ['assets/sql/v4_payslip_wage.sql', 'assets/sql/v5_indexes.sql', 'assets/sql/v6_owntransfer_index.sql']);
       expect(AppDatabase.upgradeScripts(1), [
         'assets/sql/v2_statement_intelligence.sql',
         'assets/sql/v3_manual_entry_categories.sql',
         'assets/sql/v4_payslip_wage.sql',
         'assets/sql/v5_indexes.sql',
+        'assets/sql/v6_owntransfer_index.sql',
       ]);
-      expect(AppDatabase.upgradeScripts(5), isEmpty);
+      expect(AppDatabase.upgradeScripts(6), isEmpty);
     });
 
     test('v5 yalnız tekrar çalıştırılabilir indeks ekler (veri/şema değiştirmez)', () {
@@ -69,7 +73,7 @@ void main() {
     test('v5 indeks adları önceki göçlerdekilerle çakışmaz', () {
       final nameRe = RegExp(r'INDEX IF NOT EXISTS (\w+)', caseSensitive: false);
       final earlier = <String>{};
-      for (final f in AppDatabase.upgradeScripts(0).where((f) => !f.contains('v5_'))) {
+      for (final f in AppDatabase.upgradeScripts(0).where((f) => !f.contains('v5_') && !f.contains('v6_'))) {
         earlier.addAll(nameRe.allMatches(File(f).readAsStringSync()).map((m) => m.group(1)!));
       }
       final v5 = nameRe
@@ -78,6 +82,30 @@ void main() {
           .toList();
       expect(v5.toSet().length, v5.length);
       expect(v5.toSet().intersection(earlier), isEmpty);
+    });
+
+    test('v6 yalnız tekrar çalıştırılabilir indeks ekler (veri/şema değiştirmez)', () {
+      final statements = _statements('assets/sql/v6_owntransfer_index.sql');
+      expect(statements, isNotEmpty);
+      for (final s in statements) {
+        expect(s.toUpperCase().startsWith('CREATE INDEX IF NOT EXISTS'), isTrue, reason: s);
+      }
+      expect(statements.join('\n'),
+          contains('idx_transactions_kind_amount_date ON transactions(tx_kind, billing_amount_cents, transaction_date)'));
+    });
+
+    test('v6 indeks adları önceki göçlerdekilerle çakışmaz', () {
+      final nameRe = RegExp(r'INDEX IF NOT EXISTS (\w+)', caseSensitive: false);
+      final earlier = <String>{};
+      for (final f in AppDatabase.upgradeScripts(0).where((f) => !f.contains('v6_'))) {
+        earlier.addAll(nameRe.allMatches(File(f).readAsStringSync()).map((m) => m.group(1)!));
+      }
+      final v6 = nameRe
+          .allMatches(File('assets/sql/v6_owntransfer_index.sql').readAsStringSync())
+          .map((m) => m.group(1)!)
+          .toList();
+      expect(v6.toSet().length, v6.length);
+      expect(v6.toSet().intersection(earlier), isEmpty);
     });
   });
 }

@@ -236,10 +236,91 @@ class TransactionRepository {
           });
         }
       }
+
+      // 4. Kendi hesaplar arası transfer eşleştirmesi (bkz. reconcileOwnTransfers): bu belgedeki
+      // TRANSFEROUT/TRANSFERIN satırları, veritabanında ZATEN VAR olan başka bir hesaptaki ters yönlü,
+      // aynı tutarlı, tarihi yakın işlemlerle eşleşirse ikisi de OWNTRANSFER'a döner. Aynı transaction
+      // içinde çalışır: kullanıcının önceden yüklediği hesapla da hemen eşleşir.
+      if (inserted > 0) {
+        await _reconcileOwnTransfersIn(txn);
+      }
     });
 
     if (inserted > 0) DataChanges.notify();
     return StatementSaveResult(inserted: inserted, skippedDuplicates: skipped);
+  }
+
+  /// Kendi hesaplar arası transfer eşleştirme penceresi (gün). Bkz. [reconcileOwnTransfers].
+  static const int ownTransferMatchWindowDays = 3;
+
+  /// TRANSFEROUT/TRANSFERIN olarak sınıflanmış, FARKLI hesaplardaki, tutarı kuruşuna kadar aynı ve
+  /// tarihi ±[ownTransferMatchWindowDays] gün içindeki EŞLEŞMEMİŞ çiftleri bulup ikisini de OWNTRANSFER
+  /// yapar (kişinin kendi hesapları arası aktarımı; gelir/gider sayılmaz, bkz. [neutralKindsSql]).
+  ///
+  /// Tek belge/isim eşleştirmesinin (bkz. StatementOrchestrator._enrich, accountHolder karşılaştırması)
+  /// TAMAMLAYICISIdır ve o daha erken/kesin bir sinyal olduğundan onu ezmez: tx_kind zaten OWNTRANSFER
+  /// olan kayıtlar sorguya hiç girmez. "Eşleşmemiş" durumu ayrı bir sütunla değil, tx_kind'ın hâlâ
+  /// TRANSFEROUT/TRANSFERIN olmasıyla izlenir — bir kayıt eşleşince kind'i değişir ve bir daha aday
+  /// olarak seçilmez (bu yüzden aynı kayıt iki kez eşleşemez).
+  ///
+  /// Rastgele "aynı tutar+tarihli her şeyi" eşleştirmez: yalnızca TransactionClassifier'ın zaten
+  /// EFT/FAST/HAVALE/VİRMAN anahtar kelimeleriyle transfer olarak sınıflandırdığı, FARKLI hesaplardaki
+  /// ters yönlü (out↔in) çiftler adaydır — bu yüzden birine yapılan gerçek bir kira ödemesi asla
+  /// kendi-transfer sanılmaz (karşı hesapta kayıtlı bir transferIn yoksa eşleşme bulunamaz).
+  ///
+  /// Uygulama açılışında (main.dart, arka planda/unawaited) VE her yeni ekstre kaydından sonra
+  /// (yukarıda) çağrılır; tek seferlik bir veritabanı göçü DEĞİLDİR — kullanıcı ikinci hesabını
+  /// sonradan yüklerse, ilk hesaptaki eski kayıt da geriye dönük düzelir.
+  ///
+  /// Eşleşen ÇİFT sayısını döner.
+  Future<int> reconcileOwnTransfers() async {
+    final db = await _dbProvider.database;
+    var pairs = 0;
+    await db.transaction((txn) async {
+      pairs = await _reconcileOwnTransfersIn(txn);
+    });
+    if (pairs > 0) DataChanges.notify();
+    return pairs;
+  }
+
+  static Future<int> _reconcileOwnTransfersIn(Transaction txn) async {
+    // Aday TRANSFEROUT satırları: idx_transactions_kind_amount_date (tx_kind, billing_amount_cents,
+    // transaction_date) bu taramayı ve aşağıdaki aday sorgusunu destekler.
+    final outs = await txn.query(
+      'transactions',
+      columns: ['id', 'account_id', 'transaction_date', 'billing_amount_cents'],
+      where: "tx_kind = 'TRANSFEROUT'",
+    );
+
+    var matchedPairs = 0;
+    final ownTransferCode = TransactionKind.ownTransfer.code;
+    for (final out in outs) {
+      final outId = out['id'] as String;
+      final outAccount = out['account_id'] as String;
+      final outDate = out['transaction_date'] as String;
+      final outAmount = out['billing_amount_cents'] as int;
+
+      // Ters yönlü (TRANSFERIN), farklı hesaptaki, tutarı kuruşuna kadar aynı, tarihi ±pencere
+      // içindeki henüz eşleşmemiş aday. Birden fazla varsa tarihçe en yakın olanı seçilir.
+      final candidates = await txn.rawQuery('''
+        SELECT id FROM transactions
+        WHERE tx_kind = 'TRANSFERIN'
+          AND account_id <> ?
+          AND billing_amount_cents = ?
+          AND julianday(transaction_date) BETWEEN julianday(?) - $ownTransferMatchWindowDays
+                                              AND julianday(?) + $ownTransferMatchWindowDays
+        ORDER BY ABS(julianday(transaction_date) - julianday(?)) ASC
+        LIMIT 1
+      ''', [outAccount, outAmount, outDate, outDate, outDate]);
+
+      if (candidates.isEmpty) continue;
+      final inId = candidates.first['id'] as String;
+
+      await txn.update('transactions', {'tx_kind': ownTransferCode}, where: 'id = ?', whereArgs: [outId]);
+      await txn.update('transactions', {'tx_kind': ownTransferCode}, where: 'id = ?', whereArgs: [inId]);
+      matchedPairs++;
+    }
+    return matchedPairs;
   }
 
   /// Kullanıcının kategori düzeltmelerinden öğrenilmiş kurallar (karşı taraf kalıbı → kategori).

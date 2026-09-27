@@ -41,6 +41,10 @@ void main() async {
   runApp(const FinScoutApp());
   // Açılışı bekletmeden: kart son ödeme ve ekstre talimatı hatırlatıcılarını güncelle
   unawaited(syncPaymentReminders());
+  // Kendi hesaplar arası transferleri (ör. Yapı Kredi → Enpara) geriye dönük eşleştir: kullanıcı
+  // hesaplarını farklı oturumlarda tek tek yüklediyse, ikinci hesap gelince ilki de düzelir.
+  // Tek seferlik göç değildir; her açılışta tekrar çalışır (bkz. TransactionRepository.reconcileOwnTransfers).
+  unawaited(_reconcileOwnTransfersAtStartup());
   // Google Play Billing: satın alma akışını dinle, kayıtlı yetkiyi mağazayla doğrula
   unawaited(SubscriptionService.instance.initialize());
   // Firebase push (yönetici duyuruları); google-services.json yoksa sessizce kapalı
@@ -55,6 +59,18 @@ Future<void> syncPaymentReminders() async {
     await NotificationService.instance.syncUpcomingPayments(upcoming);
   } catch (e) {
     debugPrint('Ödeme hatırlatıcıları kurulamadı: $e');
+  }
+}
+
+/// Açılışta, kendi hesapları arası transferleri (ör. Yapı Kredi'den Enpara'ya) geriye dönük eşleştirir.
+/// Tek seferlik göç değil: her açılışta çalışır, böylece kullanıcı ikinci hesabını sonradan
+/// yüklediğinde ilk hesaptaki eski kayıt da düzelir. Hata uygulamayı etkilemez.
+Future<void> _reconcileOwnTransfersAtStartup() async {
+  try {
+    final pairs = await TransactionRepository().reconcileOwnTransfers();
+    if (pairs > 0) debugPrint('Kendi hesap transferi eşleştirildi: $pairs çift');
+  } catch (e) {
+    debugPrint('Kendi hesap transferi eşleştirmesi başarısız: $e');
   }
 }
 

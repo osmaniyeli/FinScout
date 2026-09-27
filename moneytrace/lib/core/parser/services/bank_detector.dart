@@ -204,4 +204,24 @@ class BankDetector {
       detectedAccountIdentifier: '',
     );
   }
+
+  /// Kredi kartı ekstresine özgü alanlar (asgari tutar, dönem borcu, kart numarası, WorldPuan vb.)
+  /// belgede var mı? Kurum/tür fingerprint'le tespit edilemeyip kullanıcı ipucuna (docType hint)
+  /// düşüldüğünde, gerçekten kart ekstresi mi diye ikinci bir içerik kontrolü için kullanılır.
+  static bool hasCardStatementFingerprint(String text) {
+    final cleanText = text.toUpperCase();
+    return cleanText.contains('WORLDPUAN') ||
+        cleanText.contains('ASGARİ TUTAR') ||
+        cleanText.contains('ASGARI TUTAR') ||
+        cleanText.contains('DÖNEM BORCU') ||
+        cleanText.contains('DONEM BORCU') ||
+        cleanText.contains('KART NUMARASI');
+  }
+
+  /// Belgede bir BAKİYE / KALAN BAKİYE sütunu var mı? Vadesiz hesap hareketi ekstrelerinin ayırt
+  /// edici işareti budur (kart ekstrelerinde bunun yerine "Dönem Borcu" kullanılır).
+  static bool hasAccountBalanceColumn(String text) {
+    final cleanText = text.toUpperCase();
+    return cleanText.contains('BAKİYE') || cleanText.contains('BAKIYE') || cleanText.contains('KALAN BAKİYE');
+  }
 }

@@ -53,6 +53,16 @@ class StatementOrchestrator {
         'PAYSLIP' => DocumentType.payslip,
         _ => DocumentType.unknown,
       };
+      // Kurum/tür fingerprint'le tespit edilemedi; kullanıcı ipucu (ör. yükleme ekranındaki varsayılan
+      // "Kredi Kartı" seçimi) her zaman doğru olmayabilir — aslında vadesiz hesap ekstresi olabilir.
+      // Kart ekstresine özgü alan yoksa ama BAKİYE sütunu varsa isCardStatement=false ile (işaretli
+      // sütun mantığıyla) okumak çok daha güvenli: aksi halde GenericBankStatementParser "+" ile
+      // başlamayan HER satırı (gelen para dahil) gider sayar ve gelirler sessizce gider olur.
+      if (docType == DocumentType.creditCard &&
+          !BankDetector.hasCardStatementFingerprint(text) &&
+          BankDetector.hasAccountBalanceColumn(text)) {
+        docType = DocumentType.checkingAccount;
+      }
     }
     final isCard = docType == DocumentType.creditCard;
 

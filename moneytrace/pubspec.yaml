@@ -1,7 +1,7 @@
 name: moneytrace
 description: "Paraİz (MoneyTrace) - Deterministik Veri Motoru & Harcama Zekası Platformu"
 publish_to: 'none'
-version: 3.9.0+9
+version: 3.9.1+10
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -46,6 +46,11 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  # Repository/veritabanı testleri için: flutter test VM'de gerçek platform kanalı olmadığından
+  # sqflite'ı FFI (masaüstü sqlite3) üzerinden çalıştırır. Yalnız test; uygulama kodu etkilenmez.
+  sqflite_common_ffi: ^2.3.3
+  # Aynı testlerde path_provider'ı platform kanalı olmadan sahte bir geçici klasöre yönlendirmek için.
+  path_provider_platform_interface: ^2.1.2
 
 flutter:
   uses-material-design: true

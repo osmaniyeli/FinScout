@@ -10,7 +10,7 @@ class AppDatabase {
   static final AppDatabase instance = AppDatabase._internal();
   AppDatabase._internal();
 
-  static const int schemaVersion = 5;
+  static const int schemaVersion = 6;
 
   /// Şema sürümü → o sürüme geçişte çalışan SQL dosyası. Yeni kurulum hepsini sırayla çalıştırır
   /// (v1 iki dosyadan oluşur), yükseltme yalnız eski sürümden sonrakileri.
@@ -20,6 +20,7 @@ class AppDatabase {
     3: ['assets/sql/v3_manual_entry_categories.sql'],
     4: ['assets/sql/v4_payslip_wage.sql'],
     5: ['assets/sql/v5_indexes.sql'],
+    6: ['assets/sql/v6_owntransfer_index.sql'],
   };
 
   /// Sıfırdan kurulumda çalışacak dosyalar.
