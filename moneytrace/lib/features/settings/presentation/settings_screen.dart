@@ -168,7 +168,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // Düz, sakin kart: animasyon/parlama yok (kullanıcı kararı 2026-09-25).
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(18),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: AppColors.canvasLight,
                 borderRadius: BorderRadius.circular(22),
@@ -185,7 +185,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         color: AppColors.textSecondary,
                         letterSpacing: 0.5),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
                     _subscriptionService.isPremium
                         ? (_subscriptionService.isFamilyPlan
@@ -201,12 +201,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         fontWeight: FontWeight.w900,
                         color: AppColors.textPrimary),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3),
                   const Text(
                     'Google Play Store Güvencesiyle',
                     style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 10),
                   OutlinedButton(
                     onPressed: _showSubscriptionPlans,
                     style: OutlinedButton.styleFrom(
@@ -222,7 +222,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 18),
 
             // Abonelik ve yasal bağlantılar (Play politikaları uygulama içinde istiyor)
             const Text(
@@ -233,8 +233,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: AppColors.textSecondary,
                   letterSpacing: 0.5),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             ListTile(
+              dense: true,
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.family_restroom_rounded, color: AppColors.textSecondary),
               title: const Text('Aile',
@@ -256,6 +257,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildLinkTile(Icons.person_remove_outlined, 'Hesap ve veri silme',
                 'Uygulamadan ya da e-postayla silme yolları', AppLinks.dataDeletion),
             ListTile(
+              dense: true,
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.description_outlined, color: AppColors.textSecondary),
               title: const Text('Açık kaynak lisansları',
@@ -267,7 +269,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const LicensesScreen())),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 18),
 
             // 2. GÜVENLİK (uygulama kilidi: yalnız PIN)
             const Text(
@@ -278,14 +280,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: AppColors.textSecondary,
                   letterSpacing: 0.5),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
 
             // 3. 4 Haneli Güvenlik Şifresi / PIN Kodu Tile
             ValueListenableBuilder<bool>(
               valueListenable: SecurityAuthService.instance.hasPinSetNotifier,
               builder: (context, hasPin, _) {
                 return Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(18),
@@ -297,15 +299,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(10),
+                            padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
                               color: const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(14),
                             ),
                             child: const Icon(Icons.pin_rounded,
-                                color: Color(0xFF0F172A), size: 22),
+                                color: Color(0xFF0F172A), size: 20),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -358,7 +360,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ],
                       ),
                       if (hasPin) ...[
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 9),
                         Row(
                           children: [
                             Expanded(
@@ -412,7 +414,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 );
               },
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 18),
 
             // 4. VERİ YÖNETİMİ (CSV raporu)
             const Text(
@@ -423,11 +425,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: AppColors.textSecondary,
                   letterSpacing: 0.5),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
 
             // 1. CSV / Excel Raporu (Morflayan Buton)
             Container(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(18),
@@ -439,15 +441,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(10),
+                        padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: const Color(0xFFECFDF5),
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: const Icon(Icons.table_chart_rounded,
-                            color: Color(0xFF10B981), size: 22),
+                            color: Color(0xFF10B981), size: 20),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       const Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -469,7 +471,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
                   _plainActionButton(
                     icon: Icons.ios_share_rounded,
                     label: 'CSV raporunu oluştur ve paylaş',
@@ -478,7 +480,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 18),
 
             // 6. TEHLİKELİ BÖLGE: TÜM VERİLERİMİ SIFIRLA VE SİL
             const Text(
@@ -489,10 +491,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: AppColors.expenseRed,
                   letterSpacing: 0.5),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
 
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: const Color(0xFFFFF1F2),
                 borderRadius: BorderRadius.circular(18),
@@ -504,15 +506,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(10),
+                        padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: const Color(0xFFFFE4E6),
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: const Icon(Icons.delete_forever_rounded,
-                            color: AppColors.expenseRed, size: 22),
+                            color: AppColors.expenseRed, size: 20),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       const Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -537,7 +539,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -569,6 +571,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildLinkTile(IconData icon, String title, String subtitle, String url) {
     return ListTile(
+      dense: true,
       contentPadding: EdgeInsets.zero,
       leading: Icon(icon, color: AppColors.textSecondary),
       title: Text(title,
@@ -590,7 +593,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         icon: Icon(icon, size: 18),
         label: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
         style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.symmetric(vertical: 10),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),

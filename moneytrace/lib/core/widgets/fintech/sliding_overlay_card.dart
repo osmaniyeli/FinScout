@@ -163,7 +163,7 @@ class _SlidingOverlayCardState extends State<SlidingOverlayCard>
                       opacity: opacity,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 12),
+                            horizontal: 14, vertical: 8),
                         child: widget.primaryForm,
                       ),
                     );
@@ -185,7 +185,7 @@ class _SlidingOverlayCardState extends State<SlidingOverlayCard>
                       opacity: opacity,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 12),
+                            horizontal: 14, vertical: 8),
                         child: widget.secondaryForm,
                       ),
                     );
@@ -223,7 +223,7 @@ class _SlidingOverlayCardState extends State<SlidingOverlayCard>
                           ),
                         ],
                       ),
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(10),
                       // Kapak, kayma animasyonu için sabit geometrili: çok dar ekranda / çok
                       // büyük yazıda metin kapağa sığmazsa (yalnız o zaman) orantılı küçülür.
                       // Genişlik sabitlenir ki metin tek satıra açılıp aşırı küçülmesin.
@@ -303,7 +303,7 @@ class _SlidingOverlayCardState extends State<SlidingOverlayCard>
             height: 1.3,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         // Frontend Joe tarzı cam efektli şık geçiş butonu
         InkWell(
           onTap: onAction,

@@ -6,7 +6,9 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/services/user_profile_service.dart';
 import '../../../core/utils/currency_normalizer.dart';
+import '../../../core/database/repositories/transaction_repository.dart';
 import '../../settings/presentation/settings_screen.dart';
+import 'uploaded_statements_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final VoidCallback? onLoggedOut;
@@ -19,10 +21,15 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final UserProfileService _profileService = UserProfileService.instance;
+  final TransactionRepository _repository = TransactionRepository();
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   late TextEditingController _budgetController;
   bool _isEditing = false;
+  late Future<List<UploadedStatement>> _statementsFuture;
+
+  /// Önizlemede kartta gösterilen en fazla belge sayısı; fazlası "Tümünü gör" ile ayrı sayfada.
+  static const int _statementPreviewCount = 5;
 
   @override
   void initState() {
@@ -32,6 +39,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _emailController = TextEditingController(text: p?.email ?? '');
     final budgetTl = ((p?.monthlyBudgetCents ?? 0) / 100).toInt();
     _budgetController = TextEditingController(text: budgetTl > 0 ? budgetTl.toString() : '');
+    _statementsFuture = _repository.getUploadedStatements();
   }
 
   @override
@@ -167,7 +175,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             // 2. Kişisel Bilgiler Form / Liste Kartı
             Container(
-              padding: const EdgeInsets.all(18),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
@@ -180,7 +188,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     'KİŞİSEL DETAYLAR',
                     style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textSecondary, letterSpacing: 0.5),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
 
                   // Ad Soyad
                   _buildFieldRow(
@@ -190,7 +198,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ? TextField(controller: _nameController, decoration: const InputDecoration(isDense: true, border: UnderlineInputBorder()))
                         : Text(profile?.name ?? '-', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                   ),
-                  const Divider(height: 24),
+                  const Divider(height: 18),
 
                   // E-posta / İletişim
                   _buildFieldRow(
@@ -200,7 +208,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ? TextField(controller: _emailController, decoration: const InputDecoration(isDense: true, border: UnderlineInputBorder()))
                         : Text(profile?.email.isNotEmpty == true ? profile!.email : 'Belirtilmedi', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
                   ),
-                  const Divider(height: 24),
+                  const Divider(height: 18),
 
                   // Para Birimi
                   _buildFieldRow(
@@ -208,7 +216,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     icon: Icons.currency_lira_rounded,
                     child: Text('${profile?.currency ?? "TRY"} (Türk Lirası)', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                   ),
-                  const Divider(height: 24),
+                  const Divider(height: 18),
 
                   // Aylık Bütçe Hedefi
                   _buildFieldRow(
@@ -223,7 +231,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF0052FF)),
                           ),
                   ),
-                  const Divider(height: 24),
+                  const Divider(height: 18),
 
                   // Üyelik / Kayıt Tarihi
                   _buildFieldRow(
@@ -234,7 +242,77 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 18),
+
+            // 2.5 Yüklediğim Belgeler
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'YÜKLEDİĞİM BELGELER',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textSecondary, letterSpacing: 0.5),
+                  ),
+                  const SizedBox(height: 12),
+                  FutureBuilder<List<UploadedStatement>>(
+                    future: _statementsFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState != ConnectionState.done) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 10),
+                          child: Center(
+                            child: SizedBox(
+                                width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
+                          ),
+                        );
+                      }
+                      final all = snapshot.data ?? const <UploadedStatement>[];
+                      if (all.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 4),
+                          child: Text(
+                            'Henüz belge yüklemedin. Bir ekstre veya bordro yüklediğinde burada listelenir.',
+                            style: TextStyle(fontSize: 12.5, color: AppColors.textSecondary, height: 1.4),
+                          ),
+                        );
+                      }
+                      final preview = all.take(_statementPreviewCount).toList();
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (final (i, s) in preview.indexed) ...[
+                            if (i > 0) const Divider(height: 18),
+                            StatementCard(statement: s, padding: EdgeInsets.zero, showBorder: false),
+                          ],
+                          if (all.length > _statementPreviewCount) ...[
+                            const SizedBox(height: 8),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => UploadedStatementsScreen(statements: all)),
+                                ),
+                                child: Text('Tümünü gör (${all.length})'),
+                              ),
+                            ),
+                          ],
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
 
             // 3. EN ALT ALAN: Uygulama Ayarları, Çıkış Yap
             // Material: ListTile dokunma dalgası kartın beyaz zemininin üstünde görünsün
@@ -249,10 +327,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 children: [
                   ListTile(
+                    dense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
                     leading: Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(7),
                       decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(10)),
-                      child: const Icon(Icons.settings_outlined, color: AppColors.textPrimary, size: 20),
+                      child: const Icon(Icons.settings_outlined, color: AppColors.textPrimary, size: 18),
                     ),
                     title: Text(AppStrings.get('app_settings_btn'), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
                     subtitle: const Text('Güvenlik, CSV raporu, abonelik ve gizlilik',style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
@@ -267,10 +347,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   const Divider(height: 1),
                   ListTile(
+                    dense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
                     leading: Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(7),
                       decoration: BoxDecoration(color: const Color(0xFFFFF1F2), borderRadius: BorderRadius.circular(10)),
-                      child: const Icon(Icons.logout_rounded, color: AppColors.expenseRed, size: 20),
+                      child: const Icon(Icons.logout_rounded, color: AppColors.expenseRed, size: 18),
                     ),
                     title: Text(AppStrings.get('logout_btn'), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.expenseRed)),
                     trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.expenseRed),

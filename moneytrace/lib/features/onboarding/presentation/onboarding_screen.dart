@@ -269,7 +269,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
               // Frontend Joe Pure CSS Sliding Overlay Dual-Card
               SlidingOverlayCard(
-                height: 175,
+                height: 142,
                 borderRadius: 22,
                 isSecondary: _isSignInMode,
                 onToggle: (val) {
@@ -466,30 +466,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             hint: 'ornek@eposta.com',
             icon: Icons.mail_outline_rounded,
             keyboardType: TextInputType.emailAddress,
-          ),
-          const SizedBox(height: 16),
-
-          // Güvenlik Rozeti
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0FDF4),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFBBF7D0)),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.shield_outlined, color: Color(0xFF16A34A), size: 20),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'Şifre yok: e-postana gelen kodla giriş yaparsın. Harcama verilerin bu cihazda kalır; hesabında yalnızca adın ve e-postan tutulur.',
-                    style: TextStyle(
-                        fontSize: 11.5, color: Color(0xFF15803D), height: 1.3),
-                  ),
-                ),
-              ],
-            ),
           ),
           const SizedBox(height: 20),
 

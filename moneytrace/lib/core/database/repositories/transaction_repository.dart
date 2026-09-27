@@ -899,6 +899,29 @@ Future<List<Map<String, dynamic>>> getUpcomingInstallments(
     ''');
   }
 
+  /// Kullanıcının şimdiye kadar yüklediği tüm belgeler (ekstre/bordro), en yeni önce.
+  /// Profil ekranındaki "Yüklediğim belgeler" listesi için; salt okunur, veri değiştirmez.
+  Future<List<UploadedStatement>> getUploadedStatements() async {
+    final db = await _dbProvider.database;
+    final rows = await db.rawQuery('''
+      SELECT
+        s.id,
+        s.file_name,
+        s.file_sha256,
+        s.period_start,
+        s.period_end,
+        s.statement_date,
+        s.created_at,
+        a.institution_name,
+        a.account_type,
+        (SELECT COUNT(*) FROM transactions t WHERE t.statement_id = s.id) AS transaction_count
+      FROM statements s
+      JOIN accounts a ON a.id = s.account_id
+      ORDER BY s.created_at DESC
+    ''');
+    return rows.map(UploadedStatement.fromRow).toList();
+  }
+
   /// Bordrodan gelen maaş kayıtları (net = billing, brüt = original; brüt okunamadıysa null;
   /// base_wage_cents = bordrodaki birim ücret, okunamadıysa null)
   /// ve bu kayıtlara bağlı yasal kesinti kalemleri. Hesaplama PayslipAnalyticsService'te yapılır.
@@ -926,6 +949,52 @@ class StatementSaveResult {
   final int inserted;
   final int skippedDuplicates;
   const StatementSaveResult({required this.inserted, required this.skippedDuplicates});
+}
+
+/// Kullanıcının yüklediği tek bir belgenin (ekstre/bordro) profil ekranında gösterilecek özeti.
+/// Bkz. [TransactionRepository.getUploadedStatements].
+class UploadedStatement {
+  final String id;
+  final String fileName;
+  final String fileSha256;
+  final String institution;
+  /// 'CREDIT_CARD' | 'CHECKING' | 'PAYSLIP' vb. (bkz. StatementDocumentResult.documentType)
+  final String documentType;
+  final DateTime periodStart;
+  final DateTime periodEnd;
+  final DateTime? statementDate;
+  final DateTime uploadedAt;
+  final int transactionCount;
+
+  const UploadedStatement({
+    required this.id,
+    required this.fileName,
+    required this.fileSha256,
+    required this.institution,
+    required this.documentType,
+    required this.periodStart,
+    required this.periodEnd,
+    required this.statementDate,
+    required this.uploadedAt,
+    required this.transactionCount,
+  });
+
+  factory UploadedStatement.fromRow(Map<String, Object?> row) {
+    DateTime parseDay(Object? v) => DateTime.parse(v as String);
+    DateTime? parseDayOrNull(Object? v) => v == null ? null : DateTime.parse(v as String);
+    return UploadedStatement(
+      id: row['id'] as String,
+      fileName: (row['file_name'] as String?) ?? 'ekstre.pdf',
+      fileSha256: row['file_sha256'] as String,
+      institution: (row['institution_name'] as String?) ?? 'Bilinmeyen Kurum',
+      documentType: (row['account_type'] as String?) ?? 'OTHER',
+      periodStart: parseDay(row['period_start']),
+      periodEnd: parseDay(row['period_end']),
+      statementDate: parseDayOrNull(row['statement_date']),
+      uploadedAt: DateTime.fromMillisecondsSinceEpoch(row['created_at'] as int),
+      transactionCount: (row['transaction_count'] as num?)?.toInt() ?? 0,
+    );
+  }
 }
 
 /// Yedekte işlem tablolarına ek olarak taşınan tablolar (sıra: yabancı anahtarlara göre).
