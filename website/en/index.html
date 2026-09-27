@@ -3,477 +3,207 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FinScout — Analyze your statement and payslip on your phone</title>
-<meta name="description" content="FinScout reads your credit card statement and payslip on your phone and itemizes fees like interest, BSMV, KKDF and card dues. Your data never leaves your device.">
+<title>FinScout — See your credit card fees and salary on your phone</title>
+<meta name="description" content="FinScout reads your credit card statement and payslip on your phone and lists interest, BSMV, KKDF, card fees and EFT/FAST charges line by line. Your PDFs are never sent to a server.">
+<meta name="theme-color" content="#000000">
 <link rel="canonical" href="https://osmaniyeli.github.io/FinScout/en/">
-<link rel="alternate" hreflang="tr" href="https://osmaniyeli.github.io/FinScout/">
-<link rel="alternate" hreflang="en" href="https://osmaniyeli.github.io/FinScout/en/">
-<link rel="alternate" hreflang="x-default" href="https://osmaniyeli.github.io/FinScout/">
-
+<link rel="alternate" hreflang="tr" href="https://osmaniyeli.github.io/FinScout/"><link rel="alternate" hreflang="en" href="https://osmaniyeli.github.io/FinScout/en/"><link rel="alternate" hreflang="x-default" href="https://osmaniyeli.github.io/FinScout/">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="icon" href="../favicon.png" sizes="32x32" type="image/png">
 <link rel="shortcut icon" href="../favicon.ico">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <link rel="manifest" href="../site.webmanifest">
-
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="FinScout">
-<meta property="og:title" content="FinScout — Analyze your statement and payslip on your phone">
-<meta property="og:description" content="FinScout reads your credit card statement and payslip on your phone and itemizes fees like interest, BSMV, KKDF and card dues. Your data never leaves your device.">
-<meta property="og:image" content="https://osmaniyeli.github.io/FinScout/assets/img/og-image.png">
+<meta property="og:title" content="FinScout — See your credit card fees and salary on your phone">
+<meta property="og:description" content="FinScout reads your credit card statement and payslip on your phone and lists interest, BSMV, KKDF, card fees and EFT/FAST charges line by line. Your PDFs are never sent to a server.">
 <meta property="og:url" content="https://osmaniyeli.github.io/FinScout/en/">
+<meta property="og:image" content="https://osmaniyeli.github.io/FinScout/assets/img/og-image.png">
 <meta property="og:locale" content="en_US">
 <meta name="twitter:card" content="summary_large_image">
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap">
+<link rel="preload" as="image" href="../assets/img/hero-wide.jpg" media="(min-width:768px)">
+<link rel="stylesheet" href="../assets/css/site.css">
 </head>
 <body>
 <a class="skip-link" href="#icerik">Skip to content</a>
-
-<header class="site-header">
-  <div class="container">
-    <a class="brand" href="index.html">
-      <img src="../assets/img/finscout_mark.svg" alt="" width="28" height="28">
-      FinScout
-    </a>
-    <nav class="main-nav" aria-label="Main menu">
-      <ul>
-        <li><a href="#features">Features</a></li>
-        <li><a href="#how-it-works">How it works</a></li>
-        <li><a href="#pricing">Pricing</a></li>
-        <li><a href="#faq">FAQ</a></li>
-      </ul>
-    </nav>
-    <div class="lang-switch" aria-label="Language selector">
-      <a href="../index.html">TR</a>
-      <a href="index.html" aria-current="true">EN</a>
-    </div>
-    <button class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-nav">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
+<header class="site-header" data-theme="dark">
+  <a class="brand" href="../en/index.html" aria-label="FinScout"><span class="brand-mark"><img src="../assets/img/finscout_mark.svg" alt="" width="26" height="26"></span>FinScout</a>
+  <nav class="nav" aria-label="Main menu"><a href="#nedir">About</a><a href="#masraflar">Fees</a><a href="#hesap">How it works</a><a href="#guven">Trust</a><a href="#fiyatlar">Pricing</a></nav>
+  <div class="h-right">
+    <div class="lang"><button class="lang-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Language">EN <svg viewBox="0 0 8 8" aria-hidden="true"><path d="M1 2.5h6L4 6z" fill="currentColor"/></svg></button><div class="lang-menu" role="menu"><a href="../index.html" hreflang="tr" lang="tr">Türkçe</a><a href="../en/index.html" hreflang="en" lang="en" aria-current=true>English</a></div></div>
+    <a class="h-cta" href="https://play.google.com/store/apps/details?id=com.moneytrace.app" target="_blank" rel="noopener">Get FinScout</a>
   </div>
-  <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile menu">
-    <ul>
-      <li><a href="#features">Features</a></li>
-      <li><a href="#how-it-works">How it works</a></li>
-      <li><a href="#pricing">Pricing</a></li>
-      <li><a href="#faq">FAQ</a></li>
-      <li><a href="../destek.html">Support</a></li>
-    </ul>
-    <div class="mobile-lang"><a href="../index.html">TR</a><a href="index.html" aria-current="true">EN</a></div>
-  </nav>
 </header>
 
 <main id="icerik">
+<section class="hero" data-header-theme="dark">
+  <div class="hero-bg"><picture><source media="(max-width:767px)" srcset="../assets/img/hero-phone-800.jpg"><img src="../assets/img/hero-wide.jpg" alt="A hand holding a phone showing the FinScout home screen" width="1600" height="1000" fetchpriority="high"></picture></div>
+  <div class="hero-in">
+    <h1>FinScout. <span>See every fee, to the cent.</span></h1>
+    <p class="sub">Reads your credit card statement and payslip on your phone, and shows interest, taxes and charges one by one.</p>
+    <div class="actions"><a class="btn btn-white" href="https://play.google.com/store/apps/details?id=com.moneytrace.app" target="_blank" rel="noopener">Get FinScout <span class="soon">soon</span></a><a class="btn btn-ghost" href="#nedir">How it works</a></div>
+    <p class="meta"><span>No ads</span><span>Currently in internal testing</span></p>
+  </div>
+</section>
 
-  <section class="hero">
-    <div class="container">
-      <div class="hero-text">
-        <span class="eyebrow">Currently in internal testing</span>
-        <h1>Analyze your statement and payslip on your phone</h1>
-        <p class="lede">FinScout reads your credit card statement and payslip as PDF and itemizes fees like interest, BSMV, KKDF and card dues. Files never leave your device.</p>
-        <div class="hero-actions">
-          <a class="btn btn-primary" aria-disabled="true" href="https://play.google.com/store/apps/details?id=com.moneytrace.app" target="_blank" rel="noopener noreferrer">
-            Coming soon on Google Play <span class="tag">soon</span>
-          </a>
-          <a class="btn btn-secondary" href="#how-it-works">How it works</a>
-        </div>
-        <p class="hero-note">FinScout is in internal testing on Google Play. A public release date hasn't been announced yet.</p>
-      </div>
-      <div class="hero-visual">
-        <div class="phone reveal" aria-hidden="true">
-          <div class="phone-screen">
-            <div class="phone-notch"><span></span></div>
-            <div class="phone-body">
-              <div class="phone-app-title"><span>Summary · Sep 2026</span><span>●●●</span></div>
-              <div class="phone-card">
-                <div class="label">Net this month</div>
-                <div class="amount income">+$240</div>
-              </div>
-              <div class="phone-card">
-                <div class="label">Total expenses</div>
-                <div class="amount expense">$510</div>
-                <div class="phone-progress-track" style="margin-top:10px"><div class="phone-progress-fill" style="width:64%"></div></div>
-              </div>
-              <ul>
-                <li class="phone-row"><span class="name">Sample Grocery</span><span class="val expense">-$18.40</span></li>
-                <li class="phone-row"><span class="name">Card dues</span><span class="val expense">-$1.30</span></li>
-                <li class="phone-row"><span class="name">Salary</span><span class="val income">+$1,100.00</span></li>
-              </ul>
-            </div>
-            <div class="phone-nav" aria-hidden="true"><span class="active"></span><span></span><span></span><span></span></div>
-          </div>
-        </div>
-      </div>
+<section id="nedir" class="sec on-dark about" data-header-theme="dark">
+  <div class="orb" aria-hidden="true"><div class="glow"></div><div class="ring"></div><img src="../assets/img/finscout_mark.svg" alt="" width="120" height="120"></div>
+  <div class="wrap">
+    <span class="badge fx">What is FinScout?</span>
+    <h2 class="reveal-words">FinScout is a personal finance app that runs on your phone and brings the hidden lines of your statement and payslip into view.</h2>
+    <p class="desc fx">You upload credit card statement and payslip PDFs; FinScout pulls out <b>interest, late interest, BSMV, KKDF, card fees and EFT/FAST charges</b> separately and totals them by month and year. It checks the statement against <b>the bank's period total</b> and tells you if it doesn't match. Your files are processed on your phone and never sent to a server.</p>
+  </div>
+</section>
+
+<section class="sec on-dark quote-sec" data-header-theme="dark">
+  <div class="quote">
+    <div class="quote-photo fx"><img src="../assets/img/scenario-portrait.jpg" alt="A woman at home smiling at her phone" width="700" height="933" loading="lazy"></div>
+    <div class="quote-text fx" data-delay=".1">
+      <div class="quote-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 7C6 8 4.5 10.5 4.5 14v3.5h5v-5h-3c0-2.5 1-4 3.5-4.8zM19.5 7C16 8 14.5 10.5 14.5 14v3.5h5v-5h-3c0-2.5 1-4 3.5-4.8z" fill="currentColor" stroke="none"/></svg></div>
+      <p class="q">I only ever saw one total at the bottom of my statement. <b>In FinScout I saw interest, BSMV and the card fee separately;</b> now I know why some months cost me more.</p>
+      <p class="who">— Example scenario <span class="tag-sc">not a real user review</span></p>
     </div>
-  </section>
-
-  <section id="features">
-    <div class="container">
-      <div class="section-head">
-        <span class="kicker">What it does</span>
-        <h2>Reads your statement, itemizes it, reconciles it with the bank</h2>
-        <p>Upload your credit card statement and payslip PDFs, and FinScout breaks down transactions, fees and taxes for you. You can upload several documents at once.</p>
-      </div>
-
-      <div class="feature-row reveal">
-        <div class="feature-text">
-          <span class="feature-index">01</span>
-          <h3>Multi-PDF upload</h3>
-          <p>Pick your credit card statement and payslip PDFs and upload several at once. Files are processed only on your device and are never sent to a server.</p>
-        </div>
-        <div class="feature-visual">
-          <div class="phone" aria-hidden="true">
-            <div class="phone-screen">
-              <div class="phone-notch"><span></span></div>
-              <div class="phone-body">
-                <div class="phone-app-title"><span>Upload documents</span><span>3/3</span></div>
-                <div class="phone-file">
-                  <span class="file-icon">PDF</span>
-                  <span class="file-name">statement_sep.pdf</span>
-                  <span class="file-status">Done</span>
-                </div>
-                <div class="phone-file">
-                  <span class="file-icon">PDF</span>
-                  <span class="file-name">statement_aug.pdf</span>
-                  <span class="file-status">Done</span>
-                </div>
-                <div class="phone-file">
-                  <span class="file-icon">PDF</span>
-                  <span class="file-name">payslip_sep.pdf</span>
-                  <span class="file-status">Reading…</span>
-                </div>
-                <div class="phone-progress-track" style="margin-top:8px"><div class="phone-progress-fill" style="width:78%"></div></div>
-                <span class="phone-pill">Processing on device</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="feature-row reverse reveal">
-        <div class="feature-text">
-          <span class="feature-index">02</span>
-          <h3>See every fee, itemized</h3>
-          <p>Interest, late interest, BSMV, KKDF, card dues and transfer fees are listed one by one, with monthly and yearly totals in Analytics &gt; Expenses.</p>
-        </div>
-        <div class="feature-visual">
-          <div class="phone" aria-hidden="true">
-            <div class="phone-screen">
-              <div class="phone-notch"><span></span></div>
-              <div class="phone-body">
-                <div class="phone-app-title"><span>Expenses</span><span>2026</span></div>
-                <ul>
-                  <li class="phone-row"><span class="name">Interest</span><span class="val expense">$6.90</span></li>
-                  <li class="phone-row"><span class="name">BSMV</span><span class="val expense">$1.00</span></li>
-                  <li class="phone-row"><span class="name">KKDF</span><span class="val expense">$0.60</span></li>
-                  <li class="phone-row"><span class="name">Card dues</span><span class="val expense">$1.30</span></li>
-                  <li class="phone-row"><span class="name">Transfer fee</span><span class="val expense">$0.40</span></li>
-                </ul>
-                <div class="phone-card">
-                  <div class="label">Yearly fee total</div>
-                  <div class="amount expense">$103.20</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="feature-row reveal">
-        <div class="feature-text">
-          <span class="feature-index">03</span>
-          <h3>Reconciled with the bank's total</h3>
-          <p>The statement you upload is automatically compared with the bank's own period total. If it matches, you'll see "matched"; if not, you get a warning.</p>
-        </div>
-        <div class="feature-visual">
-          <div class="phone" aria-hidden="true">
-            <div class="phone-screen">
-              <div class="phone-notch"><span></span></div>
-              <div class="phone-body">
-                <div class="phone-app-title"><span>Period summary</span><span>Sep 2026</span></div>
-                <div class="phone-card">
-                  <div class="label">Calculated from statement</div>
-                  <div class="amount">$510.00</div>
-                </div>
-                <div class="phone-card">
-                  <div class="label">Bank's period total</div>
-                  <div class="amount">$510.00</div>
-                </div>
-                <span class="phone-pill">✓ Matched the bank's period total</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="feature-row reverse reveal">
-        <div class="feature-text">
-          <span class="feature-index">04</span>
-          <h3>Track your salary and taxes</h3>
-          <p>Build gross/net/tax/social-security charts by year from your payslips, spot changes in your pay, and compare periods with filters.</p>
-        </div>
-        <div class="feature-visual">
-          <div class="phone" aria-hidden="true">
-            <div class="phone-screen">
-              <div class="phone-notch"><span></span></div>
-              <div class="phone-body">
-                <div class="phone-app-title"><span>Salary / Tax</span><span>2023–2026</span></div>
-                <div class="phone-bars">
-                  <div class="phone-bar-group">
-                    <div class="phone-bar-stack"><div class="phone-bar tax" style="height:22%"></div><div class="phone-bar net" style="height:48%"></div></div>
-                    <span class="phone-bar-year">2023</span>
-                  </div>
-                  <div class="phone-bar-group">
-                    <div class="phone-bar-stack"><div class="phone-bar tax" style="height:26%"></div><div class="phone-bar net" style="height:56%"></div></div>
-                    <span class="phone-bar-year">2024</span>
-                  </div>
-                  <div class="phone-bar-group">
-                    <div class="phone-bar-stack"><div class="phone-bar tax" style="height:28%"></div><div class="phone-bar net" style="height:64%"></div></div>
-                    <span class="phone-bar-year">2025</span>
-                  </div>
-                  <div class="phone-bar-group">
-                    <div class="phone-bar-stack"><div class="phone-bar tax" style="height:30%"></div><div class="phone-bar net" style="height:74%"></div></div>
-                    <span class="phone-bar-year">2026</span>
-                  </div>
-                </div>
-                <span class="phone-pill">Raise detected in net pay</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="extra-list">
-        <div class="extra-item reveal">
-          <span class="dot">＋</span>
-          <div><h4>Installments &amp; due dates</h4><p>See installments and payment due dates from your statement, with a notification reminder.</p></div>
-        </div>
-        <div class="extra-item reveal">
-          <span class="dot">＋</span>
-          <div><h4>Goals &amp; assets</h4><p>Set a savings goal; keep gold, currency, cash and vehicle assets in one place.</p></div>
-        </div>
-        <div class="extra-item reveal">
-          <span class="dot">＋</span>
-          <div><h4>Tablet support</h4><p>Use a layout adapted for tablet screens in addition to your phone.</p></div>
-        </div>
-        <div class="extra-item reveal">
-          <span class="dot">＋</span>
-          <div><h4>No ads</h4><p>No ads inside the app. Sign in with an email code or with Google.</p></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="how-it-works" class="section-alt">
-    <div class="container">
-      <div class="section-head center">
-        <span class="kicker">How it works</span>
-        <h2>Three steps to an organized statement and payslip</h2>
-      </div>
-      <div class="steps">
-        <div class="step reveal">
-          <span class="step-num">01</span>
-          <h3>Upload your statement and payslip</h3>
-          <p>Pick your credit card statement and payslip PDFs; you can upload more than one at a time.</p>
-        </div>
-        <div class="step reveal">
-          <span class="step-num">02</span>
-          <h3>Analyzed on your phone</h3>
-          <p>FinScout itemizes fees and compares the statement against the bank's period total.</p>
-        </div>
-        <div class="step reveal">
-          <span class="step-num">03</span>
-          <h3>See charts, set goals</h3>
-          <p>Review income, expense and tax charts, then set your goals and reminders.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="trust">
-    <div class="container">
-      <div class="section-head">
-        <span class="kicker">The basis</span>
-        <h2>Where your data actually stays</h2>
-        <p>These points summarize the <a href="../gizlilik.html">Privacy Policy</a> (Turkish, with an English summary at the bottom) — read the full text for details.</p>
-      </div>
-      <div class="trust-grid">
-        <div class="trust-item reveal">
-          <h3>Statements and transactions stay on-device</h3>
-          <p>The PDFs you upload and the transactions extracted from them stay in the app's database on your phone; they are not sent to a server.</p>
-        </div>
-        <div class="trust-item reveal">
-          <h3>Only account info lives on the server</h3>
-          <p>To let you sign in, your name and email are stored on account infrastructure hosted in the European Union (Frankfurt).</p>
-        </div>
-        <div class="trust-item reveal">
-          <h3>No ads, no trackers</h3>
-          <p>There is no ad network or behavioral tracker inside the app; subscriptions are handled through Google Play Billing.</p>
-        </div>
-        <div class="trust-item reveal">
-          <h3>Starting with one bank</h3>
-          <p>The first phase supports a single bank; more will be added one by one. Supported banks are listed inside the app.</p>
-        </div>
-        <div class="trust-item reveal">
-          <h3>Family plan keeps everyone's data local</h3>
-          <p>On the family plan, premium access is shared with up to 4 people; each member's financial data stays only on their own phone.</p>
-        </div>
-        <div class="trust-item reveal">
-          <h3>Delete your account anytime</h3>
-          <p>You can permanently delete your account and server records from Settings. See <a href="../hesap-silme.html">Account &amp; Data Deletion</a>.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="pricing" class="section-alt">
-    <div class="container">
-      <div class="section-head center">
-        <span class="kicker">Pricing</span>
-        <h2>Subscriptions managed through Google Play</h2>
-        <p>Prices are set for the current internal test on Google Play and may change for the public release.</p>
-      </div>
-      <div class="pricing-grid">
-        <div class="plan reveal">
-          <h3>Free</h3>
-          <div class="price">₺0</div>
-          <p class="quota">1 document upload per month</p>
-          <ul>
-            <li>Manual income/expense entry</li>
-            <li>Goals and assets</li>
-            <li>Installment and reminder tracking</li>
-          </ul>
-        </div>
-        <div class="plan reveal">
-          <h3>Monthly</h3>
-          <div class="price">₺79.99 <small>/ mo</small></div>
-          <p class="quota">3 document uploads per month</p>
-          <ul>
-            <li>Everything in Free</li>
-            <li>More document uploads</li>
-          </ul>
-        </div>
-        <div class="plan is-featured reveal">
-          <span class="plan-badge">7-day trial</span>
-          <h3>Annual</h3>
-          <div class="price">₺599.99 <small>/ yr</small></div>
-          <p class="quota">5 document uploads per month</p>
-          <ul>
-            <li>7-day free trial</li>
-            <li>Better value than monthly</li>
-          </ul>
-        </div>
-        <div class="plan reveal">
-          <h3>Family Annual</h3>
-          <div class="price">₺899.99 <small>/ yr</small></div>
-          <p class="quota">Shared with up to 4 people</p>
-          <ul>
-            <li>Premium shared with family</li>
-            <li>Everyone's data stays on their phone</li>
-          </ul>
-        </div>
-      </div>
-      <p class="pricing-note">Subscriptions are sold through Google Play Billing and can be cancelled anytime from Google Play &gt; Payments &amp; subscriptions. Prices are billed in Turkish lira (₺) via Google Play.</p>
-    </div>
-  </section>
-
-  <section id="faq">
-    <div class="container">
-      <div class="section-head">
-        <span class="kicker">FAQ</span>
-        <h2>Common questions</h2>
-      </div>
-      <div class="faq-list">
-        <details class="faq-item reveal">
-          <summary>Is my statement sent to a server?</summary>
-          <p>No. Your credit card statement and payslip PDFs are processed only on your phone. The server only stores your account name, email and subscription status.</p>
-        </details>
-        <details class="faq-item reveal">
-          <summary>Which banks are supported?</summary>
-          <p>The first phase supports a single bank; more will be added one by one. The current list is shown inside the app.</p>
-        </details>
-        <details class="faq-item reveal">
-          <summary>What can I do on the free plan?</summary>
-          <p>You can upload 1 document per month, and use manual income/expense entry, goals and asset tracking without a cap.</p>
-        </details>
-        <details class="faq-item reveal">
-          <summary>How does the family plan work?</summary>
-          <p>The family annual plan shares premium access with up to 4 people. Each member's financial data stays only on their own phone and is not shared with the rest of the family.</p>
-        </details>
-        <details class="faq-item reveal">
-          <summary>When will the app be public?</summary>
-          <p>FinScout is currently in internal testing on Google Play. This page will be updated once a public release date is set.</p>
-        </details>
-      </div>
-    </div>
-  </section>
-
-  <section id="download">
-    <div class="container">
-      <div class="cta-band reveal">
-        <span class="kicker">Coming soon</span>
-        <h2>FinScout is in internal testing on Google Play</h2>
-        <p>The app is currently being evaluated with a limited test group. You'll be able to download it here once it's publicly released.</p>
-        <div class="hero-actions">
-          <a class="btn btn-primary" aria-disabled="true" href="https://play.google.com/store/apps/details?id=com.moneytrace.app" target="_blank" rel="noopener noreferrer">
-            Coming soon on Google Play <span class="tag">soon</span>
-          </a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-</main>
-
-<footer class="site-footer">
-  <div class="container">
-    <div class="footer-top">
-      <div>
-        <a class="footer-brand" href="index.html">
-          <img src="../assets/img/finscout_mark.svg" alt="" width="24" height="24">
-          FinScout
-        </a>
-        <p class="footer-tag">A personal finance app for credit card statements and payslips, working on your phone.</p>
-      </div>
-      <div class="footer-col">
-        <h4>Product</h4>
-        <ul>
-          <li><a href="#features">Features</a></li>
-          <li><a href="#how-it-works">How it works</a></li>
-          <li><a href="#pricing">Pricing</a></li>
-          <li><a href="#faq">FAQ</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Legal</h4>
-        <ul>
-          <li><a href="../gizlilik.html">Privacy Policy</a></li>
-          <li><a href="../kullanim-sartlari.html">Terms of Use</a></li>
-          <li><a href="../hesap-silme.html">Account &amp; Data Deletion</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Support</h4>
-        <ul>
-          <li><a href="../destek.html">Contact</a></li>
-          <li><a href="https://github.com/osmaniyeli/FinScout" target="_blank" rel="noopener noreferrer">GitHub</a></li>
-          <li><a href="mailto:pulcratechnology@gmail.com">pulcratechnology@gmail.com</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <p>FinScout is an independent personal finance app; it is not affiliated with, and does not require approval from, any bank. Nothing in the app is investment or tax advice — use your bank's or employer's official figures for statements and payslips. Legal pages are currently published in Turkish, with an English summary where noted. © 2026 FinScout.</p>
-      <div class="footer-legal-lang">
-        <a href="../index.html">Türkçe</a>
+  </div>
+  <div class="duo">
+    <p class="title fx"><b>Upload your statement,</b> FinScout splits it line by line.</p>
+    <div class="duo-grid">
+      <div class="card-d duo-left fx"><img src="../assets/img/screen-upload-dark.webp" alt="FinScout upload screen: three PDFs processed at once" width="430" height="884" loading="lazy"></div>
+      <div class="duo-right">
+        <div class="card-d duo-card fx" data-delay=".1"><div class="chips"><div class="chip-m hl"><div class="k">Interest</div><div class="bar"><i style="width:80%"></i></div><div class="v">₺214.30<small>September</small></div></div><div class="chip-m"><div class="k">BSMV</div><div class="bar"><i style="width:30%"></i></div><div class="v">₺32.10<small>September</small></div></div><div class="chip-m"><div class="k">KKDF</div><div class="bar"><i style="width:20%"></i></div><div class="v">₺18.45<small>September</small></div></div><div class="chip-m"><div class="k">Card fee</div><div class="bar"><i style="width:40%"></i></div><div class="v">₺45.00<small>September</small></div></div></div><p class="cap">Fee lines extracted from a September statement (sample data).</p></div>
+        <div class="card-d duo-card fx" data-delay=".2"><div class="chat"><div class="row"><span class="bubble">Bank's period total: ₺17,960.00</span></div><div class="row"><span class="bubble me">Calculated from statement: ₺17,960.00</span></div><div class="thinking"><img src="../assets/img/finscout_mark.svg" alt="" width="18" height="18">Comparing… matched ✓</div></div></div>
       </div>
     </div>
   </div>
+</section>
+
+<section id="masraflar" class="sec on-light features" data-header-theme="light">
+  <div class="bloom" aria-hidden="true"><img src="../assets/img/finscout_mark.svg" alt="" width="190" height="190"></div>
+  <div class="wrap center">
+    <h2 class="head fx"><span class="accent">Six fee types</span>, one by one</h2>
+    <p class="lead fx"><b>The "total" on your statement hides several different charges.</b> FinScout lists each one; you see monthly and yearly totals under Analysis › Fees.</p>
+  </div>
+  <div class="carousel" data-carousel>
+    <div class="track" tabindex="0" aria-label="Six fee types"><article class="fcard"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 5 5 19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg></div><h3>Interest. The real cost of debt.</h3><p>Contractual interest charged on the unpaid balance.</p><p><b>FinScout shows:</b> how much interest you pay each month and per year.</p></article><article class="fcard"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><h3>Late interest. The price of being late.</h3><p>Extra interest added when a due date is missed.</p><p><b>FinScout shows:</b> which period you were late and what it cost you.</p></article><article class="fcard"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg></div><h3>BSMV. Tax on interest.</h3><p>Banking and insurance transaction tax, added on top of interest and some fees.</p><p><b>FinScout shows:</b> BSMV as its own line, monthly and yearly.</p></article><article class="fcard"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V10M19 21V10M9 21V10M15 21V10M12 3 3 8h18z"/></svg></div><h3>KKDF. The invisible fund levy.</h3><p>Resource Utilization Support Fund, calculated on interest.</p><p><b>FinScout shows:</b> KKDF separately from interest, on its own line.</p></article><article class="fcard"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#0EA5E9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 10h19M6 15h4"/></svg></div><h3>Card fee. Your yearly membership.</h3><p>The annual or periodic fee charged for your card.</p><p><b>FinScout shows:</b> when the fee was charged and how much.</p></article><article class="fcard"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4 3 8l4 4"/><path d="M3 8h13"/><path d="m17 20 4-4-4-4"/><path d="M21 16H8"/></svg></div><h3>EFT/FAST charges. Small but frequent.</h3><p>Transaction fees charged on money transfers.</p><p><b>FinScout shows:</b> how many transfers you made and what they cost in total.</p></article></div>
+    <div class="car-nav"><button type="button" data-prev aria-label="Previous"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg></button><button type="button" data-next aria-label="Next"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></button></div>
+  </div>
+</section>
+
+<section id="ozet" class="sec on-light tabs-sec" data-header-theme="light" data-tabs>
+  <div class="wrap center">
+    <h2 class="head fx">The whole picture at a glance</h2>
+    <p class="lead fx">Open the app and you see the month's summary. Income, spending, fees and instalments in one place; <b>no separate spreadsheets.</b> Tap the tabs to browse the screens.</p>
+  </div>
+  <div class="tab-phone" id="tabpanel" role="tabpanel"><img class="on" src="../assets/img/screen-home-light.webp" alt="FinScout Summary screen (sample data)" width="430" height="884" loading="lazy"><img class="" src="../assets/img/screen-fees-light.webp" alt="FinScout Fees screen (sample data)" width="430" height="884" loading="lazy"><img class="" src="../assets/img/screen-salary-light.webp" alt="FinScout Salary/Tax screen (sample data)" width="430" height="884" loading="lazy"><img class="" src="../assets/img/screen-inst-light.webp" alt="FinScout Instalments screen (sample data)" width="430" height="884" loading="lazy"><img class="" src="../assets/img/screen-assets-light.webp" alt="FinScout Assets screen (sample data)" width="430" height="884" loading="lazy"></div>
+  <div class="tablist" role="tablist" aria-label="The whole picture at a glance"><button class="tab" role="tab" id="tab-0" aria-controls="tabpanel" aria-selected="true" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg><span>Summary</span></button><button class="tab" role="tab" id="tab-1" aria-controls="tabpanel" aria-selected="false" tabindex="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg><span>Fees</span></button><button class="tab" role="tab" id="tab-2" aria-controls="tabpanel" aria-selected="false" tabindex="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Salary/Tax</span></button><button class="tab" role="tab" id="tab-3" aria-controls="tabpanel" aria-selected="false" tabindex="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg><span>Instalments</span></button><button class="tab" role="tab" id="tab-4" aria-controls="tabpanel" aria-selected="false" tabindex="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="6"/><path d="M15.5 9.4A6 6 0 1 1 9.4 15.5"/></svg><span>Assets</span></button></div>
+  <div class="tab-desc center"><p data-i="0"><b>Your month at a glance.</b> Income, spending, this month's fees and the next due date on the home screen.</p><p data-i="1" hidden><b>Interest, BSMV, KKDF, card fee and EFT/FAST charges</b> line by line, with monthly and yearly totals.</p><p data-i="2" hidden><b>Gross, net, tax and social security by year</b> from your payslips. Pay changes (raises) are flagged.</p><p data-i="3" hidden><b>Ongoing instalments and the due date.</b> You get a notification before the payment is due.</p><p data-i="4" hidden><b>Gold, foreign currency, cash and vehicles</b> in one list, next to your savings goals.</p></div>
+  <div class="cta center"><a class="btn btn-dark" href="https://play.google.com/store/apps/details?id=com.moneytrace.app" target="_blank" rel="noopener">See your fees <span class="soon">soon</span></a><p class="note">The free plan includes 1 document per month.</p></div>
+</section>
+
+<section class="sec on-light pin-sec" data-header-theme="light" data-stepper>
+  <div class="wrap center">
+    <h2 class="head fx"><span style="color:#64748B">FinScout has your back,</span> before the month ends</h2>
+    <p class="lead fx">Upload your statement when it arrives; FinScout does the rest. <b>Fees are separated, the total is checked, the due date is reminded.</b></p>
+  </div>
+  <div class="pin-stage">
+    <div class="pin-panel"><div class="ph"><img data-step="0" src="../assets/img/screen-upload-light.webp" alt="FinScout step screen (sample data)" width="430" height="884" loading="lazy"><img data-step="1" src="../assets/img/screen-fees-light.webp" alt="FinScout step screen (sample data)" width="430" height="884" loading="lazy"><img data-step="2" src="../assets/img/screen-match-light.webp" alt="FinScout step screen (sample data)" width="430" height="884" loading="lazy"><img data-step="3" src="../assets/img/screen-inst-light.webp" alt="FinScout step screen (sample data)" width="430" height="884" loading="lazy"></div></div>
+    <div class="steps"><div class="dots"><button type="button" aria-label="Step 1"></button><button type="button" aria-label="Step 2"></button><button type="button" aria-label="Step 3"></button><button type="button" aria-label="Step 4"></button></div><div class="step-text" aria-live="polite"><div><h3>Pick your PDFs: several at once</h3><p>Select credit card statement and payslip PDFs together. For protected statements you enter the password; it is not stored.</p></div><div><h3>Read on your phone, split into lines</h3><p>Files are processed on your phone, never sent to a server. Transactions, interest, taxes and charges land on separate lines.</p></div><div><h3>Checked against the bank's period total</h3><p>The statement is compared with the period total reported by the bank. If it matches you see "matched"; if not, you get a warning.</p></div><div><h3>Reminder before the due date</h3><p>See instalments and the due date from your statement and get a notification reminder.</p></div></div></div>
+  </div>
+</section>
+
+<section id="maas" class="sec radial" data-header-theme="light">
+  <div class="wrap center">
+    <h2 class="head fx">Your payslip talks too</h2>
+    <p class="lead fx">Payslip numbers look scattered. <b>FinScout lines them up by year</b> and shows the path from gross to net.</p>
+  </div>
+  <div class="orbit"><div class="ring" aria-hidden="true"></div><div class="core"><img src="../assets/img/finscout_mark.svg" alt="" width="40" height="40">FinScout</div><div class="ocard top"><div class="ics"><span class=ic><svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span></div><p><b>Gross and net by year.</b> Takes each year's monthly average from your payslips and puts them side by side in a bar chart.</p></div><div class="ocard left"><div class="ics"><span class=ic><svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg></span></div><p><b>Tax and social security.</b> Income tax, stamp tax and social security + unemployment shown separately, with your effective deduction rate.</p></div><div class="ocard right"><div class="ics"><span class=ic><svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></span></div><p><b>Raise detection.</b> When the pay on your payslip changes, FinScout catches it and marks it as your latest raise.</p></div><div class="ocard bottom"><div class="ics"><span class=ic><svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg></span><span class=ic><svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg></span></div><p><b>Filters and period comparison.</b> Pick a year range and compare periods. An empty column means that month's payslip wasn't uploaded.</p></div></div>
+</section>
+
+<section class="sec join" data-header-theme="light">
+  <div class="join-card fx">
+    <h2 class="head">Join FinScout</h2>
+    <p>Upload your statement and payslip and see the full picture of your fees and salary. Start with the free plan; no ads.</p>
+    <a class="btn btn-white" href="https://play.google.com/store/apps/details?id=com.moneytrace.app" target="_blank" rel="noopener">Open on Google Play <span class="soon">soon</span></a>
+  </div>
+</section>
+
+<section id="hesap" class="sec on-dark how" data-header-theme="dark">
+  <div class="wrap center">
+    <h2 class="head fx">How FinScout calculates your fees</h2>
+    <p class="lead fx">The numbers are not estimates; they come from your own documents. Each card explains what FinScout extracts from a document and how.</p>
+  </div>
+  <div class="carousel" data-carousel>
+    <div class="track" tabindex="0" aria-label="How FinScout calculates your fees"><article class="hcard"><h3>Credit card statement</h3><p class="s">Interest and charges line by line.</p><ul><li><b>Interest and late interest:</b> split per period, totalled per year.</li><li><b>Taxes:</b> BSMV and KKDF on separate lines.</li><li><b>Charges:</b> card fee and EFT/FAST transfer fees.</li><li><b>Instalments:</b> which instalment you are on and what's left.</li></ul><img class="shot" src="../assets/img/screen-fees-dark.webp" alt="Credit card statement screen (sample data)" width="430" height="884" loading="lazy"></article><article class="hcard"><h3>Period total check</h3><p class="s">Every statement comes with its proof.</p><ul><li><b>Comparison:</b> the calculated total against the bank's period total.</li><li><b>If it matches:</b> you see "matched the bank's period total".</li><li><b>If not:</b> you get a warning listing which document doesn't add up.</li></ul><img class="shot" src="../assets/img/screen-match-dark.webp" alt="Period total check screen (sample data)" width="430" height="884" loading="lazy"></article><article class="hcard"><h3>Payslip</h3><p class="s">From gross to net.</p><ul><li><b>By year:</b> gross, net, tax and social security charts.</li><li><b>Raise detection:</b> pay changes on the payslip are flagged.</li><li><b>Filters:</b> year range and period comparison.</li></ul><img class="shot" src="../assets/img/screen-salary-dark.webp" alt="Payslip screen (sample data)" width="430" height="884" loading="lazy"></article><article class="hcard"><h3>Goals and assets</h3><p class="s">See your savings in the same place.</p><ul><li><b>Goals:</b> set an amount, add contributions, track progress.</li><li><b>Assets:</b> gold, currency, cash and vehicles in one list.</li><li><b>Monthly need:</b> how much to set aside each month to reach a goal.</li></ul><img class="shot" src="../assets/img/screen-assets-light.webp" alt="Goals and assets screen (sample data)" width="430" height="884" loading="lazy"></article></div>
+    <div class="car-nav"><button type="button" data-prev aria-label="Previous"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg></button><button type="button" data-next aria-label="Next"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></button></div>
+  </div>
+  <div class="center"><p class="ask fx">Want to see your own fees today?</p><a class="btn btn-white" href="https://play.google.com/store/apps/details?id=com.moneytrace.app" target="_blank" rel="noopener">Get it on Google Play <span class="soon">soon</span></a></div>
+</section>
+
+<section id="senaryolar" class="sec on-dark scen" data-header-theme="dark">
+  <div class="wrap center">
+    <h2 class="head fx">Who is FinScout for?</h2>
+    <p class="lead fx">The cards below are <b>example scenarios</b>, not real user reviews. They describe what a normal month can look like with what FinScout does today.</p>
+  </div>
+  <div class="marq-box fx">
+    <div class="marq-side" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.5-3.5 3.2-5.5 6.5-5.5s6 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c2 .6 3.3 2.3 3.5 5.2"/></svg></div>
+    <div class="marq"><div class="marq-in"><article class="sc"><div class="who"><span class="av" style="background:#10B981">C</span><span class="nm">Frequent card user</span></div><div class="meta"><i>●</i>Example scenario</div><p>Sees the yearly fee total for the first time and notices how much the card fee and BSMV add up to.</p></article><article class="sc"><div class="who"><span class="av" style="background:#0EA5E9">M</span><span class="nm">Pays the minimum</span></div><div class="meta"><i>●</i>Example scenario</div><p>Sees which months late interest appeared and turns on the due-date reminder.</p></article><article class="sc"><div class="who"><span class="av" style="background:#6366F1">P</span><span class="nm">Follows their payslip</span></div><div class="meta"><i>●</i>Example scenario</div><p>Compares net pay and tax deductions by year; sees the latest raise at a glance.</p></article><article class="sc"><div class="who"><span class="av" style="background:#F59E0B">I</span><span class="nm">Buys in instalments</span></div><div class="meta"><i>●</i>Example scenario</div><p>Tracks ongoing instalments and remaining amounts in one list.</p></article><article class="sc"><div class="who"><span class="av" style="background:#22C55E">S</span><span class="nm">Has a savings goal</span></div><div class="meta"><i>●</i>Example scenario</div><p>Sees how much to set aside monthly for a holiday goal; keeps gold and currency in the same place.</p></article><article class="sc"><div class="who"><span class="av" style="background:#8B5CF6">F</span><span class="nm">Runs the family budget</span></div><div class="meta"><i>●</i>Example scenario</div><p>Shares premium with the family plan; everyone's data stays on their own phone.</p></article><div class="dup" style="display:contents"><article class="sc" aria-hidden=true><div class="who"><span class="av" style="background:#10B981">C</span><span class="nm">Frequent card user</span></div><div class="meta"><i>●</i>Example scenario</div><p>Sees the yearly fee total for the first time and notices how much the card fee and BSMV add up to.</p></article><article class="sc" aria-hidden=true><div class="who"><span class="av" style="background:#0EA5E9">M</span><span class="nm">Pays the minimum</span></div><div class="meta"><i>●</i>Example scenario</div><p>Sees which months late interest appeared and turns on the due-date reminder.</p></article><article class="sc" aria-hidden=true><div class="who"><span class="av" style="background:#6366F1">P</span><span class="nm">Follows their payslip</span></div><div class="meta"><i>●</i>Example scenario</div><p>Compares net pay and tax deductions by year; sees the latest raise at a glance.</p></article><article class="sc" aria-hidden=true><div class="who"><span class="av" style="background:#F59E0B">I</span><span class="nm">Buys in instalments</span></div><div class="meta"><i>●</i>Example scenario</div><p>Tracks ongoing instalments and remaining amounts in one list.</p></article><article class="sc" aria-hidden=true><div class="who"><span class="av" style="background:#22C55E">S</span><span class="nm">Has a savings goal</span></div><div class="meta"><i>●</i>Example scenario</div><p>Sees how much to set aside monthly for a holiday goal; keeps gold and currency in the same place.</p></article><article class="sc" aria-hidden=true><div class="who"><span class="av" style="background:#8B5CF6">F</span><span class="nm">Runs the family budget</span></div><div class="meta"><i>●</i>Example scenario</div><p>Shares premium with the family plan; everyone's data stays on their own phone.</p></article></div></div></div>
+  </div>
+</section>
+
+<section id="guven" class="sec on-dark pin-sec trust" data-header-theme="dark" data-stepper>
+  <div class="wrap center">
+    <h2 class="head fx">Trust, in every number</h2>
+    <p class="lead fx">How FinScout works is out in the open. <b>Your files stay on your phone; your numbers are checked against the bank's total.</b> Details in the <a href="../gizlilik.html" style="color:#fff;text-decoration:underline">Privacy Policy</a> (Turkish, with English summary).</p>
+  </div>
+  <div class="pin-stage">
+    <div class="pin-panel"><div class="illus" data-step="0"><div class="big"><svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M11 18.5h2"/></svg><div>PDFs processed on your phone<small>Never sent to a server</small></div></div></div><div class="illus" data-step="1"><div class="big"><svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M8 10h8M8 14h8"/></svg><div>Checked to the cent<small>Against the bank's period total</small></div></div></div><div class="illus" data-step="2"><div class="big"><svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/></svg><div>No ads, no trackers<small>Subscriptions via Google Play</small></div></div></div><div class="illus" data-step="3"><div class="big"><svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg><div>Account data in the EU<small>Frankfurt</small></div></div></div><div class="illus" data-step="4"><div class="big"><svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg><div>Delete your account anytime<small>One step from Settings</small></div></div></div></div>
+    <div class="steps"><div class="dots"><button type="button" aria-label="Step 1"></button><button type="button" aria-label="Step 2"></button><button type="button" aria-label="Step 3"></button><button type="button" aria-label="Step 4"></button><button type="button" aria-label="Step 5"></button></div><div class="step-text" aria-live="polite"><div><h3>PDFs processed on your phone</h3><p>Statement and payslip PDFs are read only on your phone; extracted transactions stay in the app's database on your phone.</p></div><div><h3>Checked to the cent</h3><p>Every statement is compared with the period total reported by the bank; if it doesn't match, you get a warning.</p></div><div><h3>No ads, no trackers</h3><p>No ad networks or behaviour trackers inside the app; subscriptions are handled by Google Play Billing.</p></div><div><h3>Account data in the EU</h3><p>For sign-in only your name and email are stored, on account infrastructure hosted in the European Union (Frankfurt).</p></div><div><h3>Delete your account anytime</h3><p>From Settings you can permanently delete your account and its server records.</p></div></div></div>
+  </div>
+</section>
+
+<section id="fiyatlar" class="sec on-dark stats" data-header-theme="dark">
+  <div class="bento"><div class="b fx"><div class="n" data-count="1" data-dec="0" data-pre="" data-suf="">1</div><div class="l">document <b>per month</b> on the free plan</div></div><div class="b fx"><div class="n g" data-count="79.99" data-dec="2" data-pre="₺" data-suf="">₺79.99</div><div class="l"><b>Monthly</b> · 3 documents a month</div></div></div>
+  <div class="bento bento-grid-2" style="margin-top:24px"><div class="b fx"><div class="n" data-count="599.99" data-dec="2" data-pre="₺" data-suf="">₺599.99</div><div class="l"><b>Yearly</b> · 5 documents a month · 7-day free trial</div></div><div class="b fx"><div class="n" data-count="899.99" data-dec="2" data-pre="₺" data-suf="">₺899.99</div><div class="l"><b>Family yearly</b> · premium for up to 4 people</div></div></div>
+  <p class="price-note">Subscriptions are sold through Google Play Billing; cancel anytime under Google Play › Payments & subscriptions. Prices may change at launch. <a href="../destek.html">Need help?</a></p>
+</section>
+
+<section class="sec on-dark start" data-header-theme="dark">
+  <div class="wrap center">
+    <h2 class="head fx">Your path starts here</h2>
+    <p class="lead fx"><b>Sign in with an email code or Google.</b> No card details or bank passwords; you choose the statement.</p>
+  </div>
+  <div class="sstep"><img class="fx" src="../assets/img/screen-login-dark.webp" alt="FinScout screen (sample data)" width="430" height="884" loading="lazy"><p class="line fx"><svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg><span><b>Download the app</b> and sign in with an email code or Google</span></p><a class="btn btn-white" href="https://play.google.com/store/apps/details?id=com.moneytrace.app" target="_blank" rel="noopener">Get it on Google Play <span class="soon">soon</span></a></div><div class="sstep"><img class="fx" src="../assets/img/screen-upload-dark.webp" alt="FinScout screen (sample data)" width="430" height="884" loading="lazy"><p class="line fx"><svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg><span><b>Upload your statement and payslip.</b> Several PDFs at once</span></p><a class="btn btn-white" href="https://play.google.com/store/apps/details?id=com.moneytrace.app" target="_blank" rel="noopener">Get it on Google Play <span class="soon">soon</span></a></div><div class="sstep"><img class="fx" src="../assets/img/screen-fees-dark.webp" alt="FinScout screen (sample data)" width="430" height="884" loading="lazy"><p class="line fx"><svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg><span><b>See your fees line by line</b> and learn the yearly total</span></p><a class="btn btn-white" href="https://play.google.com/store/apps/details?id=com.moneytrace.app" target="_blank" rel="noopener">Get it on Google Play <span class="soon">soon</span></a></div>
+</section>
+
+<section id="sss" class="sec faq" data-header-theme="dark">
+  <div class="wrap center"><h2 class="head fx">Questions</h2></div>
+  <div class="faq-list"><div class="qa"><button type="button" aria-expanded="false" aria-controls="faq-0" id="faqb-0"><span>Is my statement sent to a server?</span><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M9 3v12M3 9h12"/></svg></button><div class="ans" id="faq-0" role="region" aria-labelledby="faqb-0"><p>No. Credit card statement and payslip PDFs are processed only on your phone. The server keeps only your account name, email and subscription status.</p></div></div><div class="qa"><button type="button" aria-expanded="false" aria-controls="faq-1" id="faqb-1"><span>Which banks are supported?</span><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M9 3v12M3 9h12"/></svg></button><div class="ans" id="faq-1" role="region" aria-labelledby="faqb-1"><p>The first phase supports a single bank; others will be added one by one. The current list is shown in the app.</p></div></div><div class="qa"><button type="button" aria-expanded="false" aria-controls="faq-2" id="faqb-2"><span>What can I do on the free plan?</span><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M9 3v12M3 9h12"/></svg></button><div class="ans" id="faq-2" role="region" aria-labelledby="faqb-2"><p>Upload 1 document per month and use manual income/expense entry, goals and asset tracking.</p></div></div><div class="qa"><button type="button" aria-expanded="false" aria-controls="faq-3" id="faqb-3"><span>How does the family plan work?</span><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M9 3v12M3 9h12"/></svg></button><div class="ans" id="faq-3" role="region" aria-labelledby="faqb-3"><p>With the family yearly plan, premium is shared with up to 4 people. Each member's financial data stays on their own phone and is not shared with others.</p></div></div><div class="qa"><button type="button" aria-expanded="false" aria-controls="faq-4" id="faqb-4"><span>Can I use it on a tablet?</span><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M9 3v12M3 9h12"/></svg></button><div class="ans" id="faq-4" role="region" aria-labelledby="faqb-4"><p>Yes. FinScout also runs with a layout adapted to tablet screens.</p></div></div><div class="qa"><button type="button" aria-expanded="false" aria-controls="faq-5" id="faqb-5"><span>When will the app be public?</span><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M9 3v12M3 9h12"/></svg></button><div class="ans" id="faq-5" role="region" aria-labelledby="faqb-5"><p>FinScout is currently in internal testing on Google Play. This page will be updated when the public release date is set. For issues and ideas, see the <a href="../destek.html">Support</a> page (Turkish).</p></div></div></div>
+</section>
+
+<section class="sec final" data-header-theme="dark">
+  <div class="orb" aria-hidden="true"><div class="glow"></div><div class="ring"></div><img src="../assets/img/finscout_mark.svg" alt="" width="120" height="120"></div>
+  <div class="wrap center">
+    <h2 class="head fx">You took the first step. <span>You read this far.</span></h2>
+    <p class="fx">That says something. <b>Seeing your fees is one PDF away.</b></p>
+    <div class="actions"><a class="btn btn-white" href="https://play.google.com/store/apps/details?id=com.moneytrace.app" target="_blank" rel="noopener">Get it on Google Play <span class="soon">soon</span></a><a class="btn btn-ghost" href="../destek.html">Get support</a></div>
+  </div>
+</section>
+</main>
+
+<footer class="site-footer" data-header-theme="dark">
+  <div class="f-top">
+    <a class="brand" href="../en/index.html"><span class="brand-mark"><img src="../assets/img/finscout_mark.svg" alt="" width="26" height="26"></span>FinScout</a>
+    <nav class="f-links" aria-label="Footer"><a href="#nedir">About FinScout</a><a href="../gizlilik.html">Privacy Policy</a><a href="../kullanim-sartlari.html">Terms of Use</a><a href="../hesap-silme.html">Account deletion</a><a href="../destek.html">Support</a><a href="https://play.google.com/store/apps/details?id=com.moneytrace.app" target=_blank rel=noopener>Download</a></nav>
+    <div class="f-soc"><a href="https://github.com/osmaniyeli/FinScout" target="_blank" rel="noopener" aria-label="FinScout GitHub repository"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12 12 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg></a><a href="mailto:pulcratechnology@gmail.com" aria-label="Contact by email"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m3.5 6.5 8.5 6.5 8.5-6.5"/></svg></a></div>
+  </div>
+  <p class="f-disc">FinScout is an independent personal finance app and is not affiliated with any bank. App content is not investment or tax advice; rely on your bank or employer for official amounts on statements and payslips.<br><span style="font-size:13px">Photos: Unsplash (licence details in assets/img/CREDITS.md)</span></p>
+  <p class="f-copy">© FinScout. 2026</p>
 </footer>
 
-<script src="../assets/js/main.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+<script src="../assets/js/site.js" defer></script>
 </body>
 </html>
