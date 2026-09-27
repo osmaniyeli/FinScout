@@ -177,8 +177,15 @@ class _FinScoutAppState extends State<FinScoutApp> with WidgetsBindingObserver {
     });
   }
 
+  /// GEÇİCİ KAPALI (2026-09-27): PIN kilidi bazı kullanıcılarda siyah ekranda takılıp Ayarlar'a
+  /// geri dönüşü engelliyor; kesin nedeni canlı cihazda doğrulanana kadar kilit hiç kimseyi
+  /// bloklamasın diye devre dışı. SecurityAuthService ve AppLockScreen silinmedi; düzeltilip
+  /// test edilince bu bayrak true yapılacak. Ayarlar'da yeni PIN oluşturma da ayrıca kapatıldı.
+  static const bool _kPinLockEnforced = false;
+
   Widget _wrapWithGuards(Widget child, bool hasProfile) {
-    final shouldLock = hasProfile &&
+    final shouldLock = _kPinLockEnforced &&
+        hasProfile &&
         SecurityAuthService.instance.isAnySecurityActive &&
         !_isUnlocked;
 

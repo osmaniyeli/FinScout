@@ -39,6 +39,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     SubscriptionPlansSheet.show(context);
   }
 
+  /// GEÇİCİ KAPALI (2026-09-27): bkz. main.dart _kPinLockEnforced. Kilit hiç kimseyi bloklamadığı
+  /// için ayarlanmış bir PIN artık işlevsiz; yeni oluşturma ve değiştirme burada engellenir ki
+  /// kimse yanlışlıkla "korunuyorum" sanmasın. Kaldırma (var olan PIN'i silme) açık kalır.
+  void _pinTemporarilyDisabled() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+            'PIN kilidi bir hata yüzünden geçici olarak kapalı. Düzeltilince buradan tekrar açabileceksin.'),
+        duration: Duration(seconds: 4),
+      ),
+    );
+  }
+
+  // ignore: unused_element — PIN kilidi düzeltilip _kPinLockEnforced tekrar açılınca kullanılacak
   Future<void> _setNewPin() async {
     final res = await SecurityAuthSheet.show(
       context,
@@ -58,6 +72,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  // ignore: unused_element — PIN kilidi düzeltilip _kPinLockEnforced tekrar açılınca kullanılacak
   Future<void> _changeExistingPin() async {
     String? currentPin;
     final verified = await SecurityAuthSheet.show(
@@ -297,8 +312,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               children: [
                                 Text(
                                   hasPin
-                                      ? 'Güvenlik Şifresi / PIN Kodu (Aktif)'
-                                      : '4 Haneli Şifre / PIN Belirle',
+                                      ? 'Güvenlik Şifresi / PIN Kodu (Kilit geçici kapalı)'
+                                      : '4 Haneli Şifre / PIN Belirle (geçici kapalı)',
                                   style: const TextStyle(
                                       fontSize: 13.5,
                                       fontWeight: FontWeight.w800,
@@ -307,8 +322,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 const SizedBox(height: 2),
                                 Text(
                                   hasPin
-                                      ? "PIN'in bu telefonda şifrelenmiş olarak saklanır."
-                                      : 'Uygulama açılışını 4 haneli sayısal şifre ile koruyun.',
+                                      ? 'Bir hata yüzünden uygulama açılışında artık PIN sorulmuyor; istersen aşağıdan kaldırabilirsin.'
+                                      : 'Bir hata düzeltilene kadar yeni PIN oluşturma kapalı.',
                                   style: const TextStyle(
                                       fontSize: 11,
                                       color: AppColors.textSecondary),
@@ -323,9 +338,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   maxWidth: MediaQuery.sizeOf(context).width *
                                       0.4),
                               child: ElevatedButton(
-                              onPressed: _setNewPin,
+                              onPressed: _pinTemporarilyDisabled,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF0F172A),
+                                backgroundColor: const Color(0xFF94A3B8),
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12)),
@@ -348,12 +363,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           children: [
                             Expanded(
                               child: OutlinedButton.icon(
-                                onPressed: _changeExistingPin,
-                                icon: const Icon(Icons.edit_rounded, size: 14),
-                                label: const Text('Şifreyi Değiştir',
+                                onPressed: _pinTemporarilyDisabled,
+                                icon: const Icon(Icons.edit_rounded,
+                                    size: 14, color: AppColors.textMuted),
+                                label: const Text('Şifreyi Değiştir (kapalı)',
                                     style: TextStyle(
                                         fontSize: 11.5,
-                                        fontWeight: FontWeight.w700)),
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.textMuted)),
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: const Color(0xFF0F172A),
                                   side: const BorderSide(
