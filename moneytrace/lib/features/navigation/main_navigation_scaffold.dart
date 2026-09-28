@@ -11,7 +11,9 @@ import '../dashboard/presentation/dashboard_screen.dart';
 import '../analysis/presentation/analysis_screen.dart';
 import '../cashflow_projection/presentation/cashflow_screen.dart';
 import '../goals/presentation/goals_screen.dart';
+import '../goals/presentation/goals_locked_view.dart';
 import '../assets_portfolio/presentation/assets_screen.dart';
+import '../subscription/services/subscription_service.dart';
 import 'tab_add_actions.dart';
 
 class MainNavigationScaffold extends StatefulWidget {
@@ -86,7 +88,12 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
       case 'goals':
         return RemoteFeatureGate(
           moduleKey: 'goals_module',
-          child: GoalsScreen(key: _screenKeys['goals']),
+          child: ValueListenableBuilder<SubscriptionTier>(
+            valueListenable: SubscriptionService.instance.tierNotifier,
+            builder: (context, tier, _) => tier != SubscriptionTier.free
+                ? GoalsScreen(key: _screenKeys['goals'])
+                : const GoalsLockedView(),
+          ),
         );
       case 'assets':
         return RemoteFeatureGate(

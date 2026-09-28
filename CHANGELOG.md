@@ -6,6 +6,14 @@ Format, [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) standardına da
 
 ---
 
+## [3.11.0] - 2026-09-28
+
+### Yenilikler
+- **Ücretsiz plan artık gerçek bir ürün:** ayda 1 kredi kartı + 1 hesap ekstresi (bordro Premium'a özel), tek bankaya kilitli. İstemci ve sunucu (`private.plan_limit`) tutarlı.
+- **Banka Seç ekranı** (yeni): Yapı Kredi, Garanti BBVA, Enpara seçilebilir; İş Bankası "Yakında" etiketiyle pasif. Onboarding'de (atlanabilir) ve Ayarlar'da.
+- Ücretsiz kullanıcı kilitli bankasından farklı bir bankadan ekstre yüklemeye çalışırsa net bir mesajla reddedilir, kota düşmez.
+- **Hedefler** sekmesi ücretsiz planda kilitli; kilit kartından doğrudan Premium'a geçiş açılır.
+
 ## [3.10.0] - 2026-09-28
 
 3.8.0–3.9.3 arası commit'ler bu dosyaya işlenmemişti; bu sürüm hem o birikimi hem 26–28 Eylül'ün yeni işlerini kapsar.

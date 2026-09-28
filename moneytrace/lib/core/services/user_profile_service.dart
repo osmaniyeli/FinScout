@@ -45,6 +45,10 @@ class UserProfile {
   final int monthlyBudgetCents;
   final DateTime joinedAt;
 
+  /// Ücretsiz planda kullanıcının kilitlendiği tek banka (bkz. StatementOrchestrator.institution
+  /// görünen adı: 'Yapı Kredi' / 'Garanti BBVA' / 'Enpara'). null = henüz seçilmedi.
+  final String? lockedInstitution;
+
   UserProfile({
     required this.id,
     required this.name,
@@ -52,7 +56,18 @@ class UserProfile {
     this.currency = 'TRY',
     this.monthlyBudgetCents = 0,
     required this.joinedAt,
+    this.lockedInstitution,
   });
+
+  UserProfile copyWith({String? lockedInstitution}) => UserProfile(
+        id: id,
+        name: name,
+        email: email,
+        currency: currency,
+        monthlyBudgetCents: monthlyBudgetCents,
+        joinedAt: joinedAt,
+        lockedInstitution: lockedInstitution ?? this.lockedInstitution,
+      );
 
   Map<String, dynamic> toMap() => {
         'id': id,
@@ -61,6 +76,7 @@ class UserProfile {
         'currency': currency,
         'monthlyBudgetCents': monthlyBudgetCents,
         'joinedAt': joinedAt.toIso8601String(),
+        'lockedInstitution': lockedInstitution,
       };
 
   factory UserProfile.fromMap(Map<String, dynamic> map) => UserProfile(
@@ -72,6 +88,7 @@ class UserProfile {
         joinedAt: map['joinedAt'] != null
             ? DateTime.parse(map['joinedAt'])
             : DateTime.now(),
+        lockedInstitution: map['lockedInstitution'] as String?,
       );
 }
 
@@ -151,21 +168,37 @@ class UserProfileService {
     final typeUsed = monthData[normalizedType] ?? 0;
 
     if (tier == SubscriptionTier.free) {
-      if (totalMonthUsed >= 1) {
+      // Ücretsiz: ayda 1 kredi kartı + 1 hesap ekstresi. Bordro ücretsiz planda hiç desteklenmez.
+      if (normalizedType == 'payroll') {
         return DocumentQuotaResult(
           canUpload: false,
           reason:
-              'Ücretsiz deneme kotanız (ayda 1 ekstre) dolmuştur. Kesintisiz yükleme için Premium plana geçebilirsiniz.',
+              'Bordro ücretsiz planda desteklenmiyor (yalnız 1 kredi kartı + 1 hesap ekstresi). '
+              'Bordro yüklemek için Premium\'a geçebilirsin.',
           usedThisMonth: totalMonthUsed,
-          maxThisMonth: 1,
+          maxThisMonth: 2,
+          planName: 'Ücretsiz Başlangıç',
+        );
+      }
+      const limits = {'credit_card': 1, 'checking': 1};
+      final typeLimit = limits[normalizedType]!;
+      if (typeUsed >= typeLimit) {
+        return DocumentQuotaResult(
+          canUpload: false,
+          reason:
+              'Ücretsiz planda bu ay ${_getDocTypeName(normalizedType)} hakkın ($typeLimit) doldu. '
+              'Aylık kota: 1 kredi kartı ekstresi, 1 hesap ekstresi. Kesintisiz yükleme için Premium\'a geçebilirsin.',
+          usedThisMonth: totalMonthUsed,
+          maxThisMonth: 2,
           planName: 'Ücretsiz Başlangıç',
         );
       }
       return DocumentQuotaResult(
         canUpload: true,
-        reason: '1 adet ücretsiz deneme belgesi hakkınız bulunmaktadır.',
+        reason:
+            'Bu ay ${typeLimit - typeUsed} ${_getDocTypeName(normalizedType)} hakkın var.',
         usedThisMonth: totalMonthUsed,
-        maxThisMonth: 1,
+        maxThisMonth: 2,
         planName: 'Ücretsiz Başlangıç',
       );
     }
@@ -314,17 +347,26 @@ class UserProfileService {
       );
     }
     final typeLimit = (res['type_limit'] as num?)?.toInt();
+    final planKey = res['plan'] as String? ?? 'free';
     return DocumentQuotaResult(
       canUpload: false,
       reason: typeLimit != null && (usage[normalizedType] ?? 0) >= typeLimit
           ? '$planName: bu ay ${_getDocTypeName(normalizedType)} hakkın ($typeLimit) doldu. '
-              'Aylık kota: 5 kart ekstresi, 5 hesap ekstresi, 2 bordro.'
+              '${_planQuotaDescription(planKey)}'
           : '$planName planının bu ayki $totalLimit belge hakkı doldu.',
       usedThisMonth: used,
       maxThisMonth: totalLimit,
       planName: planName,
     );
   }
+
+  /// Plan bazında tür kotası açıklaması (consumeUpload'ın tür limiti dolu hata mesajında kullanılır).
+  static String _planQuotaDescription(String plan) => switch (plan) {
+        'family' => 'Aylık kota: 5 kart ekstresi, 5 hesap ekstresi, 2 bordro.',
+        'free' =>
+          'Aylık kota: 1 kredi kartı ekstresi, 1 hesap ekstresi. Bordro desteklenmiyor.',
+        _ => '',
+      };
 
   /// Kota düşüldükten sonra cihazdaki kayıt başarısız olduysa o tek tüketimi sunucuda geri alır
   /// (refund_upload: yalnız kendi, 15 dk içindeki, iade edilmemiş tüketim; ayda en fazla 3 iade).
@@ -421,6 +463,37 @@ class UserProfileService {
   Future<void> updateLanguage(String lang) async {
     AppStrings.setLocale(lang);
     await _persist();
+  }
+
+  /// Ücretsiz planda kullanıcının bağlı kaldığı tek bankayı belirler/değiştirir (bkz. BankSelectionSheet).
+  /// [institution]: StatementOrchestrator'ın döndürdüğü görünen ad ('Yapı Kredi' / 'Garanti BBVA' / 'Enpara').
+  Future<void> setLockedInstitution(String institution) async {
+    final current = _profile;
+    if (current == null) return;
+    _profile = current.copyWith(lockedInstitution: institution);
+    profileNotifier.value = _profile;
+    await _persist();
+  }
+
+  /// Ücretsiz planda tek banka kilidi kontrolü (bkz. statement_upload_sheet._prepareDocument).
+  /// [detectedInstitution]: belgeden ALGILANAN kurum (StatementDocumentResult.institution).
+  /// Premium/aile planlarında her zaman null (kilit yok). Banka hiç seçilmemişse (onboarding'de
+  /// "Şimdi değil" ile atlandıysa) ilk belge sessizce o bankaya kilitler. Uyuşmazlıkta kullanıcıya
+  /// gösterilecek hata metnini döner; uyum varsa ya da kota planı serbestse null döner.
+  Future<String?> checkFreeTierBankLock(String detectedInstitution) async {
+    if (SubscriptionService.instance.currentTier != SubscriptionTier.free) {
+      return null;
+    }
+    final locked = _profile?.lockedInstitution;
+    if (locked == null || locked.isEmpty) {
+      await setLockedInstitution(detectedInstitution);
+      return null;
+    }
+    if (detectedInstitution != locked) {
+      return 'Hesabın $locked bankasına kilitli (ücretsiz planda tek banka). Farklı bir banka için '
+          'Ayarlar > Banka\'dan değiştirebilir ya da Premium\'a geçebilirsin.';
+    }
+    return null;
   }
 
   bool isNuanceDismissed(String nuanceId) {

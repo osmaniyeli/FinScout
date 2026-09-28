@@ -11,6 +11,7 @@ import '../../subscription/presentation/subscription_plans_sheet.dart';
 import '../../family/presentation/family_screen.dart';
 import '../../../core/services/security_auth_service.dart';
 import '../../../core/widgets/fintech/security_auth_sheet.dart';
+import '../../../core/widgets/fintech/bank_selection_sheet.dart';
 import 'licenses_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -304,6 +305,82 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 );
               },
+            ),
+            const SizedBox(height: 18),
+
+            // BANKA (ücretsiz planda kilitli tek banka; bkz. BankSelectionSheet)
+            const Text(
+              'BANKA',
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textSecondary,
+                  letterSpacing: 0.5),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(Icons.account_balance_rounded,
+                        color: Color(0xFF0F172A), size: 20),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Bağlı Banka',
+                          style: TextStyle(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          UserProfileService.instance.profile?.lockedInstitution
+                                      ?.isNotEmpty ==
+                                  true
+                              ? 'Şu an: ${UserProfileService.instance.profile!.lockedInstitution}'
+                              : 'Henüz seçilmedi',
+                          style: const TextStyle(
+                              fontSize: 11, color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  OutlinedButton(
+                    onPressed: () async {
+                      await BankSelectionSheet.show(context, allowSkip: false);
+                      if (mounted) setState(() {});
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.actionPrimary,
+                      side: const BorderSide(color: Color(0xFFCBD5E1)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(
+                        UserProfileService.instance.profile?.lockedInstitution
+                                    ?.isNotEmpty ==
+                                true
+                            ? 'Değiştir'
+                            : 'Seç'),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 18),
 

@@ -22,6 +22,7 @@ import 'package:moneytrace/features/dashboard/presentation/dashboard_screen.dart
 import 'package:moneytrace/features/family/presentation/family_screen.dart';
 import 'package:moneytrace/features/goals/presentation/goals_screen.dart';
 import 'package:moneytrace/features/navigation/main_navigation_scaffold.dart';
+import 'package:moneytrace/features/subscription/services/subscription_service.dart';
 import 'package:moneytrace/features/notifications/presentation/notifications_sheet.dart';
 import 'package:moneytrace/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:moneytrace/features/profile/presentation/profile_screen.dart';
@@ -478,6 +479,14 @@ void main() {
     testWidgets(
         'döndürünce (alt çubuk → ray) seçili sekme ve ekran durumu korunur',
         (tester) async {
+      // Hedefler sekmesi ücretsiz planda artık GoalsLockedView gösterir (bkz. görev: Hedefler
+      // kilidi); bu test durum korumasını (IndexedStack) Hedefler sekmesi üzerinden doğruladığı
+      // için burada Premium'a geçilir — asıl test ettiği şey Hedefler'e özgü değil, rail/alt çubuk
+      // geçişinde ekran durumunun korunmasıdır.
+      SubscriptionService.instance.tierNotifier.value = SubscriptionTier.individualPremium;
+      addTearDown(() =>
+          SubscriptionService.instance.tierNotifier.value = SubscriptionTier.free);
+
       await _pumpAt(
           tester, const Size(600, 960), 1.0, const MainNavigationScaffold());
       await tester.tap(find.descendant(

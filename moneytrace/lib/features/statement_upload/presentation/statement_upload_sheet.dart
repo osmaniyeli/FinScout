@@ -197,6 +197,15 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
       userRules: await _repository.loadUserCategoryRules(),
     );
 
+    // Ücretsiz planda tek bankaya kilit: kullanıcının kilitli bankasından farklı bir kurumdan
+    // gelen belge reddedilir (kota düşmeden). Banka hiç seçilmemişse (onboarding'de atlandıysa)
+    // ilk belge sessizce o bankaya kilitler.
+    final lockError =
+        await UserProfileService.instance.checkFreeTierBankLock(docResult.institution);
+    if (lockError != null) {
+      return _PreparedDocument.failed(lockError);
+    }
+
     // Aynı hesabın aynı dönemi (yeniden indirilmiş aynı ekstre) ikinci kez aktarılmasın
     if (await _repository.isSamePeriodAlreadyImported(docResult)) {
       return const _PreparedDocument.failed(

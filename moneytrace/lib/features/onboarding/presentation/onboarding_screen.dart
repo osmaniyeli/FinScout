@@ -6,7 +6,9 @@ import '../../../core/layout/adaptive.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/account_service.dart';
 import '../../../core/services/security_auth_service.dart';
+import '../../../core/services/user_profile_service.dart';
 import '../../../core/widgets/fintech/fintech_components.dart';
+import '../../../core/widgets/fintech/bank_selection_sheet.dart';
 
 class OnboardingScreen extends StatefulWidget {
   final VoidCallback onCompleted;
@@ -44,6 +46,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
+  /// Girişten/kayıttan sonra tüm başarılı akışların tek geçtiği yer: yalnız YENİ hesap
+  /// oluşturulduysa (var olan hesaba giriş değil) banka seçim sheet'i gösterilir, sonra
+  /// widget.onCompleted() çağrılır. AccountService.lastSignInCreatedAccount main.dart'ın
+  /// _announceNewAccount'ı içinde (yani widget.onCompleted() İÇİNDE) sıfırlanır, bu yüzden
+  /// burada henüz true/false doğru değerindedir (bkz. account_service.dart _saveLocalProfile).
+  Future<void> _finishOnboarding() async {
+    if (!mounted) return;
+    if (AccountService.instance.lastSignInCreatedAccount &&
+        (UserProfileService.instance.profile?.lockedInstitution == null ||
+            UserProfileService.instance.profile!.lockedInstitution!.isEmpty)) {
+      await BankSelectionSheet.show(context, allowSkip: true);
+    }
+    if (mounted) widget.onCompleted();
+  }
+
   void _showError(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -70,7 +87,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     try {
       final profile = await AccountService.instance.signInWithGoogle();
       if (profile != null && mounted) {
-        widget.onCompleted();
+        await _finishOnboarding();
         return;
       }
       final code = AccountService.instance.lastGoogleCancelCode;
@@ -103,7 +120,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           final viaBrowser =
               await AccountService.instance.signInWithGoogleBrowser();
           if (viaBrowser != null && mounted) {
-            widget.onCompleted();
+            await _finishOnboarding();
             return;
           }
         }
@@ -141,7 +158,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (ok == true) {
       try {
         await AccountService.instance.confirmAccountSwitch();
-        if (mounted) widget.onCompleted();
+        if (mounted) await _finishOnboarding();
       } on AccountException catch (e) {
         _showError(e.message);
       }
@@ -190,7 +207,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     try {
       await AccountService.instance.verifyCode(email, code,
           fullName: _codeIsForSignup ? _nameController.text.trim() : null);
-      if (mounted) widget.onCompleted();
+      if (mounted) await _finishOnboarding();
     } on DifferentAccountDataException {
       await _resolveAccountSwitch();
       if (mounted) setState(() => _isLoading = false);
