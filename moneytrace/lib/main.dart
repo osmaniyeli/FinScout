@@ -5,6 +5,7 @@ import 'package:pdfrx/pdfrx.dart' show pdfrxFlutterInitialize;
 import 'core/config/remote_config_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/localization/app_strings.dart';
+import 'core/localization/app_content_service.dart';
 import 'core/services/user_profile_service.dart';
 import 'core/services/security_auth_service.dart';
 import 'core/services/account_service.dart';
@@ -19,7 +20,8 @@ import 'features/navigation/main_navigation_scaffold.dart';
 import 'features/onboarding/presentation/onboarding_screen.dart';
 
 /// Ekran değişse de alttaki bildirimin (SnackBar) kaybolmaması için uygulama düzeyinde messenger.
-final GlobalKey<ScaffoldMessengerState> appMessengerKey = GlobalKey<ScaffoldMessengerState>();
+final GlobalKey<ScaffoldMessengerState> appMessengerKey =
+    GlobalKey<ScaffoldMessengerState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +36,9 @@ void main() async {
     // Hesap (Supabase Auth): oturum cihazdan yüklenir, ağ beklemez
     AccountService.instance.initialize(),
   ]);
+  // Canlı içerik/metin (CMS): önceden çekilmiş önbellek varsa hemen uygulanır (yalnız yerel
+  // dosya okuması, ağ beklemez). AccountService.initialize() bittiği için Supabase artık hazır.
+  await AppContentService.instance.loadCached();
   // PDF motoru (PDFium) — ekstreler tamamen cihaz üzerinde okunur
   pdfrxFlutterInitialize();
   // Üye işyeri sözlüğü yalnız ekstre içe aktarırken gerekir: ilk kareyi bekletmeden arka planda
@@ -53,6 +58,9 @@ void main() async {
   // Hesaba bağlı otomatik yedekleme: DataChanges dinleyicisini kurar (her değişiklikte debounce
   // ile arka planda yedekler). Ağ/oturum gerektirmez; oturum yoksa backupNow kendi içinde çıkar.
   unawaited(BackupService.instance.initialize());
+  // Yönetim panelinden düzenlenen canlı metinler: arka planda bir kerelik çekilir, AppStrings'e
+  // uygulanır ve önbelleğe yazılır. Hata (ağ yok, tablo boş) sessizce yutulur.
+  unawaited(AppContentService.instance.refreshFromSupabase());
 }
 
 /// Ekstrelerden okunan yaklaşan ödemeler için hatırlatıcıları (yeniden) kurar. Hata uygulamayı etkilemez.
@@ -72,7 +80,9 @@ Future<void> syncPaymentReminders() async {
 Future<void> _reconcileOwnTransfersAtStartup() async {
   try {
     final pairs = await TransactionRepository().reconcileOwnTransfers();
-    if (pairs > 0) debugPrint('Kendi hesap transferi eşleştirildi: $pairs çift');
+    if (pairs > 0) {
+      debugPrint('Kendi hesap transferi eşleştirildi: $pairs çift');
+    }
   } catch (e) {
     debugPrint('Kendi hesap transferi eşleştirmesi başarısız: $e');
   }
@@ -204,6 +214,12 @@ class _FinScoutAppState extends State<FinScoutApp> with WidgetsBindingObserver {
   /// geri dönüşü engelliyor; kesin nedeni canlı cihazda doğrulanana kadar kilit hiç kimseyi
   /// bloklamasın diye devre dışı. SecurityAuthService ve AppLockScreen silinmedi; düzeltilip
   /// test edilince bu bayrak true yapılacak. Ayarlar'da yeni PIN oluşturma da ayrıca kapatıldı.
+  ///
+  /// NOT (2026-09-29 doğrulaması, [A1]): 24 Eylül denetiminde kilidin Navigator'ın ALTINDA kalıp
+  /// itilmiş ekranları (Profil vb.) kapsamadığı tespit edilmişti. O sorun artık YOK: kilit,
+  /// MaterialApp.builder üzerinden (bkz. aşağıdaki `builder:` ve _wrapWithGuards) Navigator'ın
+  /// KENDİSİNİN ÜSTÜNDE bir Stack katmanı olarak kuruluyor — bu bayrak tekrar true yapıldığında
+  /// itilmiş/push edilmiş her ekran da otomatik örtülür, ayrıca bir değişiklik gerekmez.
   static const bool _kPinLockEnforced = false;
 
   Widget _wrapWithGuards(Widget child, bool hasProfile) {

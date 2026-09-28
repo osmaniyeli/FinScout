@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../core/layout/adaptive.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/localization/app_strings.dart';
 import '../../../core/services/account_service.dart';
 import '../../../core/services/security_auth_service.dart';
 import '../../../core/services/user_profile_service.dart';
@@ -147,7 +148,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             'telefondan kaldırılır ama kaybolmaz — bu hesapla tekrar giriş yaptığında otomatik olarak geri gelir. '
             'Şimdi seçtiğin hesaba geçilecek.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Vazgeç')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Vazgeç')),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Devam et'),
@@ -219,6 +222,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Kayıt Ol / Giriş Yap metinleri AppStrings.get(...) ile okunur; dil değişince (Ayarlar > Dil)
+    // bu ekran açıkken de anında güncellensin diye locale dinlenir.
+    return ValueListenableBuilder<String>(
+      valueListenable: AppStrings.currentLocale,
+      builder: (context, _, __) => _buildScaffold(context),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
@@ -228,166 +240,174 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           child: AdaptiveBody(
             maxWidth: 560,
             child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Logo ve Marka Başlığı
-              Center(
-                child: Column(
-                  children: [
-                    Container(
-                      width: 58,
-                      height: 58,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0F172A),
-                        borderRadius: BorderRadius.circular(18),
-                        boxShadow: [
-                          BoxShadow(
-                            color:
-                                const Color(0xFF10B981).withValues(alpha: 0.24),
-                            blurRadius: 18,
-                            offset: const Offset(0, 6),
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Logo ve Marka Başlığı
+                Center(
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 58,
+                        height: 58,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0F172A),
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF10B981)
+                                  .withValues(alpha: 0.24),
+                              blurRadius: 18,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: const Center(
+                          child: Text(
+                            '₺',
+                            style: TextStyle(
+                              fontSize: 30,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF10B981),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'FinScout',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.textPrimary,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        AppStrings.get('tagline'),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Frontend Joe Pure CSS Sliding Overlay Dual-Card
+                SlidingOverlayCard(
+                  height: 142,
+                  borderRadius: 22,
+                  isSecondary: _isSignInMode,
+                  onToggle: (val) {
+                    setState(() {
+                      _isSignInMode = val;
+                    });
+                  },
+                  // Mod 1: Kayıt Ol (Sign Up) -> Kapak Sağda
+                  primaryHeroTitle:
+                      AppStrings.get('onboarding_signin_prompt_title'),
+                  primaryHeroSubtitle:
+                      AppStrings.get('onboarding_signin_prompt_subtitle'),
+                  primaryButtonText:
+                      AppStrings.get('onboarding_toggle_signin_btn'),
+                  primaryGradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF047857), Color(0xFF0F172A)],
+                  ),
+                  primaryForm: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.person_add_alt_1_rounded,
+                              color: Color(0xFF10B981), size: 16),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              AppStrings.get('onboarding_form_signup_chip'),
+                              style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF0F172A)),
+                            ),
                           ),
                         ],
                       ),
-                      child: const Center(
-                        child: Text(
-                          '₺',
-                          style: TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFF10B981),
-                          ),
-                        ),
+                      const SizedBox(height: 6),
+                      Text(
+                        AppStrings.get('onboarding_form_signup_chip_subtitle'),
+                        style: const TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF64748B),
+                            height: 1.3),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'FinScout',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.textPrimary,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Ekstreni yükle, masraflarını kalem kalem gör',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
+                    ],
+                  ),
 
-              // Frontend Joe Pure CSS Sliding Overlay Dual-Card
-              SlidingOverlayCard(
-                height: 142,
-                borderRadius: 22,
-                isSecondary: _isSignInMode,
-                onToggle: (val) {
-                  setState(() {
-                    _isSignInMode = val;
-                  });
-                },
-                // Mod 1: Kayıt Ol (Sign Up) -> Kapak Sağda
-                primaryHeroTitle: 'Zaten hesabın var mı?',
-                primaryHeroSubtitle:
-                    'Mevcut cüzdanına ve profiline hemen giriş yap.',
-                primaryButtonText: 'GİRİŞ YAP',
-                primaryGradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF047857), Color(0xFF0F172A)],
-                ),
-                primaryForm: const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.person_add_alt_1_rounded,
-                            color: Color(0xFF10B981), size: 16),
-                        SizedBox(width: 6),
-                        Flexible(
-                          child: Text(
-                            'KAYIT OL',
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFF0F172A)),
+                  // Mod 2: Giriş Yap (Sign In) -> Kapak Solda
+                  secondaryHeroTitle:
+                      AppStrings.get('onboarding_signup_prompt_title'),
+                  secondaryHeroSubtitle:
+                      AppStrings.get('onboarding_signup_prompt_subtitle'),
+                  secondaryButtonText:
+                      AppStrings.get('onboarding_toggle_signup_btn'),
+                  secondaryGradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF2563EB), Color(0xFF0F172A)],
+                  ),
+                  secondaryForm: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.lock_open_rounded,
+                              color: Color(0xFF2563EB), size: 16),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              AppStrings.get('onboarding_form_signin_chip'),
+                              style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF0F172A)),
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 6),
-                    Text(
-                      'FinScout ile bütçeni kontrol altına al.',
-                      style: TextStyle(
-                          fontSize: 11, color: Color(0xFF64748B), height: 1.3),
-                    ),
-                  ],
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        AppStrings.get('onboarding_form_signin_chip_subtitle'),
+                        style: const TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF64748B),
+                            height: 1.3),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(height: 20),
 
-                // Mod 2: Giriş Yap (Sign In) -> Kapak Solda
-                secondaryHeroTitle: 'Yeni misin?',
-                secondaryHeroSubtitle:
-                    'Bütçeni akıllıca yönetmek için hemen profilini oluştur.',
-                secondaryButtonText: 'KAYIT OL',
-                secondaryGradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF2563EB), Color(0xFF0F172A)],
-                ),
-                secondaryForm: const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.lock_open_rounded,
-                            color: Color(0xFF2563EB), size: 16),
-                        SizedBox(width: 6),
-                        Flexible(
-                          child: Text(
-                            'GİRİŞ YAP',
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFF0F172A)),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 6),
-                    Text(
-                      'Kayıtlı cüzdanına ve kartlarına dön.',
-                      style: TextStyle(
-                          fontSize: 11, color: Color(0xFF64748B), height: 1.3),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Dinamik Form Alanı (Kayıt Ol vs Giriş Yap), kod gönderildiyse doğrulama
-              if (_codeSentTo != null)
-                _buildCodeStep()
-              else
-                AnimatedCrossFade(
-                  firstChild: _buildSignUpForm(),
-                  secondChild: _buildSignInForm(),
-                  crossFadeState: _isSignInMode
-                      ? CrossFadeState.showSecond
-                      : CrossFadeState.showFirst,
-                  duration: const Duration(milliseconds: 320),
-                ),
-            ],
-          ),
+                // Dinamik Form Alanı (Kayıt Ol vs Giriş Yap), kod gönderildiyse doğrulama
+                if (_codeSentTo != null)
+                  _buildCodeStep()
+                else
+                  AnimatedCrossFade(
+                    firstChild: _buildSignUpForm(),
+                    secondChild: _buildSignInForm(),
+                    crossFadeState: _isSignInMode
+                        ? CrossFadeState.showSecond
+                        : CrossFadeState.showFirst,
+                    duration: const Duration(milliseconds: 320),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -415,26 +435,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Hesap Bilgilerinizi Belirleyin',
-            style: TextStyle(
+          Text(
+            AppStrings.get('onboarding_signup_form_title'),
+            style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
                 color: AppColors.textPrimary),
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Ekstrelerini yükledikçe bankaların ve kartların otomatik tanınır.',
-            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          Text(
+            AppStrings.get('onboarding_signup_form_subtitle'),
+            style:
+                const TextStyle(fontSize: 12, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 16),
           _googleButton(),
           _orDivider(),
 
           // Ad Soyad
-          const Text(
-            'Adınız veya Kullanıcı Adınız *',
-            style: TextStyle(
+          Text(
+            AppStrings.get('onboarding_name_field_label'),
+            style: const TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textPrimary),
@@ -444,7 +465,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             controller: _nameController,
             textCapitalization: TextCapitalization.words,
             decoration: InputDecoration(
-              hintText: 'Örn: Ahmet Yılmaz',
+              hintText: AppStrings.get('onboarding_name_hint'),
               hintStyle:
                   const TextStyle(color: Color(0xFF94A3B8), fontSize: 13.5),
               prefixIcon: const Icon(Icons.person_outline_rounded,
@@ -470,9 +491,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           const SizedBox(height: 14),
 
-          const Text(
-            'E-posta Adresin *',
-            style: TextStyle(
+          Text(
+            AppStrings.get('onboarding_email_field_label'),
+            style: const TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textPrimary),
@@ -480,7 +501,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           const SizedBox(height: 8),
           _inputField(
             controller: _emailController,
-            hint: 'ornek@eposta.com',
+            hint: AppStrings.get('onboarding_email_hint'),
             icon: Icons.mail_outline_rounded,
             keyboardType: TextInputType.emailAddress,
           ),
@@ -505,9 +526,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       height: 22,
                       child: CircularProgressIndicator(
                           color: Colors.white, strokeWidth: 2))
-                  : const Text(
-                      'Doğrulama Kodu Gönder',
-                      style: TextStyle(
+                  : Text(
+                      AppStrings.get('onboarding_send_code_btn'),
+                      style: const TextStyle(
                           fontSize: 14.5, fontWeight: FontWeight.w800),
                     ),
             ),
@@ -521,96 +542,97 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   // 2. GİRİŞ YAP FORMU (Sign In / Biometrics / PIN)
   // ==========================================
   Widget _buildSignInForm() {
-      return Container(
-        padding: const EdgeInsets.all(22),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x0A000000),
-              blurRadius: 16,
-              offset: Offset(0, 4),
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0A000000),
+            blurRadius: 16,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF6FF),
+              shape: BoxShape.circle,
+              border: Border.all(color: const Color(0xFFBFDBFE), width: 1.5),
             ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: const Color(0xFFEFF6FF),
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFFBFDBFE), width: 1.5),
+            child: const Center(
+              child: Icon(Icons.mark_email_read_outlined,
+                  color: Color(0xFF2563EB), size: 26),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            AppStrings.get('onboarding_signin_title'),
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+                fontSize: 15.5,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            AppStrings.get('onboarding_signin_subtitle'),
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+                fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+          ),
+          const SizedBox(height: 16),
+          _googleButton(),
+          _orDivider(),
+          _inputField(
+            controller: _signInEmailController,
+            hint: AppStrings.get('onboarding_email_hint'),
+            icon: Icons.mail_outline_rounded,
+            keyboardType: TextInputType.emailAddress,
+          ),
+          const SizedBox(height: 14),
+          ConstrainedBox(
+            constraints:
+                const BoxConstraints(minWidth: double.infinity, minHeight: 48),
+            child: ElevatedButton.icon(
+              onPressed: _isLoading ? null : _startEmailSignIn,
+              icon: const Icon(Icons.send_rounded, size: 18),
+              label: Text(AppStrings.get('onboarding_send_signin_code_btn'),
+                  style: const TextStyle(
+                      fontSize: 13.5, fontWeight: FontWeight.w800)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0F172A),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+                elevation: 0,
               ),
-              child: const Center(
-                child: Icon(Icons.mark_email_read_outlined,
-                    color: Color(0xFF2563EB), size: 26),
-              ),
             ),
-            const SizedBox(height: 14),
-            const Text(
-              'E-posta ile Giriş',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 15.5,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'Hesabının e-postasını gir; giriş kodunu gönderelim.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 12, color: AppColors.textSecondary, height: 1.4),
-            ),
-            const SizedBox(height: 16),
-            _googleButton(),
-            _orDivider(),
-            _inputField(
-              controller: _signInEmailController,
-              hint: 'ornek@eposta.com',
-              icon: Icons.mail_outline_rounded,
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 14),
-            ConstrainedBox(
-              constraints:
-                  const BoxConstraints(minWidth: double.infinity, minHeight: 48),
-              child: ElevatedButton.icon(
-                onPressed: _isLoading ? null : _startEmailSignIn,
-                icon: const Icon(Icons.send_rounded, size: 18),
-                label: const Text('Giriş Kodu Gönder',
-                    style:
-                        TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0F172A),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
-                  elevation: 0,
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: () => setState(() => _isSignInMode = false),
-              child: const Text('Hesabın yok mu? Kayıt ol',
-                  style:
-                      TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
-            ),
-          ],
-        ),
-      );
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () => setState(() => _isSignInMode = false),
+            child: Text(AppStrings.get('onboarding_no_account_btn'),
+                style: const TextStyle(
+                    fontSize: 12.5, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _googleButton() {
     // En az 50 dp; büyük yazıda düğme uzar (sabit yükseklik yazıyı taşırıyordu)
     return ConstrainedBox(
-      constraints: const BoxConstraints(minWidth: double.infinity, minHeight: 50),
+      constraints:
+          const BoxConstraints(minWidth: double.infinity, minHeight: 50),
       child: OutlinedButton(
         onPressed: _isLoading ? null : _signInWithGoogle,
         style: OutlinedButton.styleFrom(
@@ -624,19 +646,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 width: 22,
                 height: 22,
                 child: CircularProgressIndicator(strokeWidth: 2.4))
-            : const Row(
+            : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('G',
+                  const Text('G',
                       style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w900,
                           color: Color(0xFF4285F4))),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Flexible(
-                    child: Text('Google ile Devam Et',
+                    child: Text(AppStrings.get('onboarding_google_btn'),
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                        style: const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w700)),
                   ),
                 ],
               ),
@@ -645,21 +668,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _orDivider() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 14),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 14),
       child: Row(
         children: [
-          Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+          const Expanded(child: Divider(color: Color(0xFFE2E8F0))),
           Flexible(
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10),
-              child: Text('veya e-posta ile',
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Text(AppStrings.get('onboarding_or_email_divider'),
                   textAlign: TextAlign.center,
-                  style:
-                      TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                  style: const TextStyle(
+                      fontSize: 11.5, color: AppColors.textSecondary)),
             ),
           ),
-          Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+          const Expanded(child: Divider(color: Color(0xFFE2E8F0))),
         ],
       ),
     );
@@ -713,16 +736,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'E-postanı Kontrol Et',
-            style: TextStyle(
+          Text(
+            AppStrings.get('onboarding_code_step_title'),
+            style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
                 color: AppColors.textPrimary),
           ),
           const SizedBox(height: 4),
           Text(
-            '$_codeSentTo adresine gönderilen kodu gir. Gelen kutunda yoksa spam klasörüne bak.',
+            '$_codeSentTo ${AppStrings.get('onboarding_code_instructions')}',
             style: const TextStyle(
                 fontSize: 12, color: AppColors.textSecondary, height: 1.4),
           ),
@@ -767,8 +790,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       height: 22,
                       child: CircularProgressIndicator(
                           color: Colors.white, strokeWidth: 2))
-                  : const Text('Doğrula ve Devam Et',
-                      style: TextStyle(
+                  : Text(AppStrings.get('onboarding_verify_btn'),
+                      style: const TextStyle(
                           fontSize: 14.5, fontWeight: FontWeight.w800)),
             ),
           ),
@@ -780,7 +803,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 onPressed: _isLoading
                     ? null
                     : () => setState(() => _codeSentTo = null),
-                child: const Text('E-postayı değiştir'),
+                child: Text(AppStrings.get('onboarding_change_email_btn')),
               ),
               TextButton(
                 onPressed: _isLoading
@@ -790,7 +813,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         fullName: _codeIsForSignup
                             ? _nameController.text.trim()
                             : null),
-                child: const Text('Kodu tekrar gönder'),
+                child: Text(AppStrings.get('onboarding_resend_code_btn')),
               ),
             ],
           ),

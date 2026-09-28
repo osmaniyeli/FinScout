@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/layout/adaptive.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/localization/app_strings.dart';
 import '../../../core/config/remote_config_service.dart';
 import '../../../core/widgets/remote_feature_gate.dart';
 import '../../../core/widgets/floating_capsule_nav_bar.dart';
@@ -40,12 +41,14 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
       k: GlobalKey(debugLabel: 'tab_$k'),
   };
 
-  static const Map<String, String> _addMenuTitles = {
-    'dashboard': 'Ne eklemek istersin?',
-    'cashflow': 'Cüzdana ekle',
-    'analysis': 'Analiz',
-    'goals': 'Hedefler',
-    'assets': 'Varlık ekle',
+  /// + menüsünün başlığı sekmeye göre değişir; gerçek metin AppStrings.get(...) ile okunur
+  /// (bkz. app_strings.dart 'nav_add_menu_*').
+  static const Map<String, String> _addMenuTitleKeys = {
+    'dashboard': 'nav_add_menu_dashboard',
+    'cashflow': 'nav_add_menu_cashflow',
+    'analysis': 'nav_add_menu_analysis',
+    'goals': 'nav_add_menu_goals',
+    'assets': 'nav_add_menu_assets',
   };
 
   /// + düğmesi: açık sekmeye özgü kısa ekleme menüsü. Sekme kapalıysa (bakım) yalnız manuel giriş.
@@ -61,7 +64,11 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
       openQuickEntrySheet(context);
       return;
     }
-    showTabAddMenu(context, _addMenuTitles[key] ?? 'Ekle', actions);
+    final titleKey = _addMenuTitleKeys[key];
+    final title = titleKey != null
+        ? AppStrings.get(titleKey)
+        : AppStrings.get('nav_add_tooltip');
+    showTabAddMenu(context, title, actions);
   }
 
   Widget _buildScreenByKey(String key) {
@@ -108,29 +115,29 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
   FloatingCapsuleNavItem _buildCapsuleNavItemByKey(String key) {
     switch (key) {
       case 'dashboard':
-        return const FloatingCapsuleNavItem(
+        return FloatingCapsuleNavItem(
           icon: Icons.home_rounded,
-          label: 'Ana Sayfa',
+          label: AppStrings.get('nav_home'),
         );
       case 'cashflow':
-        return const FloatingCapsuleNavItem(
+        return FloatingCapsuleNavItem(
           icon: Icons.account_balance_wallet_rounded,
-          label: 'Cüzdan',
+          label: AppStrings.get('nav_cashflow'),
         );
       case 'analysis':
-        return const FloatingCapsuleNavItem(
+        return FloatingCapsuleNavItem(
           icon: Icons.pie_chart_rounded,
-          label: 'Analiz',
+          label: AppStrings.get('nav_analysis'),
         );
       case 'goals':
-        return const FloatingCapsuleNavItem(
+        return FloatingCapsuleNavItem(
           icon: Icons.flag_rounded,
-          label: 'Hedefler',
+          label: AppStrings.get('nav_goals'),
         );
       case 'assets':
-        return const FloatingCapsuleNavItem(
+        return FloatingCapsuleNavItem(
           icon: Icons.account_balance_wallet_rounded,
-          label: 'Varlıklar',
+          label: AppStrings.get('nav_assets'),
         );
       default:
         return const FloatingCapsuleNavItem(
@@ -228,84 +235,89 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _remoteConfig,
-      builder: (context, _) {
-        final activeKeys = _getActiveKeys();
-        if (_currentIndex >= activeKeys.length) {
-          _currentIndex = 0;
-        }
+    // Alt gezinme etiketleri ve + menüsü başlıkları AppStrings'ten okunur; dil değişince
+    // (Ayarlar > Dil) bu sekme çubuğu da yeniden çizilsin diye locale dinlenir.
+    return ValueListenableBuilder<String>(
+      valueListenable: AppStrings.currentLocale,
+      builder: (context, _, __) => AnimatedBuilder(
+        animation: _remoteConfig,
+        builder: (context, _) {
+          final activeKeys = _getActiveKeys();
+          if (_currentIndex >= activeKeys.length) {
+            _currentIndex = 0;
+          }
 
-        final screens = activeKeys.map((k) => _buildScreenByKey(k)).toList();
-        final navItems =
-            activeKeys.map((k) => _buildCapsuleNavItemByKey(k)).toList();
+          final screens = activeKeys.map((k) => _buildScreenByKey(k)).toList();
+          final navItems =
+              activeKeys.map((k) => _buildCapsuleNavItemByKey(k)).toList();
 
-        final buttonConfig = _remoteConfig.buttonConfig;
-        final isFabHidden = buttonConfig.fabPosition == 'hidden';
+          final buttonConfig = _remoteConfig.buttonConfig;
+          final isFabHidden = buttonConfig.fabPosition == 'hidden';
 
-        // Geniş pencerede (M3 "expanded", ≥ 840 dp: tablet yatay, katlanabilir yatay, masaüstü)
-        // alt çubuk yerine sol kenarda NavigationRail; + düğmesi rayın başına taşınır.
-        final useRail = WindowSizeClass.of(context).isAtLeastExpanded;
+          // Geniş pencerede (M3 "expanded", ≥ 840 dp: tablet yatay, katlanabilir yatay, masaüstü)
+          // alt çubuk yerine sol kenarda NavigationRail; + düğmesi rayın başına taşınır.
+          final useRail = WindowSizeClass.of(context).isAtLeastExpanded;
 
-        // Sekmeler canlı tutulur (IndexedStack gibi); geçiş Material fade-through, 280 ms.
-        // Anahtar sabit: telefon ↔ ray düzeni arasında geçerken (döndürme, pencere boyutu)
-        // sekme ekranlarının durumu korunur.
-        final stack = FadeThroughIndexedStack(
-          key: _stackKey,
-          index: _currentIndex,
-          children: screens,
-        );
+          // Sekmeler canlı tutulur (IndexedStack gibi); geçiş Material fade-through, 280 ms.
+          // Anahtar sabit: telefon ↔ ray düzeni arasında geçerken (döndürme, pencere boyutu)
+          // sekme ekranlarının durumu korunur.
+          final stack = FadeThroughIndexedStack(
+            key: _stackKey,
+            index: _currentIndex,
+            children: screens,
+          );
 
-        final addButton = isFabHidden
-            ? null
-            : FloatingActionButton(
-                onPressed: _openAddMenu,
-                tooltip: 'Ekle',
-                backgroundColor: AppColors.dynamicPrimary,
-                elevation: useRail ? 0 : buttonConfig.elevation,
-                shape: RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.circular(buttonConfig.borderRadius * 1.5),
-                ),
-                child:
-                    const Icon(Icons.add_rounded, color: Colors.white, size: 28),
-              );
-
-        // Ana sayfa dışındaki bir sekmede geri tuşu önce ana sayfaya döner, uygulamadan çıkmaz.
-        return PopScope(
-          canPop: _currentIndex == 0,
-          onPopInvokedWithResult: (didPop, _) {
-            if (!didPop && _currentIndex != 0) {
-              setState(() => _currentIndex = 0);
-            }
-          },
-          child: useRail
-              ? Scaffold(
-                  body: Row(
-                    children: [
-                      _buildRail(activeKeys, addButton),
-                      const VerticalDivider(
-                          width: 1, thickness: 1, color: Color(0xFFE2E8F0)),
-                      Expanded(child: stack),
-                    ],
+          final addButton = isFabHidden
+              ? null
+              : FloatingActionButton(
+                  onPressed: _openAddMenu,
+                  tooltip: AppStrings.get('nav_add_tooltip'),
+                  backgroundColor: AppColors.dynamicPrimary,
+                  elevation: useRail ? 0 : buttonConfig.elevation,
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(buttonConfig.borderRadius * 1.5),
                   ),
-                )
-              : Scaffold(
-                  extendBody:
-                      false, // Temiz native fintech barı, içerik arkada kalmaz
-                  body: stack,
-                  floatingActionButton: addButton,
-                  floatingActionButtonLocation:
-                      _resolveFabLocation(buttonConfig.fabPosition),
-                  bottomNavigationBar: FloatingCapsuleNavBar(
-                    currentIndex: _currentIndex,
-                    onTap: (index) => setState(() => _currentIndex = index),
-                    items: navItems,
-                    activeIndicatorColor: AppColors.dynamicPrimary,
+                  child: const Icon(Icons.add_rounded,
+                      color: Colors.white, size: 28),
+                );
+
+          // Ana sayfa dışındaki bir sekmede geri tuşu önce ana sayfaya döner, uygulamadan çıkmaz.
+          return PopScope(
+            canPop: _currentIndex == 0,
+            onPopInvokedWithResult: (didPop, _) {
+              if (!didPop && _currentIndex != 0) {
+                setState(() => _currentIndex = 0);
+              }
+            },
+            child: useRail
+                ? Scaffold(
+                    body: Row(
+                      children: [
+                        _buildRail(activeKeys, addButton),
+                        const VerticalDivider(
+                            width: 1, thickness: 1, color: Color(0xFFE2E8F0)),
+                        Expanded(child: stack),
+                      ],
+                    ),
+                  )
+                : Scaffold(
+                    extendBody:
+                        false, // Temiz native fintech barı, içerik arkada kalmaz
+                    body: stack,
+                    floatingActionButton: addButton,
+                    floatingActionButtonLocation:
+                        _resolveFabLocation(buttonConfig.fabPosition),
+                    bottomNavigationBar: FloatingCapsuleNavBar(
+                      currentIndex: _currentIndex,
+                      onTap: (index) => setState(() => _currentIndex = index),
+                      items: navItems,
+                      activeIndicatorColor: AppColors.dynamicPrimary,
+                    ),
                   ),
-                ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

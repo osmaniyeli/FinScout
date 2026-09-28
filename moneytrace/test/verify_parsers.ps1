@@ -554,10 +554,16 @@ $hasAllMicroWidgets = (Test-Path $streakModalPath) -and (Test-Path $uploadBtnPat
 Assert-Test -Name "No Fake-Progress Widgets (streak, morph upload, radar checkout)" -Condition ((-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/daily_streak_modal.dart"))) -and (-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/morphing_share_button.dart"))) -and (-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/interactive_file_upload_button.dart"))) -and (-not (Test-Path (Join-Path $PSScriptRoot "../lib/core/widgets/radar_checkout_button.dart")))) -Details "Fake progress/success animations removed; success shown only after real results"
 
 # 5. Web Portal Security Tab & Video Lab Integration
+# 2026-09-29: Panel artık K7 ile silinen widget'ları (Shakuro Dynamic Island, günlük seri modalı,
+# morflanan yükleme/paylaşım, radar ödeme) simüle ETMİYOR — bunlar gerçek uygulamada yok, panelin
+# "uygulama böyle görünüyor" derken yalan söylememesi için kaldırıldı (bkz. Web_Yonetici_Paneli
+# üstündeki güncellik notu). Mikro-etkileşim sekmesi yalnız GERÇEKTEN VAR olan iki bileşeni
+# (floating_capsule_nav_bar.dart, morphing_segmented_bar.dart) tetikler.
 $hasSecTab = $webHtml.Contains("tab-security") -and $webHtml.Contains("20/20 DOĞRULANDI")
-$hasMicroTab = $webHtml.Contains("tab-micro") -and $webHtml.Contains("triggerShakuroIsland") -and $webHtml.Contains("triggerStreakModal")
-$isWebLabComplete = $hasSecTab -and $hasMicroTab
-Assert-Test -Name "Web Portal 20-Rule Security Matrix & Video Lab Tab" -Condition $isWebLabComplete -Details "Integrated full security compliance matrix and interactive video lab into web portal"
+$hasMicroTab = $webHtml.Contains("tab-micro") -and $webHtml.Contains("triggerFloatingCapsule") -and $webHtml.Contains("triggerMorphSegmented")
+$hasNoStaleWidgetSim = -not ($webHtml.Contains("triggerShakuroIsland") -or $webHtml.Contains("triggerStreakModal") -or $webHtml.Contains("triggerMorphUpload") -or $webHtml.Contains("triggerRadarCheckout") -or $webHtml.Contains("triggerMorphShare") -or $webHtml.Contains("triggerConfettiBurst") -or $webHtml.Contains("dynamic-island") -or $webHtml.Contains("smart-insight-banner"))
+$isWebLabComplete = $hasSecTab -and $hasMicroTab -and $hasNoStaleWidgetSim
+Assert-Test -Name "Web Portal 20-Rule Security Matrix & Video Lab Tab" -Condition $isWebLabComplete -Details "Security compliance matrix intact; video lab tab simulates only components that still exist in the real app (K7-removed widgets no longer faked)"
 
 # ---------------------------------------------------------------
 # 13. UNIFIED DESIGN LANGUAGE, 12 MICRO-INTERACTIONS & SYSTEM-WIDE INTEGRATION

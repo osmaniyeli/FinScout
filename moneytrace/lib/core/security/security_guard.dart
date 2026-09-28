@@ -166,11 +166,14 @@ class SecurityGuard {
   // ===========================================================================
   // 9. Secure Storage & Cookies (Gerçek Kriptografik Şifreleme)
   // ===========================================================================
+  /// [masterSecret] ZORUNLUDUR: burada sabit/tahmin edilebilir bir yedek anahtar YOKTUR.
+  /// APK'ya gömülü sabit bir parola, decompile edilip her kullanıcının verisini çözebileceği
+  /// için gerçek bir şifreleme değil, güvenlik yanılsaması olurdu (bkz. backup-key Edge
+  /// Function'ının hesaba özel, sunucu tarafı türetilen anahtarı — gerçek kullanım budur).
   Map<String, String> secureStoragePayload(String key, String value,
-      {String? masterSecret}) {
-    final secret = masterSecret ?? 'PARAIZ_DEVICE_INTERNAL_SALT_KEY_v2';
-    final encryptedPackage =
-        AesCipher.encryptVaultPayload(plainText: value, password: secret);
+      {required String masterSecret}) {
+    final encryptedPackage = AesCipher.encryptVaultPayload(
+        plainText: value, password: masterSecret);
     return {
       'key': key,
       'cipher': 'AES-256-CBC-HMAC',
@@ -179,11 +182,10 @@ class SecurityGuard {
   }
 
   String decryptStoragePayload(Map<String, String> stored,
-      {String? masterSecret}) {
-    final secret = masterSecret ?? 'PARAIZ_DEVICE_INTERNAL_SALT_KEY_v2';
+      {required String masterSecret}) {
     final payload = stored['payload'] ?? '';
     return AesCipher.decryptVaultPayload(
-        vaultString: payload, password: secret);
+        vaultString: payload, password: masterSecret);
   }
 
   // ===========================================================================
@@ -358,17 +360,20 @@ class SecurityGuard {
   // ===========================================================================
   // 19. Backup (Gerçek AES-256-CBC-HMAC Şifreli Yedekleme)
   // ===========================================================================
+  /// [password] ZORUNLUDUR — bkz. secureStoragePayload üstündeki not: sabit gömülü bir
+  /// yedek parola, gerçek şifreleme yerine güvenlik yanılsaması yaratır. Gerçek otomatik
+  /// yedekleme akışı zaten bunu kullanmaz; bkz. lib/core/services/backup_service.dart
+  /// (hesaba özel, sunucu tarafı HMAC ile türetilen anahtar).
   String createEncryptedBackupPackage(
-      {required String jsonPayload, String? password}) {
-    final pass = password ?? 'PARAIZ_DEFAULT_VAULT_PASSWD_2026';
+      {required String jsonPayload, required String password}) {
     return AesCipher.encryptVaultPayload(
-        plainText: jsonPayload, password: pass);
+        plainText: jsonPayload, password: password);
   }
 
-  String decryptBackupPackage({required String vaultString, String? password}) {
-    final pass = password ?? 'PARAIZ_DEFAULT_VAULT_PASSWD_2026';
+  String decryptBackupPackage(
+      {required String vaultString, required String password}) {
     return AesCipher.decryptVaultPayload(
-        vaultString: vaultString, password: pass);
+        vaultString: vaultString, password: password);
   }
 
   // ===========================================================================

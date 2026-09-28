@@ -6,6 +6,21 @@ Format, [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) standardına da
 
 ---
 
+## [3.12.0] - 2026-09-29
+
+### Yenilikler
+- **Canlı içerik sistemi (CMS temeli):** yeni Supabase `app_content` tablosu (133 metin, tr+en), yönetim panelinden düzenlenebilir (yeni "İçerik/Metinler" sekmesi + `admin-update-content` Edge Function, parola korumalı). Uygulama açılışta bu tabloyu çekip önbelleğe alıyor; ağ yoksa sabit kodlu sözlüğe düşüyor.
+- **İngilizce artık gerçekten çalışıyor:** Ayarlar, alt gezinme, Kayıt Ol/Giriş Yap ve belge yükleme ekranları dil seçimine göre değişiyor (~70 yeni anahtar). Kalan ekranlar (Varlıklar, Analiz, Hedefler, Cüzdan, bordro vb.) henüz Türkçe — sıradaki tur.
+- Yönetim paneli artık uygulamada olmayan (K7 ile silinmiş) sahte özellikleri simüle etmiyor; güncellik tarihi eklendi.
+
+### Düzeltmeler
+- Ana sayfada kart ekstresi son ödeme borcu (CARD_DUE) artık "Yaklaşan Taksitler & Borçlar" listesinde görünüyor.
+- Profil'deki e-posta alanı salt-okunur yapıldı (değiştirilse de hesapla senkron olmuyordu).
+- `SecurityGuard`'daki APK'ya gömülü sabit yedek şifreleme anahtarları kaldırıldı (kullanılmıyordu, ama biri ileride çağırırsa güvenlik yanılsaması yaratabilirdi).
+
+### Bilinen açık (üretime kadar karar bekliyor)
+- Ücretsiz plan "tek banka" kuralı yalnız istemci tarafında uygulanıyor; sunucu tarafı (consume_upload) henüz kapsamıyor — taslak migration hazır, uygulama kararı bekleniyor.
+
 ## [3.11.0] - 2026-09-28
 
 ### Yenilikler

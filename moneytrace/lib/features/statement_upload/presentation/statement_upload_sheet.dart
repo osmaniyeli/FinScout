@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/localization/app_strings.dart';
 import '../../../core/utils/currency_normalizer.dart';
 import '../../../core/parser/services/pdf_extractor_service.dart';
 import '../../../core/parser/services/statement_orchestrator.dart';
@@ -178,8 +179,8 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
     }
 
     // 1. PDF düzeni ve SHA256 çıkarımı (PDFium, tamamen cihaz üzerinde; şifreliyse parola sorulur)
-    final extracted =
-        await _extractWithPassword(bytes, rememberedPassword: rememberedPassword);
+    final extracted = await _extractWithPassword(bytes,
+        rememberedPassword: rememberedPassword);
     if (extracted == null) return _PreparedDocument.cancel;
     final (document, password) = extracted;
 
@@ -200,8 +201,8 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
     // Ücretsiz planda tek bankaya kilit: kullanıcının kilitli bankasından farklı bir kurumdan
     // gelen belge reddedilir (kota düşmeden). Banka hiç seçilmemişse (onboarding'de atlandıysa)
     // ilk belge sessizce o bankaya kilitler.
-    final lockError =
-        await UserProfileService.instance.checkFreeTierBankLock(docResult.institution);
+    final lockError = await UserProfileService.instance
+        .checkFreeTierBankLock(docResult.institution);
     if (lockError != null) {
       return _PreparedDocument.failed(lockError);
     }
@@ -559,6 +560,15 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
 
   @override
   Widget build(BuildContext context) {
+    // Belge türü çipleri ve aksiyon düğmeleri AppStrings.get(...) ile okunur; dil değişince
+    // (Ayarlar > Dil) sheet açıkken de güncellensin diye locale dinlenir.
+    return ValueListenableBuilder<String>(
+      valueListenable: AppStrings.currentLocale,
+      builder: (context, _, __) => _buildSheet(context),
+    );
+  }
+
+  Widget _buildSheet(BuildContext context) {
     return Container(
       padding: EdgeInsets.only(
         left: 20,
@@ -590,21 +600,21 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Column(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Ekstre / Bordro Yükle',
-                    style: TextStyle(
+                    AppStrings.get('upload_sheet_title'),
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w900,
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
-                    'Ekstre bu telefonda okunur, sunucuya gönderilmez',
-                    style: TextStyle(
+                    AppStrings.get('upload_sheet_subtitle'),
+                    style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.textSecondary,
                     ),
@@ -619,14 +629,14 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: const Color(0xFFBFDBFE)),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.shield_rounded,
+                    const Icon(Icons.shield_rounded,
                         size: 14, color: AppColors.actionPrimary),
-                    SizedBox(width: 4),
+                    const SizedBox(width: 4),
                     Text(
-                      'Gizlilik Korumalı',
-                      style: TextStyle(
+                      AppStrings.get('upload_privacy_badge'),
+                      style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
                           color: AppColors.actionPrimary),
@@ -640,9 +650,9 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
 
           // 1. Madde: Belge Türü Seçimi (Ekstre / Bordro / Kredi Kartı)
           if (_parsedResult == null && !_isProcessing) ...[
-            const Text(
-              'Yüklenecek belge türü:',
-              style: TextStyle(
+            Text(
+              AppStrings.get('upload_doc_type_label'),
+              style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
                   color: AppColors.textPrimary),
@@ -651,11 +661,15 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
             // İlk faz: Yapı Kredi kart ekstresi ve bordro. Vadesiz okuyucu örnek dökümle eklenecek.
             Row(
               children: [
-                _buildDocTypeChip('CREDIT_CARD', 'Yapı Kredi Kart',
+                _buildDocTypeChip(
+                    'CREDIT_CARD',
+                    AppStrings.get('upload_chip_credit_card'),
                     Icons.credit_card_rounded),
                 const SizedBox(width: 8),
                 _buildDocTypeChip(
-                    'PAYSLIP', 'Maaş Bordrosu (deneme)', Icons.work_outline_rounded),
+                    'PAYSLIP',
+                    AppStrings.get('upload_chip_payslip'),
+                    Icons.work_outline_rounded),
               ],
             ),
             const SizedBox(height: 16),
@@ -682,7 +696,7 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
                         ),
                         const SizedBox(height: 14),
                         Text(
-                          '${_batchDone + 1} / $_batchTotal belge okunuyor',
+                          '${_batchDone + 1} / $_batchTotal ${AppStrings.get('upload_batch_progress_suffix')}',
                           style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
@@ -700,14 +714,14 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
                         ],
                       ],
                     )
-                  : const Column(
+                  : Column(
                       children: [
-                        CircularProgressIndicator(
+                        const CircularProgressIndicator(
                             strokeWidth: 3, color: AppColors.actionPrimary),
-                        SizedBox(height: 16),
+                        const SizedBox(height: 16),
                         Text(
-                          'Belge okunuyor, kişisel bilgiler maskeleniyor…',
-                          style: TextStyle(
+                          AppStrings.get('upload_processing_single'),
+                          style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
                               color: AppColors.textPrimary),
@@ -759,8 +773,8 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
                         onPressed: () => SubscriptionPlansSheet.show(context),
                         icon: const Icon(Icons.workspace_premium_rounded,
                             size: 16, color: Color(0xFF0F172A)),
-                        label: const Text('Planları Gör',
-                            style: TextStyle(
+                        label: Text(AppStrings.get('upload_view_plans_btn'),
+                            style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
                                 color: Color(0xFF0F172A))),
@@ -793,9 +807,9 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
                           borderRadius: BorderRadius.circular(16)),
                       side: const BorderSide(color: Color(0xFFCBD5E1)),
                     ),
-                    child: const Text(
-                      'Farklı Belge Seç',
-                      style: TextStyle(
+                    child: Text(
+                      AppStrings.get('upload_pick_different_btn'),
+                      style: const TextStyle(
                           fontWeight: FontWeight.w700,
                           color: AppColors.textPrimary),
                     ),
@@ -811,15 +825,15 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16)),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.save_alt_rounded,
+                        const Icon(Icons.save_alt_rounded,
                             size: 18, color: Colors.white),
-                        SizedBox(width: 6),
+                        const SizedBox(width: 6),
                         Text(
-                          'Kaydet',
-                          style: TextStyle(
+                          AppStrings.get('save'),
+                          style: const TextStyle(
                               fontWeight: FontWeight.w800, color: Colors.white),
                         ),
                       ],
@@ -873,8 +887,7 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
                         padding: const EdgeInsets.only(bottom: 4),
                         child: Text(line,
                             style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.textSecondary)),
+                                fontSize: 12, color: AppColors.textSecondary)),
                       ),
                   ],
                 ),

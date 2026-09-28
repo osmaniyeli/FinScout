@@ -138,12 +138,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Bu ekranın büyük kısmı AppStrings.get(...) ile doğrudan metin okuyor (ValueListenableBuilder
+    // içinde değil); dil değişince (aşağıdaki dil seçici) tüm ekranın yeniden çizilmesi için
+    // en dışta locale dinlenir.
+    return ValueListenableBuilder<String>(
+      valueListenable: AppStrings.currentLocale,
+      builder: (context, _, __) => _buildScaffold(context),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text(
-          'Ayarlar & Tercihler',
-          style: TextStyle(
+        title: Text(
+          AppStrings.get('settings_appbar_title'),
+          style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w800,
               color: AppColors.textPrimary),
@@ -157,460 +167,492 @@ class _SettingsScreenState extends State<SettingsScreen> {
         // Tablette okunabilir sütun (en fazla 720 dp), ortalı
         child: AdaptiveBody(
           child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 1. Plan Kartı (Google Play Billing Entegrasyonu)
-            // Düz, sakin kart: animasyon/parlama yok (kullanıcı kararı 2026-09-25).
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppColors.canvasLight,
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(color: AppColors.borderLight),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'AKTİF PLANINIZ',
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textSecondary,
-                        letterSpacing: 0.5),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    _subscriptionService.isPremium
-                        ? (_subscriptionService.isFamilyPlan
-                            ? (_subscriptionService.isFamilyMemberEntitlement
-                                ? 'Aile Paketi (üye)'
-                                : 'Aile Paketi (sahip)')
-                            : (_subscriptionService.isAnnualPlan
-                                ? 'Bireysel Yıllık Premium'
-                                : 'Bireysel Aylık Premium'))
-                        : 'Ücretsiz Başlangıç Paketi',
-                    style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.textPrimary),
-                  ),
-                  const SizedBox(height: 3),
-                  const Text(
-                    'Google Play Store Güvencesiyle',
-                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                  ),
-                  const SizedBox(height: 10),
-                  OutlinedButton(
-                    onPressed: _showSubscriptionPlans,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.actionPrimary,
-                      side: const BorderSide(color: AppColors.borderLight),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 1. Plan Kartı (Google Play Billing Entegrasyonu)
+              // Düz, sakin kart: animasyon/parlama yok (kullanıcı kararı 2026-09-25).
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.canvasLight,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: AppColors.borderLight),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppStrings.get('settings_active_plan_label'),
+                      style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textSecondary,
+                          letterSpacing: 0.5),
                     ),
-                    child: Text(_subscriptionService.isPremium
-                        ? 'Planı Değiştir veya Yönet'
-                        : 'Premium Avantajlarını Keşfet'),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 18),
-
-            // Abonelik ve yasal bağlantılar (Play politikaları uygulama içinde istiyor)
-            const Text(
-              'ABONELİK VE GİZLİLİK',
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textSecondary,
-                  letterSpacing: 0.5),
-            ),
-            const SizedBox(height: 4),
-            ListTile(
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.family_restroom_rounded, color: AppColors.textSecondary),
-              title: const Text('Aile',
-                  style: TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-              subtitle: const Text('Premium hakkını en fazla 4 kişiyle paylaş; veriler paylaşılmaz',
-                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-              trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
-              onTap: () async {
-                await Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (_) => const FamilyScreen()));
-                if (mounted) setState(() {});
-              },
-            ),
-            _buildLinkTile(Icons.credit_card_rounded, 'Aboneliği yönet / iptal et',
-                'Google Play abonelik sayfası açılır', AppLinks.manageSubscriptions()),
-            _buildLinkTile(Icons.privacy_tip_outlined, 'Gizlilik politikası',
-                'Hangi verinin nerede tutulduğu', AppLinks.privacyPolicy),
-            _buildLinkTile(Icons.person_remove_outlined, 'Hesap ve veri silme',
-                'Uygulamadan ya da e-postayla silme yolları', AppLinks.dataDeletion),
-            ListTile(
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.description_outlined, color: AppColors.textSecondary),
-              title: const Text('Açık kaynak lisansları',
-                  style: TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-              subtitle: const Text('Uygulamada kullanılan kütüphaneler',
-                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-              trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
-              onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const LicensesScreen())),
-            ),
-            const SizedBox(height: 18),
-
-            // DİL / LANGUAGE
-            const Text(
-              'DİL / LANGUAGE',
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textSecondary,
-                  letterSpacing: 0.5),
-            ),
-            const SizedBox(height: 8),
-            ValueListenableBuilder<String>(
-              valueListenable: AppStrings.currentLocale,
-              builder: (context, locale, _) {
-                return Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(child: _langChip('Türkçe', 'tr', locale == 'tr')),
-                          const SizedBox(width: 10),
-                          Expanded(child: _langChip('English', 'en', locale == 'en')),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Şimdilik yalnız Ana Sayfa, Profil ve Bildirimler bu dile geçer; uygulamanın geri kalanı Türkçe kalır.\nFor now only Home, Profile and Notifications switch language; the rest of the app stays in Turkish.',
-                        style: TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.4),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 18),
-
-            // BANKA (ücretsiz planda kilitli tek banka; bkz. BankSelectionSheet)
-            const Text(
-              'BANKA',
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textSecondary,
-                  letterSpacing: 0.5),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(14),
+                    const SizedBox(height: 6),
+                    Text(
+                      _subscriptionService.isPremium
+                          ? (_subscriptionService.isFamilyPlan
+                              ? (_subscriptionService.isFamilyMemberEntitlement
+                                  ? 'Aile Paketi (üye)'
+                                  : 'Aile Paketi (sahip)')
+                              : (_subscriptionService.isAnnualPlan
+                                  ? 'Bireysel Yıllık Premium'
+                                  : 'Bireysel Aylık Premium'))
+                          : 'Ücretsiz Başlangıç Paketi',
+                      style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.textPrimary),
                     ),
-                    child: const Icon(Icons.account_balance_rounded,
-                        color: Color(0xFF0F172A), size: 20),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Bağlı Banka',
-                          style: TextStyle(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.textPrimary),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          UserProfileService.instance.profile?.lockedInstitution
-                                      ?.isNotEmpty ==
-                                  true
-                              ? 'Şu an: ${UserProfileService.instance.profile!.lockedInstitution}'
-                              : 'Henüz seçilmedi',
-                          style: const TextStyle(
-                              fontSize: 11, color: AppColors.textSecondary),
-                        ),
-                      ],
+                    const SizedBox(height: 3),
+                    Text(
+                      AppStrings.get('settings_google_play_assurance'),
+                      style: const TextStyle(
+                          fontSize: 12, color: AppColors.textSecondary),
                     ),
-                  ),
-                  OutlinedButton(
-                    onPressed: () async {
-                      await BankSelectionSheet.show(context, allowSkip: false);
-                      if (mounted) setState(() {});
-                    },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.actionPrimary,
-                      side: const BorderSide(color: Color(0xFFCBD5E1)),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: Text(
-                        UserProfileService.instance.profile?.lockedInstitution
-                                    ?.isNotEmpty ==
-                                true
-                            ? 'Değiştir'
-                            : 'Seç'),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 18),
-
-            // 2. GÜVENLİK (uygulama kilidi: yalnız PIN)
-            const Text(
-              'GÜVENLİK',
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textSecondary,
-                  letterSpacing: 0.5),
-            ),
-            const SizedBox(height: 8),
-
-            // 3. 4 Haneli Güvenlik Şifresi / PIN Kodu Tile
-            ValueListenableBuilder<bool>(
-              valueListenable: SecurityAuthService.instance.hasPinSetNotifier,
-              builder: (context, hasPin, _) {
-                return Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: const Icon(Icons.pin_rounded,
-                                color: Color(0xFF0F172A), size: 20),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  hasPin
-                                      ? 'Güvenlik Şifresi / PIN Kodu (Kilit geçici kapalı)'
-                                      : '4 Haneli Şifre / PIN Belirle (geçici kapalı)',
-                                  style: const TextStyle(
-                                      fontSize: 13.5,
-                                      fontWeight: FontWeight.w800,
-                                      color: AppColors.textPrimary),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  hasPin
-                                      ? 'Bir hata yüzünden uygulama açılışında artık PIN sorulmuyor; istersen aşağıdan kaldırabilirsin.'
-                                      : 'Bir hata düzeltilene kadar yeni PIN oluşturma kapalı.',
-                                  style: const TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.textSecondary),
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (!hasPin)
-                            // Büyük yazıda düğme satırın yarısını aşmaz (yazı kırılır), satır taşmaz
-                            ConstrainedBox(
-                              constraints: BoxConstraints(
-                                  maxWidth: MediaQuery.sizeOf(context).width *
-                                      0.4),
-                              child: ElevatedButton(
-                              onPressed: _pinTemporarilyDisabled,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF94A3B8),
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12)),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 8),
-                                elevation: 0,
-                              ),
-                              child: const Text('Şifre Belirle',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700)),
-                            ),
-                            ),
-                        ],
-                      ),
-                      if (hasPin) ...[
-                        const SizedBox(height: 9),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: _pinTemporarilyDisabled,
-                                icon: const Icon(Icons.edit_rounded,
-                                    size: 14, color: AppColors.textMuted),
-                                label: const Text('Şifreyi Değiştir (kapalı)',
-                                    style: TextStyle(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w700,
-                                        color: AppColors.textMuted)),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: const Color(0xFF0F172A),
-                                  side: const BorderSide(
-                                      color: Color(0xFFCBD5E1)),
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12)),
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 8),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: _removePinWithVerification,
-                                icon: const Icon(Icons.lock_open_rounded,
-                                    size: 14, color: AppColors.expenseRed),
-                                label: const Text('Şifreyi Kaldır',
-                                    style: TextStyle(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w700,
-                                        color: AppColors.expenseRed)),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: AppColors.expenseRed,
-                                  side: const BorderSide(
-                                      color: Color(0xFFFECDD3)),
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12)),
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 8),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 18),
-
-            // TEHLİKELİ BÖLGE: TÜM VERİLERİMİ SIFIRLA VE SİL
-            const Text(
-              'TEHLİKELİ BÖLGE / VERİLERİ SIFIRLA',
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.expenseRed,
-                  letterSpacing: 0.5),
-            ),
-            const SizedBox(height: 8),
-
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF1F2),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0xFFFECDD3)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFE4E6),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: const Icon(Icons.delete_forever_rounded,
-                            color: AppColors.expenseRed, size: 20),
-                      ),
-                      const SizedBox(width: 10),
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Tüm Verilerimi Sıfırla ve Sil',
-                              style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.expenseRed),
-                            ),
-                            SizedBox(height: 2),
-                            Text(
-                              'Hesaplar, ekstreler, harcamalar, hedefler ve profil cihazınızdan tamamen silinir.',
-                              style: TextStyle(
-                                  fontSize: 11,
-                                  color: Color(0xFF9F1239),
-                                  height: 1.3),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _confirmAndResetAllData,
-                      icon: const Icon(Icons.delete_outline_rounded, size: 18),
-                      label: const Text('Tüm Verilerimi Sıfırla ve Hesabı Sil',
-                          style: TextStyle(fontWeight: FontWeight.w800)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.expenseRed,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(vertical: 13),
+                    const SizedBox(height: 10),
+                    OutlinedButton(
+                      onPressed: _showSubscriptionPlans,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.actionPrimary,
+                        side: const BorderSide(color: AppColors.borderLight),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                       ),
+                      child: Text(_subscriptionService.isPremium
+                          ? AppStrings.get('settings_manage_plan_btn')
+                          : AppStrings.get('settings_explore_premium_btn')),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+              const SizedBox(height: 18),
 
-            const SizedBox(height: 84),
-          ],
-        ),
+              // Abonelik ve yasal bağlantılar (Play politikaları uygulama içinde istiyor)
+              Text(
+                AppStrings.get('settings_subscription_privacy_header'),
+                style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textSecondary,
+                    letterSpacing: 0.5),
+              ),
+              const SizedBox(height: 4),
+              ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.family_restroom_rounded,
+                    color: AppColors.textSecondary),
+                title: Text(AppStrings.get('settings_family_title'),
+                    style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary)),
+                subtitle: Text(AppStrings.get('settings_family_subtitle'),
+                    style: const TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary)),
+                trailing: const Icon(Icons.chevron_right_rounded,
+                    color: AppColors.textSecondary),
+                onTap: () async {
+                  await Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const FamilyScreen()));
+                  if (mounted) setState(() {});
+                },
+              ),
+              _buildLinkTile(
+                  Icons.credit_card_rounded,
+                  AppStrings.get('settings_manage_sub_title'),
+                  AppStrings.get('settings_manage_sub_subtitle'),
+                  AppLinks.manageSubscriptions()),
+              _buildLinkTile(
+                  Icons.privacy_tip_outlined,
+                  AppStrings.get('settings_privacy_policy_title'),
+                  AppStrings.get('settings_privacy_policy_subtitle'),
+                  AppLinks.privacyPolicy),
+              _buildLinkTile(
+                  Icons.person_remove_outlined,
+                  AppStrings.get('settings_delete_account_title'),
+                  AppStrings.get('settings_delete_account_subtitle'),
+                  AppLinks.dataDeletion),
+              ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.description_outlined,
+                    color: AppColors.textSecondary),
+                title: Text(AppStrings.get('settings_licenses_title'),
+                    style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary)),
+                subtitle: Text(AppStrings.get('settings_licenses_subtitle'),
+                    style: const TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary)),
+                trailing: const Icon(Icons.chevron_right_rounded,
+                    color: AppColors.textSecondary),
+                onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const LicensesScreen())),
+              ),
+              const SizedBox(height: 18),
+
+              // DİL / LANGUAGE
+              const Text(
+                'DİL / LANGUAGE',
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textSecondary,
+                    letterSpacing: 0.5),
+              ),
+              const SizedBox(height: 8),
+              ValueListenableBuilder<String>(
+                valueListenable: AppStrings.currentLocale,
+                builder: (context, locale, _) {
+                  return Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                                child:
+                                    _langChip('Türkçe', 'tr', locale == 'tr')),
+                            const SizedBox(width: 10),
+                            Expanded(
+                                child:
+                                    _langChip('English', 'en', locale == 'en')),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          AppStrings.get('settings_language_note'),
+                          style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textSecondary,
+                              height: 1.4),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 18),
+
+              // BANKA (ücretsiz planda kilitli tek banka; bkz. BankSelectionSheet)
+              Text(
+                AppStrings.get('settings_bank_header'),
+                style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textSecondary,
+                    letterSpacing: 0.5),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Icon(Icons.account_balance_rounded,
+                          color: Color(0xFF0F172A), size: 20),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            AppStrings.get('settings_connected_bank_label'),
+                            style: const TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.textPrimary),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            UserProfileService.instance.profile
+                                        ?.lockedInstitution?.isNotEmpty ==
+                                    true
+                                ? '${AppStrings.get('settings_bank_current_prefix')}${UserProfileService.instance.profile!.lockedInstitution}'
+                                : AppStrings.get('settings_bank_not_selected'),
+                            style: const TextStyle(
+                                fontSize: 11, color: AppColors.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ),
+                    OutlinedButton(
+                      onPressed: () async {
+                        await BankSelectionSheet.show(context,
+                            allowSkip: false);
+                        if (mounted) setState(() {});
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.actionPrimary,
+                        side: const BorderSide(color: Color(0xFFCBD5E1)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: Text(UserProfileService.instance.profile
+                                  ?.lockedInstitution?.isNotEmpty ==
+                              true
+                          ? AppStrings.get('settings_change_btn')
+                          : AppStrings.get('settings_select_btn')),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+
+              // 2. GÜVENLİK (uygulama kilidi: yalnız PIN)
+              Text(
+                AppStrings.get('settings_security_header'),
+                style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textSecondary,
+                    letterSpacing: 0.5),
+              ),
+              const SizedBox(height: 8),
+
+              // 3. 4 Haneli Güvenlik Şifresi / PIN Kodu Tile
+              ValueListenableBuilder<bool>(
+                valueListenable: SecurityAuthService.instance.hasPinSetNotifier,
+                builder: (context, hasPin, _) {
+                  return Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: const Icon(Icons.pin_rounded,
+                                  color: Color(0xFF0F172A), size: 20),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    hasPin
+                                        ? 'Güvenlik Şifresi / PIN Kodu (Kilit geçici kapalı)'
+                                        : '4 Haneli Şifre / PIN Belirle (geçici kapalı)',
+                                    style: const TextStyle(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.textPrimary),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    hasPin
+                                        ? 'Bir hata yüzünden uygulama açılışında artık PIN sorulmuyor; istersen aşağıdan kaldırabilirsin.'
+                                        : 'Bir hata düzeltilene kadar yeni PIN oluşturma kapalı.',
+                                    style: const TextStyle(
+                                        fontSize: 11,
+                                        color: AppColors.textSecondary),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (!hasPin)
+                              // Büyük yazıda düğme satırın yarısını aşmaz (yazı kırılır), satır taşmaz
+                              ConstrainedBox(
+                                constraints: BoxConstraints(
+                                    maxWidth:
+                                        MediaQuery.sizeOf(context).width * 0.4),
+                                child: ElevatedButton(
+                                  onPressed: _pinTemporarilyDisabled,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF94A3B8),
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 14, vertical: 8),
+                                    elevation: 0,
+                                  ),
+                                  child: const Text('Şifre Belirle',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700)),
+                                ),
+                              ),
+                          ],
+                        ),
+                        if (hasPin) ...[
+                          const SizedBox(height: 9),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: _pinTemporarilyDisabled,
+                                  icon: const Icon(Icons.edit_rounded,
+                                      size: 14, color: AppColors.textMuted),
+                                  label: const Text('Şifreyi Değiştir (kapalı)',
+                                      style: TextStyle(
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.textMuted)),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: const Color(0xFF0F172A),
+                                    side: const BorderSide(
+                                        color: Color(0xFFCBD5E1)),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 8),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: _removePinWithVerification,
+                                  icon: const Icon(Icons.lock_open_rounded,
+                                      size: 14, color: AppColors.expenseRed),
+                                  label: const Text('Şifreyi Kaldır',
+                                      style: TextStyle(
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.expenseRed)),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppColors.expenseRed,
+                                    side: const BorderSide(
+                                        color: Color(0xFFFECDD3)),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 8),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 18),
+
+              // TEHLİKELİ BÖLGE: TÜM VERİLERİMİ SIFIRLA VE SİL
+              Text(
+                AppStrings.get('settings_danger_zone_header'),
+                style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.expenseRed,
+                    letterSpacing: 0.5),
+              ),
+              const SizedBox(height: 8),
+
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF1F2),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: const Color(0xFFFECDD3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFE4E6),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Icon(Icons.delete_forever_rounded,
+                              color: AppColors.expenseRed, size: 20),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                AppStrings.get('settings_reset_all_title'),
+                                style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.expenseRed),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                AppStrings.get('settings_reset_all_subtitle'),
+                                style: const TextStyle(
+                                    fontSize: 11,
+                                    color: Color(0xFF9F1239),
+                                    height: 1.3),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: _confirmAndResetAllData,
+                        icon:
+                            const Icon(Icons.delete_outline_rounded, size: 18),
+                        label: Text(AppStrings.get('settings_reset_all_btn'),
+                            style:
+                                const TextStyle(fontWeight: FontWeight.w800)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.expenseRed,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 13),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 84),
+            ],
+          ),
         ),
       ),
     );
@@ -626,7 +668,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           color: selected ? AppColors.textPrimary : Colors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-              color: selected ? AppColors.textPrimary : const Color(0xFFE2E8F0)),
+              color:
+                  selected ? AppColors.textPrimary : const Color(0xFFE2E8F0)),
         ),
         alignment: Alignment.center,
         child: Text(label,
@@ -638,17 +681,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildLinkTile(IconData icon, String title, String subtitle, String url) {
+  Widget _buildLinkTile(
+      IconData icon, String title, String subtitle, String url) {
     return ListTile(
       dense: true,
       contentPadding: EdgeInsets.zero,
       leading: Icon(icon, color: AppColors.textSecondary),
       title: Text(title,
           style: const TextStyle(
-              fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary)),
       subtitle: Text(subtitle,
           style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-      trailing: const Icon(Icons.open_in_new_rounded, size: 18, color: AppColors.textSecondary),
+      trailing: const Icon(Icons.open_in_new_rounded,
+          size: 18, color: AppColors.textSecondary),
       onTap: () => AppLinks.open(url),
     );
   }

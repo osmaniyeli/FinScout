@@ -138,7 +138,18 @@ class _DashboardScreenState extends State<DashboardScreen>
           await _repository.getMonthlySummary(yearMonth: _selectedMonth);
       final rawTxList = await _repository.getRecentTransactions(
           limit: 50, yearMonth: _selectedMonth);
-      final upcoming = await _repository.getUpcomingInstallments(limit: 10);
+      final upcomingInstallments =
+          await _repository.getUpcomingInstallments(limit: 10);
+      // Kart ekstresi son ödeme borcu (taksit değil, dönem borcunun tamamı) da aynı blokta
+      // gösterilsin diye getUpcomingPayments'tan CARD_DUE kayıtları eklenir (bkz. main.dart
+      // syncPaymentReminders ile aynı kaynak; burada yalnız CARD_DUE alt kümesi kullanılır).
+      final upcomingCardDues = (await _repository.getUpcomingPayments())
+          .where((p) => p['kind'] == 'CARD_DUE');
+      final upcoming = [
+        ...upcomingInstallments.map((e) => {...e, 'row_kind': 'INSTALLMENT'}),
+        ...upcomingCardDues.map((e) => {...e, 'row_kind': 'CARD_DUE'}),
+      ]..sort((a, b) => (a['due_date'] as String? ?? '')
+          .compareTo(b['due_date'] as String? ?? ''));
 
       if (mounted) {
         setState(() {
@@ -939,6 +950,88 @@ class _DashboardScreenState extends State<DashboardScreen>
                 const Divider(height: 1, color: Color(0xFFF1F5F9)),
             itemBuilder: (ctx, index) {
               final item = _upcomingInstallments[index];
+              final isCardDue = item['row_kind'] == 'CARD_DUE';
+              final dueDate = item['due_date'] as String?;
+
+              if (isCardDue) {
+                // Kart ekstresi son ödeme borcu (dönemin tamamı, taksit değil).
+                final amountCents = (item['amount_cents'] as num?)?.toInt() ?? 0;
+                final minimumCents = (item['minimum_cents'] as num?)?.toInt();
+                final description =
+                    item['description'] as String? ?? 'Kart borcu';
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Row(
+                    children: [
+                      const BankLogo(bankName: null, size: 40),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              description,
+                              style: const TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textPrimary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              [
+                                if (dueDate != null)
+                                  'Son ödeme: ${_formatDueDate(dueDate)}',
+                                if (minimumCents != null)
+                                  'Asgari ${CurrencyNormalizer.formatCents(minimumCents)}',
+                              ].join(' • '),
+                              style: const TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            CurrencyNormalizer.formatCents(amountCents),
+                            style: const TextStyle(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.expenseRed,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'Ekstre borcu',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              }
+
               final current =
                   (item['current_installment'] as num?)?.toInt() ?? 1;
               final total = (item['total_installment'] as num?)?.toInt() ?? 1;
@@ -949,7 +1042,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                   (item['remaining_amount_cents'] as num?)?.toInt() ?? 0;
               final merchant =
                   item['clean_merchant'] as String? ?? 'Taksitli Harcama';
-              final dueDate = item['due_date'] as String?;
               final bankName = item['institution_name'] as String?;
 
               return Padding(

@@ -365,6 +365,40 @@
     }
     .filter-select:focus { border-color: var(--accent-blue); }
 
+    /* İçerik / Metinler sekmesi: satır içi düzenleme kutuları */
+    .content-edit-textarea {
+      width: 100%;
+      min-height: 44px;
+      padding: 6px 8px;
+      background: #080C14;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-size: 12.5px;
+      font-family: inherit;
+      resize: vertical;
+      outline: none;
+    }
+    .content-edit-textarea:focus { border-color: var(--accent-blue); }
+    .content-edit-textarea.dirty { border-color: #F59E0B; }
+    .content-row-key {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text-main);
+      word-break: break-all;
+    }
+    .content-row-category {
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #38BDF8;
+      background: rgba(56, 189, 248, 0.12);
+      border-radius: 6px;
+      padding: 2px 6px;
+      display: inline-block;
+    }
+
     /* KPI Summary Cards */
     .kpi-row {
       display: grid;
@@ -732,31 +766,6 @@
       position: relative;
     }
 
-    /* Dynamic Island */
-    .dynamic-island {
-      width: 86px;
-      height: 20px;
-      background: #000;
-      border-radius: 20px;
-      position: absolute;
-      top: 8px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 50;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 8px;
-    }
-
-    .dynamic-island-cam {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #0D1629;
-      border: 1px solid #1E293B;
-    }
-
     .phone-status-bar {
       height: 32px;
       padding: 8px 20px 0;
@@ -789,205 +798,9 @@
     .mobile-title { font-size: 16px; font-weight: 800; }
     .mobile-subtitle { font-size: 10.5px; color: #94A3B8; }
 
-    /* SMART INSIGHT BANNER - %25 MAX HEIGHT & SWIPEABLE DOWN */
-    .smart-insight-banner {
-      background: linear-gradient(135deg, #0F2038 0%, #0A1424 100%);
-      border: 1.5px solid rgba(0, 208, 132, 0.4);
-      border-radius: 14px;
-      padding: 10px 12px;
-      box-shadow: 0 4px 16px rgba(0, 208, 132, 0.15);
-      position: relative;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      max-height: 160px; /* < 25% of phone screen height */
-      overflow: hidden;
-    }
-
-    .smart-insight-banner.dismissed {
-      max-height: 0;
-      padding: 0;
-      opacity: 0;
-      margin: 0;
-      border: none;
-      transform: translateY(20px);
-    }
-
-    .drag-handle {
-      width: 32px;
-      height: 3px;
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 2px;
-      margin: 0 auto 6px;
-    }
-
-    .insight-content {
-      display: flex;
-      gap: 8px;
-    }
-
-    .insight-icon-box {
-      width: 28px;
-      height: 28px;
-      border-radius: 8px;
-      background: linear-gradient(135deg, #00D084, #0052FF);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      flex-shrink: 0;
-    }
-
-    .insight-title {
-      font-size: 11.5px;
-      font-weight: 800;
-      color: #00D084;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .insight-text {
-      font-size: 10.5px;
-      color: #CBD5E1;
-      line-height: 1.35;
-      margin-top: 2px;
-    }
-
-    .insight-swipe-hint {
-      font-size: 9px;
-      color: rgba(255, 255, 255, 0.4);
-      margin-top: 4px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    /* SHAKURO "INSPIRED" FLOATING DYNAMIC ISLAND CAPSULE (OVERLAY) */
-    .shakuro-island-overlay {
-      position: absolute;
-      top: 36px;
-      left: 12px;
-      right: 12px;
-      z-index: 85;
-      background: rgba(12, 14, 20, 0.96);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 20px;
-      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.75), 0 0 18px rgba(0, 208, 132, 0.2);
-      transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.2);
-      overflow: hidden;
-      cursor: pointer;
-    }
-    .shakuro-island-overlay.collapsed {
-      height: 38px;
-      padding: 7px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .shakuro-island-overlay.expanded {
-      max-height: 165px; /* < 25% screen height */
-      padding: 12px 14px;
-    }
-    .shakuro-island-overlay.hidden {
-      opacity: 0;
-      pointer-events: none;
-      transform: translateY(-40px) scale(0.92);
-    }
-
-    /* BRANDED IN-APP NOTIFICATION MODAL (Better Sleep Reference - %25 Height) */
-    .branded-inapp-modal {
-      position: absolute;
-      bottom: 64px;
-      left: 12px;
-      right: 12px;
-      z-index: 90;
-      background: linear-gradient(180deg, #1E1B4B 0%, #0F172A 100%);
-      border: 1.2px solid rgba(99, 102, 241, 0.4);
-      border-radius: 24px;
-      box-shadow: 0 20px 44px rgba(0, 0, 0, 0.8), 0 0 25px rgba(99, 102, 241, 0.25);
-      padding: 12px 14px;
-      max-height: 168px; /* < 25% screen height */
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .branded-inapp-modal.hidden {
-      opacity: 0;
-      pointer-events: none;
-      transform: translateY(120%);
-    }
-
-    /* VIDEO 1: DAILY STREAK ANIMATION MODAL */
-    .streak-modal-overlay {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      z-index: 95;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(6px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 18px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-    }
-    .streak-modal-overlay.active {
-      opacity: 1;
-      pointer-events: all;
-    }
-    .streak-card {
-      background: linear-gradient(180deg, #EA580C 0%, #C2410C 100%);
-      border-radius: 24px;
-      padding: 20px 16px;
-      width: 100%;
-      text-align: center;
-      box-shadow: 0 20px 40px rgba(234, 88, 12, 0.4);
-      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
     @keyframes popIn {
       0% { transform: scale(0.8); opacity: 0; }
       100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* VIDEO 3: MORPHING FILE BUTTON */
-    .morph-upload-box {
-      width: 100%;
-      transition: all 0.3s;
-    }
-    .upload-progress-pill {
-      width: 100%;
-      height: 44px;
-      background: #FED7AA;
-      border-radius: 22px;
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .upload-progress-bar {
-      position: absolute;
-      left: 0; top: 0; bottom: 0;
-      background: linear-gradient(90deg, #F97316, #FB923C);
-      width: 0%;
-      transition: width 0.05s linear;
-      border-radius: 22px;
-    }
-
-    /* VIDEO 4: RADAR CHECKOUT PULSE */
-    .radar-pulse-ring {
-      position: absolute;
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      border: 2px solid #8B5CF6;
-      animation: radarExpand 1.4s infinite ease-out;
-    }
-    @keyframes radarExpand {
-      0% { transform: scale(0.8); opacity: 1; }
-      100% { transform: scale(1.6); opacity: 0; }
     }
 
     /* Hero Balance Card */
@@ -1187,6 +1000,12 @@
     </div>
   </header>
 
+  <!-- Güncellik notu: panel bayatladığında (uygulamadan silinen özellikleri hâlâ gösteriyorsa)
+       bu tarihin fark edilmesi için. Panel bir sonraki gerçek revizyonda bu tarihi günceller. -->
+  <div style="background: #0F2038; border-bottom: 1px solid rgba(0, 208, 132, 0.3); color: #94A3B8; font-size: 12px; padding: 6px 24px; text-align: center;">
+    ℹ️ Bu panel <strong style="color:#00D084;">29 Eylül 2026</strong> itibarıyla gerçek uygulama koduna (moneytrace/lib) göre güncellendi — silinen bileşenler (K7) simülatörden kaldırıldı, İçerik/Metinler sekmesi Supabase'e bağlandı.
+  </div>
+
   <!-- Main Workspace -->
   <main>
     <!-- Left Admin Controls -->
@@ -1225,6 +1044,9 @@
         </button>
         <button class="tab-btn" onclick="switchTab('json', this)">
           💻 Canlı JSON
+        </button>
+        <button class="tab-btn" onclick="switchTab('content', this)">
+          📝 İçerik / Metinler
         </button>
       </div>
 
@@ -1605,57 +1427,12 @@
         <div class="panel-card">
           <div class="panel-header">
             <div>
-              <div class="panel-title">🎬 Video Mikro-Etkileşim Laboratuvarı</div>
-              <div class="panel-desc">Gönderdiğiniz 5 referans video ve görseldeki animasyonları sağdaki canlı telefonda anında tetikleyip deneyimleyin.</div>
+              <div class="panel-title">🎬 Mikro-Etkileşim Laboratuvarı</div>
+              <div class="panel-desc">Uygulamada gerçekten var olan bileşenleri sağdaki canlı telefonda tetikleyip deneyimleyin. (2026-09-29: Shakuro Dynamic Island, Better Sleep in-app kartı, günlük seri modalı, morflanan yükleme/paylaşım ve radar ödeme efektleri K7 kararıyla uygulamadan kaldırıldığı için buradan da kaldırıldı — bkz. panel üstündeki güncellik notu.)</div>
             </div>
           </div>
 
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;">
-            <!-- Trigger 1: Shakuro Dynamic Island -->
-            <div class="filter-box" style="border-left: 3px solid #00D084;">
-              <div style="font-size: 13px; font-weight: 800; color: #00D084; margin-bottom: 4px;">🏝️ Shakuro Dynamic Island</div>
-              <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">Üst ada hizasında yüzen pitch-black hap. Tıklayınca %20-25 açılır, yukarı/aşağı kaydırınca kapanır.</div>
-              <button class="btn btn-success" style="width: 100%;" onclick="triggerShakuroIsland()">
-                Adada Göster & Aç
-              </button>
-            </div>
-
-            <!-- Trigger 2: Better Sleep Branded Modal -->
-            <div class="filter-box" style="border-left: 3px solid #8B5CF6;">
-              <div style="font-size: 13px; font-weight: 800; color: #A78BFA; margin-bottom: 4px;">📱 Better Sleep In-App Kartı (%25)</div>
-              <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">Alttan çıkan branded mor cam kart. Dizel/benzin vs elektrikli araç bakım tasarrufu sunar.</div>
-              <button class="btn btn-primary" style="width: 100%;" onclick="triggerBrandedModal()">
-                Alttan Kartı Aç (%25)
-              </button>
-            </div>
-
-            <!-- Trigger 3: Daily Streak Flame -->
-            <div class="filter-box" style="border-left: 3px solid #EA580C;">
-              <div style="font-size: 13px; font-weight: 800; color: #FB923C; margin-bottom: 4px;">🔥 Günlük Seri (Video 1)</div>
-              <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">29 -> 30 gün tasarruf alev sayacı, haftalık takvim baloncukları ve kutlama modalı.</div>
-              <button class="btn" style="width: 100%; background: #EA580C; color: white;" onclick="triggerStreakModal()">
-                Seri Kutusunu Patlat 🔥
-              </button>
-            </div>
-
-            <!-- Trigger 4: Morphing File Upload -->
-            <div class="filter-box" style="border-left: 3px solid #F59E0B;">
-              <div style="font-size: 13px; font-weight: 800; color: #FBBF24; margin-bottom: 4px;">📁 Morflanan Yükle (Video 3)</div>
-              <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">Butondan "Uploading..." dolum kapsülüne, ardından "✓ Tamamlandı" hapına dönüşüm.</div>
-              <button class="btn" style="width: 100%; background: #F59E0B; color: #78350F; font-weight: 800;" onclick="triggerMorphUpload()">
-                Dosya Yükleme Morfu Oynat
-              </button>
-            </div>
-
-            <!-- Trigger 5: Radar Payment Checkout -->
-            <div class="filter-box" style="border-left: 3px solid #6366F1;">
-              <div style="font-size: 13px; font-weight: 800; color: #818CF8; margin-bottom: 4px;">🟣 Radar Ödeme Doğrulama (Video 4)</div>
-              <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">Neon radar halkaları, %11 -> %68 -> %96 doğrulama ve yeşil onay dalgası.</div>
-              <button class="btn" style="width: 100%; background: #6366F1; color: white;" onclick="triggerRadarCheckout()">
-                Radar Nabzını Başlat
-              </button>
-            </div>
-
             <!-- Trigger 6: Floating Capsule Nav Bar (Video 5) -->
             <div class="filter-box" style="border-left: 3px solid #0052FF;">
               <div style="font-size: 13px; font-weight: 800; color: #38BDF8; margin-bottom: 4px;">💊 Yüzen Kapsül Alt Menü (Video 5)</div>
@@ -1665,30 +1442,12 @@
               </button>
             </div>
 
-            <!-- Trigger 7: Morphing Share Button (Video 2) -->
-            <div class="filter-box" style="border-left: 3px solid #10B981;">
-              <div style="font-size: 13px; font-weight: 800; color: #34D399; margin-bottom: 4px;">📤 Morflanan Paylaşım & İndir (Video 2)</div>
-              <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">%0 -> %100 dolum çemberinden WhatsApp, AirDrop ve Link kopyalama haplarına açılım.</div>
-              <button class="btn btn-success" style="width: 100%;" onclick="triggerMorphShare()">
-                Paylaşım Morfunu Oynat
-              </button>
-            </div>
-
             <!-- Trigger 8: Pulse Metric Badge -->
             <div class="filter-box" style="border-left: 3px solid #00D084;">
               <div style="font-size: 13px; font-weight: 800; color: #00D084; margin-bottom: 4px;">🟢 Canlı Radar Nabız Rozeti (Pulse Metric)</div>
               <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">Net fark ve bakiye göstergesinde genişleyen neon radar aurası ve canlı nokta.</div>
               <button class="btn" style="width: 100%; background: #0C0E14; border: 1.5px solid #00D084; color: #00D084; font-weight: 800;" onclick="triggerPulseBadge()">
                 Canlı Nabız Aurasını Vurgula
-              </button>
-            </div>
-
-            <!-- Trigger 9: Confetti Milestone Burst -->
-            <div class="filter-box" style="border-left: 3px solid #EC4899;">
-              <div style="font-size: 13px; font-weight: 800; color: #F472B6; margin-bottom: 4px;">🎉 Hedef & Seri Konfeti Patlaması</div>
-              <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">Hedef tamamlama ve 30 günlük tasarruf serisinde patlayan 36 renkli konfeti parçacığı.</div>
-              <button class="btn" style="width: 100%; background: linear-gradient(135deg, #EC4899, #8B5CF6); color: white; font-weight: 800;" onclick="triggerConfettiBurst()">
-                Kutlama Konfetisini Patlat 🎊
               </button>
             </div>
 
@@ -2043,6 +1802,48 @@
           <pre class="json-code" id="json-viewer"></pre>
         </div>
       </div>
+
+      <!-- TAB: İÇERİK / METİNLER (Canlı CMS — GÖREV 1'de kurulan public.app_content tablosu) -->
+      <div id="tab-content" class="tab-content">
+        <div class="panel-card">
+          <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <div class="panel-title">📝 Uygulama İçeriği / Metinleri (Canlı, Supabase)</div>
+              <div class="panel-desc">
+                Burada değiştirdiğin metinler uygulamaya YENİ BİR DERLEME GEREKMEDEN ulaşır: uygulama açılışta
+                <code>app_content</code> tablosunu arka planda çeker ve önbelleğe yazar (bkz. AppContentService).
+                Satırlar Supabase'den doğrudan (herkese açık SELECT ile) okunur; "Kaydet" ise doğrudan
+                değil, <code>admin-update-content</code> Edge Function'ı üzerinden ve bir yönetici şifresiyle yazar
+                (service-role anahtarı tarayıcıya asla gömülmez).
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button class="btn btn-ghost" style="font-size: 12px; padding: 6px 12px;" onclick="loadAppContent()">
+                🔄 Supabase'den Yenile
+              </button>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 12px;">
+            <input type="text" id="content-search" class="filter-select" placeholder="Anahtar veya metin ara..." oninput="renderAppContentTable()" style="flex: 1; min-width: 200px;">
+            <select id="content-category-filter" class="filter-select" onchange="renderAppContentTable()" style="min-width: 160px;">
+              <option value="ALL">Tüm Kategoriler</option>
+            </select>
+            <input type="password" id="admin-secret-input" class="filter-select" placeholder="Yönetici şifresi (kaydetmek için)" style="min-width: 220px;" autocomplete="off">
+          </div>
+
+          <div id="content-status" style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">Yükleniyor…</div>
+
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr><th style="width: 18%;">Anahtar</th><th style="width: 10%;">Kategori</th><th style="width: 30%;">Türkçe</th><th style="width: 30%;">İngilizce</th><th style="width: 12%;">İşlem</th></tr>
+              </thead>
+              <tbody id="content-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- RIGHT: Interactive Live Smartphone Simulator - Fully Fit & Visible -->
@@ -2070,56 +1871,9 @@
       <div class="phone-scaler" id="phone-scaler">
         <div class="phone-bezel">
           <div class="phone-screen">
-            <div class="dynamic-island" onclick="triggerShakuroIsland()" style="cursor: pointer;" title="Tıklayarak Dynamic Island Kapsülünü Açın">
-              <div class="dynamic-island-cam"></div>
-              <div style="width: 5px; height: 5px; border-radius: 50%; background: #00D084;"></div>
-            </div>
-
             <div class="phone-status-bar">
               <span>09:41</span>
               <span>5G 🔋</span>
-            </div>
-
-            <!-- SHAKURO DYNAMIC ISLAND FLOATING CAPSULE OVERLAY -->
-            <div class="shakuro-island-overlay collapsed hidden" id="sim-shakuro-island" onclick="toggleShakuroIsland()">
-              <div id="shakuro-island-content"></div>
-            </div>
-
-            <!-- BRANDED IN-APP NOTIFICATION MODAL (Better Sleep Reference - %25 Height) -->
-            <div class="branded-inapp-modal hidden" id="sim-branded-modal">
-              <div style="width: 28px; height: 3px; background: rgba(255,255,255,0.3); border-radius: 2px; margin: 0 auto 2px; cursor: pointer;" onclick="closeBrandedModal()"></div>
-              <div style="display: flex; gap: 10px; align-items: flex-start;">
-                <div style="width: 36px; height: 36px; border-radius: 12px; background: linear-gradient(135deg, #00D084, #0052FF); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,208,132,0.4);">⚡</div>
-                <div>
-                  <div style="font-size: 12px; font-weight: 800; color: white;">Elektrikli Araç Tasarruf Fırsatı!</div>
-                  <div style="font-size: 10px; color: #CBD5E1; line-height: 1.35; margin-top: 2px;">
-                    Dizel/benzinli araçların motor yağı, triger ve ağır parça masrafı elektrikli araçta yoktur. Km başına %70-80 daha ekonomiktir.
-                  </div>
-                </div>
-              </div>
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-                <span style="font-size: 10.5px; color: rgba(255,255,255,0.5); cursor: pointer;" onclick="closeBrandedModal()">Şimdilik Değil</span>
-                <button style="padding: 6px 14px; background: white; color: #0F172A; border: none; border-radius: 16px; font-size: 11px; font-weight: 800; cursor: pointer;" onclick="closeBrandedModal(); showToast('Tasarruf Analizi Açıldı!');">Tasarrufu Hesapla →</button>
-              </div>
-            </div>
-
-            <!-- VIDEO 1: DAILY STREAK MODAL OVERLAY -->
-            <div class="streak-modal-overlay" id="sim-streak-modal" onclick="closeStreakModal()">
-              <div class="streak-card" onclick="event.stopPropagation()">
-                <div style="font-size: 40px;">🔥</div>
-                <div style="font-size: 38px; font-weight: 900; color: white; line-height: 1; margin: 2px 0;" id="streak-num">30</div>
-                <div style="font-size: 10.5px; font-weight: 800; color: white; letter-spacing: 0.8px;">GÜNLÜK TASARRUF SERİSİ</div>
-                <div style="display: flex; justify-content: space-around; margin: 10px 0 14px;">
-                  <span style="font-size: 9px; background: white; color: #EA580C; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">✓</span>
-                  <span style="font-size: 9px; background: white; color: #EA580C; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">✓</span>
-                  <span style="font-size: 9px; background: white; color: #EA580C; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">✓</span>
-                  <span style="font-size: 9px; background: white; color: #EA580C; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">✓</span>
-                  <span style="font-size: 9px; background: white; color: #EA580C; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">✓</span>
-                  <span style="font-size: 9px; background: white; color: #EA580C; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">✓</span>
-                  <span style="font-size: 9px; background: white; color: #EA580C; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">✓</span>
-                </div>
-                <button style="width: 100%; padding: 8px; background: white; color: #C2410C; border: none; border-radius: 12px; font-weight: 900; font-size: 11px; cursor: pointer;" onclick="closeStreakModal()">DEVAM ET</button>
-              </div>
             </div>
 
             <!-- Phone Screen Dynamic Body -->
@@ -2504,185 +2258,14 @@
 
     // ----------------------------------------------------
     // MİKRO-ETKİLEŞİM & ANİMASYON TETİKLEYİCİLERİ
+    // (2026-09-29 K7 temizliği: Shakuro Dynamic Island, Better Sleep in-app kartı, günlük seri
+    // modalı, morflanan yükleme/paylaşım kapsülleri ve radar ödeme efekti buradan kaldırıldı —
+    // bunlara karşılık gelen dynamic_island_capsule.dart, in_app_notification_sheet.dart,
+    // daily_streak_modal.dart, streak_confetti_burst.dart, interactive_file_upload_button.dart,
+    // morphing_share_button.dart ve radar_checkout_button.dart K7 kararıyla uygulamadan silindi.
+    // Aşağıdaki iki tetikleyici GERÇEKTEN VAR: floating_capsule_nav_bar.dart ve
+    // morphing_segmented_bar.dart uygulamada hâlâ kullanılıyor.)
     // ----------------------------------------------------
-    let isShakuroExpanded = false;
-
-    function renderShakuroContent() {
-      const el = document.getElementById('shakuro-island-content');
-      if (!el) return;
-      if (!isShakuroExpanded) {
-        el.innerHTML = `
-          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span style="background: #00D084; color: #064E3B; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800;">⚡</span>
-              <span style="color: #00D084; font-size: 11px; font-weight: 800;">EV Tasarruf:</span>
-              <span style="color: white; font-size: 11px; font-weight: 600;">%70 Daha Düşük Bakım</span>
-            </div>
-            <span style="font-size: 10px; color: #94A3B8; background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 8px;">İncele ↓</span>
-          </div>
-        `;
-      } else {
-        el.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <span style="font-size: 9.5px; font-weight: 800; color: #00D084; background: rgba(0,208,132,0.18); padding: 2px 6px; border-radius: 6px; border: 0.8px solid rgba(0,208,132,0.4);">AKILLI ENERJİ NÜANSI</span>
-            <div style="width: 32px; height: 3px; background: rgba(255,255,255,0.25); border-radius: 2px;"></div>
-            <span style="font-size: 12px; color: white; cursor: pointer; padding: 2px;" onclick="event.stopPropagation(); closeShakuroIsland()">✕</span>
-          </div>
-          <div style="font-size: 12px; font-weight: 800; color: white;">Elektrikli Araç Tasarrufu</div>
-          <div style="font-size: 10px; color: #CBD5E1; line-height: 1.35; margin-top: 3px;">
-            Dizel veya benzinli araçlarda motor yağı, triger, buji ve filtre masrafı bulunurken; elektrikli araçta periyodik bakım maliyeti %60-70 daha düşüktür. Evden şarj ile km maliyeti %70-80 daha ekonomiktir.
-          </div>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
-            <span style="font-size: 9px; color: rgba(255,255,255,0.4);">↑ Yukarı kaydırarak kapatın</span>
-            <button style="padding: 4px 10px; background: #00D084; color: #064E3B; border: none; border-radius: 12px; font-size: 10px; font-weight: 800; cursor: pointer;" onclick="event.stopPropagation(); showToast('Tasarruf Hesaplandı: Net ₺48.000/Yıl Tasarruf!'); closeShakuroIsland();">Detaylar →</button>
-          </div>
-        `;
-      }
-    }
-
-    function triggerShakuroIsland() {
-      const island = document.getElementById('sim-shakuro-island');
-      if (!island) return;
-      island.classList.remove('hidden');
-      isShakuroExpanded = true;
-      island.className = 'shakuro-island-overlay expanded';
-      renderShakuroContent();
-      showToast('Shakuro Dynamic Island Kapsülü Açıldı');
-    }
-
-    function toggleShakuroIsland() {
-      const island = document.getElementById('sim-shakuro-island');
-      if (!island) return;
-      isShakuroExpanded = !isShakuroExpanded;
-      island.className = `shakuro-island-overlay ${isShakuroExpanded ? 'expanded' : 'collapsed'}`;
-      renderShakuroContent();
-    }
-
-    function closeShakuroIsland() {
-      const island = document.getElementById('sim-shakuro-island');
-      if (!island) return;
-      island.classList.add('hidden');
-      isShakuroExpanded = false;
-    }
-
-    function triggerBrandedModal() {
-      const modal = document.getElementById('sim-branded-modal');
-      if (modal) {
-        modal.classList.remove('hidden');
-        showToast('Better Sleep Tarzı %25 In-App Kartı Açıldı');
-      }
-    }
-
-    function closeBrandedModal() {
-      const modal = document.getElementById('sim-branded-modal');
-      if (modal) modal.classList.add('hidden');
-    }
-
-    function triggerStreakModal() {
-      const modal = document.getElementById('sim-streak-modal');
-      const num = document.getElementById('streak-num');
-      if (modal && num) {
-        num.innerText = '29';
-        modal.classList.add('active');
-        setTimeout(() => {
-          num.innerText = '30';
-          num.style.transform = 'scale(1.2)';
-          setTimeout(() => { num.style.transform = 'scale(1)'; }, 250);
-        }, 500);
-        showToast('Tasarruf Serisi Kutlaması (29 -> 30 Gün)!');
-      }
-    }
-
-    function closeStreakModal() {
-      const modal = document.getElementById('sim-streak-modal');
-      if (modal) modal.classList.remove('active');
-    }
-
-    function triggerMorphUpload() {
-      const body = document.getElementById('mobile-screen-body');
-      if (!body) return;
-      showToast('Dosya Yükleme Butonu Morflanıyor...');
-      
-      const uploadContainer = document.createElement('div');
-      uploadContainer.className = 'morph-upload-box';
-      uploadContainer.style.margin = '10px 0';
-      uploadContainer.innerHTML = `
-        <div class="upload-progress-pill">
-          <div class="upload-progress-bar" id="sim-prog-bar"></div>
-          <span style="position: relative; z-index: 2; font-size: 11.5px; font-weight: 800; color: #78350F;" id="sim-prog-text">Uploading... %0</span>
-        </div>
-      `;
-      body.prepend(uploadContainer);
-
-      let p = 0;
-      const interval = setInterval(() => {
-        p += 15;
-        const bar = document.getElementById('sim-prog-bar');
-        const txt = document.getElementById('sim-prog-text');
-        if (bar && txt) {
-          bar.style.width = p + '%';
-          txt.innerText = `Uploading... %${p}`;
-          if (p > 50) txt.style.color = '#FFF';
-        }
-        if (p >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            uploadContainer.innerHTML = `
-              <div style="background: #0F172A; border-radius: 20px; height: 42px; display: flex; align-items: center; justify-content: center; gap: 6px; color: white; font-size: 12px; font-weight: 800;">
-                <span style="background: #10B981; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px;">✓</span>
-                Completed (Tamamlandı)
-              </div>
-            `;
-            setTimeout(() => { uploadContainer.remove(); }, 3000);
-          }, 400);
-        }
-      }, 100);
-    }
-
-    function triggerRadarCheckout() {
-      const body = document.getElementById('mobile-screen-body');
-      if (!body) return;
-      showToast('Radar Ödeme Doğrulaması Başlatıldı...');
-
-      const radarBox = document.createElement('div');
-      radarBox.style.background = '#0F172A';
-      radarBox.style.borderRadius = '16px';
-      radarBox.style.padding = '18px 12px';
-      radarBox.style.margin = '10px 0';
-      radarBox.style.textAlign = 'center';
-      radarBox.style.position = 'relative';
-      radarBox.style.border = '1px solid rgba(139, 92, 246, 0.4)';
-      radarBox.innerHTML = `
-        <div style="position: relative; width: 70px; height: 70px; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
-          <div class="radar-pulse-ring"></div>
-          <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #8B5CF6, #6D28D9); display: flex; align-items: center; justify-content: center; font-size: 22px; color: white; box-shadow: 0 0 16px #8B5CF6;">💳</div>
-        </div>
-        <div style="color: #94A3B8; font-size: 11px; margin-top: 10px;" id="radar-status">İşlem Doğrulanıyor...</div>
-        <div style="color: #8B5CF6; font-size: 16px; font-weight: 900; margin-top: 2px;" id="radar-pct">%11</div>
-      `;
-      body.prepend(radarBox);
-
-      setTimeout(() => {
-        const s = document.getElementById('radar-status');
-        const p = document.getElementById('radar-pct');
-        if (s && p) { s.innerText = 'Güvenlik Protokolü...'; p.innerText = '%68'; }
-      }, 500);
-
-      setTimeout(() => {
-        const s = document.getElementById('radar-status');
-        const p = document.getElementById('radar-pct');
-        if (s && p) { s.innerText = 'Güvenli Bağlantı...'; p.innerText = '%96'; }
-      }, 1000);
-
-      setTimeout(() => {
-        radarBox.innerHTML = `
-          <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(16, 185, 129, 0.2); border: 2px solid #10B981; color: #10B981; font-size: 24px; font-weight: 900; display: flex; align-items: center; justify-content: center; margin: 0 auto;">✓</div>
-          <div style="color: white; font-size: 13px; font-weight: 800; margin-top: 6px;">İşlem Başarıyla Doğrulandı</div>
-          <div style="color: #10B981; font-size: 14px; font-weight: 900; margin-top: 2px;">₺3.500,00 Kaydedildi</div>
-        `;
-        setTimeout(() => { radarBox.remove(); }, 3000);
-      }, 1600);
-    }
 
     function triggerFloatingCapsule() {
       const nav = document.getElementById('sim-bottom-nav');
@@ -2694,47 +2277,6 @@
         nav.style.transform = 'translateY(0) scale(1)';
         nav.style.boxShadow = '0 12px 28px rgba(0, 0, 0, 0.6), 0 0 16px rgba(0, 82, 255, 0.2)';
       }, 600);
-    }
-
-    function triggerMorphShare() {
-      const body = document.getElementById('mobile-screen-body');
-      if (!body) return;
-      showToast('Morflayan Paylaşım Butonu İlerlemesi Başlatıldı...');
-      const shareBox = document.createElement('div');
-      shareBox.style.cssText = 'background: #0F172A; border: 1.5px solid #10B981; border-radius: 20px; padding: 14px; margin: 10px 0; text-align: center;';
-      shareBox.innerHTML = `
-        <div style="font-size: 11px; color: #94A3B8; font-weight: 700;">RAPOR HAZIRLANIYOR</div>
-        <div style="font-size: 18px; font-weight: 900; color: #10B981; margin: 6px 0;" id="sim-share-pct">%0</div>
-        <div style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
-          <div id="sim-share-bar" style="height: 100%; width: 0%; background: #10B981; transition: width 0.1s;"></div>
-        </div>
-      `;
-      body.prepend(shareBox);
-
-      let pct = 0;
-      const t = setInterval(() => {
-        pct += 20;
-        const elPct = document.getElementById('sim-share-pct');
-        const elBar = document.getElementById('sim-share-bar');
-        if (elPct && elBar) {
-          elPct.innerText = `%${pct}`;
-          elBar.style.width = `${pct}%`;
-        }
-        if (pct >= 100) {
-          clearInterval(t);
-          setTimeout(() => {
-            shareBox.innerHTML = `
-              <div style="font-size: 12px; font-weight: 800; color: white; margin-bottom: 8px;">✓ Rapor Hazır! Paylaşın:</div>
-              <div style="display: flex; justify-content: center; gap: 6px;">
-                <span style="background: #22C55E; color: white; padding: 5px 10px; border-radius: 12px; font-size: 10px; font-weight: 800; cursor: pointer;">WhatsApp</span>
-                <span style="background: #0284C7; color: white; padding: 5px 10px; border-radius: 12px; font-size: 10px; font-weight: 800; cursor: pointer;">AirDrop</span>
-                <span style="background: rgba(255,255,255,0.1); color: white; padding: 5px 10px; border-radius: 12px; font-size: 10px; font-weight: 800; cursor: pointer;">Kopyala</span>
-              </div>
-            `;
-            setTimeout(() => { shareBox.remove(); }, 3500);
-          }, 400);
-        }
-      }, 120);
     }
 
     function triggerPulseBadge() {
@@ -2752,29 +2294,6 @@
       `;
       body.prepend(pulseBox);
       setTimeout(() => { pulseBox.remove(); }, 3200);
-    }
-
-    function triggerConfettiBurst() {
-      showToast('🎉 Tebrikler! 30 Günlük Tasarruf Rozeti Açıldı 🎊');
-      const screen = document.querySelector('.phone-screen');
-      if (!screen) return;
-      const colors = ['#F59E0B', '#10B981', '#3B82F6', '#EC4899', '#8B5CF6', '#F43F5E'];
-      for (let i = 0; i < 28; i++) {
-        const c = document.createElement('div');
-        const size = Math.floor(Math.random() * 8) + 6;
-        const color = colors[Math.floor(Math.random() * colors.length)];
-        const left = Math.floor(Math.random() * 80) + 10;
-        const top = Math.floor(Math.random() * 50) + 25;
-        c.style.cssText = `position: absolute; width: ${size}px; height: ${Math.floor(size * 0.6)}px; background: ${color}; border-radius: 2px; left: ${left}%; top: ${top}%; z-index: 100; opacity: 1; transform: rotate(${Math.random() * 360}deg); transition: all 1.2s cubic-bezier(0.25, 1, 0.5, 1);`;
-        screen.appendChild(c);
-
-        setTimeout(() => {
-          c.style.transform = `translate(${(Math.random() - 0.5) * 120}px, ${Math.random() * 140 + 40}px) rotate(${Math.random() * 720}deg)`;
-          c.style.opacity = '0';
-        }, 30);
-
-        setTimeout(() => { c.remove(); }, 1300);
-      }
     }
 
     function triggerMorphSegmented() {
@@ -2889,7 +2408,7 @@
               <div class="mobile-title">Genel Bakış</div>
               <div class="mobile-subtitle">Eylül 2026 Dönemi</div>
             </div>
-            <div style="width: 28px; height: 28px; border-radius: 50%; background: #1E293B; display: flex; align-items: center; justify-content: center; font-size: 13px; cursor: pointer;" onclick="triggerShakuroIsland()" title="Akıllı Tasarruf Bildirimini Aç">🔔</div>
+            <div style="width: 28px; height: 28px; border-radius: 50%; background: #1E293B; display: flex; align-items: center; justify-content: center; font-size: 13px; cursor: pointer;" onclick="showToast('Bildirimler (gerçek uygulama: notifications_sheet.dart)')" title="Bildirimler">🔔</div>
           </div>
 
           <!-- Balance Hero Card -->
@@ -2932,22 +2451,6 @@
               <div class="mobile-subtitle">Garaj & Gayrimenkul Portföyü</div>
             </div>
             <button class="btn btn-primary" style="padding: 4px 8px; font-size: 11px;" onclick="showToast('Manuel Araç Ekleme Modalı Açıldı')">+ Manuel Ekle</button>
-          </div>
-
-          <div class="smart-insight-banner ${isBannerDismissed ? 'dismissed' : ''}" id="sim-smart-banner" onclick="dismissSmartBanner()">
-            <div class="drag-handle"></div>
-            <div class="insight-content">
-              <div class="insight-icon-box">⚡</div>
-              <div>
-                <div class="insight-title">
-                  <span>Elektrikli Araç Analizi</span>
-                  <span style="font-size: 10px; color: #94A3B8;">✕</span>
-                </div>
-                <div class="insight-text">
-                  Dizel Megane aracınızın yıllık bakım ve yakıtı ₺42.000 tutarken; elektrikli alternatifi yılda ₺11.500 tüketmektedir. Net tasarruf: ₺30.500 / yıl.
-                </div>
-              </div>
-            </div>
           </div>
 
           <div class="mobile-item-card" style="border-radius: ${btn.border_radius}px; border-left: 4px solid #F59E0B;">
@@ -3021,6 +2524,11 @@
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       el.classList.add('active');
       document.getElementById(`tab-${tabId}`).classList.add('active');
+      // İçerik/Metinler sekmesi ilk açıldığında (veya her seferinde tazelemek istersen "Yenile"
+      // butonu var) Supabase'den bir kerelik çeker.
+      if (tabId === 'content' && !appContentLoadedOnce) {
+        loadAppContent();
+      }
     }
 
     function updateCleanMode(isClean) {
@@ -3464,6 +2972,130 @@
       a.click();
       a.remove();
       showToast(`${obj.template_name} JSON Olarak İndirildi`);
+    }
+
+    // ----------------------------------------------------
+    // İÇERİK / METİNLER (CANLI CMS) — GÖREV 1'de kurulan public.app_content tablosu
+    // ----------------------------------------------------
+    // Bu iki değer gizli değil: mobil uygulamanın kendisi de aynı publishable key ile Supabase'e
+    // bağlanıyor (bkz. moneytrace/lib/core/config/supabase_config.dart). RLS `app_content` için
+    // herkese SELECT açık olduğundan bu anahtarla doğrudan okunabilir; YAZMA bu anahtarla asla
+    // yapılmaz (RLS reddeder) — yazma admin-update-content Edge Function'ı üzerinden gider.
+    const SUPABASE_URL = 'https://oudxswtadqurmlnvcjyc.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91ZHhzd3RhZHF1cm1sbnZjanljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxODMyODUsImV4cCI6MjEwNTc1OTI4NX0.tWY6PfnsRLIc-q5h2UGhC53BeEQJ_CHdcCtsl4dwkSo';
+
+    let appContentRows = [];
+    let appContentLoadedOnce = false;
+
+    async function loadAppContent() {
+      const statusEl = document.getElementById('content-status');
+      statusEl.textContent = 'Supabase\'den çekiliyor…';
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/app_content?select=key,tr,en,category,updated_at&order=category.asc,key.asc`, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const rows = await res.json();
+        appContentRows = rows;
+        appContentLoadedOnce = true;
+
+        // Kategori filtresini doldur
+        const catSelect = document.getElementById('content-category-filter');
+        const cats = Array.from(new Set(rows.map(r => r.category || 'general'))).sort();
+        const currentVal = catSelect.value || 'ALL';
+        catSelect.innerHTML = '<option value="ALL">Tüm Kategoriler</option>' +
+          cats.map(c => `<option value="${c}">${c}</option>`).join('');
+        catSelect.value = cats.includes(currentVal) ? currentVal : 'ALL';
+
+        statusEl.textContent = `${rows.length} satır yüklendi (Supabase, canlı).`;
+        renderAppContentTable();
+      } catch (e) {
+        statusEl.textContent = `Yüklenemedi: ${e.message}. (Tablo henüz uygulanmamış olabilir — bkz. supabase/migrations/20260929120000_app_content_cms.sql)`;
+        showToast('İçerik yüklenemedi: ' + e.message);
+      }
+    }
+
+    function renderAppContentTable() {
+      const tbody = document.getElementById('content-tbody');
+      const search = (document.getElementById('content-search')?.value || '').toLowerCase().trim();
+      const catFilter = document.getElementById('content-category-filter')?.value || 'ALL';
+
+      const filtered = appContentRows.filter(r => {
+        if (catFilter !== 'ALL' && (r.category || 'general') !== catFilter) return false;
+        if (!search) return true;
+        return r.key.toLowerCase().includes(search) ||
+          (r.tr || '').toLowerCase().includes(search) ||
+          (r.en || '').toLowerCase().includes(search);
+      });
+
+      tbody.innerHTML = '';
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color: var(--text-muted); padding: 18px;">Eşleşen satır yok.</td></tr>';
+        return;
+      }
+
+      filtered.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>
+            <div class="content-row-key">${row.key}</div>
+            <div style="font-size: 9.5px; color: var(--text-muted); margin-top: 3px;">${row.updated_at ? new Date(row.updated_at).toLocaleString('tr-TR') : ''}</div>
+          </td>
+          <td><span class="content-row-category">${row.category || 'general'}</span></td>
+          <td><textarea class="content-edit-textarea" data-field="tr" data-key="${row.key}" oninput="this.classList.add('dirty')">${row.tr || ''}</textarea></td>
+          <td><textarea class="content-edit-textarea" data-field="en" data-key="${row.key}" oninput="this.classList.add('dirty')">${row.en || ''}</textarea></td>
+          <td><button class="btn btn-success" style="font-size: 11px; padding: 6px 10px; width: 100%;" onclick="saveContentRow('${row.key}')">💾 Kaydet</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    /// Kaydet: admin-update-content Edge Function'ına yönetici şifresiyle yazar. Bu fonksiyon
+    /// deploy edilene ve ADMIN_PANEL_SECRET ayarlanana kadar 404/401 döner — bu normal (bkz. rapor).
+    async function saveContentRow(key) {
+      const secret = document.getElementById('admin-secret-input').value.trim();
+      if (!secret) {
+        showToast('Önce yönetici şifresini gir.');
+        return;
+      }
+      const trEl = document.querySelector(`textarea[data-key="${key}"][data-field="tr"]`);
+      const enEl = document.querySelector(`textarea[data-key="${key}"][data-field="en"]`);
+      const row = appContentRows.find(r => r.key === key);
+      if (!trEl || !enEl || !row) return;
+
+      const payload = {
+        admin_secret: secret,
+        key,
+        tr: trEl.value,
+        en: enEl.value,
+        category: row.category || 'general',
+      };
+
+      try {
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-update-content`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+
+        trEl.classList.remove('dirty');
+        enEl.classList.remove('dirty');
+        row.tr = payload.tr;
+        row.en = payload.en;
+        row.updated_at = new Date().toISOString();
+        showToast(`"${key}" kaydedildi.`);
+      } catch (e) {
+        showToast(`Kaydedilemedi: ${e.message}`);
+      }
     }
 
     // Init Execution

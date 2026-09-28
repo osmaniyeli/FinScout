@@ -23,7 +23,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final UserProfileService _profileService = UserProfileService.instance;
   final TransactionRepository _repository = TransactionRepository();
   late TextEditingController _nameController;
-  late TextEditingController _emailController;
   late TextEditingController _budgetController;
   bool _isEditing = false;
   late Future<List<UploadedStatement>> _statementsFuture;
@@ -36,7 +35,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     final p = _profileService.profile;
     _nameController = TextEditingController(text: p?.name ?? '');
-    _emailController = TextEditingController(text: p?.email ?? '');
     final budgetTl = ((p?.monthlyBudgetCents ?? 0) / 100).toInt();
     _budgetController = TextEditingController(text: budgetTl > 0 ? budgetTl.toString() : '');
     _statementsFuture = _repository.getUploadedStatements();
@@ -45,7 +43,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _emailController.dispose();
     _budgetController.dispose();
     super.dispose();
   }
@@ -58,7 +55,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final updated = UserProfile(
       id: current?.id ?? 'default_user',
       name: _nameController.text.trim().isNotEmpty ? _nameController.text.trim() : (current?.name ?? 'Kullanıcı'),
-      email: _emailController.text.trim(),
+      // [A5] E-posta salt-okunur: giriş e-postası hesapla (Supabase Auth) tutarlı kalmalı, burada
+      // düzenlenemez. Değiştirilmek istenirse kullanıcı desteğe yazar (bkz. aşağıdaki alan notu).
+      email: current?.email ?? '',
       currency: current?.currency ?? 'TRY',
       monthlyBudgetCents: budgetCents,
       joinedAt: current?.joinedAt ?? DateTime.now(),
@@ -200,13 +199,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const Divider(height: 18),
 
-                  // E-posta / İletişim
+                  // E-posta / İletişim — salt-okunur: bu, giriş yapılan hesabın e-postasıdır ve
+                  // burada değiştirilemez (değiştirilse bile hesapla tutarsız kalırdı, bkz. [A5]).
                   _buildFieldRow(
                     label: AppStrings.get('profile_email'),
                     icon: Icons.email_outlined,
-                    child: _isEditing
-                        ? TextField(controller: _emailController, decoration: const InputDecoration(isDense: true, border: UnderlineInputBorder()))
-                        : Text(profile?.email.isNotEmpty == true ? profile!.email : 'Belirtilmedi', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          profile?.email.isNotEmpty == true ? profile!.email : 'Belirtilmedi',
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                        ),
+                        if (_isEditing) ...[
+                          const SizedBox(height: 3),
+                          const Text(
+                            'Giriş e-postanı değiştirmek için pulcratechnology@gmail.com adresine yaz.',
+                            style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                   const Divider(height: 18),
 
