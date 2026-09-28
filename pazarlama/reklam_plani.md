@@ -1,4 +1,5 @@
 > Taslak: Gemini üretti (24.09.2026), Claude denetimi aşağıda/raporda. Kullanıcı onayı bekliyor.
+> **Düzeltme notu (Claude, 29.09.2026):** Faz 4 kararı F4-03 ile "kredi kartı aidatı iadesi" anahtar kelimesi artık **yasaklı** (yanıltıcı/alakasız — ayrı bir hizmet kategorisini çağrıştırıyor). Aşağıdaki "4. Kanal Planı" bölümündeki Google Ads örneği bu kararla çelişiyor; güncel/onaylı anahtar kelime kümesi için `google_app_kampanya_notu.md`'ye bakın. Ayrıca bu belge "ilk fazda tek banka" varsayımıyla yazıldı; şu an 3 banka (Yapı Kredi, Garanti BBVA, Enpara) destekleniyor — genel plan mantığı geçerli ama banka sayısı güncel değil, bilgi amaçlı belirtilir, bölüm içerikleri değiştirilmedi.
 
 # FinScout - Reklam ve Pazarlama Planı (v3.7.0)
 
