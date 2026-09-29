@@ -232,7 +232,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _buildScaffold(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.canvasOf(context),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -273,22 +273,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      const Text(
+                      Text(
                         'FinScout',
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w900,
-                          color: AppColors.textPrimary,
+                          color: AppColors.textPrimaryOf(context),
                           letterSpacing: -0.5,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         AppStrings.get('tagline'),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textSecondary,
+                          color: AppColors.textSecondaryOf(context),
                         ),
                       ),
                     ],
@@ -421,9 +421,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardOf(context),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppColors.borderOf(context)),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0A000000),
@@ -437,16 +437,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         children: [
           Text(
             AppStrings.get('onboarding_signup_form_title'),
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary),
+                color: AppColors.textPrimaryOf(context)),
           ),
           const SizedBox(height: 4),
           Text(
             AppStrings.get('onboarding_signup_form_subtitle'),
-            style:
-                const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            style: TextStyle(
+                fontSize: 12, color: AppColors.textSecondaryOf(context)),
           ),
           const SizedBox(height: 16),
           _googleButton(),
@@ -455,32 +455,33 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           // Ad Soyad
           Text(
             AppStrings.get('onboarding_name_field_label'),
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary),
+                color: AppColors.textPrimaryOf(context)),
           ),
           const SizedBox(height: 8),
           TextField(
             controller: _nameController,
             textCapitalization: TextCapitalization.words,
+            style: TextStyle(color: AppColors.textPrimaryOf(context)),
             decoration: InputDecoration(
               hintText: AppStrings.get('onboarding_name_hint'),
               hintStyle:
                   const TextStyle(color: Color(0xFF94A3B8), fontSize: 13.5),
-              prefixIcon: const Icon(Icons.person_outline_rounded,
-                  color: AppColors.textSecondary, size: 20),
+              prefixIcon: Icon(Icons.person_outline_rounded,
+                  color: AppColors.textSecondaryOf(context), size: 20),
               filled: true,
-              fillColor: const Color(0xFFF8FAFC),
+              fillColor: AppColors.subtleFillOf(context),
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                borderSide: BorderSide(color: AppColors.borderOf(context)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                borderSide: BorderSide(color: AppColors.borderOf(context)),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -493,10 +494,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
           Text(
             AppStrings.get('onboarding_email_field_label'),
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary),
+                color: AppColors.textPrimaryOf(context)),
           ),
           const SizedBox(height: 8),
           _inputField(
@@ -545,9 +546,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardOf(context),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppColors.borderOf(context)),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0A000000),
@@ -576,17 +577,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Text(
             AppStrings.get('onboarding_signin_title'),
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 15.5,
                 fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary),
+                color: AppColors.textPrimaryOf(context)),
           ),
           const SizedBox(height: 6),
           Text(
             AppStrings.get('onboarding_signin_subtitle'),
             textAlign: TextAlign.center,
-            style: const TextStyle(
-                fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+            style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textSecondaryOf(context),
+                height: 1.4),
           ),
           const SizedBox(height: 16),
           _googleButton(),
@@ -636,7 +639,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: OutlinedButton(
         onPressed: _isLoading ? null : _signInWithGoogle,
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.textPrimary,
+          foregroundColor: AppColors.textPrimaryOf(context),
           side: const BorderSide(color: Color(0xFFCBD5E1)),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -672,17 +675,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       padding: const EdgeInsets.symmetric(vertical: 14),
       child: Row(
         children: [
-          const Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+          Expanded(child: Divider(color: AppColors.borderOf(context))),
           Flexible(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10),
               child: Text(AppStrings.get('onboarding_or_email_divider'),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      fontSize: 11.5, color: AppColors.textSecondary)),
+                  style: TextStyle(
+                      fontSize: 11.5,
+                      color: AppColors.textSecondaryOf(context))),
             ),
           ),
-          const Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+          Expanded(child: Divider(color: AppColors.borderOf(context))),
         ],
       ),
     );
@@ -698,21 +702,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       controller: controller,
       keyboardType: keyboardType,
       autocorrect: false,
+      style: TextStyle(color: AppColors.textPrimaryOf(context)),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13.5),
-        prefixIcon: Icon(icon, color: AppColors.textSecondary, size: 20),
+        prefixIcon: Icon(icon, color: AppColors.textSecondaryOf(context), size: 20),
         filled: true,
-        fillColor: const Color(0xFFF8FAFC),
+        fillColor: AppColors.subtleFillOf(context),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+          borderSide: BorderSide(color: AppColors.borderOf(context)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+          borderSide: BorderSide(color: AppColors.borderOf(context)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -729,25 +734,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardOf(context),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppColors.borderOf(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             AppStrings.get('onboarding_code_step_title'),
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary),
+                color: AppColors.textPrimaryOf(context)),
           ),
           const SizedBox(height: 4),
           Text(
             '$_codeSentTo ${AppStrings.get('onboarding_code_instructions')}',
-            style: const TextStyle(
-                fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+            style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textSecondaryOf(context),
+                height: 1.4),
           ),
           const SizedBox(height: 16),
           TextField(
@@ -758,16 +765,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             textAlign: TextAlign.center,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             onSubmitted: (_) => _verifyCode(),
-            style: const TextStyle(
-                fontSize: 24, fontWeight: FontWeight.w800, letterSpacing: 8),
+            style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 8,
+                color: AppColors.textPrimaryOf(context)),
             decoration: InputDecoration(
               counterText: '',
               hintText: '••••••••',
               filled: true,
-              fillColor: const Color(0xFFF8FAFC),
+              fillColor: AppColors.subtleFillOf(context),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                borderSide: BorderSide(color: AppColors.borderOf(context)),
               ),
             ),
           ),

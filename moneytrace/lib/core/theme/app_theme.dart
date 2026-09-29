@@ -100,6 +100,69 @@ class AppTheme {
     );
   }
 
+  /// Koyu tema — ilk dilim (bkz. görev notu): şimdilik yalnız Settings/Onboarding/
+  /// MainNavigationScaffold/DashboardScreen bu temada tam doğru görünüyor; kalan ekranlar
+  /// kapsam dışı ve koyu modda yanlış/okunmaz görünebilir (bilinen risk, raporlanmıştır).
+  static ThemeData get darkTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: AppColors.canvasDark,
+      textTheme:
+          GoogleFonts.plusJakartaSansTextTheme(ThemeData.dark().textTheme)
+              .copyWith(
+        displayLarge: GoogleFonts.plusJakartaSans(
+            fontWeight: FontWeight.w800, color: AppColors.textPrimaryDark),
+        titleLarge: GoogleFonts.plusJakartaSans(
+            fontWeight: FontWeight.w700, color: AppColors.textPrimaryDark),
+        titleMedium: GoogleFonts.plusJakartaSans(
+            fontWeight: FontWeight.w600, color: AppColors.textPrimaryDark),
+        bodyLarge: GoogleFonts.plusJakartaSans(
+            fontWeight: FontWeight.w500, color: AppColors.textPrimaryDark),
+        bodyMedium: GoogleFonts.plusJakartaSans(
+            fontWeight: FontWeight.w400, color: AppColors.textPrimaryDark),
+      ),
+      colorScheme: const ColorScheme.dark(
+        primary: AppColors.actionPrimary,
+        surface: AppColors.surfaceDark,
+        onSurface: AppColors.textPrimaryDark,
+      ),
+      cardTheme: CardThemeData(
+        color: AppColors.surfaceDark,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          side: const BorderSide(color: AppColors.borderDark, width: 1),
+        ),
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: AppColors.canvasDark,
+        elevation: 0,
+        centerTitle: false,
+        iconTheme: const IconThemeData(color: AppColors.textPrimaryDark),
+        titleTextStyle: GoogleFonts.plusJakartaSans(
+          color: AppColors.textPrimaryDark,
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        constraints: BoxConstraints(maxWidth: Breakpoints.sheet),
+        backgroundColor: AppColors.surfaceDark,
+        shape: RoundedRectangleBorder(
+          borderRadius:
+              BorderRadius.vertical(top: Radius.circular(AppRadius.sheet)),
+        ),
+      ),
+      pageTransitionsTheme: AppMotion.pageTransitionsTheme,
+      dividerTheme: const DividerThemeData(
+        color: AppColors.borderDark,
+        thickness: 1,
+        space: 1,
+      ),
+    );
+  }
+
   // 2. Finansal Rakamlar ve Tutarlar İçin Yardımcı Stil
   static TextStyle get numericStyle => GoogleFonts.jetBrainsMono(
         fontWeight: FontWeight.w600,

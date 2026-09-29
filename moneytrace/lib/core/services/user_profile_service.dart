@@ -4,6 +4,7 @@ import 'account_service.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' show ThemeMode;
 import 'package:path_provider/path_provider.dart';
 import '../database/app_database.dart';
 import '../database/repositories/transaction_repository.dart';
@@ -49,6 +50,24 @@ class UserProfile {
   /// görünen adı: 'Yapı Kredi' / 'Garanti BBVA' / 'Enpara'). null = henüz seçilmedi.
   final String? lockedInstitution;
 
+  /// Açık/Koyu tema tercihi (bkz. AppTheme.darkTheme, Ayarlar > TEMA). Varsayılan: açık.
+  final ThemeMode themeMode;
+
+  /// "İletişim İzni" (Ayarlar > Duyuru ve kampanya bildirimleri). Varsayılan: açık (mevcut
+  /// davranışla aynı). NOT: bu alan şu an yalnız YEREL bir tercih olarak saklanır; PushService
+  /// tüm duyuruları tek 'announcements' kanalından gönderiyor ve bu tercihi henüz KONTROL ETMİYOR
+  /// (sunucu tarafı entegrasyonu ayrı bir iş — bkz. push_service.dart üstündeki TODO).
+  final bool announcementsEnabled;
+
+  /// Ekstre/bordro yükleme onayı (bkz. StatementUploadSheet._ensureUploadConsent) — ilk yüklemede
+  /// bir kez gösterilir, kabul edilince burada kalıcı olarak işaretlenir ve bir daha sorulmaz.
+  final bool hasAcceptedUploadConsent;
+
+  /// Yeni hesap açılışından sonraki bir kerelik tanıtım turu (OnboardingTourController) daha
+  /// önce gösterildi mi? Uygulama tur ortasında kapanıp yeniden açılsa bile ikinci kez
+  /// tetiklenmemesi için kalıcı olarak saklanır (bkz. onboarding_tour_controller.dart).
+  final bool hasSeenOnboardingTour;
+
   UserProfile({
     required this.id,
     required this.name,
@@ -57,9 +76,20 @@ class UserProfile {
     this.monthlyBudgetCents = 0,
     required this.joinedAt,
     this.lockedInstitution,
+    this.themeMode = ThemeMode.light,
+    this.announcementsEnabled = true,
+    this.hasAcceptedUploadConsent = false,
+    this.hasSeenOnboardingTour = false,
   });
 
-  UserProfile copyWith({String? lockedInstitution}) => UserProfile(
+  UserProfile copyWith({
+    String? lockedInstitution,
+    ThemeMode? themeMode,
+    bool? announcementsEnabled,
+    bool? hasAcceptedUploadConsent,
+    bool? hasSeenOnboardingTour,
+  }) =>
+      UserProfile(
         id: id,
         name: name,
         email: email,
@@ -67,6 +97,12 @@ class UserProfile {
         monthlyBudgetCents: monthlyBudgetCents,
         joinedAt: joinedAt,
         lockedInstitution: lockedInstitution ?? this.lockedInstitution,
+        themeMode: themeMode ?? this.themeMode,
+        announcementsEnabled: announcementsEnabled ?? this.announcementsEnabled,
+        hasAcceptedUploadConsent:
+            hasAcceptedUploadConsent ?? this.hasAcceptedUploadConsent,
+        hasSeenOnboardingTour:
+            hasSeenOnboardingTour ?? this.hasSeenOnboardingTour,
       );
 
   Map<String, dynamic> toMap() => {
@@ -77,6 +113,10 @@ class UserProfile {
         'monthlyBudgetCents': monthlyBudgetCents,
         'joinedAt': joinedAt.toIso8601String(),
         'lockedInstitution': lockedInstitution,
+        'themeMode': themeMode.name,
+        'announcementsEnabled': announcementsEnabled,
+        'hasAcceptedUploadConsent': hasAcceptedUploadConsent,
+        'hasSeenOnboardingTour': hasSeenOnboardingTour,
       };
 
   factory UserProfile.fromMap(Map<String, dynamic> map) => UserProfile(
@@ -89,6 +129,15 @@ class UserProfile {
             ? DateTime.parse(map['joinedAt'])
             : DateTime.now(),
         lockedInstitution: map['lockedInstitution'] as String?,
+        themeMode: ThemeMode.values.firstWhere(
+          (m) => m.name == map['themeMode'],
+          orElse: () => ThemeMode.light,
+        ),
+        announcementsEnabled: map['announcementsEnabled'] as bool? ?? true,
+        hasAcceptedUploadConsent:
+            map['hasAcceptedUploadConsent'] as bool? ?? false,
+        hasSeenOnboardingTour:
+            map['hasSeenOnboardingTour'] as bool? ?? false,
       );
 }
 
@@ -144,6 +193,11 @@ class UserProfileService {
       ValueNotifier<UserProfile?>(null);
   final ValueNotifier<List<InAppNotificationItem>> notificationsNotifier =
       ValueNotifier([]);
+
+  /// Profilden bağımsız da okunabilsin diye ayrı bildirimci (bkz. main.dart MaterialApp.themeMode).
+  /// Profil yoksa (ör. onboarding öncesi) her zaman ThemeMode.light.
+  final ValueNotifier<ThemeMode> themeModeNotifier =
+      ValueNotifier<ThemeMode>(ThemeMode.light);
 
   UserProfile? get profile => _profile;
   bool get hasProfile => _profile != null && _profile!.name.trim().isNotEmpty;
@@ -417,6 +471,7 @@ class UserProfileService {
         if (data['profile'] != null) {
           _profile = UserProfile.fromMap(data['profile']);
           profileNotifier.value = _profile;
+          themeModeNotifier.value = _profile!.themeMode;
         }
 
         if (data['dismissed_nuances'] != null) {
@@ -465,12 +520,61 @@ class UserProfileService {
     await _persist();
   }
 
+  /// Ayarlar > TEMA'dan çağrılır. Anında uygulanır (themeModeNotifier → MaterialApp.themeMode);
+  /// profil varsa kalıcı olarak da kaydedilir (bkz. UserProfile.themeMode).
+  Future<void> setThemeMode(ThemeMode mode) async {
+    themeModeNotifier.value = mode;
+    final current = _profile;
+    if (current != null) {
+      _profile = current.copyWith(themeMode: mode);
+      profileNotifier.value = _profile;
+    }
+    await _persist();
+  }
+
+  /// Ayarlar > "İletişim İzni"'nden çağrılır. YALNIZ yerel bir tercihtir: PushService şu an
+  /// tüm duyuruları tek kanaldan gönderiyor ve bu tercihi kontrol etmiyor (bkz. UserProfile
+  /// .announcementsEnabled dokümantasyonu ve push_service.dart TODO'su). Kapatmak gerçek
+  /// bildirim akışını DURDURMAZ; yalnız kullanıcının tercihini kaydeder.
+  Future<void> setAnnouncementsEnabled(bool enabled) async {
+    final current = _profile;
+    if (current == null) return;
+    _profile = current.copyWith(announcementsEnabled: enabled);
+    profileNotifier.value = _profile;
+    await _persist();
+  }
+
   /// Ücretsiz planda kullanıcının bağlı kaldığı tek bankayı belirler/değiştirir (bkz. BankSelectionSheet).
   /// [institution]: StatementOrchestrator'ın döndürdüğü görünen ad ('Yapı Kredi' / 'Garanti BBVA' / 'Enpara').
   Future<void> setLockedInstitution(String institution) async {
     final current = _profile;
     if (current == null) return;
     _profile = current.copyWith(lockedInstitution: institution);
+    profileNotifier.value = _profile;
+    await _persist();
+  }
+
+  /// Tanıtım turu (OnboardingTourController) kalıcı olarak "gösterildi" işaretlenir. Profil henüz
+  /// yoksa bir şey yapmaz (yeni hesap akışında profil bu noktada zaten kaydedilmiş olur).
+  Future<void> markOnboardingTourSeen() async {
+    final current = _profile;
+    if (current == null) return;
+    _profile = current.copyWith(hasSeenOnboardingTour: true);
+    profileNotifier.value = _profile;
+    await _persist();
+  }
+
+  /// İlk yükleme onayı (bkz. StatementUploadSheet._ensureUploadConsent) daha önce verildi mi?
+  /// Profil henüz yoksa (kayıt akışı tamamlanmadan) false döner; onay o durumda her yükleme
+  /// denemesinde tekrar sorulur, bu da güvenli taraf (sessizce atlanmaz).
+  bool get hasAcceptedUploadConsent =>
+      _profile?.hasAcceptedUploadConsent ?? false;
+
+  /// Yükleme onayını yerelde kalıcı olarak işaretler; bir daha sorulmaz.
+  Future<void> markUploadConsentAccepted() async {
+    final current = _profile;
+    if (current == null) return;
+    _profile = current.copyWith(hasAcceptedUploadConsent: true);
     profileNotifier.value = _profile;
     await _persist();
   }
@@ -681,6 +785,7 @@ final dir = await getApplicationDocumentsDirectory();
     _monthlyUploads.clear();
     profileNotifier.value = null;
     notificationsNotifier.value = [];
+    themeModeNotifier.value = ThemeMode.light;
 
     final file = await _getStorageFile();
     if (await file.exists()) {

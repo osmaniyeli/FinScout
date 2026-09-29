@@ -149,11 +149,19 @@ class AppStrings {
       'settings_manage_sub_subtitle': 'Google Play abonelik sayfası açılır',
       'settings_privacy_policy_title': 'Gizlilik politikası',
       'settings_privacy_policy_subtitle': 'Hangi verinin nerede tutulduğu',
+      'settings_terms_title': 'Kullanım Şartları',
+      'settings_terms_subtitle': 'Uygulamayı kullanım kuralları',
+      'settings_comm_permission_title': 'İletişim izni',
+      'settings_comm_permission_subtitle':
+          'Duyuru ve kampanya bildirimleri. Bu tercih şu an yalnız cihazında kaydediliyor; sunucu tarafı gönderim entegrasyonu henüz yok.',
       'settings_delete_account_title': 'Hesap ve veri silme',
       'settings_delete_account_subtitle':
           'Uygulamadan ya da e-postayla silme yolları',
       'settings_licenses_title': 'Açık kaynak lisansları',
       'settings_licenses_subtitle': 'Uygulamada kullanılan kütüphaneler',
+      'settings_theme_header': 'TEMA',
+      'settings_theme_light': 'Açık',
+      'settings_theme_dark': 'Koyu',
       'settings_language_note':
           'Artık Ana Sayfa, Profil, Bildirimler, Ayarlar, alt gezinme, Kayıt Ol/Giriş Yap ekranları ve belge yükleme bu dile geçer; uygulamanın geri kalanı Türkçe kalır.',
       'settings_bank_header': 'BANKA',
@@ -316,11 +324,19 @@ class AppStrings {
       'settings_manage_sub_subtitle': 'Opens the Google Play subscription page',
       'settings_privacy_policy_title': 'Privacy policy',
       'settings_privacy_policy_subtitle': 'What data is kept and where',
+      'settings_terms_title': 'Terms of Service',
+      'settings_terms_subtitle': 'Rules for using the app',
+      'settings_comm_permission_title': 'Communication permission',
+      'settings_comm_permission_subtitle':
+          'Announcement and campaign notifications. This preference is currently saved on this device only; server-side delivery integration does not exist yet.',
       'settings_delete_account_title': 'Delete account and data',
       'settings_delete_account_subtitle':
           'Ways to delete from the app or by email',
       'settings_licenses_title': 'Open-source licenses',
       'settings_licenses_subtitle': 'Libraries used in the app',
+      'settings_theme_header': 'THEME',
+      'settings_theme_light': 'Light',
+      'settings_theme_dark': 'Dark',
       'settings_language_note':
           'Home, Profile, Notifications, Settings, bottom navigation, the Sign Up/Sign In screens and document upload now switch language; the rest of the app stays in Turkish.',
       'settings_bank_header': 'BANK',

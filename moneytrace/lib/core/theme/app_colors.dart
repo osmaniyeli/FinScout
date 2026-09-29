@@ -3,6 +3,38 @@ import '../config/remote_config_service.dart';
 
 /// "Bright & Crystal FinTech" Resmi Renk Paleti (Statik ve Dinamik Yönetilebilir)
 class AppColors {
+  // --- Koyu tema duyarlı getter'lar (bkz. AppTheme.darkTheme) ---
+  // Yalnız koyu temaya taşınan ekranlarda (Settings/Onboarding/Nav/Dashboard) kullanılır;
+  // sabit AppColors.* alanları (aşağıda) diğer tüm ekranlarda değişmeden kalır.
+  static bool isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
+  static Color canvasOf(BuildContext context) =>
+      isDark(context) ? canvasDark : canvasLight;
+
+  static Color surfaceOf(BuildContext context) =>
+      isDark(context) ? surfaceDark : surfaceLight;
+
+  static Color borderOf(BuildContext context) =>
+      isDark(context) ? borderDark : borderLight;
+
+  static Color textPrimaryOf(BuildContext context) =>
+      isDark(context) ? textPrimaryDark : textPrimary;
+
+  static Color textSecondaryOf(BuildContext context) =>
+      isDark(context) ? textSecondaryDark : textSecondary;
+
+  static Color textMutedOf(BuildContext context) =>
+      isDark(context) ? textMutedDark : textMuted;
+
+  /// Açık temada beyaz, koyu temada koyu yüzey — kart/çip/ikon kutusu zeminleri için.
+  static Color cardOf(BuildContext context) =>
+      isDark(context) ? surfaceDark : Colors.white;
+
+  /// Hafif dolgulu zemin (ör. dil/banka seçim kartları: açık temada #F8FAFC).
+  static Color subtleFillOf(BuildContext context) =>
+      isDark(context) ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC);
+
   // Dinamik Yönetici Paleti Getters
   static Color get dynamicPrimary {
     try {

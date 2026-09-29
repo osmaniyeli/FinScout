@@ -6,6 +6,19 @@ Format, [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) standardına da
 
 ---
 
+## [3.13.0] - 2026-09-29
+
+Rakip uygulama (Monay) incelemesinden alınan, kullanıcının onayladığı 6 somut iyileştirme.
+
+### Yenilikler
+- **Koyu tema** (ilk dilim: Ayarlar, Onboarding, Navigasyon, Ana Sayfa) + Ayarlar'da kompakt Tema/Dil kartı.
+- **Kayıt sonrası tanıtım turu**: gerçek yükleme/hızlı işlem butonlarına ve alt sekmelere işaret eden 5 adım; TalkBack açıkken otomatik erişilebilir liste moduna geçer. Yalnız yeni hesaplarda, bir kez.
+- **Abonelik ekranında paket karşılaştırma tablosu** (Ücretsiz/Bireysel/Aile — gerçek kota ve özellik farklarıyla).
+- **Kupon kodu alanı** — Google Play'in kendi promosyon kodu sayfasına yönlendirir (kendi doğrulama sistemimiz yok, Play politikasına uygun).
+- **Ekstre/bordro ilk yüklemede tek seferlik onay kutusu** (sonraki yüklemelerde bir daha sorulmaz).
+- **Varlıklar ekranında hesaplama asistanı** — girilen miktarın (gram altın/çeyrek/USD/EUR) canlı kurla TL karşılığını gösterir.
+- Ayarlar'a **Kullanım Şartları** bağlantısı ve **İletişim İzni** tercihi eklendi (İletişim İzni şu an yalnız cihazda saklanıyor; sunucu tarafı bildirim filtrelemesi henüz yok — ilerideki bir iş).
+
 ## [3.12.0] - 2026-09-29
 
 ### Yenilikler

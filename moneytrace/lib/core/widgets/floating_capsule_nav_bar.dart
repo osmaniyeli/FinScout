@@ -13,6 +13,7 @@ class FloatingCapsuleNavBar extends StatelessWidget {
   final Color activeIndicatorColor;
   final Color activeContentColor;
   final Color inactiveColor;
+  final Color borderColor;
 
   const FloatingCapsuleNavBar({
     super.key,
@@ -23,6 +24,7 @@ class FloatingCapsuleNavBar extends StatelessWidget {
     this.activeIndicatorColor = const Color(0xFF2563EB), // iBank FinTech Kobalt
     this.activeContentColor = Colors.white,
     this.inactiveColor = const Color(0xFF94A3B8), // Muted Slate
+    this.borderColor = const Color(0xFFE2E8F0),
   });
 
   @override
@@ -30,8 +32,8 @@ class FloatingCapsuleNavBar extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: backgroundColor,
-        border: const Border(
-          top: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+        border: Border(
+          top: BorderSide(color: borderColor, width: 1),
         ),
         boxShadow: const [
           BoxShadow(
@@ -51,7 +53,7 @@ class FloatingCapsuleNavBar extends StatelessWidget {
               final item = items[index];
               final isSelected = index == currentIndex;
 
-              return Expanded(
+              final navItem = Expanded(
                 child: InkWell(
                   onTap: () => onTap(index),
                   borderRadius: BorderRadius.circular(20),
@@ -97,6 +99,11 @@ class FloatingCapsuleNavBar extends StatelessWidget {
                   ),
                 ),
               );
+              // Tanıtım turu (OnboardingTourController) belirli bir sekmeye işaret etmek isterse
+              // (ör. Cüzdan/Analiz/Varlıklar) item.anchorKey ile bu widget'ı bulur.
+              return item.anchorKey == null
+                  ? navItem
+                  : KeyedSubtree(key: item.anchorKey, child: navItem);
             }),
           ),
         ),
@@ -109,8 +116,12 @@ class FloatingCapsuleNavItem {
   final IconData icon;
   final String label;
 
+  /// Bu öğeye dış bir bileşenin (ör. tanıtım turu) işaret edebilmesi için isteğe bağlı anahtar.
+  final GlobalKey? anchorKey;
+
   const FloatingCapsuleNavItem({
     required this.icon,
     required this.label,
+    this.anchorKey,
   });
 }

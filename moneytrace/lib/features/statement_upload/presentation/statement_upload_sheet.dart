@@ -110,6 +110,11 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
         return; // Kullanıcı seçim yapmadı ya da sayfa kapandı
       }
 
+      // İlk yüklemede tek seferlik onay; kabul edilince yerelde kalıcı olarak işaretlenir ve
+      // sonraki yüklemelerde bir daha sorulmaz (bkz. UserProfileService.hasAcceptedUploadConsent).
+      if (!await _ensureUploadConsent()) return;
+      if (!mounted) return;
+
       if (result.files.length > 1) {
         await _processBatch(result.files);
         return;
@@ -416,6 +421,54 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
         if (password == null) return null;
       }
     }
+  }
+
+  /// İlk yüklemede tek seferlik kısa onay kutusu; [UserProfileService.hasAcceptedUploadConsent]
+  /// true olduktan sonra bir daha hiç gösterilmez. Onaylanmadan (checkbox işaretlenip "Devam et"
+  /// denmeden) yükleme akışı devam etmez.
+  Future<bool> _ensureUploadConsent() async {
+    if (UserProfileService.instance.hasAcceptedUploadConsent) return true;
+    if (!mounted) return false;
+    var checked = false;
+    final accepted = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text('Belge Gizliliği',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CheckboxListTile(
+                value: checked,
+                onChanged: (v) => setDialogState(() => checked = v ?? false),
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
+                title: const Text(
+                  "Ekstre/bordro PDF'im yalnız bu cihazda okunur, sunucuya yüklenmez. Anladım.",
+                  style: TextStyle(fontSize: 12.5, color: AppColors.textPrimary),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Vazgeç')),
+            ElevatedButton(
+                onPressed: checked ? () => Navigator.pop(ctx, true) : null,
+                child: const Text('Devam et')),
+          ],
+        ),
+      ),
+    );
+    if (accepted == true) {
+      await UserProfileService.instance.markUploadConsentAccepted();
+      return true;
+    }
+    return false;
   }
 
   Future<String?> _askPdfPassword({required bool wrong}) {

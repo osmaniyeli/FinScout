@@ -5,6 +5,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/models/market_news_item.dart';
 import '../../../../core/services/market_news_service.dart';
+import '../../../../core/services/live_market_service.dart';
+import '../../../../core/utils/currency_normalizer.dart';
+import '../../../../core/utils/thousands_input_formatter.dart';
 import '../../../../core/widgets/remote_feature_gate.dart';
 
 class MarketNewsSection extends StatefulWidget {
@@ -19,10 +22,35 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
   bool _isLoading = false;
   List<MarketNewsItem> _news = [];
 
+  // Hesaplama asistanı: LiveMarketService'ten (uydurma/sabit değer değil) gerçek canlı kurla anlık dönüşüm.
+  final LiveMarketService _marketService = LiveMarketService.instance;
+  final TextEditingController _calcController = TextEditingController();
+  Map<String, MarketTicker> _calcTickers = {};
+  String _calcSymbol = 'ALTIN_GR';
+
+  static const List<(String, String)> _calcOptions = [
+    ('ALTIN_GR', 'Gram Altın'),
+    ('CEYREK', 'Çeyrek Altın'),
+    ('USD', 'USD'),
+    ('EUR', 'EUR'),
+  ];
+
   @override
   void initState() {
     super.initState();
     _loadNews();
+    _loadCalcRates();
+  }
+
+  @override
+  void dispose() {
+    _calcController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadCalcRates() async {
+    final rates = await _marketService.fetchLiveRates();
+    if (mounted) setState(() => _calcTickers = rates);
   }
 
   Future<void> _loadNews({bool forceRefresh = false}) async {
@@ -50,6 +78,9 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _buildCalculator(),
+          const SizedBox(height: 16),
+
           // Başlık + yenile
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -143,6 +174,98 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
                 return _buildNewsCard(context, item);
               },
             ),
+        ],
+      ),
+    );
+  }
+
+  /// Basit hesaplama asistanı: kullanıcı miktar girer, LiveMarketService'in GERÇEK canlı kuruyla
+  /// (uydurma/sabit değer değil) anlık TL karşılığı hesaplanır. Değerleme, uygulamanın geri kalanıyla
+  /// tutarlı olsun diye piyasanın alış fiyatını kullanır (bkz. AssetsScreen._valuationPrice).
+  Widget _buildCalculator() {
+    final ticker = _calcTickers[_calcSymbol];
+    final price =
+        ticker == null ? 0.0 : (ticker.buyingPrice > 0 ? ticker.buyingPrice : ticker.sellingPrice);
+    final qty = CurrencyNormalizer.toMinorUnits(_calcController.text) / 100.0;
+    final hasResult = qty > 0 && price > 0;
+    final resultCents = (price * qty * 100).round();
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'HESAPLAMA ASİSTANI',
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textSecondary,
+                letterSpacing: 0.5),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 4,
+                child: TextField(
+                  controller: _calcController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: const [ThousandsInputFormatter()],
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    hintText: 'Miktar',
+                    hintStyle: const TextStyle(fontSize: 12.5),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 5,
+                child: DropdownButtonFormField<String>(
+                  initialValue: _calcSymbol,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    isDense: true,
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+                  ),
+                  items: [
+                    for (final o in _calcOptions)
+                      DropdownMenuItem(
+                          value: o.$1, child: Text(o.$2, style: const TextStyle(fontSize: 12.5))),
+                  ],
+                  onChanged: (v) => setState(() => _calcSymbol = v ?? _calcSymbol),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            hasResult
+                ? '≈ ${CurrencyNormalizer.formatCents(resultCents)}'
+                : 'Miktar gir, güncel kurla TL karşılığını gör.',
+            style: TextStyle(
+              fontSize: hasResult ? 18 : 12,
+              fontWeight: hasResult ? FontWeight.w900 : FontWeight.w600,
+              color: hasResult ? AppColors.incomeGreen : AppColors.textMuted,
+            ),
+          ),
         ],
       ),
     );

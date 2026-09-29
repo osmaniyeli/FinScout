@@ -149,16 +149,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildScaffold(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.canvasOf(context),
       appBar: AppBar(
         title: Text(
           AppStrings.get('settings_appbar_title'),
-          style: const TextStyle(
+          style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w800,
-              color: AppColors.textPrimary),
+              color: AppColors.textPrimaryOf(context)),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.canvasOf(context),
         elevation: 0,
         centerTitle: true,
       ),
@@ -175,19 +175,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: AppColors.canvasLight,
+                  color: AppColors.subtleFillOf(context),
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: AppColors.borderLight),
+                  border: Border.all(color: AppColors.borderOf(context)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       AppStrings.get('settings_active_plan_label'),
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
-                          color: AppColors.textSecondary,
+                          color: AppColors.textSecondaryOf(context),
                           letterSpacing: 0.5),
                     ),
                     const SizedBox(height: 6),
@@ -201,16 +201,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   ? 'Bireysel Yıllık Premium'
                                   : 'Bireysel Aylık Premium'))
                           : 'Ücretsiz Başlangıç Paketi',
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w900,
-                          color: AppColors.textPrimary),
+                          color: AppColors.textPrimaryOf(context)),
                     ),
                     const SizedBox(height: 3),
                     Text(
                       AppStrings.get('settings_google_play_assurance'),
-                      style: const TextStyle(
-                          fontSize: 12, color: AppColors.textSecondary),
+                      style: TextStyle(
+                          fontSize: 12, color: AppColors.textSecondaryOf(context)),
                     ),
                     const SizedBox(height: 10),
                     OutlinedButton(
@@ -233,28 +233,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // Abonelik ve yasal bağlantılar (Play politikaları uygulama içinde istiyor)
               Text(
                 AppStrings.get('settings_subscription_privacy_header'),
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.textSecondary,
+                    color: AppColors.textSecondaryOf(context),
                     letterSpacing: 0.5),
               ),
               const SizedBox(height: 4),
               ListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.family_restroom_rounded,
-                    color: AppColors.textSecondary),
+                leading: Icon(Icons.family_restroom_rounded,
+                    color: AppColors.textSecondaryOf(context)),
                 title: Text(AppStrings.get('settings_family_title'),
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary)),
+                        color: AppColors.textPrimaryOf(context))),
                 subtitle: Text(AppStrings.get('settings_family_subtitle'),
-                    style: const TextStyle(
-                        fontSize: 12, color: AppColors.textSecondary)),
-                trailing: const Icon(Icons.chevron_right_rounded,
-                    color: AppColors.textSecondary),
+                    style: TextStyle(
+                        fontSize: 12, color: AppColors.textSecondaryOf(context))),
+                trailing: Icon(Icons.chevron_right_rounded,
+                    color: AppColors.textSecondaryOf(context)),
                 onTap: () async {
                   await Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const FamilyScreen()));
@@ -272,6 +272,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   AppStrings.get('settings_privacy_policy_subtitle'),
                   AppLinks.privacyPolicy),
               _buildLinkTile(
+                  Icons.gavel_rounded,
+                  AppStrings.get('settings_terms_title'),
+                  AppStrings.get('settings_terms_subtitle'),
+                  AppLinks.termsOfService),
+              // İletişim İzni: bkz. UserProfile.announcementsEnabled dokümantasyonu — bu
+              // yalnız YEREL bir tercihtir, sunucu tarafı gönderim entegrasyonu henüz yok.
+              ValueListenableBuilder<UserProfile?>(
+                valueListenable: UserProfileService.instance.profileNotifier,
+                builder: (context, profile, _) {
+                  final enabled = profile?.announcementsEnabled ?? true;
+                  return SwitchListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    secondary: Icon(Icons.campaign_outlined,
+                        color: AppColors.textSecondaryOf(context)),
+                    title: Text(AppStrings.get('settings_comm_permission_title'),
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimaryOf(context))),
+                    subtitle: Text(
+                        AppStrings.get('settings_comm_permission_subtitle'),
+                        style: TextStyle(
+                            fontSize: 11.5,
+                            height: 1.3,
+                            color: AppColors.textSecondaryOf(context))),
+                    value: enabled,
+                    activeThumbColor: AppColors.actionPrimary,
+                    onChanged: (v) =>
+                        UserProfileService.instance.setAnnouncementsEnabled(v),
+                  );
+                },
+              ),
+              _buildLinkTile(
                   Icons.person_remove_outlined,
                   AppStrings.get('settings_delete_account_title'),
                   AppStrings.get('settings_delete_account_subtitle'),
@@ -279,30 +313,70 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.description_outlined,
-                    color: AppColors.textSecondary),
+                leading: Icon(Icons.description_outlined,
+                    color: AppColors.textSecondaryOf(context)),
                 title: Text(AppStrings.get('settings_licenses_title'),
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary)),
+                        color: AppColors.textPrimaryOf(context))),
                 subtitle: Text(AppStrings.get('settings_licenses_subtitle'),
-                    style: const TextStyle(
-                        fontSize: 12, color: AppColors.textSecondary)),
-                trailing: const Icon(Icons.chevron_right_rounded,
-                    color: AppColors.textSecondary),
+                    style: TextStyle(
+                        fontSize: 12, color: AppColors.textSecondaryOf(context))),
+                trailing: Icon(Icons.chevron_right_rounded,
+                    color: AppColors.textSecondaryOf(context)),
                 onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const LicensesScreen())),
               ),
               const SizedBox(height: 18),
 
+              // TEMA
+              Text(
+                AppStrings.get('settings_theme_header'),
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textSecondaryOf(context),
+                    letterSpacing: 0.5),
+              ),
+              const SizedBox(height: 8),
+              ValueListenableBuilder<ThemeMode>(
+                valueListenable: UserProfileService.instance.themeModeNotifier,
+                builder: (context, mode, _) {
+                  return Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.subtleFillOf(context),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: AppColors.borderOf(context)),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                            child: _themeChip(
+                                AppStrings.get('settings_theme_light'),
+                                ThemeMode.light,
+                                mode == ThemeMode.light)),
+                        const SizedBox(width: 10),
+                        Expanded(
+                            child: _themeChip(
+                                AppStrings.get('settings_theme_dark'),
+                                ThemeMode.dark,
+                                mode == ThemeMode.dark)),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 18),
+
               // DİL / LANGUAGE
-              const Text(
+              Text(
                 'DİL / LANGUAGE',
                 style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.textSecondary,
+                    color: AppColors.textSecondaryOf(context),
                     letterSpacing: 0.5),
               ),
               const SizedBox(height: 8),
@@ -312,9 +386,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   return Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
+                      color: AppColors.subtleFillOf(context),
                       borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      border: Border.all(color: AppColors.borderOf(context)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -333,9 +407,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         const SizedBox(height: 8),
                         Text(
                           AppStrings.get('settings_language_note'),
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 11,
-                              color: AppColors.textSecondary,
+                              color: AppColors.textSecondaryOf(context),
                               height: 1.4),
                         ),
                       ],
@@ -348,30 +422,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // BANKA (ücretsiz planda kilitli tek banka; bkz. BankSelectionSheet)
               Text(
                 AppStrings.get('settings_bank_header'),
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.textSecondary,
+                    color: AppColors.textSecondaryOf(context),
                     letterSpacing: 0.5),
               ),
               const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
+                  color: AppColors.subtleFillOf(context),
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  border: Border.all(color: AppColors.borderOf(context)),
                 ),
                 child: Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
+                        color: AppColors.cardOf(context),
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      child: const Icon(Icons.account_balance_rounded,
-                          color: Color(0xFF0F172A), size: 20),
+                      child: Icon(Icons.account_balance_rounded,
+                          color: AppColors.textPrimaryOf(context), size: 20),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
@@ -380,10 +454,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         children: [
                           Text(
                             AppStrings.get('settings_connected_bank_label'),
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 13.5,
                                 fontWeight: FontWeight.w800,
-                                color: AppColors.textPrimary),
+                                color: AppColors.textPrimaryOf(context)),
                           ),
                           const SizedBox(height: 2),
                           Text(
@@ -392,8 +466,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     true
                                 ? '${AppStrings.get('settings_bank_current_prefix')}${UserProfileService.instance.profile!.lockedInstitution}'
                                 : AppStrings.get('settings_bank_not_selected'),
-                            style: const TextStyle(
-                                fontSize: 11, color: AppColors.textSecondary),
+                            style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSecondaryOf(context)),
                           ),
                         ],
                       ),
@@ -424,10 +499,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // 2. GÜVENLİK (uygulama kilidi: yalnız PIN)
               Text(
                 AppStrings.get('settings_security_header'),
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.textSecondary,
+                    color: AppColors.textSecondaryOf(context),
                     letterSpacing: 0.5),
               ),
               const SizedBox(height: 8),
@@ -439,9 +514,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   return Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
+                      color: AppColors.subtleFillOf(context),
                       borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      border: Border.all(color: AppColors.borderOf(context)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -451,11 +526,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF1F5F9),
+                                color: AppColors.cardOf(context),
                                 borderRadius: BorderRadius.circular(14),
                               ),
-                              child: const Icon(Icons.pin_rounded,
-                                  color: Color(0xFF0F172A), size: 20),
+                              child: Icon(Icons.pin_rounded,
+                                  color: AppColors.textPrimaryOf(context),
+                                  size: 20),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
@@ -466,19 +542,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     hasPin
                                         ? 'Güvenlik Şifresi / PIN Kodu (Kilit geçici kapalı)'
                                         : '4 Haneli Şifre / PIN Belirle (geçici kapalı)',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                         fontSize: 13.5,
                                         fontWeight: FontWeight.w800,
-                                        color: AppColors.textPrimary),
+                                        color: AppColors.textPrimaryOf(context)),
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
                                     hasPin
                                         ? 'Bir hata yüzünden uygulama açılışında artık PIN sorulmuyor; istersen aşağıdan kaldırabilirsin.'
                                         : 'Bir hata düzeltilene kadar yeni PIN oluşturma kapalı.',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                         fontSize: 11,
-                                        color: AppColors.textSecondary),
+                                        color:
+                                            AppColors.textSecondaryOf(context)),
                                   ),
                                 ],
                               ),
@@ -665,18 +742,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: selected ? AppColors.textPrimary : Colors.white,
+          color: selected
+              ? AppColors.textPrimaryOf(context)
+              : AppColors.cardOf(context),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-              color:
-                  selected ? AppColors.textPrimary : const Color(0xFFE2E8F0)),
+              color: selected
+                  ? AppColors.textPrimaryOf(context)
+                  : AppColors.borderOf(context)),
         ),
         alignment: Alignment.center,
         child: Text(label,
             style: TextStyle(
                 fontSize: 13.5,
                 fontWeight: FontWeight.w700,
-                color: selected ? Colors.white : AppColors.textPrimary)),
+                color: selected
+                    ? (AppColors.isDark(context) ? Colors.black : Colors.white)
+                    : AppColors.textPrimaryOf(context))),
+      ),
+    );
+  }
+
+  /// Ayarlar > TEMA: _langChip ile birebir aynı kompakt chip stili (bkz. görev notu).
+  Widget _themeChip(String label, ThemeMode mode, bool selected) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: () => UserProfileService.instance.setThemeMode(mode),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.textPrimaryOf(context)
+              : AppColors.cardOf(context),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+              color: selected
+                  ? AppColors.textPrimaryOf(context)
+                  : AppColors.borderOf(context)),
+        ),
+        alignment: Alignment.center,
+        child: Text(label,
+            style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w700,
+                color: selected
+                    ? (AppColors.isDark(context) ? Colors.black : Colors.white)
+                    : AppColors.textPrimaryOf(context))),
       ),
     );
   }
@@ -686,16 +797,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return ListTile(
       dense: true,
       contentPadding: EdgeInsets.zero,
-      leading: Icon(icon, color: AppColors.textSecondary),
+      leading: Icon(icon, color: AppColors.textSecondaryOf(context)),
       title: Text(title,
-          style: const TextStyle(
+          style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary)),
+              color: AppColors.textPrimaryOf(context))),
       subtitle: Text(subtitle,
-          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-      trailing: const Icon(Icons.open_in_new_rounded,
-          size: 18, color: AppColors.textSecondary),
+          style: TextStyle(
+              fontSize: 12, color: AppColors.textSecondaryOf(context))),
+      trailing: Icon(Icons.open_in_new_rounded,
+          size: 18, color: AppColors.textSecondaryOf(context)),
       onTap: () => AppLinks.open(url),
     );
   }

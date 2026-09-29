@@ -20,6 +20,7 @@ import '../../subscription/presentation/subscription_plans_sheet.dart';
 import '../../subscription/services/subscription_service.dart';
 import 'widgets/transaction_detail_sheet.dart';
 import '../../../core/widgets/bank_logo.dart';
+import '../../../core/widgets/onboarding_tour/tour_anchors.dart';
 import '../../navigation/tab_add_actions.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -252,8 +253,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                     const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
             const SizedBox(height: 4),
             Text(AppStrings.get('select_doc_type_subtitle'),
-                style: const TextStyle(
-                    fontSize: 12, color: AppColors.textSecondary)),
+                style: TextStyle(
+                    fontSize: 12, color: AppColors.textSecondaryOf(context))),
             const SizedBox(height: 16),
             _buildDocTypeOption(
               icon: Icons.credit_card_rounded,
@@ -308,7 +309,8 @@ class _DashboardScreenState extends State<DashboardScreen>
       title: Text(title,
           style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
       subtitle: Text(subtitle,
-          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+          style: TextStyle(
+              fontSize: 11, color: AppColors.textSecondaryOf(context))),
       onTap: () {
         Navigator.pop(context);
         showModalBottomSheet(
@@ -328,7 +330,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.canvasOf(context),
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _loadDashboardData,
@@ -392,13 +394,13 @@ class _DashboardScreenState extends State<DashboardScreen>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Flexible(
+            Flexible(
               child: Text(
                 'Son İşlemler',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
+                  color: AppColors.textPrimaryOf(context),
                   letterSpacing: -0.2,
                 ),
               ),
@@ -406,10 +408,10 @@ class _DashboardScreenState extends State<DashboardScreen>
             const SizedBox(width: 8),
             Text(
               '${_recentTransactions.length} işlem',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textMuted,
+                color: AppColors.textMutedOf(context),
               ),
             ),
           ],
@@ -425,13 +427,15 @@ class _DashboardScreenState extends State<DashboardScreen>
           _buildEmptyStateCard()
         else
           FinanceCard(
+            color: AppColors.cardOf(context),
+            border: Border.all(color: AppColors.borderOf(context)),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             child: ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: _recentTransactions.length,
               separatorBuilder: (_, __) =>
-                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  Divider(height: 1, color: AppColors.borderOf(context)),
               itemBuilder: (ctx, index) => FadeSlideIn(
                 index: index,
                 child: _buildTransactionRow(_recentTransactions[index]),
@@ -498,19 +502,19 @@ class _DashboardScreenState extends State<DashboardScreen>
                           AppStrings.get('welcome'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.textSecondary,
+                              color: AppColors.textSecondaryOf(context),
                               fontWeight: FontWeight.w500),
                         ),
                         Text(
                           name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w800,
-                              color: AppColors.textPrimary),
+                              color: AppColors.textPrimaryOf(context)),
                         ),
                       ],
                     ),
@@ -526,22 +530,27 @@ class _DashboardScreenState extends State<DashboardScreen>
         // Sağ Alan: Kompakt PDF Yükleme Butonu, Bildirimler ve Premium
         Row(
           children: [
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(color: AppColors.cardBorder),
-                boxShadow: AppShadows.card,
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.upload_file_rounded,
-                    color: AppColors.textPrimary, size: 20),
-                onPressed: _showDocumentTypeSelector,
-                tooltip: AppStrings.get('upload_pdf_tooltip'),
-                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-                padding: EdgeInsets.zero,
-              ),
-            ),
+            Builder(builder: (context) {
+              return Container(
+                // Tanıtım turu (Adım 1, Stil A) bu düğmeyi hedef alır.
+                key: OnboardingTourAnchors.uploadButton,
+                decoration: BoxDecoration(
+                  color: AppColors.cardOf(context),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  border: Border.all(color: AppColors.borderOf(context)),
+                  boxShadow: AppShadows.card,
+                ),
+                child: IconButton(
+                  icon: Icon(Icons.upload_file_rounded,
+                      color: AppColors.textPrimaryOf(context), size: 20),
+                  onPressed: _showDocumentTypeSelector,
+                  tooltip: AppStrings.get('upload_pdf_tooltip'),
+                  constraints:
+                      const BoxConstraints(minWidth: 40, minHeight: 40),
+                  padding: EdgeInsets.zero,
+                ),
+              );
+            }),
             const SizedBox(width: 8),
             ValueListenableBuilder<List<InAppNotificationItem>>(
               valueListenable:
@@ -550,17 +559,17 @@ class _DashboardScreenState extends State<DashboardScreen>
                 final unreadCount = notifs.where((n) => !n.isRead).length;
                 return Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.cardOf(context),
                     borderRadius: BorderRadius.circular(AppRadius.md),
-                    border: Border.all(color: AppColors.cardBorder),
+                    border: Border.all(color: AppColors.borderOf(context)),
                     boxShadow: AppShadows.card,
                   ),
                   child: Stack(
                     alignment: Alignment.topRight,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.notifications_outlined,
-                            color: AppColors.textPrimary, size: 20),
+                        icon: Icon(Icons.notifications_outlined,
+                            color: AppColors.textPrimaryOf(context), size: 20),
                         onPressed: () => NotificationsSheet.show(context),
                         tooltip: AppStrings.get('notifications_title'),
                         constraints:
@@ -630,9 +639,9 @@ class _DashboardScreenState extends State<DashboardScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.cardOf(context),
           borderRadius: BorderRadius.circular(AppRadius.pill),
-          border: Border.all(color: AppColors.cardBorder),
+          border: Border.all(color: AppColors.borderOf(context)),
           boxShadow: AppShadows.card,
         ),
         child: Row(
@@ -641,10 +650,10 @@ class _DashboardScreenState extends State<DashboardScreen>
             InkWell(
               onTap: () => _changeMonth(-1),
               borderRadius: BorderRadius.circular(AppRadius.pill),
-              child: const Padding(
-                padding: EdgeInsets.all(4),
+              child: Padding(
+                padding: const EdgeInsets.all(4),
                 child: Icon(Icons.chevron_left_rounded,
-                    size: 20, color: AppColors.textSecondary),
+                    size: 20, color: AppColors.textSecondaryOf(context)),
               ),
             ),
             const SizedBox(width: 6),
@@ -653,10 +662,10 @@ class _DashboardScreenState extends State<DashboardScreen>
             const SizedBox(width: 6),
             Text(
               _monthDisplayName,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                color: AppColors.textPrimaryOf(context),
                 letterSpacing: 0.3,
               ),
             ),
@@ -664,10 +673,10 @@ class _DashboardScreenState extends State<DashboardScreen>
             InkWell(
               onTap: () => _changeMonth(1),
               borderRadius: BorderRadius.circular(AppRadius.pill),
-              child: const Padding(
-                padding: EdgeInsets.all(4),
+              child: Padding(
+                padding: const EdgeInsets.all(4),
                 child: Icon(Icons.chevron_right_rounded,
-                    size: 20, color: AppColors.textSecondary),
+                    size: 20, color: AppColors.textSecondaryOf(context)),
               ),
             ),
           ],
@@ -679,6 +688,8 @@ class _DashboardScreenState extends State<DashboardScreen>
   Widget _buildSummaryCards() {
     final isPositive = _netDifferenceCents >= 0;
     return FinanceCard(
+      color: AppColors.cardOf(context),
+      border: Border.all(color: AppColors.borderOf(context)),
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -686,13 +697,13 @@ class _DashboardScreenState extends State<DashboardScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Flexible(
+              Flexible(
                 child: Text(
                   'AYLIK NET BAKİYE (GELİR - GİDER)',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textSecondary,
+                    color: AppColors.textSecondaryOf(context),
                     letterSpacing: 0.8,
                   ),
                 ),
@@ -738,15 +749,15 @@ class _DashboardScreenState extends State<DashboardScreen>
           RollingNumberTicker(
             value: (_netDifferenceCents / 100.0).abs(),
             prefix: isPositive ? '₺' : '-₺',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.w900,
-              color: AppColors.textPrimary,
+              color: AppColors.textPrimaryOf(context),
               letterSpacing: -0.5,
             ),
           ),
           const SizedBox(height: 16),
-          const Divider(height: 1, color: AppColors.cardBorder),
+          Divider(height: 1, color: AppColors.borderOf(context)),
           const SizedBox(height: 14),
           Row(
             children: [
@@ -772,12 +783,12 @@ class _DashboardScreenState extends State<DashboardScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Toplam Gelir',
                             style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
-                                color: AppColors.textSecondary),
+                                color: AppColors.textSecondaryOf(context)),
                           ),
                           const SizedBox(height: 2),
                           RollingNumberTicker(
@@ -795,7 +806,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                   ],
                 ),
               ),
-              Container(width: 1, height: 32, color: AppColors.cardBorder),
+              Container(
+                  width: 1, height: 32, color: AppColors.borderOf(context)),
               const SizedBox(width: 14),
               // Toplam Gider
               Expanded(
@@ -819,12 +831,12 @@ class _DashboardScreenState extends State<DashboardScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Toplam Gider',
                             style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
-                                color: AppColors.textSecondary),
+                                color: AppColors.textSecondaryOf(context)),
                           ),
                           const SizedBox(height: 2),
                           RollingNumberTicker(
@@ -910,13 +922,13 @@ class _DashboardScreenState extends State<DashboardScreen>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Flexible(
+            Flexible(
               child: Text(
                 'Yaklaşan Taksitler & Borçlar',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
+                  color: AppColors.textPrimaryOf(context),
                   letterSpacing: -0.2,
                 ),
               ),
@@ -941,13 +953,15 @@ class _DashboardScreenState extends State<DashboardScreen>
         ),
         const SizedBox(height: 10),
         FinanceCard(
+          color: AppColors.cardOf(context),
+          border: Border.all(color: AppColors.borderOf(context)),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           child: ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: _upcomingInstallments.length,
             separatorBuilder: (_, __) =>
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                Divider(height: 1, color: AppColors.borderOf(context)),
             itemBuilder: (ctx, index) {
               final item = _upcomingInstallments[index];
               final isCardDue = item['row_kind'] == 'CARD_DUE';
@@ -971,10 +985,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                           children: [
                             Text(
                               description,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13.5,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.textPrimary,
+                                color: AppColors.textPrimaryOf(context),
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -987,10 +1001,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 if (minimumCents != null)
                                   'Asgari ${CurrencyNormalizer.formatCents(minimumCents)}',
                               ].join(' • '),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.w500,
-                                color: AppColors.textSecondary,
+                                color: AppColors.textSecondaryOf(context),
                               ),
                             ),
                           ],
@@ -1013,15 +1027,15 @@ class _DashboardScreenState extends State<DashboardScreen>
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF1F5F9),
+                              color: AppColors.subtleFillOf(context),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text(
+                            child: Text(
                               'Ekstre borcu',
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.textSecondary,
+                                color: AppColors.textSecondaryOf(context),
                               ),
                             ),
                           ),
@@ -1056,10 +1070,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                         children: [
                           Text(
                             merchant,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13.5,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.textPrimary,
+                              color: AppColors.textPrimaryOf(context),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -1074,10 +1088,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                               if (dueDate != null)
                                 'Vade: ${_formatDueDate(dueDate)}',
                             ].join(' • '),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11.5,
                               fontWeight: FontWeight.w500,
-                              color: AppColors.textSecondary,
+                              color: AppColors.textSecondaryOf(context),
                             ),
                           ),
                         ],
@@ -1100,15 +1114,15 @@ class _DashboardScreenState extends State<DashboardScreen>
                           padding: const EdgeInsets.symmetric(
                               horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9),
+                            color: AppColors.subtleFillOf(context),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             '$current/$total',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.textSecondary,
+                              color: AppColors.textSecondaryOf(context),
                             ),
                           ),
                         ),
@@ -1126,6 +1140,8 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Widget _buildEmptyStateCard() {
     return FinanceCard(
+      color: AppColors.cardOf(context),
+      border: Border.all(color: AppColors.borderOf(context)),
       padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
       child: Column(
         children: [
@@ -1151,10 +1167,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                 Expanded(
                   child: Text(
                     AppStrings.get('marketing_motto'),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      color: AppColors.textPrimaryOf(context),
                       height: 1.4,
                     ),
                   ),
@@ -1175,17 +1191,19 @@ class _DashboardScreenState extends State<DashboardScreen>
           const SizedBox(height: 14),
           Text(
             AppStrings.get('no_transactions_title'),
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary),
+                color: AppColors.textPrimaryOf(context)),
           ),
           const SizedBox(height: 6),
           Text(
             AppStrings.get('no_transactions_subtitle'),
             textAlign: TextAlign.center,
-            style: const TextStyle(
-                fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+            style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textSecondaryOf(context),
+                height: 1.4),
           ),
           const SizedBox(height: 18),
           ElevatedButton.icon(

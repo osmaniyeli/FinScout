@@ -31,6 +31,16 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 /// google-services.json yoksa Firebase başlatılamaz; push sessizce kapalı kalır,
 /// uygulamanın geri kalanı etkilenmez. Cihaz token'ı yalnız oturum açıkken
 /// Supabase `devices` tablosuna (register_device RPC) yazılır; çıkışta silinir.
+///
+/// TODO(iletisim-izni): Şu an TÜM push mesajları tek [kAnnouncementsChannelId] kanalından
+/// gönderiliyor; ayrı bir "duyuru/kampanya" vs "işlemsel" mesaj ayrımı YOK (send-push Edge
+/// Function admin_roles ile çalışıyor, alıcı bazlı tercih kontrolü yapmıyor). Ayarlar >
+/// "İletişim İzni" (bkz. UserProfile.announcementsEnabled) şu an yalnız cihazda saklanan bir
+/// tercih — burada ya da register_device/send-push tarafında KONTROL EDİLMİYOR. Gerçek
+/// filtreleme için: (1) announcementsEnabled 'devices' tablosuna yazılmalı (register_device RPC
+/// genişletilmeli), (2) send-push bu alanı sorgulayıp kapalı olan cihazlara göndermemeli.
+/// Bu, ayrı bir sunucu tarafı iştir; UI'da kullanıcıya "kapatınca bildirim gelmez" diye
+/// YANLIŞ bir vaat VERİLMEMELİ.
 class PushService with WidgetsBindingObserver {
   PushService._();
   static final PushService instance = PushService._();

@@ -16,6 +16,7 @@ import 'core/services/push_service.dart';
 import 'features/subscription/services/subscription_service.dart';
 import 'core/database/repositories/transaction_repository.dart';
 import 'core/widgets/fintech/fintech_components.dart';
+import 'core/widgets/onboarding_tour/onboarding_tour_controller.dart';
 import 'features/navigation/main_navigation_scaffold.dart';
 import 'features/onboarding/presentation/onboarding_screen.dart';
 
@@ -151,22 +152,30 @@ class _FinScoutAppState extends State<FinScoutApp> with WidgetsBindingObserver {
             final hasProfile =
                 profile != null && profile.name.trim().isNotEmpty;
 
-            return MaterialApp(
-              title: 'FinScout',
-              scaffoldMessengerKey: appMessengerKey,
-              debugShowCheckedModeBanner: false,
-              theme: AppTheme.lightTheme,
-              home: hasProfile
-                  ? const MainNavigationScaffold()
-                  : OnboardingScreen(
-                      onCompleted: () {
-                        setState(() => _isUnlocked = true);
-                        _announceNewAccount();
-                        _announceRestoredBackup();
-                      },
-                    ),
-              // Kilit Navigator'ın ÜSTÜNDE: açık alt sayfa, diyalog ya da itilmiş ekran da örtülür.
-              builder: (context, child) => _wrapWithGuards(child!, hasProfile),
+            return ValueListenableBuilder<ThemeMode>(
+              valueListenable: UserProfileService.instance.themeModeNotifier,
+              builder: (context, themeMode, _) {
+                return MaterialApp(
+                  title: 'FinScout',
+                  scaffoldMessengerKey: appMessengerKey,
+                  debugShowCheckedModeBanner: false,
+                  theme: AppTheme.lightTheme,
+                  darkTheme: AppTheme.darkTheme,
+                  themeMode: themeMode,
+                  home: hasProfile
+                      ? const MainNavigationScaffold()
+                      : OnboardingScreen(
+                          onCompleted: () {
+                            setState(() => _isUnlocked = true);
+                            _announceNewAccount();
+                            _announceRestoredBackup();
+                          },
+                        ),
+                  // Kilit Navigator'ın ÜSTÜNDE: açık alt sayfa, diyalog ya da itilmiş ekran da örtülür.
+                  builder: (context, child) =>
+                      _wrapWithGuards(child!, hasProfile),
+                );
+              },
             );
           },
         );
@@ -178,6 +187,7 @@ class _FinScoutAppState extends State<FinScoutApp> with WidgetsBindingObserver {
   void _announceNewAccount() {
     if (!AccountService.instance.lastSignInCreatedAccount) return;
     AccountService.instance.lastSignInCreatedAccount = false;
+    OnboardingTourController.instance.scheduleForNewAccount();
     final email = UserProfileService.instance.profile?.email ?? '';
     WidgetsBinding.instance.addPostFrameCallback((_) {
       appMessengerKey.currentState?.showSnackBar(

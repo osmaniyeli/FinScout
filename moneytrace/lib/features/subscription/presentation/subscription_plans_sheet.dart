@@ -30,6 +30,7 @@ class SubscriptionPlansSheet extends StatefulWidget {
 
 class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
   final SubscriptionService _service = SubscriptionService.instance;
+  final TextEditingController _couponController = TextEditingController();
   bool _isProcessing = false;
 
   @override
@@ -44,6 +45,7 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
   void dispose() {
     _service.tierNotifier.removeListener(_onTierChanged);
     _service.isPurchasingNotifier.removeListener(_onPurchasingChanged);
+    _couponController.dispose();
     super.dispose();
   }
 
@@ -117,6 +119,174 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
         ),
       );
     }
+  }
+
+  /// Kodu KENDİMİZ doğrulamayız — Play Billing politikası gereği abonelik indirimleri yalnız
+  /// Play Console üzerinden yönetilir. Google'ın resmi kod kullanma sayfasına yönlendiririz;
+  /// geçerli/geçersiz kararını Play verir (bkz. AppLinks.redeemPromoCode).
+  Future<void> _redeemCoupon() async {
+    final code = _couponController.text.trim();
+    if (code.isEmpty) return;
+    await AppLinks.open(AppLinks.redeemPromoCode(code));
+  }
+
+  /// "Kuponun mu var?" alanı: kullanıcıya kodun uygulama içinde doğrulandığı YANLIŞ izlenimini
+  /// vermez — açıklama metni bunu açıkça belirtir.
+  Widget _buildCouponField() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Kuponun mu var?',
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _couponController,
+                  textCapitalization: TextCapitalization.characters,
+                  decoration: InputDecoration(
+                    isDense: true,
+                    hintText: 'Kupon kodu',
+                    hintStyle: const TextStyle(fontSize: 12.5),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 12),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              ValueListenableBuilder<TextEditingValue>(
+                valueListenable: _couponController,
+                builder: (context, value, _) => SizedBox(
+                  height: 44,
+                  child: OutlinedButton(
+                    onPressed:
+                        value.text.trim().isEmpty ? null : _redeemCoupon,
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Color(0xFFCBD5E1)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('Uygula',
+                        style: TextStyle(
+                            fontSize: 12.5, fontWeight: FontWeight.w700)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Kod, Google Play üzerinden uygulanır.',
+            style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Paketler arasındaki GERÇEK kota/özellik farkları — bkz. UserProfileService.checkUploadQuota
+  /// ve SubscriptionService.availablePackages. Uydurma rakam yok; sunucudaki kota mantığıyla birebir.
+  Widget _buildPlanComparison() {
+    const rows = [
+      ('Aylık belge hakkı', '1 kart +\n1 hesap', '3-5 belge*', '12 belge**'),
+      ('Banka sayısı', 'Tek banka', 'Çoklu banka', 'Çoklu banka'),
+      ('Bordro', '✕', '✓ (deneme)', '✓'),
+      ('Hedefler', '🔒 Kilitli', '✓ Açık', '✓ Açık'),
+    ];
+
+    Widget cell(String text, {bool header = false, Color? color}) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: header ? 11 : 11.5,
+              fontWeight: header ? FontWeight.w800 : FontWeight.w600,
+              color: color ?? AppColors.textPrimary,
+            ),
+          ),
+        );
+
+    return Container(
+      margin: const EdgeInsets.only(top: 2, bottom: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Planlar arasında ne değişir?',
+            style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary),
+          ),
+          const SizedBox(height: 10),
+          Table(
+            columnWidths: const {
+              0: FlexColumnWidth(1.3),
+              1: FlexColumnWidth(1),
+              2: FlexColumnWidth(1),
+              3: FlexColumnWidth(1),
+            },
+            children: [
+              TableRow(
+                decoration: const BoxDecoration(
+                  border: Border(
+                      bottom:
+                          BorderSide(color: Color(0xFFCBD5E1), width: 1)),
+                ),
+                children: [
+                  cell('', header: true),
+                  cell('Ücretsiz',
+                      header: true, color: AppColors.textSecondary),
+                  cell('Bireysel',
+                      header: true, color: AppColors.actionPrimary),
+                  cell('Aile', header: true, color: AppColors.incomeGreen),
+                ],
+              ),
+              for (final r in rows)
+                TableRow(children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(r.$1,
+                        style: const TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textSecondary)),
+                  ),
+                  cell(r.$2),
+                  cell(r.$3),
+                  cell(r.$4),
+                ]),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            '* Bireysel: Aylık planda 3, Yıllık planda 5 belge. '
+            '** Aile paketi: 5 kart + 5 hesap + 2 bordro, 4 kişiye kadar; herkes kendi verisini görür.',
+            style: TextStyle(
+                fontSize: 10.5, color: AppColors.textMuted, height: 1.35),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -324,6 +494,12 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
                 ),
               );
             }),
+
+            _buildPlanComparison(),
+
+            // Kupon kodu — Play Billing politikası gereği FinScout kodu KENDİ doğrulamaz; Google
+            // Play'in resmi kod kullanma sayfasına yönlendirir (bkz. AppLinks.redeemPromoCode).
+            _buildCouponField(),
 
             const SizedBox(height: 10),
 
