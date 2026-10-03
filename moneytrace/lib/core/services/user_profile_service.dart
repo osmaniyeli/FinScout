@@ -504,7 +504,7 @@ class UserProfileService {
       }
       _isLoaded = true;
     } catch (e) {
-      debugPrint('UserProfileService yükleme hatası: $e');
+      debugPrint('UserProfileService yükleme hatası: ${kDebugMode ? e : e.runtimeType}');
       _isLoaded = true;
     }
   }
@@ -807,7 +807,7 @@ final dir = await getApplicationDocumentsDirectory();
       };
       await file.writeAsString(jsonEncode(map));
     } catch (e) {
-      debugPrint('UserProfileService kaydetme hatası: $e');
+      debugPrint('UserProfileService kaydetme hatası: ${kDebugMode ? e : e.runtimeType}');
     }
   }
 }

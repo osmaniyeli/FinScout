@@ -110,7 +110,7 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
       await widget.onSave(goal);
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
-      debugPrint('Hedef kaydedilemedi: $e');
+      debugPrint('Hedef kaydedilemedi: ${e.runtimeType}');
       if (mounted) {
         setState(() {
           _saving = false;

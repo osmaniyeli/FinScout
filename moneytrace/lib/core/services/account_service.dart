@@ -238,6 +238,9 @@ class AccountService {
     if (user == null) {
       throw const AccountException('Oturum bulunamadı. Tekrar giriş yap.');
     }
+    // ARCH-03: önceki hesabın verisiyle kurulmuş bekleyen bir yedekleme zamanlayıcısı varsa
+    // iptal et — yoksa wipeLocalData() sonrası boş veri, yeni hesabın gerçek yedeğini ezebilir.
+    BackupService.instance.cancelPendingDebounce();
     await UserProfileService.instance.wipeLocalData();
     return _saveLocalProfile(user, fallbackEmail: _pendingEmail ?? '', name: _pendingName);
   }
@@ -285,7 +288,7 @@ class AccountService {
       try {
         lastSignInRestoredBackup = await BackupService.instance.restoreIfEmpty();
       } catch (e) {
-        debugPrint('Sunucu yedeği geri yüklenemedi: $e');
+        debugPrint('Sunucu yedeği geri yüklenemedi: ${kDebugMode ? e : e.runtimeType}');
       }
     }
     return profile;
@@ -331,6 +334,9 @@ class AccountService {
     // değişiklikleri senkron yedekle. Kaçırılan bir debounce penceresi yüzünden son birkaç
     // saniyelik değişikliğin yedeklenmeden kalmasına karşı bir güvenlik ağı. Oturum ya da
     // anahtar alınamazsa (ör. hesap az önce sunucuda silindiyse) sessizce hiçbir şey yapmaz.
+    // ARCH-03: önce bekleyen (muhtemelen bu çağrıyla gereksiz hale gelen ya da bir önceki
+    // hesaba ait) zamanlayıcıyı iptal et, sonra zorunlu/anlık yedeklemeyi çalıştır.
+    BackupService.instance.cancelPendingDebounce();
     await BackupService.instance.backupNow(force: true);
     // Oturum kapanmadan: bu cihaza artık duyuru gitmesin (devices satırı silinir)
     await PushService.instance.unregisterDevice();

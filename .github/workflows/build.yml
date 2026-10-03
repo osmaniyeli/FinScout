@@ -46,6 +46,21 @@ jobs:
           flutter clean
           flutter pub get
 
+      # Kalite kapısı: bu adımlardan biri başarısız olursa iş burada durur, aşağıdaki
+      # derleme/Play yükleme adımlarına hiç geçilmez (ARCH-01/02 denetim bulgusu — önceden
+      # CI hiçbir statik/birim kontrolü yapmadan doğrudan Play'e yüklüyordu).
+      - name: Run flutter analyze
+        working-directory: moneytrace
+        run: flutter analyze
+
+      - name: Run flutter test
+        working-directory: moneytrace
+        run: flutter test
+
+      - name: Run 107-Point Verification Suite
+        shell: pwsh
+        run: ./moneytrace/test/verify_parsers.ps1
+
       # Sürüm kodu: Play her yüklemede daha büyük kod ister. İnsan hatasını önlemek için
       # CI çalışma numarasından türetilir (1000 + run_number): her derlemede kendiliğinden artar,
       # elle yüklenen sürümlerden (≤ 999) her zaman büyüktür. Sürüm adı pubspec.yaml'dan gelir.

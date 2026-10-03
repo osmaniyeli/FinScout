@@ -1,3 +1,8 @@
+# DEPRECATED (2026-10-03, ARCH-01/02 denetim bulgusu): bu dosya tools/ klasöründe durduğu için
+# GitHub Actions tarafından HİÇ ÇALIŞTIRILMAZ (.github/workflows/ dışında). Gerçek, çalışan
+# kalite kapısı artık .github/workflows/build.yml içinde (flutter analyze + flutter test +
+# verify_parsers.ps1, derleme/Play yüklemesinden ÖNCE). Bu dosya yalnız referans için tutuluyor,
+# silinmedi; eski "ParaIz" marka adını da taşıyor.
 name: ParaIz CI/CD Quality Gate & Release Pipeline
 
 on:

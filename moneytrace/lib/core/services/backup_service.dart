@@ -12,7 +12,12 @@ import 'data_changes.dart';
 import 'data_export_service.dart';
 import 'user_profile_service.dart';
 
-/// Hesaba bağlı, otomatik, uçtan uca şifreli yedekleme.
+/// Hesaba bağlı, otomatik, şifreli yedekleme.
+///
+/// NOT (SEC-03/PRIV-02 denetim notu): Bu "uçtan uca" şifreleme DEĞİLDİR — anahtar
+/// sunucuda türetilir (aşağıda açıklanıyor), kullanıcının elinde/ezberinde bir parola
+/// yoktur. `BACKUP_KEY_SECRET`'e ve veritabanına erişimi olan biri (proje sahibi,
+/// servis rolü sızıntısı) veya geçerli bir oturum jetonu çalan biri yedeği çözebilir.
 ///
 /// Kullanıcının hatırlaması gereken bir yedekleme parolası YOKTUR: şifreleme anahtarı
 /// sunucudaki `backup-key` Edge Function'ından alınır. O fonksiyon anahtarı kullanıcı
@@ -103,6 +108,22 @@ class BackupService {
     _cachedKeyBase64 = null;
   }
 
+  /// Bekleyen bir debounce zamanlayıcısı varsa iptal eder; dinleyici (initialize) etkilenmez.
+  /// ARCH-03 denetim notu: hesap değişimi/çıkış/sıfırlama gibi oturum sınırı geçişlerinden
+  /// hemen önce çağrılır ki ÖNCEKİ hesabın verisiyle kurulmuş bekleyen bir yedekleme, geçişten
+  /// sonra yanlış hesaba/duruma karşı tetiklenmesin. (hasLocalFinancialData() kontrolü zaten
+  /// boş veri yüklemesini engelliyor; bu, aynı sorunu kaynağında da kapatır.)
+  void cancelPendingDebounce() {
+    _debounceTimer?.cancel();
+    _debounceTimer = null;
+  }
+
+  /// Yerel veri sahibi bilinmiyorsa (eski kurulum, henüz sahip dosyası yazılmamış) yüklemeye izin
+  /// verilir; sahibi biliniyor ve oturumdaki hesaptan FARKLIYSA yükleme yapılmaz.
+  @visibleForTesting
+  static bool mayUploadFor({required String? localOwnerId, required String sessionUserId}) =>
+      localOwnerId == null || localOwnerId.isEmpty || localOwnerId == sessionUserId;
+
   Future<String?> _fetchKey() async {
     if (_fetchKeyOverride != null) return _fetchKeyOverride!();
     if (_cachedKeyBase64 != null) return _cachedKeyBase64;
@@ -116,7 +137,7 @@ class BackupService {
         _cachedKeyBase64 = data['keyBase64'] as String;
         return _cachedKeyBase64;
       }
-      debugPrint('backup-key: beklenmedik yanıt biçimi: $data');
+      debugPrint('backup-key: beklenmedik yanıt biçimi: ${data.runtimeType}');
       return null;
     } on FunctionException catch (e) {
       // 401 (oturum geçersiz) / 503 (sunucu yapılandırma hatası) dahil: sessizce null dön.
@@ -147,6 +168,24 @@ class BackupService {
     final client = AccountService.instance.signedInClient;
     final user = AccountService.instance.currentUser;
     if (client == null || user == null) return;
+
+    // Telefondaki veri BAŞKA bir hesaba aitse (farklı hesapla giriş → "vazgeç" → signOut'taki
+    // zorunlu yedek ya da onay ekranı açıkken tetiklenen debounce), o veri bu hesabın kasasına
+    // yüklenmemeli: hem önceki hesabın verisi sızar hem bu hesabın gerçek yedeği ezilir.
+    final localOwner = await UserProfileService.instance.localDataOwnerId();
+    if (!mayUploadFor(localOwnerId: localOwner, sessionUserId: user.id)) {
+      debugPrint('Otomatik yedekleme atlandı: telefondaki veri oturumdaki hesaba ait değil.');
+      return;
+    }
+
+    // ARCH-03 denetim notu: telefonda hiç finansal veri yoksa (hesap değişimi/sıfırlama akışı
+    // sırasında wipeLocalData() ile restoreIfEmpty() arasındaki kısa pencere dahil) BOŞ bir
+    // yedek göndermeyiz — yoksa az önce sıfırlanan telefon, hesabın sunucudaki GERÇEK yedeğini
+    // ezer. restoreIfEmpty() zaten simetrik olarak var olan yerel veriyi asla ezmiyor.
+    if (!await UserProfileService.instance.hasLocalFinancialData()) {
+      debugPrint('Otomatik yedekleme atlandı: telefonda finansal veri yok (boş yedek buluttakini ezmez).');
+      return;
+    }
 
     final keyBase64 = await _fetchKey();
     if (keyBase64 == null) return;
@@ -184,7 +223,7 @@ class BackupService {
         onConflict: 'user_id,blob_id',
       );
     } catch (e) {
-      debugPrint('Otomatik yedekleme başarısız: $e');
+      debugPrint('Otomatik yedekleme başarısız: ${kDebugMode ? e : e.runtimeType}');
     }
   }
 
@@ -216,7 +255,8 @@ class BackupService {
       await TransactionRepository().restoreVaultBackup(data);
       return true;
     } catch (e) {
-      debugPrint('Sunucu yedeği geri yüklenemedi: $e');
+      // Çözülmüş JSON'daki FormatException mesajı kaynak metinden kesit içerir: yalnız tür yazılır.
+      debugPrint('Sunucu yedeği geri yüklenemedi: ${kDebugMode ? e : e.runtimeType}');
       return false;
     }
   }

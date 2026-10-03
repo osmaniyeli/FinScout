@@ -353,8 +353,10 @@ class SecurityGuard {
   // 17. Dependency Scanning & 18. Database Security
   // ===========================================================================
   bool isDatabaseEncrypted() {
-    // İşletim sistemi yerel sandbox koruması (SQLCipher Faz 2 entegrasyonu yol haritasında)
-    return true;
+    // DÜRÜST DURUM: SQLite (sqflite) dosyası ŞİFRESİZ; yalnız Android uygulama sandbox'ı koruyor.
+    // SQLCipher geçişi (F2-27) yapılana kadar false döner — "şifreli" diye yanıltıcı bir iddia
+    // üretilmesin (bkz. docs/audit/security-audit.md).
+    return false;
   }
 
   // ===========================================================================

@@ -127,7 +127,7 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
             '${widget.card['name']} kart ödemesi kaydedildi: ${CurrencyNormalizer.formatCents(paidCents)} (${_selectedSource.label}).'),
       ));
     } catch (e) {
-      debugPrint('Kart ödemesi kaydedilemedi: $e');
+      debugPrint('Kart ödemesi kaydedilemedi: ${e.runtimeType}');
       if (mounted) {
         setState(() {
           _saving = false;

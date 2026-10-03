@@ -377,7 +377,8 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
                       : 'Genel'),
               onTap: transaction['id'] == null ? null : _changeCategory,
               busy: _isUpdating),
-          _buildDetailRow(Icons.smartphone_rounded, 'Saklandığı yer', 'Yalnız bu telefonda'),
+          _buildDetailRow(Icons.lock_outline_rounded, 'Saklandığı yer',
+              'Cihazında, hesabına şifreli yedekli'),
 
           const SizedBox(height: 16),
 

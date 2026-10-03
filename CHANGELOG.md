@@ -6,6 +6,27 @@ Format, [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) standardına da
 
 ---
 
+## [3.14.0] - 2026-10-03
+
+Uçtan uca denetim: mimari, güvenlik, gizlilik, finansal doğruluk, test/QA, pazarlama ve SEO/ASO alanlarında kapsamlı inceleme (`docs/audit/`). Bulunan gerçek hatalar düzeltildi; şema değişikliği gerektirenler kullanıcı onayı için belgelendi.
+
+### Güvenlik Düzeltmeleri
+- **Çapraz hesap veri sızıntısı:** farklı hesapla girişte "vazgeç" denildiğinde önceki hesabın verisi yeni hesabın bulut yedeğine yüklenebiliyordu — kapatıldı.
+- **Boş yedek, gerçek yedeğin üstüne yazılması:** hesap değişimi/sıfırlama sırasında telefonda veri yokken bekleyen bir yedekleme tetiklenirse, BOŞ veri hesabın gerçek bulut yedeğini eziyordu — kapatıldı (`hasLocalFinancialData` kontrolü + hesap sınırı geçişlerinde bekleyen zamanlayıcının iptali).
+- Yedekleme şifrelemesinde sabit-zamanlı olmayan MAC karşılaştırması ve sınırsız PBKDF2 tur sayısı (DoS riski) düzeltildi.
+- 10 noktada hassas finansal veri log sızıntısı kapatıldı (release derlemesinde yalnız hata türü loglanıyor).
+
+### CI/CD
+- `flutter analyze` + `flutter test` + 107 noktalı doğrulama paketi artık derleme ve Google Play yüklemesinden ÖNCE çalışıyor; biri başarısız olursa iş durur (önceden hiçbiri çalışmıyordu).
+
+### Gizlilik Metni Düzeltmeleri
+- "Finansal kayıtlarınız internet üzerinden gönderilmez" ve "uçtan uca şifreli" ifadeleri, gerçek mimariyi (hesaba bağlı, sunucu tarafı anahtarla şifreli bulut yedeği) doğru yansıtacak şekilde düzeltildi (`PRIVACY_POLICY.md`, uygulama içi işlem detayı ekranı).
+
+### Test
+- 37 yeni test eklendi (6'sı bilinçli `skip:` ile belgelenen, bu sürümde düzeltilmeyen gerçek hatalar). Toplam: 433 geçti / 7 atlandı / 0 başarısız.
+
+---
+
 ## [3.13.0] - 2026-09-29
 
 Rakip uygulama (Monay) incelemesinden alınan, kullanıcının onayladığı 6 somut iyileştirme.

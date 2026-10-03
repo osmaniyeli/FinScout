@@ -32,7 +32,7 @@ class AssetsRepository {
             jsonDecode(await file.readAsString()) as Map);
       }
     } catch (e) {
-      debugPrint('Varlık verisi okunamadı: $e');
+      debugPrint('Varlık verisi okunamadı: ${kDebugMode ? e : e.runtimeType}');
       _data = {};
     }
   }
@@ -43,7 +43,7 @@ class AssetsRepository {
       final file = await _file();
       await file.writeAsString(jsonEncode(_data));
     } catch (e) {
-      debugPrint('Varlık verisi kaydedilemedi: $e');
+      debugPrint('Varlık verisi kaydedilemedi: ${kDebugMode ? e : e.runtimeType}');
       rethrow;
     } finally {
       revision.value++;

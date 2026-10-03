@@ -22,7 +22,7 @@ FinScout olarak kişisel verilerinizin ve finansal gizliliğinizin korunmasına 
 ## 3. Uygulama İzinleri (Permissions)
 FinScout yalnızca temel işlevler için minimum düzeyde izin kullanır:
 - **Dosya Erişimi (sistem dosya seçici):** Yalnızca kullanıcının kendi seçtiği PDF ekstre ve bordro dosyalarını okumak için kullanılır. Arka planda dosya taraması yapılmaz. Şifreli ekstreler için girilen PDF parolası kaydedilmez.
-- **İnternet (`INTERNET`):** Hesaba giriş (e-posta kodu / Google), herkese açık döviz/altın kurları ve haber (RSS) akışları ile Google Play abonelik işlemleri için kullanılır. Finansal kayıtlarınız internet üzerinden gönderilmez.
+- **İnternet (`INTERNET`):** Hesaba giriş (e-posta kodu / Google), Bölüm 1'de açıklanan şifreli yedekleme, herkese açık döviz/altın kurları ve haber (RSS) akışları ile Google Play abonelik işlemleri için kullanılır. Ekstre/bordro PDF dosyalarınızın kendisi internet üzerinden hiç gönderilmez (bkz. Bölüm 1).
 - **Bildirimler (`POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`):** Fatura, abonelik ve kredi kartı son ödeme hatırlatıcılarını göstermek için. Hatırlatıcılar cihazda zamanlanır, telefon yeniden başladığında korunur. Aynı izin, FinScout ekibinin gönderdiği duyuruları (push bildirimi) göstermek için de kullanılır.
 - **Kamera, Mikrofon, Konum ve Biyometri (parmak izi / yüz):** Uygulama bu izinleri **talep etmez**.
 
@@ -33,7 +33,7 @@ FinScout yalnızca temel işlevler için minimum düzeyde izin kullanır:
 - **Ödemeler:** Premium abonelikler yalnızca **Google Play Faturalandırma** üzerinden satılır. Ödeme bilgileriniz (kart, Google Pay vb.) Google tarafından işlenir ve FinScout'a hiçbir zaman ulaşmaz. Uygulama yalnızca Google'dan aboneliğinizin aktif olup olmadığı bilgisini alır ve bunu cihazınızda şifreli olarak saklar. Aboneliğinizi Google Play > Ödemeler ve abonelikler bölümünden yönetebilir veya iptal edebilirsiniz.
 
 ## 5. Veri Güvenliği ve Silme
-- Finansal verileriniz önce cihazınızdaki SQLite veritabanında tutulur; hesabınıza bağlı şifreli yedeği (Bölüm 1) yalnızca siz, o hesapla oturum açarak erişebilirsiniz.
+- Finansal verileriniz önce cihazınızdaki SQLite veritabanında tutulur; hesabınıza bağlı şifreli yedeğinize (Bölüm 1) normal şartlarda yalnızca o hesapla oturum açarak erişilebilir. Bu, uçtan uca şifreleme değildir: şifreleme anahtarı tarafımızca (sunucu tarafında) türetilir, kullanıcının elinde ayrı bir parola yoktur; dolayısıyla sunucu altyapımıza yetkisiz erişim sağlayan biri teorik olarak yedeği çözebilir.
 - Uygulama içindeki **Ayarlar > "Tüm Verilerimi Sıfırla ve Hesabı Sil"** seçeneği FinScout hesabınızı, sunucudaki şifreli yedeğiniz dahil tüm kayıtlarınızı kalıcı olarak siler, ardından cihazınızdaki verileri temizler.
 - Uygulamayı kaldırmak yalnızca cihazdaki verileri siler; hesabınız ve şifreli yedeğiniz sunucuda kalır, aynı hesapla tekrar giriş yaptığınızda geri gelir. Hesabınızı tamamen silmek isterseniz **pulcratechnology@gmail.com** adresine yazabilirsiniz; talepler en geç 30 gün içinde yerine getirilir. Ayrıntılar: [Hesap ve Veri Silme](https://github.com/osmaniyeli/FinScout/blob/main/DATA_DELETION.md)
 - Telefonunuzu değiştirdiğinizde ya da uygulamayı silip tekrar kurduğunuzda, aynı hesapla giriş yaptığınızda verileriniz otomatik olarak geri yüklenir; ayrıca bir dışa/içe aktarma işlemi gerekmez. Uygulamada bir seferde tüm verileri dışa aktarma (CSV/Excel gibi) özelliği bulunmaz; bu, hesabınıza yetkisiz erişim halinde toplu veri sızıntısını önlemek için bilinçli bir tercihtir.

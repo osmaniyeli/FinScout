@@ -377,6 +377,20 @@ class AesCipher {
   }
 
   /// Şifreli yedek paketini çözme (HMAC Bütünlük Kontrolü + AES-256-CBC)
+  static const int _minVaultIterations = 1000;
+  static const int _maxVaultIterations = 1000000;
+
+  /// Sabit zamanlı dizgi karşılaştırması (MAC doğrulaması için): ilk farklı karakterde erken
+  /// dönmez, böylece yanıt süresinden doğru MAC öneki çıkarılamaz.
+  static bool constantTimeEquals(String a, String b) {
+    if (a.length != b.length) return false;
+    var diff = 0;
+    for (var i = 0; i < a.length; i++) {
+      diff |= a.codeUnitAt(i) ^ b.codeUnitAt(i);
+    }
+    return diff == 0;
+  }
+
   static String decryptVaultPayload({required String vaultString, required String password}) {
     if (!vaultString.startsWith('PARAIZ-SEC-VAULT-V2:')) {
       throw const FormatException('Geçersiz veya desteklenmeyen şifreli yedek dosyası.');
@@ -391,8 +405,15 @@ class AesCipher {
     final ciphertext = base64Decode(envelope['ct'] as String);
     final expectedMac = envelope['mac'] as String;
 
+    // Yinelenme sayısı zarfın içinden okunur (saldırganın da yazabileceği alan): sınırsız bırakılırsa
+    // dev bir değer geri yüklemeyi dakikalarca kilitler (DoS). Uygulama yalnız 10000 üretir.
+    final iterations = envelope['iter'] as int? ?? 10000;
+    if (iterations < _minVaultIterations || iterations > _maxVaultIterations) {
+      throw const FormatException('Geçersiz şifreli yedek: desteklenmeyen PBKDF2 yinelenme sayısı.');
+    }
+
     // Key Separation
-    final derived = pbkdf2Sha256(password, salt, iterations: envelope['iter'] as int? ?? 10000, keyLength: 64);
+    final derived = pbkdf2Sha256(password, salt, iterations: iterations, keyLength: 64);
     final encKey = derived.sublist(0, 32);
     final macKey = derived.sublist(32, 64);
 
@@ -404,7 +425,7 @@ class AesCipher {
     macData.setRange(salt.length + iv.length, macData.length, ciphertext);
     final actualMac = hmac.convert(macData).toString();
 
-    if (actualMac != expectedMac) {
+    if (!constantTimeEquals(actualMac, expectedMac)) {
       throw const FormatException('Şifre çözülemedi: Parola hatalı veya veri bütünlüğü bozulmuş!');
     }
 
