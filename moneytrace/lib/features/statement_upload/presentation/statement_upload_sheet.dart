@@ -228,8 +228,11 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
     // Kota, seçilen çipe göre değil belgeden algılanan türe göre kontrol edilir ve sayılır
     final isBackfill =
         UserProfileService.instance.isFreeBackfill(result.periodEnd);
-    final quota = await UserProfileService.instance
-        .consumeUpload(result.documentType, isBackfill: isBackfill);
+    final quota = await UserProfileService.instance.consumeUpload(
+        result.documentType,
+        isBackfill: isBackfill,
+        institution: result.institution,
+        periodEnd: result.periodEnd);
     if (!quota.canUpload) return (null, quota);
     final StatementSaveResult saved;
     try {

@@ -340,10 +340,15 @@ class UserProfileService {
   /// Belge kotasını SUNUCUDA atomik olarak düşer; kayıttan ÖNCE çağrılır.
   /// [documentTypeHint]: belgeden ALGILANAN tür (CREDIT_CARD / CHECKING / PAYSLIP), kullanıcının seçtiği çip değil.
   /// [isBackfill]: belge geçmiş döneme ait; sunucu yalnız hesabın ilk 30 gününde kotasız sayar.
-  /// Sunucuya ulaşılamazsa yükleme yapılmaz (isNetworkError): kota bir ödeme hakkı olduğu için
-  /// cihazdaki sayaca güvenilmez; belge telefonda kalır, bağlantı gelince yeniden denenebilir.
+  /// [institution]/[periodEnd]: şu an İSTEMCİDE kullanılmıyor — SEC-04 server-side tek-banka kilidi
+  /// (`consume_upload_v2`) K42 ile onaylandı ama migrasyon henüz canlıya uygulanmadı (bkz.
+  /// `supabase/migrations/20261003_pending_sec04_bank_lock_v2.sql`, auto-mode "Modify Shared
+  /// Resources" engeliyle durduruldu). Migrasyon uygulanınca bu iki parametre RPC'ye geçirilecek —
+  /// imzaları şimdiden eklendi ki çağıran taraf (_consumeAndSave) tekrar değişmesin.
   Future<DocumentQuotaResult> consumeUpload(String documentTypeHint,
-      {required bool isBackfill}) async {
+      {required bool isBackfill,
+      required String institution,
+      required DateTime periodEnd}) async {
     final normalizedType = _normalizeDocType(documentTypeHint);
     final client = AccountService.instance.signedInClient;
     if (client == null) {

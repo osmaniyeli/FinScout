@@ -3,7 +3,9 @@
 **Tarih:** 2026-10-03. Bu belge, 4 ayrı kaynaktan (3 bağımsız Claude ajanı + Claude'un kendi doğrudan incelemesi, Gemini yalnız araştırma/taslak girdisi olarak) gelen **tüm** bulguları tek bir önceliklendirilmiş listede birleştirir: `architecture-review.md`, `performance-and-cost-review.md`, `security-audit.md`, `privacy-review.md`, `financial-calculation-review.md`, `test-strategy.md`/`test-results.md`, `agent-inventory.md`, `marketing-agent-review.md`, `seo-technical-audit.md`, `seo-measurement-plan.md`.
 
 Öncelik: **P0** (yayını durdur) · **P1** (bir sonraki sürümde) · **P2** (yakın vade) · **P3** (iyileştirme) · **P4** (kozmetik/hijyen)
-Durum: **GİDERİLDİ** (bu oturumda düzeltildi) · **AÇIK** (belgelendi, düzeltilmedi) · **ONAY BEKLİYOR** (SQL taslağı var, kullanıcı onayı gerekli) · **KABUL EDİLEN RİSK**
+Durum: **GİDERİLDİ** (bu oturumda düzeltildi) · **AÇIK** (belgelendi, düzeltilmedi) · **ONAYLANDI — UYGULAMA ENGELLENDİ** (kullanıcı onayladı, dosya hazır, Claude Code auto-mode "Modify Shared Resources" sınıflandırıcısı canlı şema yazımını engelledi, kullanıcının elle uygulaması gerekiyor) · **KABUL EDİLEN RİSK**
+
+**Güncelleme (2026-10-03, K42-K44 sonrası):** Kullanıcı Gece Raporu artifact'ındaki K42/K43/K44 sorularının üçünü de "Uygula" ile onayladı. Üç migrasyon dosyası da yazıldı ve repoya eklendi (`supabase/migrations/20261003150000..150200_*.sql`), ama bu oturumda `apply_migration` ile canlıya uygulanması auto-mode tarafından engellendi (üretim şemasına yazma — "Modify Shared Resources"). **Kullanıcının yapması gereken:** Supabase Dashboard > SQL Editor'a üç dosyayı sırayla yapıştırıp çalıştırmak, YA DA bu işi auto-mode dışı/interaktif bir oturumda tekrarlamak. Bank-lock v2 (K42/SEC-04) migrasyonu uygulandıktan SONRA, istemci tarafında `user_profile_service.dart`'taki `consumeUpload`'ın RPC çağrısını `consume_upload` → `consume_upload_v2`'ye çevirip `bank_locked` dalını eklemek de gerekiyor — parametreler (`institution`, `periodEnd`) zaten eklendi, fonksiyon gövdesi migrasyon uygulanana kadar bilinçli olarak eskisini çağırıyor (yoksa RPC bulunamaz hatasıyla TÜM yüklemeler kırılır).
 
 ---
 
@@ -20,7 +22,7 @@ Yok. Hiçbir bulgu üretimde aktif veri kaybı/güvenlik açığına P0 düzeyin
 | ARCH-01/02 | CI hiç `flutter analyze`/`test` çalıştırmadan Play internal'e yüklüyordu — 3 ajan bağımsız aynı noktaya ulaştı | `.github/workflows/build.yml` | **GİDERİLDİ** — analyze+test+107-nokta paketi derleme/yüklemeden önce eklendi; yerelde doğrulandı (analyze temiz, test 433/0/7-skip, ps1 107/107, debug APK derlendi) |
 | ARCH-03 | Otomatik yedek: hesap değişimi/sıfırlama sırasında boş yedek, gerçek bulut yedeğinin üstüne yazılabiliyordu + bekleyen zamanlayıcı hesap sınırını aşabiliyordu | `backup_service.dart`, `account_service.dart` | **GİDERİLDİ** — `hasLocalFinancialData()` boşsa yükleme yapılmıyor; `cancelPendingDebounce()` hesap değişimi/çıkışta çağrılıyor. Kod yolu doğrulandı, gerçek cihaz senaryosu DOĞRULANMADI. |
 | SEC-01 | Farklı hesapla girişte "vazgeç" → önceki hesabın verisi yeni hesabın bulut yedeğine yüklenebiliyordu (çapraz hesap veri sızıntısı) | `backup_service.dart` `mayUploadFor()` | **GİDERİLDİ** (bu oturumda, bir önceki ajan tarafından) — commit edilecek |
-| SEC-02 | Tek sürümlü bulut yedeği: başarısız geri yüklemeden sonra eksik/boş veriyle ezilebilir | `backup_service.dart` `restoreIfEmpty`/`_backupNowInner` | AÇIK — kısmen ARCH-03 düzeltmesiyle çakışan senaryo kapandı; genel "tek sürüm, geri alma yok" riski (ör. bozuk JSON'la yedekleme) hâlâ açık. Dar düzeltme: `vault_blobs`'a versiyon geçmişi (3 unapplied SQL taslağından biri) — **ONAY BEKLİYOR**. |
+| SEC-02 | Tek sürümlü bulut yedeği: başarısız geri yüklemeden sonra eksik/boş veriyle ezilebilir | `backup_service.dart` `restoreIfEmpty`/`_backupNowInner` | **ONAYLANDI — UYGULAMA ENGELLENDİ** (K44, kullanıcı notu: "atlamayalım, bizim mustlarımızdan") — `supabase/migrations/20261003150200_vault_blob_history.sql` yazıldı, canlıya uygulanamadı |
 | PRIV-01 | Metinler çelişkili: "finansal kayıtlar internete gönderilmez / yalnız bu telefonda" artık yanlış (v3.10.0 bulut yedeği var) | `PRIVACY_POLICY.md:25`, `transaction_detail_sheet.dart:380` | **GİDERİLDİ** (bu oturumda, Claude tarafından doğrudan) — her iki metin, yedeklemeyi doğru yansıtacak şekilde düzeltildi |
 | PRIV-02 | "Yalnızca siz erişebilirsiniz" / "uçtan uca şifreli" iddiası gerçek anahtar modeline (sunucuda türetilen anahtar) uymuyor | `PRIVACY_POLICY.md` Bölüm 1/5, `backup_service.dart:15` (kod yorumu) | **GİDERİLDİ** — kod yorumuna "uçtan uca değil" notu eklendi; `PRIVACY_POLICY.md` Bölüm 5'teki cümle, erişim kontrolü (hesapla oturum açma) ile şifreleme garantisi (uçtan uca değil, sunucu sırrına erişimi olan biri teorik olarak çözebilir) ayrımını netleştirecek şekilde yeniden yazıldı. |
 
@@ -31,7 +33,7 @@ Yok. Hiçbir bulgu üretimde aktif veri kaybı/güvenlik açığına P0 düzeyin
 | ID | Başlık | Kanıt | Durum |
 |---|---|---|---|
 | SEC-03 | Yedek anahtarı sunucuda türetiliyor; "uçtan uca şifreli" değil | `backup-key/index.ts`, `backup_service.dart` | AÇIK (mimari karar — anahtar yönetimi değişikliği büyük bir iş; kullanıcı kararı gerekli) |
-| SEC-04 | Ücretsiz plan banka kilidi/geçmiş dönem muafiyeti yalnız istemcide, sunucuda zorlanmıyor | — | **ONAY BEKLİYOR** (SQL taslağı hazır, uygulanmadı) |
+| SEC-04 | Ücretsiz plan banka kilidi/geçmiş dönem muafiyeti yalnız istemcide, sunucuda zorlanmıyor | — | **ONAYLANDI — UYGULAMA ENGELLENDİ** (K42) — `20261003150000_free_tier_bank_lock_v2.sql` yazıldı; istemci parametreleri eklendi ama RPC çağrısı migrasyon uygulanana kadar bilinçli olarak eski fonksiyonu kullanıyor |
 | SEC-05 | `admin-update-content`: JWT yok, paylaşılan sır sabit-zamanlı değil, hız sınırı yok; panelde saklı XSS riski | `admin-update-content/index.ts:42`, `Web_Yonetici_Paneli/index.html` | AÇIK |
 | SEC-06 | Cihazdaki SQLite/JSON dosyaları şifresiz (F2-27 kararı) | — | AÇIK — `isDatabaseEncrypted()` artık dürüst `false` döndürüyor (yanıltıcı kısmı GİDERİLDİ) |
 | SEC-07 | PIN kilidi kapalı (`_kPinLockEnforced=false`) | `main.dart` | AÇIK — gerçek cihazda kilitlenme hatası doğrulanmadan açılmayacak (proje hafızası kararı) |
@@ -71,7 +73,7 @@ Yok. Hiçbir bulgu üretimde aktif veri kaybı/güvenlik açığına P0 düzeyin
 | SEC-08 | `file_picker` önbellek kopyaları silinmiyor | AÇIK (cihazda DOĞRULANMADI) |
 | SEC-09 | Oturum belirteçleri `shared_prefs` içinde düz metin | AÇIK (platform normali, Flutter varsayılanı) |
 | SEC-11 | `security_guard.dart` sahte fonksiyonları (kalanlar) | AÇIK |
-| SEC-13/14 | `authenticated` rolüne TRUNCATE yetkisi; `vault_blobs` boyut sınırı yok | **ONAY BEKLİYOR** (SQL taslağı hazır) |
+| SEC-13/14 | `authenticated` rolüne TRUNCATE yetkisi; `vault_blobs` boyut sınırı yok | **ONAYLANDI — UYGULAMA ENGELLENDİ** (K43) — `20261003150100_revoke_truncate_authenticated.sql` yazıldı; boyut sınırı K44/SEC-02 migrasyonunda |
 | SEC-15 | PiiRedactor fazla/az maskeleme | AÇIK |
 | SEC-16 | PDF malware tarayıcı yalnız düz imza arıyor | AÇIK (kabul edilebilir — "0 TL maliyetli ilk savunma" olarak tasarlandı) |
 | SEC-17 | `register_device` aynı FCM jetonunu başka kullanıcıya taşıyabiliyor | AÇIK |

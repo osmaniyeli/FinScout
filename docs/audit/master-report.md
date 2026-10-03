@@ -64,12 +64,12 @@ Teknik SEO temeli zaten sağlam (robots.txt, sitemap, canonical, hreflang tr/en/
 
 ## H. Öncelikli Aksiyon Listesi (bu denetimden sonraki ilk adımlar)
 
-1. **(P1, kullanıcı onayı gerekli)** 3 bekleyen SQL taslağını incele ve istersen uygula: sunucu tarafı tek-banka kilidi (SEC-04), `authenticated` rolünden TRUNCATE yetkisinin alınması (SEC-13), `vault_blobs` sürüm geçmişi (SEC-02).
+1. **(P1, kullanıcı elle)** 3 migrasyon K42/K43/K44 ile onaylandı, dosyalar `supabase/migrations/20261003150000..150200_*.sql`'de hazır, ama Claude Code auto-mode canlı şemaya yazmayı engelledi — Supabase Dashboard > SQL Editor'dan sırayla çalıştır (veya interaktif/auto-mode-dışı bir oturumda tekrar dene). K42 (bank-lock v2) uygulandıktan SONRA `user_profile_service.dart`'taki `consumeUpload`'ı `consume_upload_v2`'ye geçirmek de gerekiyor (kod yorumunda not var).
 2. **(P2, 2 dakika, kullanıcı elle)** Supabase Auth panosundan "Leaked Password Protection"ı aç (SEC-18).
 3. **(P2, küçük)** `admin-update-content` Edge Function'a sabit-zamanlı sır karşılaştırması + hız sınırı ekle (SEC-05/ARCH-20).
 4. **(P2)** PERF-01: Supabase projesinin uykuya dalmasını önleyecek haftalık health-check (F2-28 kararı, henüz uygulanmadı).
 5. **(P2, finansal doğruluk)** FIN-02/FIN-03/QA-P3-05: para ayrıştırma kenar durumları (`toMinorUnits`, ondalık ayırıcı) — aynı kök, 3 bağımsız bulgu.
-6. **(P2, sektör/UX kararı)** Mağaza başlığı: banka adı mı yoksa F1-01'in soyut dili mi önceliklendirilsin — kullanıcı kararı.
+6. ~~Mağaza başlığı~~ **K41 ile karara bağlandı (2026-10-03):** F1-01'in soyut dili korunuyor, banka adı yazılmayacak. ASO önerilerinin bu ilkeyle çelişen 2/3'ü uygulanmayacak.
 7. **(P3)** QA-P2-01 (hedef fazla-birikim sızıntısı) — kullanıcıya görünür, düzeltmesi küçük.
 8. Geri kalan P3/P4 maddeleri `risk-register.md`'de — zaman/öncelik uygun olduğunda sırayla alınabilir.
 
@@ -82,7 +82,7 @@ Teknik SEO temeli zaten sağlam (robots.txt, sitemap, canonical, hreflang tr/en/
 ## J. Açık Sorular / Varsayımlar
 
 - **AD_ID Play Console deklarasyonu:** proje hafızasına göre "Hayır" olmalı, bu ortamdan DOĞRULANAMADI.
-- **Mağaza başlığı:** F1-01 ("banka adı yok") ile 2/3 ASO önerisi çelişiyor — kullanıcı kararı bekliyor, uygulanmadı.
+- **Mağaza başlığı:** K41 ile karara bağlandı — F1-01'in soyut dili ("banka adı yok") korunuyor.
 - **3 SQL taslağı:** yazma işlemi olduğu için kullanıcı onayı olmadan uygulanmadı.
 - **Gerçek cihaz davranışı:** ARCH-03 düzeltmesi (hesap değişimi senaryosu), SEC-08 (PDF önbellek kopyaları), ARCH-13 (TalkBack erişilebilirlik), PERF-03/04 (ayrıştırma/şifreleme süresi) — hepsi kod yolu DOĞRULANDI ama gerçek cihazda tekrar üretilmedi/ölçülmedi; uydurulmadı.
 - **Core Web Vitals / Lighthouse:** bu ortamda ölçüm aracı yok, DOĞRULANMADI.
