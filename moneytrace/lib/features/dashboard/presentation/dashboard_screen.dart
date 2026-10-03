@@ -531,15 +531,13 @@ class _DashboardScreenState extends State<DashboardScreen>
         Row(
           children: [
             Builder(builder: (context) {
-              return Container(
+              return FinanceCard(
                 // Tanıtım turu (Adım 1, Stil A) bu düğmeyi hedef alır.
                 key: OnboardingTourAnchors.uploadButton,
-                decoration: BoxDecoration(
-                  color: AppColors.cardOf(context),
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  border: Border.all(color: AppColors.borderOf(context)),
-                  boxShadow: AppShadows.card,
-                ),
+                padding: EdgeInsets.zero,
+                color: AppColors.cardOf(context),
+                borderRadius: AppRadius.md,
+                border: Border.all(color: AppColors.borderOf(context)),
                 child: IconButton(
                   icon: Icon(Icons.upload_file_rounded,
                       color: AppColors.textPrimaryOf(context), size: 20),
@@ -557,13 +555,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                   UserProfileService.instance.notificationsNotifier,
               builder: (context, notifs, _) {
                 final unreadCount = notifs.where((n) => !n.isRead).length;
-                return Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.cardOf(context),
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    border: Border.all(color: AppColors.borderOf(context)),
-                    boxShadow: AppShadows.card,
-                  ),
+                return FinanceCard(
+                  padding: EdgeInsets.zero,
+                  color: AppColors.cardOf(context),
+                  borderRadius: AppRadius.md,
+                  border: Border.all(color: AppColors.borderOf(context)),
                   child: Stack(
                     alignment: Alignment.topRight,
                     children: [
@@ -636,14 +632,11 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Widget _buildMonthNavigator() {
     return Center(
-      child: Container(
+      child: FinanceCard(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: AppColors.cardOf(context),
-          borderRadius: BorderRadius.circular(AppRadius.pill),
-          border: Border.all(color: AppColors.borderOf(context)),
-          boxShadow: AppShadows.card,
-        ),
+        color: AppColors.cardOf(context),
+        borderRadius: AppRadius.pill,
+        border: Border.all(color: AppColors.borderOf(context)),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

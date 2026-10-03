@@ -4,6 +4,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../core/layout/adaptive.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/fintech/fintech_components.dart';
 import '../../subscription/presentation/subscription_plans_sheet.dart';
 import '../services/family_service.dart';
 
@@ -412,13 +413,12 @@ class _FamilyScreenState extends State<FamilyScreen> {
     final shareText =
         'FinScout aile paketime katıl: uygulamada Ayarlar > Aile bölümüne bu kodu gir: $code'
         '${expires != null ? ' (${_fmtDateTime(expires)} tarihine kadar geçerli)' : ''}';
-    return Container(
+    return FinanceCard(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
+      color: const Color(0xFFF8FAFC),
+      borderRadius: 16,
+      border: Border.all(color: const Color(0xFFE2E8F0)),
+      boxShadow: const [],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -499,13 +499,12 @@ class FamilyHowItWorks extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return FinanceCard(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
+      color: const Color(0xFFF8FAFC),
+      borderRadius: 16,
+      border: Border.all(color: const Color(0xFFE2E8F0)),
+      boxShadow: const [],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

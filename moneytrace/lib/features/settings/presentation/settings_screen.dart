@@ -10,7 +10,7 @@ import '../../subscription/services/subscription_service.dart';
 import '../../subscription/presentation/subscription_plans_sheet.dart';
 import '../../family/presentation/family_screen.dart';
 import '../../../core/services/security_auth_service.dart';
-import '../../../core/widgets/fintech/security_auth_sheet.dart';
+import '../../../core/widgets/fintech/fintech_components.dart';
 import '../../../core/widgets/fintech/bank_selection_sheet.dart';
 import 'licenses_screen.dart';
 
@@ -171,14 +171,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               // 1. Plan Kartı (Google Play Billing Entegrasyonu)
               // Düz, sakin kart: animasyon/parlama yok (kullanıcı kararı 2026-09-25).
-              Container(
+              SizedBox(
                 width: double.infinity,
+                child: FinanceCard(
                 padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: AppColors.subtleFillOf(context),
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: AppColors.borderOf(context)),
-                ),
+                color: AppColors.subtleFillOf(context),
+                borderRadius: 22,
+                border: Border.all(color: AppColors.borderOf(context)),
+                boxShadow: const [],
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -226,6 +226,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           : AppStrings.get('settings_explore_premium_btn')),
                     ),
                   ],
+                ),
                 ),
               ),
               const SizedBox(height: 18),
@@ -305,6 +306,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   );
                 },
               ),
+              // Ana ekran widget'ı gizlilik tercihi: FLAG_SECURE/ekran görüntüsü engeli bilinçli
+              // olarak kapalı olduğu gibi burada da zorla gizleme yok — kullanıcı isterse kapatır.
+              ValueListenableBuilder<UserProfile?>(
+                valueListenable: UserProfileService.instance.profileNotifier,
+                builder: (context, profile, _) {
+                  final hidden = profile?.hideWidgetAmounts ?? false;
+                  return SwitchListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    secondary: Icon(Icons.visibility_off_outlined,
+                        color: AppColors.textSecondaryOf(context)),
+                    title: Text(
+                        AppStrings.get('settings_hide_widget_amounts_title'),
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimaryOf(context))),
+                    subtitle: Text(
+                        AppStrings.get(
+                            'settings_hide_widget_amounts_subtitle'),
+                        style: TextStyle(
+                            fontSize: 11.5,
+                            height: 1.3,
+                            color: AppColors.textSecondaryOf(context))),
+                    value: hidden,
+                    activeThumbColor: AppColors.actionPrimary,
+                    onChanged: (v) =>
+                        UserProfileService.instance.setHideWidgetAmounts(v),
+                  );
+                },
+              ),
               _buildLinkTile(
                   Icons.person_remove_outlined,
                   AppStrings.get('settings_delete_account_title'),
@@ -343,13 +375,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ValueListenableBuilder<ThemeMode>(
                 valueListenable: UserProfileService.instance.themeModeNotifier,
                 builder: (context, mode, _) {
-                  return Container(
+                  return FinanceCard(
                     padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.subtleFillOf(context),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: AppColors.borderOf(context)),
-                    ),
+                    color: AppColors.subtleFillOf(context),
+                    borderRadius: 18,
+                    border: Border.all(color: AppColors.borderOf(context)),
+                    boxShadow: const [],
                     child: Row(
                       children: [
                         Expanded(
@@ -383,13 +414,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ValueListenableBuilder<String>(
                 valueListenable: AppStrings.currentLocale,
                 builder: (context, locale, _) {
-                  return Container(
+                  return FinanceCard(
                     padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.subtleFillOf(context),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: AppColors.borderOf(context)),
-                    ),
+                    color: AppColors.subtleFillOf(context),
+                    borderRadius: 18,
+                    border: Border.all(color: AppColors.borderOf(context)),
+                    boxShadow: const [],
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -429,13 +459,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     letterSpacing: 0.5),
               ),
               const SizedBox(height: 8),
-              Container(
+              FinanceCard(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.subtleFillOf(context),
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: AppColors.borderOf(context)),
-                ),
+                color: AppColors.subtleFillOf(context),
+                borderRadius: 18,
+                border: Border.all(color: AppColors.borderOf(context)),
+                boxShadow: const [],
                 child: Row(
                   children: [
                     Container(
@@ -511,13 +540,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ValueListenableBuilder<bool>(
                 valueListenable: SecurityAuthService.instance.hasPinSetNotifier,
                 builder: (context, hasPin, _) {
-                  return Container(
+                  return FinanceCard(
                     padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.subtleFillOf(context),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: AppColors.borderOf(context)),
-                    ),
+                    color: AppColors.subtleFillOf(context),
+                    borderRadius: 18,
+                    border: Border.all(color: AppColors.borderOf(context)),
+                    boxShadow: const [],
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -657,13 +685,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 8),
 
-              Container(
+              FinanceCard(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF1F2),
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: const Color(0xFFFECDD3)),
-                ),
+                color: const Color(0xFFFFF1F2),
+                borderRadius: 18,
+                border: Border.all(color: const Color(0xFFFECDD3)),
+                boxShadow: const [],
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

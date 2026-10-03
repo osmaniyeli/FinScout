@@ -6,6 +6,23 @@ Format, [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) standardına da
 
 ---
 
+## [3.15.0] - 2026-10-03
+
+UI/UX modernizasyon analizi (`docs/design/ui-ux-modernizasyon-raporu.md`) sonrası ilk uygulama turu: kart tutarlılığı, 3 ana ekran widget'ı, gerçek açılış ekranı.
+
+### Yenilikler
+- **3 ana ekran widget'ı** (Aylık Değişim / Aylık Harcama / Aylık Maaş): 12 aylık sparkline grafik, kullanıcı tarafından 4x1–5x2 arasında yeniden boyutlandırılabilir. Veri yalnız gerçek değişiklikte güncellenir (polling yok). Ayarlar'da "Ana ekran widget'ında tutarları gizle" seçeneği eklendi.
+- **Gerçek açılış ekranı**: önceden `runApp()` öncesi boş beyaz ekran görünüyordu; artık marka rengi + ikonla (Android 12+ sistem Splash Screen API'si dahil) karşılanıyor.
+
+### İyileştirmeler
+- **Kart tutarlılığı**: 20 dosyada elle yazılmış 43 ad-hoc kart tasarımı tek paylaşılan `FinanceCard` bileşenine taşındı (görünüm değişmedi, yalnız kaynak tekilleşti). Bu arada `goal_card_tile.dart`, `goal_summary_header.dart` ve analiz kategori detayı koyu moda kazandırıldı.
+- `TransactionRepository`'ye 12 aylık gelir/gider/net-değişim trend sorguları eklendi (mevcut 6 aylık sorgunun geriye uyumlu genişletmesi).
+
+### Doğrulama
+`flutter analyze` 0 hata, `flutter test` 433/0/7 (temel çizgiyle aynı), kalite kapısı 107/107, `flutter build apk --debug` başarılı. Widget'ların gerçek cihazda yerleştirilmesi/boyutlandırılması ve açılış ekranının görsel akışı bu sürümde DOĞRULANAMADI (yerel emulator ortam sorunu nedeniyle çalışmadı) — ilk gerçek cihaz testinde kontrol edilmeli.
+
+---
+
 ## [3.14.0] - 2026-10-03
 
 Uçtan uca denetim: mimari, güvenlik, gizlilik, finansal doğruluk, test/QA, pazarlama ve SEO/ASO alanlarında kapsamlı inceleme (`docs/audit/`). Bulunan gerçek hatalar düzeltildi; şema değişikliği gerektirenler kullanıcı onayı için belgelendi.

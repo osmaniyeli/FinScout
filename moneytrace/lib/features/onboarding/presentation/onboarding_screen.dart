@@ -418,20 +418,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   // 1. KAYIT OL FORMU (Sign Up)
   // ==========================================
   Widget _buildSignUpForm() {
-    return Container(
+    return FinanceCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.cardOf(context),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppColors.borderOf(context)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 16,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
+      color: AppColors.cardOf(context),
+      borderRadius: 22,
+      border: Border.all(color: AppColors.borderOf(context)),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x0A000000),
+          blurRadius: 16,
+          offset: Offset(0, 4),
+        ),
+      ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -543,20 +541,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   // 2. GİRİŞ YAP FORMU (Sign In / Biometrics / PIN)
   // ==========================================
   Widget _buildSignInForm() {
-    return Container(
+    return FinanceCard(
       padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: AppColors.cardOf(context),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppColors.borderOf(context)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 16,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
+      color: AppColors.cardOf(context),
+      borderRadius: 22,
+      border: Border.all(color: AppColors.borderOf(context)),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x0A000000),
+          blurRadius: 16,
+          offset: Offset(0, 4),
+        ),
+      ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -731,13 +727,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   // 3. E-POSTA KODU DOĞRULAMA
   // ==========================================
   Widget _buildCodeStep() {
-    return Container(
+    return FinanceCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.cardOf(context),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppColors.borderOf(context)),
-      ),
+      color: AppColors.cardOf(context),
+      borderRadius: 22,
+      border: Border.all(color: AppColors.borderOf(context)),
+      boxShadow: const [],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

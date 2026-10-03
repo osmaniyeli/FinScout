@@ -17,6 +17,11 @@ class FinanceCard extends StatelessWidget {
   final double? borderRadius;
   final Border? border;
 
+  /// Gölge geçersiz kılma. Belirtilmezse (null) varsayılan [AppShadows.card]
+  /// kullanılır — mevcut tüm çağrı yerlerinin davranışı değişmez. Gölgesiz
+  /// (düz/flat) bir kart gerekiyorsa `boxShadow: const []` geçilir.
+  final List<BoxShadow>? boxShadow;
+
   const FinanceCard({
     super.key,
     required this.child,
@@ -26,6 +31,7 @@ class FinanceCard extends StatelessWidget {
     this.onTap,
     this.borderRadius,
     this.border,
+    this.boxShadow,
   });
 
   @override
@@ -38,7 +44,7 @@ class FinanceCard extends StatelessWidget {
         color: color ?? AppColors.cardSurface,
         borderRadius: BorderRadius.circular(radius),
         border: border ?? Border.all(color: AppColors.cardBorder, width: 1),
-        boxShadow: AppShadows.card,
+        boxShadow: boxShadow ?? AppShadows.card,
       ),
       child: child,
     );

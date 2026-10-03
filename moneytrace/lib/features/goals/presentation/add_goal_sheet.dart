@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/fintech/fintech_components.dart';
 import '../../../core/utils/thousands_input_formatter.dart';
 import '../../../core/utils/currency_normalizer.dart';
 import '../models/financial_goal.dart';
@@ -324,36 +325,32 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
             const SizedBox(height: 12),
 
             // Hedef Tarih Seçici
-            InkWell(
+            FinanceCard(
               onTap: _pickDate,
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.borderLight),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.calendar_today_rounded,
-                        size: 18, color: AppColors.textSecondary),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Hedef tarihi: ${_formatDate(_selectedDate)}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                        ),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              color: const Color(0xFFF8FAFC),
+              borderRadius: 16,
+              border: Border.all(color: AppColors.borderLight),
+              boxShadow: const [],
+              child: Row(
+                children: [
+                  const Icon(Icons.calendar_today_rounded,
+                      size: 18, color: AppColors.textSecondary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Hedef tarihi: ${_formatDate(_selectedDate)}',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
                       ),
                     ),
-                    const Icon(Icons.edit,
-                        size: 16, color: AppColors.textMuted),
-                  ],
-                ),
+                  ),
+                  const Icon(Icons.edit,
+                      size: 16, color: AppColors.textMuted),
+                ],
               ),
             ),
             const SizedBox(height: 20),

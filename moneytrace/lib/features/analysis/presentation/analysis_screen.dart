@@ -244,13 +244,12 @@ class _AnalysisScreenState extends State<AnalysisScreen>
               ],
             ),
             const SizedBox(height: 16),
-            Container(
+            FinanceCard(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
+              color: AppColors.subtleFillOf(context),
+              borderRadius: 18,
+              border: Border.all(color: AppColors.borderOf(context)),
+              boxShadow: const [],
               child: Column(
                 children: [
                   Row(

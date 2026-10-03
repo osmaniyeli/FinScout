@@ -158,13 +158,12 @@ class _CashflowScreenState extends State<CashflowScreen> implements TabAddAction
 
   Widget _buildBalanceCard(WalletHistory history) {
     final thisMonth = history.months.last;
-    return Container(
+    return FinanceCard(
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
+      color: Colors.white,
+      borderRadius: 18,
+      border: Border.all(color: const Color(0xFFE2E8F0)),
+      boxShadow: const [],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -237,13 +236,12 @@ class _CashflowScreenState extends State<CashflowScreen> implements TabAddAction
   Widget _buildTrendChart(WalletHistory history) {
     final maxAbs = history.months.fold<int>(1, (m, x) => x.netCents.abs() > m ? x.netCents.abs() : m);
     const barMax = 56.0;
-    return Container(
+    return FinanceCard(
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
+      color: Colors.white,
+      borderRadius: 18,
+      border: Border.all(color: const Color(0xFFE2E8F0)),
+      boxShadow: const [],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -361,13 +359,12 @@ class _CashflowScreenState extends State<CashflowScreen> implements TabAddAction
 
   Widget _buildCardDebtRow(CardDebt c) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
-        child: Container(
+        child: FinanceCard(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
+          color: Colors.white,
+          borderRadius: 14,
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: const [],
           child: Row(
             children: [
               BankLogo(bankName: c.bankName, size: 36),
@@ -399,13 +396,12 @@ class _CashflowScreenState extends State<CashflowScreen> implements TabAddAction
 
   Widget _buildInstallmentRow(ActiveInstallment i) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
-        child: Container(
+        child: FinanceCard(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
+          color: Colors.white,
+          borderRadius: 14,
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: const [],
           child: _rowWithTrailing(
             [
               BankLogo(bankName: i.bankName, size: 36),
@@ -442,13 +438,12 @@ class _CashflowScreenState extends State<CashflowScreen> implements TabAddAction
 
   Widget _buildMonthRow(WalletMonth m) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
-        child: Container(
+        child: FinanceCard(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
+          color: Colors.white,
+          borderRadius: 14,
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: const [],
           child: _rowWithTrailing(
             [
               Expanded(

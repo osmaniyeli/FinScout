@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ana ekran widget'ları (Aylık Değişim/Harcama/Maaş) kart zemini: wallpaper üzerinde okunabilir
+     olması için düz, yuvarlak köşeli bir kart (bkz. widget_trend_compact.xml / widget_trend_expanded.xml). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/widget_card_background" />
+    <corners android:radius="16dp" />
+</shape>

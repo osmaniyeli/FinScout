@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/fintech/fintech_components.dart';
 import '../../../core/database/repositories/transaction_repository.dart';
 import '../../../core/widgets/bank_logo.dart';
 
@@ -75,16 +76,7 @@ class StatementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: padding,
-      decoration: showBorder
-          ? BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            )
-          : null,
-      child: Row(
+    final row = Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           BankLogo(bankName: statement.institution, size: 38),
@@ -132,7 +124,16 @@ class StatementCard extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
+      );
+    return showBorder
+        ? FinanceCard(
+            padding: padding,
+            color: Colors.white,
+            borderRadius: 16,
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+            boxShadow: const [],
+            child: row,
+          )
+        : Padding(padding: padding, child: row);
   }
 }

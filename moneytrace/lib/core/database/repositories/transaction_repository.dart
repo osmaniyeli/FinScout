@@ -605,11 +605,13 @@ Future<List<Map<String, dynamic>>> getUpcomingInstallments(
     }).toList();
   }
 
-  /// Gerçek aylık harcama trendlerini (Son 6 ay) hesaplar
-  Future<List<Map<String, dynamic>>> getMonthlyTrendsAnalysis() async {
+  /// Gerçek aylık harcama trendlerini hesaplar. Varsayılan 6 ay (mevcut ekranlar bunu bekler);
+  /// Ana ekran widget'ları (bkz. HomeWidgetService) 12 ay ister, bu yüzden geriye dönük
+  /// uyumluluğu bozmadan [months] parametresi eklendi.
+  Future<List<Map<String, dynamic>>> getMonthlyTrendsAnalysis({int months = 6}) async {
     final db = await _dbProvider.database;
     final rows = await db.rawQuery('''
-      SELECT 
+      SELECT
         strftime('%Y-%m', transaction_date) as year_month,
         SUM(billing_amount_cents) as total_cents
       FROM (
@@ -622,16 +624,69 @@ Future<List<Map<String, dynamic>>> getUpcomingInstallments(
       )
       GROUP BY year_month
       ORDER BY year_month DESC
-      LIMIT 6
-    ''');
+      LIMIT ?
+    ''', [months]);
+    return _mapMonthlyRows(rows);
+  }
 
+  /// Bordro/maaş yatışından gelen aylık toplam gelir (tx_kind = 'SALARY', CREDIT). Bordro ile aynı
+  /// maaşın vadesiz hesaba yatışı birlikte yüklendiyse [payslipDuplicateFilterSql] ikisini bir kez
+  /// saydırır (bkz. getPayslipRows'un uyguladığı aynı mantık). Ana ekran "Aylık Maaş" widget'ı için.
+  Future<List<Map<String, dynamic>>> getMonthlySalaryTrends({int months = 12}) async {
+    final db = await _dbProvider.database;
+    final rows = await db.rawQuery('''
+      SELECT
+        strftime('%Y-%m', t.transaction_date) as year_month,
+        SUM(t.billing_amount_cents) as total_cents
+      FROM transactions t
+      WHERE t.tx_kind = 'SALARY' AND t.transaction_type = 'CREDIT' $payslipDuplicateFilterSql
+      GROUP BY year_month
+      ORDER BY year_month DESC
+      LIMIT ?
+    ''', [months]);
+    return _mapMonthlyRows(rows);
+  }
+
+  /// Aylık net değişim: gelir (SALARY, bkz. [getMonthlySalaryTrends]) − gider (bkz.
+  /// [getMonthlyTrendsAnalysis] ile aynı gider mantığı). İkisini ayrı ayrı çekip Dart'ta
+  /// çıkarmak yerine tek sorguda birleştirilir ki ay bazında eksik satır tutarsızlığı olmasın.
+  /// Ana ekran "Aylık Değişim" widget'ı için.
+  Future<List<Map<String, dynamic>>> getMonthlyNetChangeTrends({int months = 12}) async {
+    final db = await _dbProvider.database;
+    final rows = await db.rawQuery('''
+      SELECT year_month, SUM(net_cents) as total_cents
+      FROM (
+        SELECT
+          strftime('%Y-%m', t.transaction_date) as year_month,
+          CASE
+            WHEN t.tx_kind = 'SALARY' AND t.transaction_type = 'CREDIT' THEN t.billing_amount_cents
+            WHEN t.transaction_type = 'DEBIT' THEN -t.billing_amount_cents
+            WHEN t.transaction_type = 'CREDIT' AND t.tx_kind = 'REFUND' THEN t.billing_amount_cents
+            ELSE 0
+          END as net_cents
+        FROM transactions t
+        WHERE t.tx_kind NOT IN $neutralKindsSql $payslipDuplicateFilterSql
+      )
+      GROUP BY year_month
+      ORDER BY year_month DESC
+      LIMIT ?
+    ''', [months]);
+    return _mapMonthlyRows(rows);
+  }
+
+  /// [getMonthlyTrendsAnalysis]/[getMonthlySalaryTrends]/[getMonthlyNetChangeTrends] ortak biçimlendirme
+  /// mantığı: eskiden en yeniye sırala, Türkçe ay kısaltması ekle, grafik çubukları için -1..1
+  /// aralığında (mutlak en büyük değere göre) oran hesapla. Oranın negatif olabilmesi net değişim
+  /// gibi eksi değer alabilen serilerde gereklidir; harcama/gelir gibi hep pozitif serilerde
+  /// davranış eskisiyle birebir aynıdır (0..1).
+  static List<Map<String, dynamic>> _mapMonthlyRows(List<Map<String, Object?>> rows) {
     if (rows.isEmpty) return [];
 
     final reversed = rows.reversed.toList();
-    int maxCents = 0;
+    int maxAbsCents = 0;
     for (final r in reversed) {
-      final cents = ((r['total_cents'] as num?)?.toInt() ?? 0);
-      if (cents > maxCents) maxCents = cents;
+      final cents = ((r['total_cents'] as num?)?.toInt() ?? 0).abs();
+      if (cents > maxAbsCents) maxAbsCents = cents;
     }
 
     const monthShortNames = [
@@ -660,7 +715,7 @@ Future<List<Map<String, dynamic>>> getUpcomingInstallments(
         }
       }
       final cents = ((r['total_cents'] as num?)?.toInt() ?? 0);
-      final ratio = maxCents > 0 ? (cents / maxCents) : 0.0;
+      final ratio = maxAbsCents > 0 ? (cents / maxAbsCents) : 0.0;
       return {
         'month': displayMonth,
         'year_month': ym,

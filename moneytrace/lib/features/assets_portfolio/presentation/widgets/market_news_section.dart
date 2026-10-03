@@ -9,6 +9,7 @@ import '../../../../core/services/live_market_service.dart';
 import '../../../../core/utils/currency_normalizer.dart';
 import '../../../../core/utils/thousands_input_formatter.dart';
 import '../../../../core/widgets/remote_feature_gate.dart';
+import '../../../../core/widgets/fintech/fintech_components.dart';
 
 class MarketNewsSection extends StatefulWidget {
   const MarketNewsSection({super.key});
@@ -140,13 +141,12 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
 
           // Haber Kartları
           if (_news.isEmpty && _isLoading)
-            Container(
+            FinanceCard(
               padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
+              color: const Color(0xFFF8FAFC),
+              borderRadius: 16,
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              boxShadow: const [],
               child: const Center(
                 child: CircularProgressIndicator(
                     strokeWidth: 2, color: AppColors.actionPrimary),
@@ -190,13 +190,12 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
     final hasResult = qty > 0 && price > 0;
     final resultCents = (price * qty * 100).round();
 
-    return Container(
+    return FinanceCard(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
+      color: const Color(0xFFF8FAFC),
+      borderRadius: 16,
+      border: Border.all(color: const Color(0xFFE2E8F0)),
+      boxShadow: const [],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -278,24 +277,20 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
     final sourceBgColor =
         isBloomberg ? const Color(0xFFEFF6FF) : const Color(0xFFECFDF5);
 
-    return InkWell(
+    return FinanceCard(
       onTap: () => _showNewsDetailModal(context, item),
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+      padding: const EdgeInsets.all(14),
+      color: Colors.white,
+      borderRadius: 16,
+      border: Border.all(color: const Color(0xFFE2E8F0)),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.02),
+          blurRadius: 8,
+          offset: const Offset(0, 2),
         ),
-        child: Column(
+      ],
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Üst Satır: Kaynak Rozeti + Kategori + Süre
@@ -381,7 +376,6 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
             ),
           ],
         ),
-      ),
     );
   }
 
@@ -461,13 +455,12 @@ class _MarketNewsSectionState extends State<MarketNewsSection> {
               const SizedBox(height: 20),
 
               // Telif / Yasal Uyarı
-              Container(
+              FinanceCard(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
+                color: const Color(0xFFF8FAFC),
+                borderRadius: 12,
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+                boxShadow: const [],
                 child: Row(
                   children: [
                     const Icon(Icons.info_outline_rounded,

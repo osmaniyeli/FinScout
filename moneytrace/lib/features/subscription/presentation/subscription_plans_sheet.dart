@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/fintech/fintech_components.dart';
 import '../../../core/config/app_links.dart';
 import '../services/subscription_service.dart';
 import '../../family/presentation/family_screen.dart';
@@ -219,14 +220,13 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
           ),
         );
 
-    return Container(
+    return FinanceCard(
       margin: const EdgeInsets.only(top: 2, bottom: 16),
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
+      color: const Color(0xFFF8FAFC),
+      borderRadius: 18,
+      border: Border.all(color: const Color(0xFFE2E8F0)),
+      boxShadow: const [],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -375,26 +375,24 @@ class _SubscriptionPlansSheetState extends State<SubscriptionPlansSheet> {
               final productDetails = _service.products[pkg.identifier];
               final displayPrice = productDetails?.price ?? pkg.priceFormatted;
 
-              return Container(
+              return FinanceCard(
                 margin: const EdgeInsets.only(bottom: 12),
-                clipBehavior: Clip.antiAlias,
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
+                color: isFamily
+                    ? const Color(0xFFF0FDF4)
+                    : (isAnnual
+                        ? const Color(0xFFEFF6FF)
+                        : const Color(0xFFF8FAFC)),
+                borderRadius: 20,
+                border: Border.all(
                   color: isFamily
-                      ? const Color(0xFFF0FDF4)
+                      ? AppColors.incomeGreen
                       : (isAnnual
-                          ? const Color(0xFFEFF6FF)
-                          : const Color(0xFFF8FAFC)),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isFamily
-                        ? AppColors.incomeGreen
-                        : (isAnnual
-                            ? AppColors.actionPrimary
-                            : const Color(0xFFE2E8F0)),
-                    width: isFamily || isAnnual ? 1.5 : 1,
-                  ),
+                          ? AppColors.actionPrimary
+                          : const Color(0xFFE2E8F0)),
+                  width: isFamily || isAnnual ? 1.5 : 1,
                 ),
+                boxShadow: const [],
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

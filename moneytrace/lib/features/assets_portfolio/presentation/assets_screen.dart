@@ -376,13 +376,12 @@ class _AssetsScreenState extends State<AssetsScreen> implements TabAddActions {
                 ],
               ),
               const SizedBox(height: 20),
-              Container(
+              FinanceCard(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
+                color: const Color(0xFFF8FAFC),
+                borderRadius: 18,
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+                boxShadow: const [],
                 child: Column(
                   children: isCredit
                       ? [
@@ -2309,14 +2308,13 @@ class _AssetsScreenState extends State<AssetsScreen> implements TabAddActions {
   Widget _buildTickerChip(String title, MarketTicker? ticker) {
     final changeRate = ticker?.changeRate;
     final isPositive = (changeRate ?? 0) >= 0;
-    return Container(
+    return FinanceCard(
       margin: const EdgeInsets.only(right: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
+      color: Colors.white,
+      borderRadius: 14,
+      border: Border.all(color: const Color(0xFFE2E8F0)),
+      boxShadow: const [],
       child: Row(
         children: [
           Column(

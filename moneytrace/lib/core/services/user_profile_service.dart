@@ -68,6 +68,11 @@ class UserProfile {
   /// tetiklenmemesi için kalıcı olarak saklanır (bkz. onboarding_tour_controller.dart).
   final bool hasSeenOnboardingTour;
 
+  /// Ana ekran widget'larında (bkz. HomeWidgetService) TL tutarlarını gizler. Varsayılan: KAPALI
+  /// (tutarlar gösterilir) — FLAG_SECURE/ekran görüntüsü engeli bilinçli olarak kapalı olduğu gibi
+  /// burada da zorla gizleme yok, kullanıcı isterse Ayarlar'dan kendi kapatır.
+  final bool hideWidgetAmounts;
+
   UserProfile({
     required this.id,
     required this.name,
@@ -80,6 +85,7 @@ class UserProfile {
     this.announcementsEnabled = true,
     this.hasAcceptedUploadConsent = false,
     this.hasSeenOnboardingTour = false,
+    this.hideWidgetAmounts = false,
   });
 
   UserProfile copyWith({
@@ -88,6 +94,7 @@ class UserProfile {
     bool? announcementsEnabled,
     bool? hasAcceptedUploadConsent,
     bool? hasSeenOnboardingTour,
+    bool? hideWidgetAmounts,
   }) =>
       UserProfile(
         id: id,
@@ -103,6 +110,7 @@ class UserProfile {
             hasAcceptedUploadConsent ?? this.hasAcceptedUploadConsent,
         hasSeenOnboardingTour:
             hasSeenOnboardingTour ?? this.hasSeenOnboardingTour,
+        hideWidgetAmounts: hideWidgetAmounts ?? this.hideWidgetAmounts,
       );
 
   Map<String, dynamic> toMap() => {
@@ -117,6 +125,7 @@ class UserProfile {
         'announcementsEnabled': announcementsEnabled,
         'hasAcceptedUploadConsent': hasAcceptedUploadConsent,
         'hasSeenOnboardingTour': hasSeenOnboardingTour,
+        'hideWidgetAmounts': hideWidgetAmounts,
       };
 
   factory UserProfile.fromMap(Map<String, dynamic> map) => UserProfile(
@@ -138,6 +147,7 @@ class UserProfile {
             map['hasAcceptedUploadConsent'] as bool? ?? false,
         hasSeenOnboardingTour:
             map['hasSeenOnboardingTour'] as bool? ?? false,
+        hideWidgetAmounts: map['hideWidgetAmounts'] as bool? ?? false,
       );
 }
 
@@ -545,6 +555,17 @@ class UserProfileService {
     final current = _profile;
     if (current == null) return;
     _profile = current.copyWith(announcementsEnabled: enabled);
+    profileNotifier.value = _profile;
+    await _persist();
+  }
+
+  /// Ayarlar > "Ana ekran widget'ında tutarları gizle"'den çağrılır. HomeWidgetService bu tercihe
+  /// bakıp widget verisini yeniden hesaplar/kaydeder (bkz. DataChanges/profileNotifier dinleyicisi);
+  /// burada widget'a özel bir güncelleme tetiklenmez, servis kendi dinleyicisiyle haberdar olur.
+  Future<void> setHideWidgetAmounts(bool hide) async {
+    final current = _profile;
+    if (current == null) return;
+    _profile = current.copyWith(hideWidgetAmounts: hide);
     profileNotifier.value = _profile;
     await _persist();
   }

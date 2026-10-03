@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Ana ekran widget'ları: sistem koyu modunda okunaklı kalması için kart zemini/metin
+         renkleri ters çevrilir. Marka vurgu renkleri (mavi/kırmızı/yeşil) aynı kalır. -->
+    <color name="widget_card_background">#1F2937</color>
+    <color name="widget_text_primary">#F9FAFB</color>
+    <color name="widget_text_secondary">#9CA3AF</color>
+</resources>

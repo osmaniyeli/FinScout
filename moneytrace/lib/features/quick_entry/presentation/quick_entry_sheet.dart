@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/database/repositories/transaction_repository.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/fintech/fintech_components.dart';
 import '../../../core/utils/currency_normalizer.dart';
 import '../../../core/utils/thousands_input_formatter.dart';
 import '../../../core/security/security_guard.dart';
@@ -314,7 +315,7 @@ class _QuickEntrySheetState extends State<QuickEntrySheet> {
             const SizedBox(height: 14),
 
             // Tarih
-            InkWell(
+            FinanceCard(
               onTap: () async {
                 final now = DateTime.now();
                 final picked = await showDatePicker(
@@ -325,31 +326,27 @@ class _QuickEntrySheetState extends State<QuickEntrySheet> {
                 );
                 if (picked != null) setState(() => _selectedDate = picked);
               },
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.calendar_today_rounded,
-                        size: 18, color: AppColors.textSecondary),
-                    const SizedBox(width: 10),
-                    const Text('Tarih',
-                        style: TextStyle(
-                            fontSize: 13, color: AppColors.textSecondary)),
-                    const Spacer(),
-                    Text(
-                      '${_selectedDate.day.toString().padLeft(2, '0')}.${_selectedDate.month.toString().padLeft(2, '0')}.${_selectedDate.year}',
-                      style: const TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.w700),
-                    ),
-                  ],
-                ),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+              color: const Color(0xFFF8FAFC),
+              borderRadius: 16,
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              boxShadow: const [],
+              child: Row(
+                children: [
+                  const Icon(Icons.calendar_today_rounded,
+                      size: 18, color: AppColors.textSecondary),
+                  const SizedBox(width: 10),
+                  const Text('Tarih',
+                      style: TextStyle(
+                          fontSize: 13, color: AppColors.textSecondary)),
+                  const Spacer(),
+                  Text(
+                    '${_selectedDate.day.toString().padLeft(2, '0')}.${_selectedDate.month.toString().padLeft(2, '0')}.${_selectedDate.year}',
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w700),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 24),

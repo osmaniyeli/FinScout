@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  "Aylık Değişim" widget'ı meta verisi. Boyut hesapları Android resmi formülüne göre:
+  https://developer.android.com/develop/ui/views/appwidgets/layouts
+  size(dp) = 70 * hücreSayısı − 30
+    4 sütun → 70*4−30 = 250dp   5 sütun → 70*5−30 = 320dp
+    1 satır → 70*1−30 = 40dp    2 satır → 70*2−30 = 110dp
+  targetCellWidth/Height (API 31+) VE minWidth/minHeight (eski cihaz fallback'i) birlikte
+  tanımlanır (minSdk 24). resizeMode her iki yönde de açık: kullanıcı 4x1↔5x1 VE 4x1↔4x2 arası
+  geçebilir.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="250dp"
+    android:minHeight="40dp"
+    android:minResizeWidth="250dp"
+    android:minResizeHeight="40dp"
+    android:maxResizeWidth="320dp"
+    android:maxResizeHeight="110dp"
+    android:targetCellWidth="4"
+    android:targetCellHeight="1"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen"
+    android:initialLayout="@layout/widget_trend_compact"
+    android:previewImage="@mipmap/ic_launcher"
+    android:updatePeriodMillis="0" />

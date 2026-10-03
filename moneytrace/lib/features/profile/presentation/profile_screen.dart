@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/layout/adaptive.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/fintech/fintech_components.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/services/user_profile_service.dart';
 import '../../../core/utils/currency_normalizer.dart';
@@ -173,13 +174,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 24),
 
             // 2. Kişisel Bilgiler Form / Liste Kartı
-            Container(
+            FinanceCard(
               padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
+              color: Colors.white,
+              borderRadius: 20,
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              boxShadow: const [],
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -258,14 +258,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 18),
 
             // 2.5 Yüklediğim Belgeler
-            Container(
+            SizedBox(
               width: double.infinity,
+              child: FinanceCard(
               padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
+              color: Colors.white,
+              borderRadius: 20,
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              boxShadow: const [],
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -323,6 +323,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     },
                   ),
                 ],
+              ),
               ),
             ),
             const SizedBox(height: 18),

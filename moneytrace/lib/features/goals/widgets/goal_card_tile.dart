@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/currency_normalizer.dart';
+import '../../../core/widgets/fintech/fintech_components.dart';
 import '../models/financial_goal.dart';
 
 class GoalCardTile extends StatelessWidget {
@@ -22,26 +23,21 @@ class GoalCardTile extends StatelessWidget {
     final themeColor = goal.category.themeColor;
     final progress = goal.progressPercentage;
 
-    return Container(
+    return FinanceCard(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      clipBehavior: Clip.antiAlias,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x050F172A),
-            blurRadius: 10,
-            offset: Offset(0, 3),
-          ),
-        ],
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Column(
+      color: AppColors.cardOf(context),
+      borderRadius: 16,
+      border: Border.all(color: AppColors.borderOf(context), width: 1),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x050F172A),
+          blurRadius: 10,
+          offset: Offset(0, 3),
+        ),
+      ],
+      onTap: onTap,
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Üst Satır: İkon Rozeti + Başlık + Kalan Ay Rozeti
@@ -228,7 +224,6 @@ class GoalCardTile extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 }

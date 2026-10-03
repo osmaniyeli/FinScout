@@ -154,6 +154,16 @@ class AppStrings {
       'settings_comm_permission_title': 'İletişim izni',
       'settings_comm_permission_subtitle':
           'Duyuru ve kampanya bildirimleri. Bu tercih şu an yalnız cihazında kaydediliyor; sunucu tarafı gönderim entegrasyonu henüz yok.',
+      'settings_hide_widget_amounts_title':
+          "Ana ekran widget'ında tutarları gizle",
+      'settings_hide_widget_amounts_subtitle':
+          "Ana ekran widget'ları kilit ekranında da görünebilir. Açarsan TL tutarları gizlenir, yalnız grafik şekli kalır.",
+      'widget_title_monthly_change': 'Aylık Değişim',
+      'widget_title_monthly_expense': 'Aylık Harcama',
+      'widget_title_monthly_salary': 'Aylık Maaş',
+      'widget_amount_hidden': '••••••',
+      'widget_vs_last_month': 'geçen aya göre',
+      'widget_no_data': 'Veri yok',
       'settings_delete_account_title': 'Hesap ve veri silme',
       'settings_delete_account_subtitle':
           'Uygulamadan ya da e-postayla silme yolları',
@@ -329,6 +339,15 @@ class AppStrings {
       'settings_comm_permission_title': 'Communication permission',
       'settings_comm_permission_subtitle':
           'Announcement and campaign notifications. This preference is currently saved on this device only; server-side delivery integration does not exist yet.',
+      'settings_hide_widget_amounts_title': 'Hide amounts on home screen widgets',
+      'settings_hide_widget_amounts_subtitle':
+          'Home screen widgets can also be seen on the lock screen. Turning this on hides the TL amounts, keeping only the chart shape.',
+      'widget_title_monthly_change': 'Monthly Change',
+      'widget_title_monthly_expense': 'Monthly Spending',
+      'widget_title_monthly_salary': 'Monthly Salary',
+      'widget_amount_hidden': '••••••',
+      'widget_vs_last_month': 'vs last month',
+      'widget_no_data': 'No data',
       'settings_delete_account_title': 'Delete account and data',
       'settings_delete_account_subtitle':
           'Ways to delete from the app or by email',

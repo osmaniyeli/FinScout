@@ -47,6 +47,41 @@
             </intent-filter>
         </activity>
         
+        <!-- Ana ekran widget'ları (Görev 1): veri HomeWidgetService (Dart) tarafından hesaplanır,
+             home_widget paketi üzerinden SharedPreferences'a yazılır ve bu alıcılara broadcast
+             edilir (bkz. android/app/.../kotlin/com/moneytrace/app/widget/). Sistemin widget
+             yaşam döngüsü yayınlarını (ekleme/yeniden boyutlandırma) iletebilmesi için exported. -->
+        <receiver
+            android:name="com.moneytrace.app.widget.MonthlyChangeWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/monthly_change_widget_info" />
+        </receiver>
+        <receiver
+            android:name="com.moneytrace.app.widget.MonthlyExpenseWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/monthly_expense_widget_info" />
+        </receiver>
+        <receiver
+            android:name="com.moneytrace.app.widget.MonthlySalaryWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/monthly_salary_widget_info" />
+        </receiver>
+
         <receiver
             android:exported="false"
             android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />

@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/fintech/fintech_components.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/utils/currency_normalizer.dart';
 import '../../../core/parser/services/pdf_extractor_service.dart';
@@ -733,13 +734,12 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
 
           // Yükleme Alanı veya Önizleme
           if (_isProcessing)
-            Container(
+            FinanceCard(
               padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
+              color: const Color(0xFFF8FAFC),
+              borderRadius: 20,
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              boxShadow: const [],
               child: _batchTotal > 1
                   ? Column(
                       children: [
@@ -795,13 +795,12 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
           // Hata Mesajı
           if (_errorMessage != null) ...[
             const SizedBox(height: 14),
-            Container(
+            FinanceCard(
               padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFEF2F2),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFFECACA)),
-              ),
+              color: const Color(0xFFFEF2F2),
+              borderRadius: 16,
+              border: Border.all(color: const Color(0xFFFECACA)),
+              boxShadow: const [],
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -906,13 +905,12 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
   /// Toplu yükleme sonucu: kaç belge kaydedildi, hangileri neden kaydedilmedi.
   Widget _buildBatchReport() {
     final lines = _batchReport!;
-    return Container(
+    return FinanceCard(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
+      color: const Color(0xFFF8FAFC),
+      borderRadius: 20,
+      border: Border.all(color: const Color(0xFFE2E8F0)),
+      boxShadow: const [],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -980,18 +978,14 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
   /// Dosya seçici: dokununca sistem dosya seçicisi açılır (Android'in seçicisi ek izin istemez).
   /// Birden fazla PDF seçilebilir; hepsi sırayla okunup kaydedilir.
   Widget _buildUploadPlaceholder() {
-    return InkWell(
+    return FinanceCard(
       onTap: _pickAndProcessPdf,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFFCBD5E1)),
-        ),
-        child: const Column(
+      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
+      color: const Color(0xFFF8FAFC),
+      borderRadius: 20,
+      border: Border.all(color: const Color(0xFFCBD5E1)),
+      boxShadow: const [],
+      child: const Column(
           children: [
             SizedBox(
               width: 48,
@@ -1021,19 +1015,17 @@ class _StatementUploadSheetState extends State<StatementUploadSheet> {
             ),
           ],
         ),
-      ),
     );
   }
 
   Widget _buildPreviewArea() {
     final result = _parsedResult!;
-    return Container(
+    return FinanceCard(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
+      color: const Color(0xFFF8FAFC),
+      borderRadius: 20,
+      border: Border.all(color: const Color(0xFFE2E8F0)),
+      boxShadow: const [],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

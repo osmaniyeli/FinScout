@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/fintech/fintech_components.dart';
 import '../../../../core/utils/currency_normalizer.dart';
 import '../../../../core/utils/thousands_input_formatter.dart';
 
@@ -210,13 +211,12 @@ class _CreditCardActionSheetState extends State<CreditCardActionSheet> {
             const SizedBox(height: 14),
 
             // Son ekstrede bankanın yazdığı değerler
-            Container(
+            FinanceCard(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
+              color: const Color(0xFFF8FAFC),
+              borderRadius: 16,
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              boxShadow: const [],
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [

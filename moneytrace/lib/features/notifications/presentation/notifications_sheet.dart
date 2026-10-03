@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/fintech/fintech_components.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/services/user_profile_service.dart';
 
@@ -130,15 +131,14 @@ class NotificationsSheet extends StatelessWidget {
                           final item = notifications[index];
                           final timeStr = '${item.date.day}.${item.date.month}.${item.date.year} ${item.date.hour.toString().padLeft(2, '0')}:${item.date.minute.toString().padLeft(2, '0')}';
 
-                          return Container(
+                          return FinanceCard(
                             padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: item.isRead ? const Color(0xFFF8FAFC) : const Color(0xFFEFF6FF),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: item.isRead ? const Color(0xFFE2E8F0) : const Color(0xFFBFDBFE),
-                              ),
+                            color: item.isRead ? const Color(0xFFF8FAFC) : const Color(0xFFEFF6FF),
+                            borderRadius: 16,
+                            border: Border.all(
+                              color: item.isRead ? const Color(0xFFE2E8F0) : const Color(0xFFBFDBFE),
                             ),
+                            boxShadow: const [],
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [

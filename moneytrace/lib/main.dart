@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:pdfrx/pdfrx.dart' show pdfrxFlutterInitialize;
 import 'core/config/remote_config_service.dart';
 import 'core/theme/app_theme.dart';
@@ -10,6 +11,7 @@ import 'core/services/user_profile_service.dart';
 import 'core/services/security_auth_service.dart';
 import 'core/services/account_service.dart';
 import 'core/services/backup_service.dart';
+import 'core/services/home_widget_service.dart';
 import 'core/parser/enrichment/category_engine.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/push_service.dart';
@@ -25,7 +27,11 @@ final GlobalKey<ScaffoldMessengerState> appMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  // Native splash (flutter_native_splash) ilk kareye kadar ekranda kalsın: aşağıdaki Future.wait
+  // biterken (ve ilk Flutter karesi çizilene dek) artık düz beyaz LaunchTheme değil, marka rengi +
+  // ikon gösterilir. remove() runApp'ten SONRA, ilk kare çizildiğinde çağrılır (aşağıda).
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   // İlk kare için gerekenler birbirinden bağımsız: sırayla değil birlikte beklenir.
   // (Her biri hatayı kendi içinde yakalar; Future.wait hiçbir zaman hata fırlatmaz.)
   await Future.wait<void>([
@@ -46,6 +52,9 @@ void main() async {
   // (ayrı isolate'te) çözülür; içe aktarma başlamadan önce StatementOrchestrator bitmesini bekler.
   unawaited(_loadMerchantDictionary());
   runApp(const FinScoutApp());
+  // İlk Flutter karesi gerçekten çizildikten SONRA native splash'i kaldır: Future.wait bitince hemen
+  // kaldırsaydık, Flutter'ın kendi ilk karesi çizilene kadar yine kısa bir boş/siyah an olabilirdi.
+  widgetsBinding.addPostFrameCallback((_) => FlutterNativeSplash.remove());
   // Açılışı bekletmeden: kart son ödeme ve ekstre talimatı hatırlatıcılarını güncelle
   unawaited(syncPaymentReminders());
   // Kendi hesaplar arası transferleri (ör. Yapı Kredi → Enpara) geriye dönük eşleştir: kullanıcı
@@ -59,6 +68,9 @@ void main() async {
   // Hesaba bağlı otomatik yedekleme: DataChanges dinleyicisini kurar (her değişiklikte debounce
   // ile arka planda yedekler). Ağ/oturum gerektirmez; oturum yoksa backupNow kendi içinde çıkar.
   unawaited(BackupService.instance.initialize());
+  // Ana ekran widget'ları (Aylık Değişim/Harcama/Maaş): DataChanges + profil tercihi dinleyicisini
+  // kurar, veri değiştiğinde (ya da gizle/göster tercihi değişince) widget'ları yeniden besler.
+  unawaited(HomeWidgetService.instance.initialize());
   // Yönetim panelinden düzenlenen canlı metinler: arka planda bir kerelik çekilir, AppStrings'e
   // uygulanır ve önbelleğe yazılır. Hata (ağ yok, tablo boş) sessizce yutulur.
   unawaited(AppContentService.instance.refreshFromSupabase());

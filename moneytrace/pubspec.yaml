@@ -1,7 +1,7 @@
 name: moneytrace
 description: "Paraİz (MoneyTrace) - Deterministik Veri Motoru & Harcama Zekası Platformu"
 publish_to: 'none'
-version: 3.14.0+17
+version: 3.15.0+18
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -42,6 +42,11 @@ dependencies:
   firebase_core: ^4.15.0
   firebase_messaging: ^16.7.0
 
+  # Ana ekran widget'ları (Aylık Değişim/Harcama/Maaş): Flutter ↔ native AppWidgetProvider köprüsü
+  home_widget: ^0.10.0
+  # Native splash: açılışta boş beyaz ekran yerine marka rengi + ikon (bkz. main.dart)
+  flutter_native_splash: ^2.4.8
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -60,3 +65,20 @@ flutter:
     - assets/sql/
     - assets/config/
     - assets/banks/
+    - assets/splash/
+
+# `dart run flutter_native_splash:create` ile üretilir (android/app/src/main/res/ altına native
+# kaynaklar yazar). Görsel: mevcut ic_launcher_foreground.png (marka ikonu) — yeni görsel YOK.
+# Marka rengi: AppColors.actionPrimary (lib/core/theme/app_colors.dart) ile aynı kobalt mavisi.
+flutter_native_splash:
+  color: "#2563EB"
+  image: assets/splash/branding_icon.png
+  android_12:
+    image: assets/splash/branding_icon.png
+    icon_background_color: "#2563EB"
+    color: "#2563EB"
+  android_min_sdk: 24
+  fullscreen: false
+  android: true
+  ios: false
+  web: false

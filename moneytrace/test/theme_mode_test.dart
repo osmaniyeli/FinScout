@@ -224,7 +224,14 @@ void main() {
 
       expect(find.text('İletişim izni'), findsOneWidget);
       expect(find.text('Kullanım Şartları'), findsOneWidget);
-      expect(find.byType(SwitchListTile), findsOneWidget);
+      // Ayarlar'da artık iki SwitchListTile var (İletişim İzni + Ana ekran widget'ında tutarları
+      // gizle); "İletişim izni" satırının kendi switch'ini taşıdığını doğrula (tip bazlı tekillik
+      // yerine, satıya özgü ebeveyn araması — yeni switch eklendiğinde kırılmaz).
+      expect(
+        find.ancestor(
+            of: find.text('İletişim izni'), matching: find.byType(SwitchListTile)),
+        findsOneWidget,
+      );
     });
   });
 }

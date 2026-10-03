@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/currency_normalizer.dart';
+import '../../../core/widgets/fintech/fintech_components.dart';
 import '../services/goal_calculator_service.dart';
 
 class GoalSummaryHeader extends StatelessWidget {
@@ -15,21 +16,19 @@ class GoalSummaryHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return FinanceCard(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x060F172A),
-            blurRadius: 12,
-            offset: Offset(0, 4),
-          ),
-        ],
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
-      ),
+      color: AppColors.cardOf(context),
+      borderRadius: 16,
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x060F172A),
+          blurRadius: 12,
+          offset: Offset(0, 4),
+        ),
+      ],
+      border: Border.all(color: AppColors.borderOf(context), width: 1),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

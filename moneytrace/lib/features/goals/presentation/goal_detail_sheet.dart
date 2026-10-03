@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/services/data_changes.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/fintech/fintech_components.dart';
 import '../../../core/utils/currency_normalizer.dart';
 import '../models/financial_goal.dart';
 import '../repositories/goal_repository.dart';
@@ -280,13 +281,12 @@ class _GoalDetailSheetState extends State<GoalDetailSheet> {
             const SizedBox(height: 16),
 
             // İlerleme özeti
-            Container(
+            FinanceCard(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: AppColors.borderLight),
-              ),
+              color: const Color(0xFFF8FAFC),
+              borderRadius: 18,
+              border: Border.all(color: AppColors.borderLight),
+              boxShadow: const [],
               child: Column(
                 children: [
                   _infoRow('Biriken',
