@@ -1,5 +1,4 @@
-• Analysis > Fees: interest, taxes and bank charges item by item; monthly and yearly totals.
-• Correct numbers: salary and card payments no longer double-counted, refunds reduce spending, finished installments disappear.
-• Delete transactions, change categories, record card payments, edit goals.
-• Family plan: premium for up to 4 people; each person's data stays on their own phone.
-• Subscription management and privacy links; simpler screens.
+• Comprehensive security review: closed a risk where switching accounts could mix old account data into the new account's backup, or empty it in rare cases.
+• Hardened backup encryption.
+• Small clarifications to the privacy text.
+• Behind the scenes: automated quality checks now run before every release.

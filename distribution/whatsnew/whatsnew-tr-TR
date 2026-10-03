@@ -1,5 +1,4 @@
-• Analiz > Masraflar: faiz, BSMV, KKDF, ücretler ve vergiler kalem kalem; bu ay ve yıl toplamı.
-• Rakamlar düzeldi: maaş ve kart ödemesi iki kez sayılmıyor, iade gideri azaltıyor, biten taksit listeden kalkıyor.
-• İşlem silme, kategori değiştirme, kart için ödemeyi kaydet, hedef düzenleme.
-• Aile paketi: premium hakkı 4 kişiye kadar; herkesin verisi kendi telefonunda.
-• Abonelik yönetimi ve gizlilik bağlantıları; sadeleştirilmiş ekranlar.
+• Kapsamlı güvenlik denetimi: farklı hesaba geçişte eski hesabın verisinin yeni hesabın yedeğine karışması ve bazı durumlarda yedeğin boşalması riski kapatıldı.
+• Yedekleme şifrelemesi sertleştirildi.
+• Gizlilik metninde küçük netleştirmeler.
+• Arka planda: otomatik kalite kontrolleri artık her güncellemeden önce çalışıyor.
